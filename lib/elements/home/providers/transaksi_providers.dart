@@ -16,26 +16,38 @@ final selectedJenisPengajuanProvider = StateProvider<int?>((ref) => null);
 // 2. PROVIDER UNTUK MENGAMBIL DATA DROPDOWN (Dengan Perbaikan Tipe Data)
 
 // Dropdown mandiri
-final customerOptionsProvider = FutureProvider<List<OptionItem>>((ref) => ref.watch(optionsRepositoryProvider).getCustomers());
-final typeEngineOptionsProvider = FutureProvider<List<OptionItem>>((ref) => ref.watch(optionsRepositoryProvider).getTypeEngines());
-final jenisPengajuanOptionsProvider = FutureProvider<List<OptionItem>>((ref) => ref.watch(optionsRepositoryProvider).getJenisPengajuan());
+final customerOptionsProvider = FutureProvider<List<OptionItem>>(
+  (ref) => ref.watch(optionsRepositoryProvider).getCustomers(),
+);
+final typeEngineOptionsProvider = FutureProvider<List<OptionItem>>(
+  (ref) => ref.watch(optionsRepositoryProvider).getTypeEngines(),
+);
+final jenisPengajuanOptionsProvider = FutureProvider<List<OptionItem>>(
+  (ref) => ref.watch(optionsRepositoryProvider).getJenisPengajuan(),
+);
 
 // Dropdown Bersyarat (Dependent)
-final merkOptionsProvider = FutureProvider<List<OptionItem>>((ref) { // <-- 1. Tambahkan tipe eksplisit di sini
+final merkOptionsProvider = FutureProvider<List<OptionItem>>((ref) {
+  // <-- 1. Tambahkan tipe eksplisit di sini
   final engineId = ref.watch(selectedTypeEngineProvider);
-  if (engineId == null) return Future.value(<OptionItem>[]); // <-- 2. Beri tipe pada list kosong
+  if (engineId == null)
+    return Future.value(<OptionItem>[]); // <-- 2. Beri tipe pada list kosong
   return ref.watch(optionsRepositoryProvider).getMerks(engineId);
 });
 
-final typeChassisOptionsProvider = FutureProvider<List<OptionItem>>((ref) { // <-- 1. Tambahkan tipe eksplisit di sini
+final typeChassisOptionsProvider = FutureProvider<List<OptionItem>>((ref) {
+  // <-- 1. Tambahkan tipe eksplisit di sini
   final merkId = ref.watch(selectedMerkProvider);
-  if (merkId == null) return Future.value(<OptionItem>[]); // <-- 2. Beri tipe pada list kosong
+  if (merkId == null)
+    return Future.value(<OptionItem>[]); // <-- 2. Beri tipe pada list kosong
   return ref.watch(optionsRepositoryProvider).getTypeChassis(merkId);
 });
 
-final jenisKendaraanOptionsProvider = FutureProvider<List<OptionItem>>((ref) { // <-- 1. Tambahkan tipe eksplisit di sini
+final jenisKendaraanOptionsProvider = FutureProvider<List<OptionItem>>((ref) {
+  // <-- 1. Tambahkan tipe eksplisit di sini
   final chassisId = ref.watch(selectedTypeChassisProvider);
-  if (chassisId == null) return Future.value(<OptionItem>[]); // <-- 2. Beri tipe pada list kosong
+  if (chassisId == null)
+    return Future.value(<OptionItem>[]); // <-- 2. Beri tipe pada list kosong
   return ref.watch(optionsRepositoryProvider).getJenisKendaraan(chassisId);
 });
 
@@ -45,3 +57,5 @@ final transaksiHistoryProvider = FutureProvider<List<Transaksi>>((ref) {
   // dan providernya sudah dibuat.
   return ref.watch(transaksiRepositoryProvider).getTransaksiHistory();
 });
+
+final rowsPerPageProvider = StateProvider<int>((ref) => 10);

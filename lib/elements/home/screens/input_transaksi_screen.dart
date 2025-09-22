@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/transaksi_providers.dart';
-import '../widgets/tambah_transaksi_form.dart'; // 1. Import widget form baru
+import '../widgets/tambah_transaksi_form.dart';
 import '../widgets/transaksi_history_table.dart';
 
 class InputTransaksiScreen extends ConsumerWidget {
@@ -15,14 +15,36 @@ class InputTransaksiScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            // 2. Panggil widget form di sini
+            // Form Tambah Transaksi (tidak berubah)
             TambahTransaksiForm(
-              // 3. Berikan aksi yang harus dilakukan setelah transaksi berhasil
               onTransaksiAdded: () {
                 ref.invalidate(transaksiHistoryProvider);
               },
             ),
             const SizedBox(height: 24),
+
+            // --- TAMBAHAN BARU: BARIS KONTROL TABEL ---
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Di sini nanti kita letakkan "Show entries" (untuk langkah berikutnya)
+                const Text("Histori Transaksi"),
+
+                // Tombol Reload
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Reload Data',
+                  onPressed: () {
+                    // Sama seperti callback, kita invalidate provider
+                    // untuk memaksa tabel memuat ulang data.
+                    ref.invalidate(transaksiHistoryProvider);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 8), // Sedikit spasi
+
+            // --- AKHIR TAMBAHAN BARU ---
             Expanded(
               child: Card(
                 child: SizedBox(

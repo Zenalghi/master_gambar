@@ -1,12 +1,82 @@
-// File: lib/elements/home/widgets/transaksi_history_table.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:data_table_2/data_table_2.dart'; // 1. Import package baru
+import 'package:data_table_2/data_table_2.dart';
 import '../../../data/models/transaksi.dart';
 import '../providers/transaksi_providers.dart';
 
-// 2. Ubah menjadi ConsumerStatefulWidget
+// 1. BUAT CLASS DATA SOURCE DI SINI
+class TransaksiDataSource extends DataTableSource {
+  final List<Transaksi> transaksiList;
+  final DateFormat dateFormat = DateFormat('yyyy.MM.dd HH:mm');
+
+  TransaksiDataSource(this.transaksiList);
+
+  @override
+  DataRow? getRow(int index) {
+    if (index >= transaksiList.length) {
+      return null;
+    }
+    final trx = transaksiList[index];
+
+    return DataRow(
+      key: ValueKey(trx.id),
+      cells: [
+        DataCell(SelectableText(trx.id)),
+        DataCell(SelectableText(trx.customer.namaPt)),
+        DataCell(SelectableText(trx.aTypeEngine.typeEngine)),
+        DataCell(SelectableText(trx.bMerk.merk)),
+        DataCell(SelectableText(trx.cTypeChassis.typeChassis)),
+        DataCell(
+          Container(
+            width: 100,
+            child: SelectableText(
+              trx.dJenisKendaraan.jenisKendaraan,
+              maxLines: 2,
+            ),
+          ),
+        ),
+        DataCell(
+          Container(
+            width: 80,
+            child: SelectableText(trx.fPengajuan.jenisPengajuan, maxLines: 2),
+          ),
+        ),
+        DataCell(SelectableText(trx.user.name)),
+        DataCell(SelectableText(dateFormat.format(trx.createdAt.toLocal()))),
+        DataCell(SelectableText(dateFormat.format(trx.updatedAt.toLocal()))),
+        DataCell(
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: Icon(Icons.edit, color: Colors.orange.shade700),
+                tooltip: 'Edit',
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: Icon(Icons.open_in_new, color: Colors.blue.shade700),
+                tooltip: 'Open',
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => transaksiList.length;
+
+  @override
+  int get selectedRowCount => 0;
+}
+
+// WIDGET UTAMA (SEKARANG MENGGUNAKAN PaginatedDataTable2)
 class TransaksiHistoryTable extends ConsumerStatefulWidget {
   const TransaksiHistoryTable({super.key});
 
@@ -16,99 +86,73 @@ class TransaksiHistoryTable extends ConsumerStatefulWidget {
 }
 
 class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
-  // 3. Buat state untuk sorting
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
 
   @override
   Widget build(BuildContext context) {
     final history = ref.watch(transaksiHistoryProvider);
-    final DateFormat dateFormat = DateFormat('yyyy.MM.dd HH:mm');
+    // Tonton provider rowsPerPage
+    final rowsPerPage = ref.watch(rowsPerPageProvider);
 
     return history.when(
       data: (transaksiList) {
-        // --- LOGIKA SORTING ---
-        // Buat salinan list agar bisa di-sort tanpa mengubah state asli
         final sortedList = List<Transaksi>.from(transaksiList);
+        // ... (logika sorting tidak berubah) ...
         sortedList.sort((a, b) {
           int result = 0;
           // Tentukan cara membandingkan berdasarkan kolom yang dipilih
           switch (_sortColumnIndex) {
-            case 0:
+            case 0: // ID Transaksi
               result = a.id.compareTo(b.id);
               break;
-            case 1:
+            case 1: // Customer
               result = a.customer.namaPt.compareTo(b.customer.namaPt);
               break;
-            case 2:
+            case 2: // Type Engine
               result = a.aTypeEngine.typeEngine.compareTo(
                 b.aTypeEngine.typeEngine,
               );
               break;
-            // ... tambahkan case untuk semua kolom yang ingin di-sort
-            case 7:
+            case 7: // User
               result = a.user.name.compareTo(b.user.name);
               break;
-            case 8:
+            case 8: // Created At
               result = a.createdAt.compareTo(b.createdAt);
               break;
+            // Anda bisa tambahkan case lain untuk kolom lain jika diperlukan
+            case 9: // Updated At
+              result = a.updatedAt.compareTo(b.updatedAt);
+              break;
           }
+          // Terapkan arah sorting (ascending/descending)
           return _sortAscending ? result : -result;
         });
-        // --- AKHIR LOGIKA SORTING ---
+        // 2. BUAT INSTANCE DARI DATA SOURCE
+        final dataSource = TransaksiDataSource(sortedList);
 
-        // 4. Ganti DataTable menjadi DataTable2
-        return DataTable2(
+        // 3. GANTI DataTable2 MENJADI PaginatedDataTable2
+        return PaginatedDataTable2(
           columnSpacing: 12,
           horizontalMargin: 12,
-          minWidth:
-              1600, // Beri lebar minimum, akan otomatis scrollable jika lebih kecil
+          minWidth: 1600,
           sortColumnIndex: _sortColumnIndex,
           sortAscending: _sortAscending,
-          columns:
-              _createColumns(), // Gunakan helper function untuk membuat kolom
-          rows: sortedList.map((trx) {
-            return DataRow(
-              cells: [
-                // 5. Ganti Text menjadi SelectableText
-                DataCell(SelectableText(trx.id)),
-                DataCell(SelectableText(trx.customer.namaPt)),
-                DataCell(SelectableText(trx.aTypeEngine.typeEngine)),
-                DataCell(SelectableText(trx.bMerk.merk)),
-                DataCell(SelectableText(trx.cTypeChassis.typeChassis)),
-                DataCell(SelectableText(trx.dJenisKendaraan.jenisKendaraan)),
-                DataCell(SelectableText(trx.fPengajuan.jenisPengajuan)),
-                DataCell(SelectableText(trx.user.name)),
-                DataCell(
-                  SelectableText(dateFormat.format(trx.createdAt.toLocal())),
-                ),
-                DataCell(
-                  SelectableText(dateFormat.format(trx.updatedAt.toLocal())),
-                ),
-                // SESUDAHNYA
-                DataCell(
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        tooltip: 'Edit',
-                        onPressed: () {
-                          // Logika untuk edit nanti di sini
-                        },
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.open_in_new),
-                        tooltip: 'Open',
-                        onPressed: () {
-                          // Logika untuk open nanti di sini
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          }).toList(),
+
+          // --- KONTROL PAGINASI DAN ENTRIES ---
+          rowsPerPage: rowsPerPage,
+          availableRowsPerPage: const [10, 25, 50],
+          onRowsPerPageChanged: (value) {
+            // Update state saat user memilih jumlah baris baru
+            if (value != null) {
+              ref.read(rowsPerPageProvider.notifier).state = value;
+            }
+          },
+
+          // ------------------------------------
+          columns: _createColumns(),
+          // Gunakan 'source' bukan 'rows'
+          source: dataSource,
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -159,7 +203,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
       DataColumn2(
         label: Text('Updated At'),
         size: ColumnSize.M,
-        onSort: (columnIndex, ascending) {},
+        onSort: _onSort,
       ),
       DataColumn2(label: Text('Option'), size: ColumnSize.S),
     ];
