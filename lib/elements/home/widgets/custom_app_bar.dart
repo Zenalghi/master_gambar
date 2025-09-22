@@ -9,11 +9,12 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Baca role langsung dari StateProvider.
+    // Baca role dan nama dari provider masing-masing
     final userRole = ref.watch(userRoleProvider);
+    final userName = ref.watch(userNameProvider);
 
     return AppBar(
-      automaticallyImplyLeading: false, 
+      automaticallyImplyLeading: false,
       title: TabBar(
         isScrollable: true,
         tabs: [
@@ -25,14 +26,31 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
         ],
       ),
       actions: [
+        // --- TAMPILKAN NAMA PENGGUNA DI SINI ---
+        // Cek jika nama tidak null sebelum menampilkannya
+        if (userName != null)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Text(userName, style: const TextStyle(fontSize: 16)),
+            ),
+          ),
+        const VerticalDivider(
+          thickness: 1,
+          width: 1, // Atur lebar divider
+          indent: 12, // Jarak dari atas AppBar
+          endIndent: 12, // Jarak dari bawah AppBar
+          color: Color.fromARGB(153, 0, 0, 0), // Warna agar sedikit transparan
+        ),
+        // -----------------------------------------
+
+        // Tombol Logout (tidak berubah)
         IconButton(
           icon: const Icon(Icons.logout),
           tooltip: 'Logout',
           onPressed: () async {
-            // Logout sekarang membutuhkan 'ref' untuk update StateProvider
             await ref.read(authRepositoryProvider).logout(ref);
-            
-            // Navigasi setelah logout
+
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) => const LoginScreen()),
               (route) => false,
@@ -42,7 +60,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
       ],
     );
   }
-  
+
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
