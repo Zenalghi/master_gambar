@@ -16,13 +16,17 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _selectedIndex = 0;
 
+  // Definisikan daftar halaman di sini agar tidak dibuat ulang setiap saat
+  final List<Widget> _screens = [
+    const InputTransaksiScreen(),
+    const Scaffold(body: Center(child: Text("Halaman Input Gambar"))),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    // Baca role langsung dari StateProvider. Tidak perlu .when() lagi.
     final userRole = ref.watch(userRoleProvider);
     final tabCount = (userRole == 'admin') ? 3 : 1;
 
-    // UI utama yang kini dijamin memiliki data role yang benar
     return DefaultTabController(
       length: tabCount,
       child: Scaffold(
@@ -38,12 +42,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               },
             ),
             const VerticalDivider(thickness: 1, width: 1),
+            
+            // --- PERUBAHAN UTAMA DI SINI ---
+            // Ganti cara menampilkan halaman dengan IndexedStack
             Expanded(
-              child: [
-                const InputTransaksiScreen(),
-                const Scaffold(body: Center(child: Text("Halaman Input Gambar"))),
-              ][_selectedIndex],
+              child: IndexedStack(
+                index: _selectedIndex,
+                children: _screens,
+              ),
             ),
+            // ---------------------------------
           ],
         ),
       ),

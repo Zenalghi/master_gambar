@@ -20,11 +20,11 @@ class Sidebar extends StatelessWidget {
       destinations: const [
         NavigationRailDestination(
           icon: Icon(Icons.input),
-          label: Text('Input Transaksi'),
+          label: Text('Input\nTransaksi', textAlign: TextAlign.center),
         ),
         NavigationRailDestination(
           icon: Icon(Icons.image),
-          label: Text('Input Gambar'),
+          label: Text('Input\nGambar', textAlign: TextAlign.center),
         ),
       ],
     );

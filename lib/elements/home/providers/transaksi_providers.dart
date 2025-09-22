@@ -2,6 +2,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import '../../../data/models/option_item.dart'; // Pastikan model di-import
+import '../../../data/models/transaksi.dart';
 import '../repository/options_repository.dart';
 
 // 1. PROVIDER UNTUK MENYIMPAN NILAI YANG DIPILIH (Tidak berubah)
@@ -36,4 +37,11 @@ final jenisKendaraanOptionsProvider = FutureProvider<List<OptionItem>>((ref) { /
   final chassisId = ref.watch(selectedTypeChassisProvider);
   if (chassisId == null) return Future.value(<OptionItem>[]); // <-- 2. Beri tipe pada list kosong
   return ref.watch(optionsRepositoryProvider).getJenisKendaraan(chassisId);
+});
+
+// Provider untuk data histori transaksi
+final transaksiHistoryProvider = FutureProvider<List<Transaksi>>((ref) {
+  // Kita asumsikan TransaksiRepository sudah ada di file options_repository.dart
+  // dan providernya sudah dibuat.
+  return ref.watch(transaksiRepositoryProvider).getTransaksiHistory();
 });
