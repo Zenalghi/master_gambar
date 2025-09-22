@@ -1,5 +1,7 @@
+// File: lib/elements/auth/presentation/screens/login_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../home/home_screen.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerWidget {
@@ -7,16 +9,13 @@ class LoginScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Perubahan 1: Buat GlobalKey untuk mengontrol Form
-    final _formKey = GlobalKey<FormState>();
-
+    final formKey = GlobalKey<FormState>();
     final usernameController = TextEditingController();
     final passwordController = TextEditingController();
     final authState = ref.watch(authNotifierProvider);
 
     ref.listen<AsyncValue<void>>(authNotifierProvider, (previous, next) {
       if (next is AsyncError) {
-        // Notifikasi error dari server (misal: username/password salah)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.error.toString()),
@@ -25,8 +24,9 @@ class LoginScreen extends ConsumerWidget {
         );
       }
       if (next is AsyncData && previous is AsyncLoading) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Login Berhasil!")));
-        // TODO: Navigasi ke halaman utama setelah login berhasil
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
       }
     });
 
@@ -36,63 +36,53 @@ class LoginScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(24.0),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text('Login', textAlign: TextAlign.center, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 32.0),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    // Perubahan 2: Bungkus Column dengan Widget Form
-                    child: Form(
-                      key: _formKey, // Hubungkan Form dengan GlobalKey
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text('Login', textAlign: TextAlign.center, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 32.0),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Kolom Username dengan Validator
                           TextFormField(
                             controller: usernameController,
                             decoration: const InputDecoration(labelText: 'Username'),
-                            keyboardType: TextInputType.text,
-                            // Perubahan 3: Tambahkan validator
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Username tidak boleh kosong';
                               }
-                              return null; // Return null jika valid
+                              return null;
                             },
                           ),
                           const SizedBox(height: 16.0),
-
-                          // Kolom Password dengan Validator
                           TextFormField(
                             controller: passwordController,
                             obscureText: true,
                             decoration: const InputDecoration(labelText: 'Password'),
-                            // Perubahan 4: Tambahkan validator
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Password tidak boleh kosong';
                               }
-                              return null; // Return null jika valid
+                              return null;
                             },
                           ),
                           const SizedBox(height: 24.0),
-
-                          // Tombol Login
                           authState.isLoading
                               ? const Center(child: CircularProgressIndicator())
                               : ElevatedButton(
-                                  // Perubahan 5: Perbarui logika onPressed
                                   onPressed: () {
-                                    // Cek dulu apakah form sudah valid
-                                    if (_formKey.currentState!.validate()) {
-                                      // Jika valid, baru panggil fungsi login
+                                    if (formKey.currentState!.validate()) {
+                                      // Kirim 'ref' ke dalam fungsi login
                                       ref.read(authNotifierProvider.notifier).login(
                                             usernameController.text,
                                             passwordController.text,
+                                            ref, // Teruskan ref ke notifier
                                           );
                                     }
                                   },
@@ -102,8 +92,8 @@ class LoginScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

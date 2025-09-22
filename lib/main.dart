@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app/theme/app_theme.dart';
-import 'elements/auth/presentation/screens/login_screen.dart'; // Import login screen
-
+import 'app/core/auth_wrapper.dart'; // Import wrapper
 
 void main() {
   runApp(
@@ -19,10 +18,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'Master Gambar App',
       theme: createAppTheme(),
-      home: const LoginScreen(), // Halaman pertama adalah LoginScreen
+      debugShowCheckedModeBanner: false,
+      home: const AuthWrapper(), // Ganti home menjadi AuthWrapper
     );
   }
 }

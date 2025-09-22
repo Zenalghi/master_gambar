@@ -27,7 +27,9 @@ ThemeData createAppTheme() {
     cardTheme: CardThemeData(
       color: AppColors.card,
       elevation: 8.0, // Mengatur seberapa tebal shadow
-      shadowColor: AppColors.shadow.withOpacity(0.15), // Warna shadow dengan transparansi
+      shadowColor: AppColors.shadow.withOpacity(
+        0.9,
+      ), // Warna shadow dengan transparansi
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16.0), // Membuat sudut melengkung
       ),
@@ -41,7 +43,10 @@ ThemeData createAppTheme() {
       ),
       filled: true,
       fillColor: AppColors.background, // Sedikit abu-abu agar kontras
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: 14.0,
+      ),
     ),
 
     // TEMA UNTUK TOMBOL
