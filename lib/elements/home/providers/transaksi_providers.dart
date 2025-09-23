@@ -59,3 +59,12 @@ final transaksiHistoryProvider = FutureProvider<List<Transaksi>>((ref) {
 });
 
 final rowsPerPageProvider = StateProvider<int>((ref) => 10);
+
+// StateProvider untuk menyimpan query pencarian global
+final globalSearchQueryProvider = StateProvider<String>((ref) => '');
+
+final customerFilterProvider = StateProvider<String>((ref) => '');
+final typeEngineFilterProvider = StateProvider<String>((ref) => '');
+// ... tambahkan provider lain sesuai kebutuhan ...
+final jenisPengajuanFilterProvider = StateProvider<String>((ref) => '');
+final userFilterProvider = StateProvider<String>((ref) => '');

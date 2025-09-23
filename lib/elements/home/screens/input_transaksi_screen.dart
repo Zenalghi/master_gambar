@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/transaksi_providers.dart';
+import '../widgets/advanced_filter_panel.dart';
 import '../widgets/tambah_transaksi_form.dart';
 import '../widgets/transaksi_history_table.dart';
 
@@ -21,29 +22,57 @@ class InputTransaksiScreen extends ConsumerWidget {
                 ref.invalidate(transaksiHistoryProvider);
               },
             ),
-            const SizedBox(height: 24),
-
+            
+            // const SizedBox(height: 24),
+            SizedBox(height: 16),
+            const AdvancedFilterPanel(),
+            const SizedBox(height: 16),
             // --- TAMBAHAN BARU: BARIS KONTROL TABEL ---
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Di sini nanti kita letakkan "Show entries" (untuk langkah berikutnya)
-                const Text("Histori Transaksi"),
+                // Bagian kiri tetap sama
+                const Text(
+                  "Histori Transaksi",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
 
-                // Tombol Reload
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  tooltip: 'Reload Data',
-                  onPressed: () {
-                    // Sama seperti callback, kita invalidate provider
-                    // untuk memaksa tabel memuat ulang data.
-                    ref.invalidate(transaksiHistoryProvider);
-                  },
+                // Bagian kanan sekarang berisi Search dan Reload
+                Row(
+                  children: [
+                    // Search Field Global
+                    SizedBox(
+                      width: 250, // Beri lebar agar tidak terlalu besar
+                      child: TextField(
+                        decoration: InputDecoration(
+                          labelText: 'Search...',
+                          prefixIcon: Icon(Icons.search),
+                          isDense: true, // Membuatnya lebih ringkas
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          // Update provider saat pengguna mengetik
+                          ref.read(globalSearchQueryProvider.notifier).state =
+                              value;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Tombol Reload
+                    IconButton(
+                      icon: const Icon(Icons.refresh),
+                      tooltip: 'Reload Data',
+                      onPressed: () {
+                        ref.invalidate(transaksiHistoryProvider);
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
             const SizedBox(height: 8), // Sedikit spasi
-
             // --- AKHIR TAMBAHAN BARU ---
             Expanded(
               child: Card(

@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
 import '../../../app/core/providers.dart';
 import '../../../data/models/option_item.dart';
-import '../../../data/providers/api_client.dart';
 import '../../../data/providers/api_endpoints.dart';
-
 
 // Provider untuk repository ini
 final optionsRepositoryProvider = Provider((ref) => OptionsRepository(ref));
@@ -20,24 +18,33 @@ class OptionsRepository {
     final List<dynamic> data = response.data;
     return data.map((item) => OptionItem.fromJson(item)).toList();
   }
-  
-  Future<List<OptionItem>> getCustomers() => _fetchOptions(ApiEndpoints.customers);
-  Future<List<OptionItem>> getTypeEngines() => _fetchOptions(ApiEndpoints.typeEngines);
-  Future<List<OptionItem>> getMerks(String engineId) => _fetchOptions(ApiEndpoints.merks(engineId));
-  Future<List<OptionItem>> getTypeChassis(String merkId) => _fetchOptions(ApiEndpoints.typeChassis(merkId));
-  Future<List<OptionItem>> getJenisKendaraan(String chassisId) => _fetchOptions(ApiEndpoints.jenisKendaraan(chassisId));
-  Future<List<OptionItem>> getJenisPengajuan() => _fetchOptions(ApiEndpoints.jenisPengajuan);
+
+  Future<List<OptionItem>> getCustomers() =>
+      _fetchOptions(ApiEndpoints.customers);
+  Future<List<OptionItem>> getTypeEngines() =>
+      _fetchOptions(ApiEndpoints.typeEngines);
+  Future<List<OptionItem>> getMerks(String engineId) =>
+      _fetchOptions(ApiEndpoints.merks(engineId));
+  Future<List<OptionItem>> getTypeChassis(String merkId) =>
+      _fetchOptions(ApiEndpoints.typeChassis(merkId));
+  Future<List<OptionItem>> getJenisKendaraan(String chassisId) =>
+      _fetchOptions(ApiEndpoints.jenisKendaraan(chassisId));
+  Future<List<OptionItem>> getJenisPengajuan() =>
+      _fetchOptions(ApiEndpoints.jenisPengajuan);
 }
 
 class TransaksiRepository {
   final Ref _ref;
   TransaksiRepository(this._ref);
   // Method baru untuk GET histori transaksi
-Future<List<Transaksi>> getTransaksiHistory() async {
-  final response = await _ref.read(apiClientProvider).dio.get(ApiEndpoints.transaksi);
-  final List<dynamic> data = response.data;
-  return data.map((item) => Transaksi.fromJson(item)).toList();
-}
+  Future<List<Transaksi>> getTransaksiHistory() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(ApiEndpoints.transaksi);
+    final List<dynamic> data = response.data;
+    return data.map((item) => Transaksi.fromJson(item)).toList();
+  }
 
   Future<void> addTransaksi({
     required int customerId,
@@ -47,20 +54,22 @@ Future<List<Transaksi>> getTransaksiHistory() async {
     required String jenisKendaraanId,
     required int jenisPengajuanId,
   }) async {
-    await _ref.read(apiClientProvider).dio.post(
-      ApiEndpoints.transaksi,
-      data: {
-        "customer_id": customerId,
-        "a_type_engine_id": typeEngineId,
-        "b_merk_id": merkId,
-        "c_type_chassis_id": typeChassisId,
-        "d_jenis_kendaraan_id": jenisKendaraanId,
-        "f_pengajuan_id": jenisPengajuanId,
-      },
-    );
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post(
+          ApiEndpoints.transaksi,
+          data: {
+            "customer_id": customerId,
+            "a_type_engine_id": typeEngineId,
+            "b_merk_id": merkId,
+            "c_type_chassis_id": typeChassisId,
+            "d_jenis_kendaraan_id": jenisKendaraanId,
+            "f_pengajuan_id": jenisPengajuanId,
+          },
+        );
   }
-
-
 }
+
 // Daftarkan juga providernya
 final transaksiRepositoryProvider = Provider((ref) => TransaksiRepository(ref));

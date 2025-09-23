@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:data_table_2/data_table_2.dart';
 import '../../../data/models/transaksi.dart';
 import '../providers/transaksi_providers.dart';
+import '../widgets/advanced_filter_panel.dart';
 
 // 1. BUAT CLASS DATA SOURCE DI SINI
 class TransaksiDataSource extends DataTableSource {
@@ -68,10 +69,8 @@ class TransaksiDataSource extends DataTableSource {
 
   @override
   bool get isRowCountApproximate => false;
-
   @override
   int get rowCount => transaksiList.length;
-
   @override
   int get selectedRowCount => 0;
 }
@@ -79,7 +78,6 @@ class TransaksiDataSource extends DataTableSource {
 // WIDGET UTAMA (SEKARANG MENGGUNAKAN PaginatedDataTable2)
 class TransaksiHistoryTable extends ConsumerStatefulWidget {
   const TransaksiHistoryTable({super.key});
-
   @override
   ConsumerState<TransaksiHistoryTable> createState() =>
       _TransaksiHistoryTableState();
@@ -92,43 +90,82 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
   @override
   Widget build(BuildContext context) {
     final history = ref.watch(transaksiHistoryProvider);
-    // Tonton provider rowsPerPage
     final rowsPerPage = ref.watch(rowsPerPageProvider);
+    final searchQuery = ref.watch(globalSearchQueryProvider);
+    final customerFilter = ref.watch(customerFilterProvider);
+    final typeEngineFilter = ref.watch(typeEngineFilterProvider);
+    final userFilter = ref.watch(userFilterProvider);
+    final jenisPengajuanFilter = ref.watch(jenisPengajuanFilterProvider);
 
     return history.when(
       data: (transaksiList) {
-        final sortedList = List<Transaksi>.from(transaksiList);
-        // ... (logika sorting tidak berubah) ...
+        final filteredList = transaksiList.where((trx) {
+          final query = searchQuery.toLowerCase();
+          final globalMatch =
+              query.isEmpty ||
+              trx.id.toLowerCase().contains(query) ||
+              trx.customer.namaPt.toLowerCase().contains(query) ||
+              trx.aTypeEngine.typeEngine.toLowerCase().contains(query) ||
+              trx.bMerk.merk.toLowerCase().contains(query) ||
+              trx.cTypeChassis.typeChassis.toLowerCase().contains(query) ||
+              trx.dJenisKendaraan.jenisKendaraan.toLowerCase().contains(
+                query,
+              ) ||
+              trx.fPengajuan.jenisPengajuan.toLowerCase().contains(query) ||
+              trx.user.name.toLowerCase().contains(query);
+
+          final customerMatch = trx.customer.namaPt.toLowerCase().contains(
+            customerFilter.toLowerCase(),
+          );
+          final typeEngineMatch = trx.aTypeEngine.typeEngine
+              .toLowerCase()
+              .contains(typeEngineFilter.toLowerCase());
+          final userMatch = trx.user.name.toLowerCase().contains(
+            userFilter.toLowerCase(),
+          );
+          final jenisPengajuanMatch = trx.fPengajuan.jenisPengajuan
+              .toLowerCase()
+              .contains(jenisPengajuanFilter.toLowerCase());
+
+          return globalMatch &&
+              customerMatch &&
+              typeEngineMatch &&
+              userMatch &&
+              jenisPengajuanMatch;
+        }).toList();
+
+        // LANGKAH 2: Lakukan sorting pada 'filteredList' (hasil dari langkah 1)
+        final sortedList = List<Transaksi>.from(
+          filteredList,
+        ); // Buat salinan dari list yang SUDAH difilter
         sortedList.sort((a, b) {
           int result = 0;
-          // Tentukan cara membandingkan berdasarkan kolom yang dipilih
           switch (_sortColumnIndex) {
-            case 0: // ID Transaksi
+            case 0:
               result = a.id.compareTo(b.id);
               break;
-            case 1: // Customer
+            case 1:
               result = a.customer.namaPt.compareTo(b.customer.namaPt);
               break;
-            case 2: // Type Engine
+            case 2:
               result = a.aTypeEngine.typeEngine.compareTo(
                 b.aTypeEngine.typeEngine,
               );
               break;
-            case 7: // User
+            case 7:
               result = a.user.name.compareTo(b.user.name);
               break;
-            case 8: // Created At
+            case 8:
               result = a.createdAt.compareTo(b.createdAt);
               break;
-            // Anda bisa tambahkan case lain untuk kolom lain jika diperlukan
-            case 9: // Updated At
+            case 9:
               result = a.updatedAt.compareTo(b.updatedAt);
               break;
           }
-          // Terapkan arah sorting (ascending/descending)
           return _sortAscending ? result : -result;
         });
-        // 2. BUAT INSTANCE DARI DATA SOURCE
+
+        // LANGKAH 3: Gunakan 'sortedList' (yang sudah difilter dan di-sort)
         final dataSource = TransaksiDataSource(sortedList);
 
         // 3. GANTI DataTable2 MENJADI PaginatedDataTable2
@@ -194,7 +231,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
         size: ColumnSize.S,
         onSort: (columnIndex, ascending) {},
       ),
-      DataColumn2(label: Text('User'), size: ColumnSize.M, onSort: _onSort),
+      DataColumn2(label: Text('User'), size: ColumnSize.S, onSort: _onSort),
       DataColumn2(
         label: Text('Created At'),
         size: ColumnSize.M,
