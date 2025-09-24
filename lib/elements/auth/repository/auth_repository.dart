@@ -18,7 +18,7 @@ class AuthRepository {
       if (response.statusCode == 200) {
         final token = response.data['access_token'];
         final user = response.data['user'];
-        final userRole = user['role'];
+        final userRole = user['role']['name'];
         final userName = user['name']; // Ambil nama dari response
 
         final prefs = await SharedPreferences.getInstance();
@@ -29,7 +29,6 @@ class AuthRepository {
         // Update kedua StateProvider
         ref.read(userRoleProvider.notifier).state = userRole;
         ref.read(userNameProvider.notifier).state = userName;
-
       } else {
         throw Exception('Failed to login');
       }
