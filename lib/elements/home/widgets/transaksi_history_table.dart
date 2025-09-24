@@ -84,8 +84,8 @@ class TransaksiHistoryTable extends ConsumerStatefulWidget {
 }
 
 class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
-  int _sortColumnIndex = 0;
-  bool _sortAscending = true;
+  int _sortColumnIndex = 9;
+  bool _sortAscending = false;
 
   @override
   Widget build(BuildContext context) {
@@ -150,10 +150,8 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
               jenisPengajuanMatch;
         }).toList();
 
-        // LANGKAH 2: Lakukan sorting pada 'filteredList' (hasil dari langkah 1)
-        final sortedList = List<Transaksi>.from(
-          filteredList,
-        ); // Buat salinan dari list yang SUDAH difilter
+        // LANGKAH 2: Lakukan soring pada 'filteredList' (hasil dari langkah 1)
+        final sortedList = List<Transaksi>.from(filteredList);
         sortedList.sort((a, b) {
           int result = 0;
           switch (_sortColumnIndex) {
@@ -168,6 +166,26 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
                 b.aTypeEngine.typeEngine,
               );
               break;
+            // --- TAMBAHKAN LOGIKA BARU DI SINI ---
+            case 3:
+              result = a.bMerk.merk.compareTo(b.bMerk.merk);
+              break;
+            case 4:
+              result = a.cTypeChassis.typeChassis.compareTo(
+                b.cTypeChassis.typeChassis,
+              );
+              break;
+            case 5:
+              result = a.dJenisKendaraan.jenisKendaraan.compareTo(
+                b.dJenisKendaraan.jenisKendaraan,
+              );
+              break;
+            case 6:
+              result = a.fPengajuan.jenisPengajuan.compareTo(
+                b.fPengajuan.jenisPengajuan,
+              );
+              break;
+            // --- AKHIR LOGIKA BARU ---
             case 7:
               result = a.user.name.compareTo(b.user.name);
               break;
@@ -181,7 +199,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
           return _sortAscending ? result : -result;
         });
 
-        // LANGKAH 3: Gunakan 'sortedList' (yang sudah difilter dan di-sort)
+        // LANGKAH 3: Gunakan 'soredList' (yang sudah difilter dan di-sor)
         final dataSource = TransaksiDataSource(sortedList);
 
         // 3. GANTI DataTable2 MENJADI PaginatedDataTable2
@@ -213,7 +231,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
     );
   }
 
-  // Helper function untuk membuat kolom dengan logic onSort
+  // Helper function untuk membuat kolom dengan logic onSor
   List<DataColumn2> _createColumns() {
     return [
       DataColumn2(
@@ -230,22 +248,22 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
       DataColumn2(
         label: Text('Merk'),
         size: ColumnSize.M,
-        onSort: (columnIndex, ascending) {},
-      ), // Contoh kolom tanpa sort
+        onSort: _onSort,
+      ), // Contoh kolom tanpa sor
       DataColumn2(
         label: Text('Type Chassis'),
         size: ColumnSize.L,
-        onSort: (columnIndex, ascending) {},
+        onSort: _onSort,
       ),
       DataColumn2(
         label: Text('Jenis\nKendaraan'),
         size: ColumnSize.S,
-        onSort: (columnIndex, ascending) {},
+        onSort: _onSort,
       ),
       DataColumn2(
         label: Text('Jenis\nPengajuan'),
         size: ColumnSize.S,
-        onSort: (columnIndex, ascending) {},
+        onSort: _onSort,
       ),
       DataColumn2(label: Text('User'), size: ColumnSize.S, onSort: _onSort),
       DataColumn2(
