@@ -1,7 +1,7 @@
 // File: lib/app/core/auth_wrapper.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../elements/auth/presentation/screens/login_screen.dart';
+import '../../elements/auth/presentation/login_screen.dart';
 import '../../elements/home/home_screen.dart';
 import 'providers.dart'; // Import file providers
 

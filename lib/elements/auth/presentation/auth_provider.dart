@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../app/core/providers.dart';
+import '../../../app/core/providers.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import '../../repository/auth_repository.dart';
+import '../repository/auth_repository.dart';
 
 // State Notifier untuk proses login
 final authNotifierProvider =

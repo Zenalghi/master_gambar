@@ -1,7 +1,7 @@
 // File: lib/elements/home/widgets/custom_app_bar.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../auth/presentation/screens/login_screen.dart';
+import '../../auth/presentation/login_screen.dart';
 import '../../../app/core/providers.dart';
 
 class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
