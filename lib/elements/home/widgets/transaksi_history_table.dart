@@ -28,21 +28,8 @@ class TransaksiDataSource extends DataTableSource {
         DataCell(SelectableText(trx.aTypeEngine.typeEngine)),
         DataCell(SelectableText(trx.bMerk.merk)),
         DataCell(SelectableText(trx.cTypeChassis.typeChassis)),
-        DataCell(
-          Container(
-            width: 100,
-            child: SelectableText(
-              trx.dJenisKendaraan.jenisKendaraan,
-              maxLines: 2,
-            ),
-          ),
-        ),
-        DataCell(
-          Container(
-            width: 80,
-            child: SelectableText(trx.fPengajuan.jenisPengajuan, maxLines: 2),
-          ),
-        ),
+        DataCell(SelectableText(trx.dJenisKendaraan.jenisKendaraan)),
+        DataCell(SelectableText(trx.fPengajuan.jenisPengajuan)),
         DataCell(SelectableText(trx.user.name)),
         DataCell(SelectableText(dateFormat.format(trx.createdAt.toLocal()))),
         DataCell(SelectableText(dateFormat.format(trx.updatedAt.toLocal()))),
