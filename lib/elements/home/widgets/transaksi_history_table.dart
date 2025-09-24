@@ -94,8 +94,11 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
     final searchQuery = ref.watch(globalSearchQueryProvider);
     final customerFilter = ref.watch(customerFilterProvider);
     final typeEngineFilter = ref.watch(typeEngineFilterProvider);
-    final userFilter = ref.watch(userFilterProvider);
+    final merkFilter = ref.watch(merkFilterProvider);
+    final typeChassisFilter = ref.watch(typeChassisFilterProvider);
+    final jenisKendaraanFilter = ref.watch(jenisKendaraanFilterProvider);
     final jenisPengajuanFilter = ref.watch(jenisPengajuanFilterProvider);
+    final userFilter = ref.watch(userFilterProvider);
 
     return history.when(
       data: (transaksiList) {
@@ -120,6 +123,16 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
           final typeEngineMatch = trx.aTypeEngine.typeEngine
               .toLowerCase()
               .contains(typeEngineFilter.toLowerCase());
+          // Tambahkan filter lain sesuai kebutuhan
+          final merkMatch = trx.bMerk.merk.toLowerCase().contains(
+            merkFilter.toLowerCase(),
+          );
+          final typeChassisMatch = trx.cTypeChassis.typeChassis
+              .toLowerCase()
+              .contains(typeChassisFilter.toLowerCase());
+          final jenisKendaraanMatch = trx.dJenisKendaraan.jenisKendaraan
+              .toLowerCase()
+              .contains(jenisKendaraanFilter.toLowerCase());
           final userMatch = trx.user.name.toLowerCase().contains(
             userFilter.toLowerCase(),
           );
@@ -130,6 +143,9 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
           return globalMatch &&
               customerMatch &&
               typeEngineMatch &&
+              merkMatch &&
+              typeChassisMatch &&
+              jenisKendaraanMatch &&
               userMatch &&
               jenisPengajuanMatch;
         }).toList();

@@ -65,6 +65,8 @@ final globalSearchQueryProvider = StateProvider<String>((ref) => '');
 
 final customerFilterProvider = StateProvider<String>((ref) => '');
 final typeEngineFilterProvider = StateProvider<String>((ref) => '');
-// ... tambahkan provider lain sesuai kebutuhan ...
+final merkFilterProvider = StateProvider<String>((ref) => '');
+final typeChassisFilterProvider = StateProvider<String>((ref) => '');
+final jenisKendaraanFilterProvider = StateProvider<String>((ref) => '');
 final jenisPengajuanFilterProvider = StateProvider<String>((ref) => '');
 final userFilterProvider = StateProvider<String>((ref) => '');

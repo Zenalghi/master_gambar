@@ -24,8 +24,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userRole = ref.watch(userRoleProvider);
-    final tabCount = (userRole == 'admin') ? 3 : 1;
+    final authService = ref.watch(authServiceProvider);
+    final tabCount = authService.canViewAdminTabs() ? 3 : 1;
 
     return DefaultTabController(
       length: tabCount,
@@ -42,14 +42,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               },
             ),
             const VerticalDivider(thickness: 1, width: 1),
-            
+
             // --- PERUBAHAN UTAMA DI SINI ---
             // Ganti cara menampilkan halaman dengan IndexedStack
             Expanded(
-              child: IndexedStack(
-                index: _selectedIndex,
-                children: _screens,
-              ),
+              child: IndexedStack(index: _selectedIndex, children: _screens),
             ),
             // ---------------------------------
           ],

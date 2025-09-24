@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../elements/auth/repository/auth_repository.dart';
 import '../../data/providers/api_client.dart'; // Import class ApiClient
+import '../../elements/auth/auth_service.dart';
 
 // Provider untuk instance ApiClient
 final apiClientProvider = Provider<ApiClient>((ref) {
@@ -25,7 +26,7 @@ final userNameProvider = StateProvider<String?>((ref) => null);
 final initialAuthProvider = FutureProvider<String?>((ref) async {
   final prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('auth_token');
-  
+
   if (token != null) {
     // Jika token ada, inisialisasi state role dan nama
     final role = prefs.getString('user_role');
@@ -33,6 +34,10 @@ final initialAuthProvider = FutureProvider<String?>((ref) async {
     ref.read(userRoleProvider.notifier).state = role;
     ref.read(userNameProvider.notifier).state = name;
   }
-  
+
   return token;
+});
+
+final authServiceProvider = Provider<AuthService>((ref) {
+  return AuthService(ref);
 });

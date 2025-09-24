@@ -1,16 +1,16 @@
 // File: lib/elements/home/widgets/custom_app_bar.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../app/core/providers.dart';
 import '../../auth/presentation/screens/login_screen.dart';
+import '../../../app/core/providers.dart';
 
 class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   const CustomAppBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Baca role dan nama dari provider masing-masing
-    final userRole = ref.watch(userRoleProvider);
+    // 1. Ganti userRoleProvider dengan authServiceProvider
+    final authService = ref.watch(authServiceProvider);
     final userName = ref.watch(userNameProvider);
 
     return AppBar(
@@ -19,7 +19,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
         isScrollable: true,
         tabs: [
           const Tab(text: 'WORK AREA'),
-          if (userRole == 'admin') ...[
+          if (authService.canViewAdminTabs()) ...[
             const Tab(text: 'MASTER'),
             const Tab(text: 'CONFIGURATION'),
           ],

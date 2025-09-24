@@ -29,15 +29,33 @@ class AdvancedFilterPanel extends ConsumerWidget {
                 label: 'Filter Type Engine',
                 provider: typeEngineFilterProvider,
               ),
+              //merk
               _buildFilterTextField(
                 ref,
-                label: 'Filter User',
-                provider: userFilterProvider,
+                label: 'Filter Merk',
+                provider: merkFilterProvider,
+              ),
+              //type chassis
+              _buildFilterTextField(
+                ref,
+                label: 'Filter Type Chassis',
+                provider: typeChassisFilterProvider,
+              ),
+              //jenis kendaraan
+              _buildFilterTextField(
+                ref,
+                label: 'Filter Jenis Kendaraan',
+                provider: jenisKendaraanFilterProvider,
               ),
               _buildFilterTextField(
                 ref,
                 label: 'Filter Jenis Pengajuan',
                 provider: jenisPengajuanFilterProvider,
+              ),
+              _buildFilterTextField(
+                ref,
+                label: 'Filter User',
+                provider: userFilterProvider,
               ),
               // Tambahkan TextField lain di sini sesuai kebutuhan
             ],
