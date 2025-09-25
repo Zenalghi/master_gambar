@@ -38,6 +38,64 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
     _selectedJenisPengajuanId = widget.transaksi.fPengajuan.id;
   }
 
+  void _showDeleteConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Konfirmasi Hapus'),
+          content: Text(
+            'Anda yakin ingin menghapus transaksi ID: ${widget.transaksi.id}? Tindakan ini tidak dapat dibatalkan.',
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Batal'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Tutup dialog konfirmasi
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Ya, Hapus'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Tutup dialog konfirmasi
+                _submitDelete(); // Jalankan fungsi hapus
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // --- METHOD BARU UNTUK EKSEKUSI HAPUS ---
+  void _submitDelete() async {
+    try {
+      await ref
+          .read(transaksiRepositoryProvider)
+          .deleteTransaksi(transaksiId: widget.transaksi.id);
+
+      // Tutup dialog edit
+      if (mounted) Navigator.of(context).pop();
+      // Refresh tabel
+      ref.invalidate(transaksiHistoryProvider);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Transaksi berhasil dihapus!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menghapus transaksi: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -67,13 +125,25 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Batal'),
-        ),
-        ElevatedButton(
-          onPressed: _submitUpdate,
-          child: const Text('Update Transaksi'),
+        Row(
+          children: [
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              onPressed: _showDeleteConfirmationDialog,
+              child: const Text('Hapus'),
+            ),
+            // Spacer agar tombol lain ke kanan
+            const Spacer(),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Batal'),
+            ),
+            const SizedBox(width: 20), // Spacer horizontal
+            ElevatedButton(
+              onPressed: _submitUpdate,
+              child: const Text('Update Transaksi'),
+            ),
+          ],
         ),
       ],
     );

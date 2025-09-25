@@ -33,6 +33,8 @@ class OptionsRepository {
       _fetchOptions(ApiEndpoints.jenisPengajuan);
 }
 
+final transaksiRepositoryProvider = Provider((ref) => TransaksiRepository(ref));
+
 class TransaksiRepository {
   final Ref _ref;
   TransaksiRepository(this._ref);
@@ -97,7 +99,15 @@ class TransaksiRepository {
           },
         );
   }
+
+  Future<void> deleteTransaksi({required String transaksiId}) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete(
+          '${ApiEndpoints.transaksi}/$transaksiId', // Endpoint -> DELETE /transaksi/{id}
+        );
+  }
 }
 
 // Daftarkan juga providernya
-final transaksiRepositoryProvider = Provider((ref) => TransaksiRepository(ref));

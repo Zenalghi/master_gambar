@@ -23,9 +23,9 @@ class OptionItem {
         key = 'type_chassis';
       } else if (json.containsKey('jenis_kendaraan')) {
         key = 'jenis_kendaraan';
-      } else if (json.containsKey('nama_pengajuan')) {
+      } else if (json.containsKey('jenis_pengajuan')) {
         // Disesuaikan dengan model terakhir
-        key = 'nama_pengajuan';
+        key = 'jenis_pengajuan';
       }
       // --- TAMBAHKAN KONDISI INI ---
       else if (json.containsKey('deskripsi')) {
