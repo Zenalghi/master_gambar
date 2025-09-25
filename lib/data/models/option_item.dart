@@ -24,7 +24,6 @@ class OptionItem {
       } else if (json.containsKey('jenis_kendaraan')) {
         key = 'jenis_kendaraan';
       } else if (json.containsKey('jenis_pengajuan')) {
-        // Disesuaikan dengan model terakhir
         key = 'jenis_pengajuan';
       }
       // --- TAMBAHKAN KONDISI INI ---

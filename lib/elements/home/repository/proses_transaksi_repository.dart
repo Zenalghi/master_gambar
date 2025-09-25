@@ -17,6 +17,7 @@ class ProsesTransaksiRepository {
     required String transaksiId,
     required int pemeriksaId,
     required List<int> varianBodyIds,
+    required List<String> judulGambar, // <-- Tambah
     int? hGambarOptionalId,
     int? iGambarKelistrikanId,
   }) async {
@@ -29,6 +30,7 @@ class ProsesTransaksiRepository {
             data: {
               'pemeriksa_id': pemeriksaId,
               'varian_body_ids': varianBodyIds,
+              'judul_gambar': judulGambar,
               'h_gambar_optional_id': hGambarOptionalId,
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'preview', // Kirim aksi 'preview'
@@ -56,6 +58,7 @@ class ProsesTransaksiRepository {
     required String transaksiId,
     required int pemeriksaId,
     required List<int> varianBodyIds,
+    required List<String> judulGambar, // <-- Tambah
     int? hGambarOptionalId,
     int? iGambarKelistrikanId,
   }) async {
@@ -68,6 +71,7 @@ class ProsesTransaksiRepository {
             data: {
               'pemeriksa_id': pemeriksaId,
               'varian_body_ids': varianBodyIds,
+              'judul_gambar': judulGambar,
               'h_gambar_optional_id': hGambarOptionalId,
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'proses', // Kirim aksi 'proses'

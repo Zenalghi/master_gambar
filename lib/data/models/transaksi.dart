@@ -82,8 +82,8 @@ class DJenisKendaraan {
 }
 
 class FPengajuan {
-  final int id; // Tambahkan id
-  final String jenisPengajuan;
+  final int id;
+  final String jenisPengajuan; // Ganti dari namaPengajuan
   FPengajuan({required this.id, required this.jenisPengajuan});
   factory FPengajuan.fromJson(Map<String, dynamic> json) =>
       FPengajuan(id: json['id'], jenisPengajuan: json['jenis_pengajuan']);
