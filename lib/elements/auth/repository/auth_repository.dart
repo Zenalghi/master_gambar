@@ -19,16 +19,18 @@ class AuthRepository {
         final token = response.data['access_token'];
         final user = response.data['user'];
         final userRole = user['role']['name'];
-        final userName = user['name']; // Ambil nama dari response
+        final userName = user['name'];
+        final userId = user['id']; // Ambil nama dari response
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', token);
         await prefs.setString('user_role', userRole);
         await prefs.setString('user_name', userName); // Simpan nama
-
+        await prefs.setInt('user_id', userId);
         // Update kedua StateProvider
         ref.read(userRoleProvider.notifier).state = userRole;
         ref.read(userNameProvider.notifier).state = userName;
+        ref.read(currentUserIdProvider.notifier).state = userId;
       } else {
         throw Exception('Failed to login');
       }
@@ -42,9 +44,10 @@ class AuthRepository {
     await prefs.remove('auth_token');
     await prefs.remove('user_role');
     await prefs.remove('user_name'); // Hapus nama saat logout
-
+    await prefs.remove('user_id');
     // Reset kedua StateProvider
     ref.read(userRoleProvider.notifier).state = null;
     ref.read(userNameProvider.notifier).state = null;
+    ref.read(currentUserIdProvider.notifier).state = null;
   }
 }

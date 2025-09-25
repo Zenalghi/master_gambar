@@ -37,6 +37,34 @@ class TransaksiRepository {
   final Ref _ref;
   TransaksiRepository(this._ref);
   // Method baru untuk GET histori transaksi
+  Future<void> updateTransaksi({
+    required String transaksiId,
+    required int customerId,
+    required String jenisKendaraanId,
+    required int jenisPengajuanId,
+  }) async {
+    // Ekstrak ID induk dari jenis_kendaraan_id
+    final String typeEngineId = jenisKendaraanId.substring(0, 2);
+    final String merkId = jenisKendaraanId.substring(0, 4);
+    final String typeChassisId = jenisKendaraanId.substring(0, 7);
+
+    // Kirim request PUT ke endpoint update
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .put(
+          '${ApiEndpoints.transaksi}/$transaksiId', // Endpoint -> /transaksi/{id}
+          data: {
+            "customer_id": customerId,
+            "a_type_engine_id": typeEngineId,
+            "b_merk_id": merkId,
+            "c_type_chassis_id": typeChassisId,
+            "d_jenis_kendaraan_id": jenisKendaraanId,
+            "f_pengajuan_id": jenisPengajuanId,
+          },
+        );
+  }
+
   Future<List<Transaksi>> getTransaksiHistory() async {
     final response = await _ref
         .read(apiClientProvider)

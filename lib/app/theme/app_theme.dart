@@ -54,7 +54,7 @@ ThemeData createAppTheme() {
       style: ElevatedButton.styleFrom(
         foregroundColor: Colors.white, // Warna teks tombol
         backgroundColor: AppColors.primary, // Warna latar tombol
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.0),
         ),

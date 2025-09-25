@@ -70,3 +70,21 @@ final typeChassisFilterProvider = StateProvider<String>((ref) => '');
 final jenisKendaraanFilterProvider = StateProvider<String>((ref) => '');
 final jenisPengajuanFilterProvider = StateProvider<String>((ref) => '');
 final userFilterProvider = StateProvider<String>((ref) => '');
+
+final merkOptionsFamilyProvider =
+    FutureProvider.family<List<OptionItem>, String?>((ref, engineId) {
+      if (engineId == null) return Future.value([]);
+      return ref.watch(optionsRepositoryProvider).getMerks(engineId);
+    });
+
+final typeChassisOptionsFamilyProvider =
+    FutureProvider.family<List<OptionItem>, String?>((ref, merkId) {
+      if (merkId == null) return Future.value([]);
+      return ref.watch(optionsRepositoryProvider).getTypeChassis(merkId);
+    });
+
+final jenisKendaraanOptionsFamilyProvider =
+    FutureProvider.family<List<OptionItem>, String?>((ref, chassisId) {
+      if (chassisId == null) return Future.value([]);
+      return ref.watch(optionsRepositoryProvider).getJenisKendaraan(chassisId);
+    });

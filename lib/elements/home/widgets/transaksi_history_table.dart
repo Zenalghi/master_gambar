@@ -4,14 +4,28 @@ import 'package:intl/intl.dart';
 import 'package:data_table_2/data_table_2.dart';
 import '../../../data/models/transaksi.dart';
 import '../providers/transaksi_providers.dart';
+import '../screens/input_gambar_screen.dart';
 import '../widgets/advanced_filter_panel.dart';
+import 'package:master_gambar/app/core/providers.dart'; // <-- Import provider
+import 'package:master_gambar/elements/auth/auth_service.dart';
+import 'edit_transaksi_dialog.dart'; // <-- Import dialog yang baru dibuat
 
 // 1. BUAT CLASS DATA SOURCE DI SINI
 class TransaksiDataSource extends DataTableSource {
   final List<Transaksi> transaksiList;
   final DateFormat dateFormat = DateFormat('yyyy.MM.dd HH:mm');
+  final AuthService authService; // <-- Tambah
+  final int? currentUserId; // <-- Tambah
+  final BuildContext context; // <-- Tambah context untuk dialog
+  final WidgetRef ref; // <-- Tambah ref untuk invalidate
 
-  TransaksiDataSource(this.transaksiList);
+  TransaksiDataSource(
+    this.transaksiList,
+    this.authService,
+    this.currentUserId,
+    this.context,
+    this.ref,
+  );
 
   @override
   DataRow? getRow(int index) {
@@ -19,6 +33,8 @@ class TransaksiDataSource extends DataTableSource {
       return null;
     }
     final trx = transaksiList[index];
+    final bool canEdit =
+        authService.canViewAdminTabs() || trx.user.id == currentUserId;
 
     return DataRow(
       key: ValueKey(trx.id),
@@ -38,14 +54,31 @@ class TransaksiDataSource extends DataTableSource {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: Icon(Icons.edit, color: Colors.orange.shade700),
-                tooltip: 'Edit',
-                onPressed: () {},
+                icon: Icon(
+                  Icons.edit,
+                  color: canEdit ? Colors.orange.shade700 : Colors.grey,
+                ),
+                tooltip: canEdit ? 'Edit' : 'Anda tidak punya akses',
+                onPressed: canEdit
+                    ? () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => EditTransaksiDialog(transaksi: trx),
+                        );
+                      }
+                    : null,
               ),
               IconButton(
                 icon: Icon(Icons.open_in_new, color: Colors.blue.shade700),
                 tooltip: 'Open',
-                onPressed: () {},
+                onPressed: () {
+                  // Navigasi ke halaman Input Gambar dengan membawa data transaksi
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => InputGambarScreen(transaksi: trx),
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -86,6 +119,8 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
     final jenisKendaraanFilter = ref.watch(jenisKendaraanFilterProvider);
     final jenisPengajuanFilter = ref.watch(jenisPengajuanFilterProvider);
     final userFilter = ref.watch(userFilterProvider);
+    final authService = ref.watch(authServiceProvider);
+    final currentUserId = ref.watch(currentUserIdProvider);
 
     return history.when(
       data: (transaksiList) {
@@ -133,8 +168,8 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
               merkMatch &&
               typeChassisMatch &&
               jenisKendaraanMatch &&
-              userMatch &&
-              jenisPengajuanMatch;
+              jenisPengajuanMatch &&
+              userMatch;
         }).toList();
 
         // LANGKAH 2: Lakukan soring pada 'filteredList' (hasil dari langkah 1)
@@ -187,7 +222,13 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
         });
 
         // LANGKAH 3: Gunakan 'soredList' (yang sudah difilter dan di-sor)
-        final dataSource = TransaksiDataSource(sortedList);
+        final dataSource = TransaksiDataSource(
+          sortedList,
+          authService,
+          currentUserId,
+          context,
+          ref,
+        );
 
         // 3. GANTI DataTable2 MENJADI PaginatedDataTable2
         return PaginatedDataTable2(

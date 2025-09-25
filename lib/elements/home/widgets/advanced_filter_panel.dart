@@ -1,4 +1,6 @@
 // File: lib/elements/home/widgets/advanced_filter_panel.dart
+// ignore_for_file: unused_import
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';

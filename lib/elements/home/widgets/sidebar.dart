@@ -19,8 +19,8 @@ class Sidebar extends StatelessWidget {
       labelType: NavigationRailLabelType.all,
       destinations: const [
         NavigationRailDestination(
-          icon: Icon(Icons.input),
-          label: Text('Input\nTransaksi', textAlign: TextAlign.center),
+          icon: Icon(Icons.table_rows_rounded),
+          label: Text('Transaksi', textAlign: TextAlign.center),
         ),
         NavigationRailDestination(
           icon: Icon(Icons.image),

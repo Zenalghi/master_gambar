@@ -21,7 +21,6 @@ final userRoleProvider = StateProvider<String?>((ref) => null);
 
 // StateProvider untuk menyimpan nama pengguna secara aktif
 final userNameProvider = StateProvider<String?>((ref) => null);
-
 // FutureProvider untuk pengecekan awal (sekarang juga memuat nama)
 final initialAuthProvider = FutureProvider<String?>((ref) async {
   final prefs = await SharedPreferences.getInstance();
@@ -31,8 +30,10 @@ final initialAuthProvider = FutureProvider<String?>((ref) async {
     // Jika token ada, inisialisasi state role dan nama
     final role = prefs.getString('user_role');
     final name = prefs.getString('user_name');
+    final userId = prefs.getInt('user_id');
     ref.read(userRoleProvider.notifier).state = role;
     ref.read(userNameProvider.notifier).state = name;
+    ref.read(currentUserIdProvider.notifier).state = userId;
   }
 
   return token;
@@ -41,3 +42,4 @@ final initialAuthProvider = FutureProvider<String?>((ref) async {
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(ref);
 });
+final currentUserIdProvider = StateProvider<int?>((ref) => null);

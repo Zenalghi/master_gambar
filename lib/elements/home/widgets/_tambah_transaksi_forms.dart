@@ -10,16 +10,14 @@ class TambahTransaksiForm extends ConsumerWidget {
   // Callback untuk memberitahu parent widget bahwa transaksi berhasil ditambahkan
   final VoidCallback onTransaksiAdded;
 
-  const TambahTransaksiForm({
-    super.key,
-    required this.onTransaksiAdded,
-  });
+  const TambahTransaksiForm({super.key, required this.onTransaksiAdded});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Daftarkan provider TransaksiRepository di sini
-    final transaksiRepositoryProvider =
-        Provider((ref) => TransaksiRepository(ref));
+    final transaksiRepositoryProvider = Provider(
+      (ref) => TransaksiRepository(ref),
+    );
 
     return Card(
       child: Padding(
@@ -33,7 +31,9 @@ class TambahTransaksiForm extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: _buildDropdown(context, ref,
+                    child: _buildDropdown(
+                      context,
+                      ref,
                       label: 'Customer',
                       optionsProvider: customerOptionsProvider,
                       selectedValueProvider: selectedCustomerProvider,
@@ -41,14 +41,20 @@ class TambahTransaksiForm extends ConsumerWidget {
                   ),
                   const SizedBox(width: 16.0),
                   Expanded(
-                    child: _buildDropdown(context, ref,
+                    child: _buildDropdown(
+                      context,
+                      ref,
                       label: 'Type Engine',
                       optionsProvider: typeEngineOptionsProvider,
                       selectedValueProvider: selectedTypeEngineProvider,
                       onChanged: (value) {
                         ref.read(selectedMerkProvider.notifier).state = null;
-                        ref.read(selectedTypeChassisProvider.notifier).state = null;
-                        ref.read(selectedJenisKendaraanProvider.notifier).state = null;
+                        ref.read(selectedTypeChassisProvider.notifier).state =
+                            null;
+                        ref
+                                .read(selectedJenisKendaraanProvider.notifier)
+                                .state =
+                            null;
                       },
                     ),
                   ),
@@ -60,24 +66,35 @@ class TambahTransaksiForm extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: _buildDropdown(context, ref,
+                    child: _buildDropdown(
+                      context,
+                      ref,
                       label: 'Merk',
                       optionsProvider: merkOptionsProvider,
                       selectedValueProvider: selectedMerkProvider,
                       onChanged: (value) {
-                        ref.read(selectedTypeChassisProvider.notifier).state = null;
-                        ref.read(selectedJenisKendaraanProvider.notifier).state = null;
+                        ref.read(selectedTypeChassisProvider.notifier).state =
+                            null;
+                        ref
+                                .read(selectedJenisKendaraanProvider.notifier)
+                                .state =
+                            null;
                       },
                     ),
                   ),
                   const SizedBox(width: 16.0),
                   Expanded(
-                    child: _buildDropdown(context, ref,
+                    child: _buildDropdown(
+                      context,
+                      ref,
                       label: 'Type Chassis',
                       optionsProvider: typeChassisOptionsProvider,
                       selectedValueProvider: selectedTypeChassisProvider,
                       onChanged: (value) {
-                        ref.read(selectedJenisKendaraanProvider.notifier).state = null;
+                        ref
+                                .read(selectedJenisKendaraanProvider.notifier)
+                                .state =
+                            null;
                       },
                     ),
                   ),
@@ -89,7 +106,9 @@ class TambahTransaksiForm extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: _buildDropdown(context, ref,
+                    child: _buildDropdown(
+                      context,
+                      ref,
                       label: 'Jenis Kendaraan',
                       optionsProvider: jenisKendaraanOptionsProvider,
                       selectedValueProvider: selectedJenisKendaraanProvider,
@@ -97,7 +116,9 @@ class TambahTransaksiForm extends ConsumerWidget {
                   ),
                   const SizedBox(width: 16.0),
                   Expanded(
-                    child: _buildDropdown(context, ref,
+                    child: _buildDropdown(
+                      context,
+                      ref,
                       label: 'Jenis Pengajuan',
                       optionsProvider: jenisPengajuanOptionsProvider,
                       selectedValueProvider: selectedJenisPengajuanProvider,
@@ -113,18 +134,31 @@ class TambahTransaksiForm extends ConsumerWidget {
                   final typeEngineId = ref.read(selectedTypeEngineProvider);
                   final merkId = ref.read(selectedMerkProvider);
                   final typeChassisId = ref.read(selectedTypeChassisProvider);
-                  final jenisKendaraanId = ref.read(selectedJenisKendaraanProvider);
-                  final jenisPengajuanId = ref.read(selectedJenisPengajuanProvider);
+                  final jenisKendaraanId = ref.read(
+                    selectedJenisKendaraanProvider,
+                  );
+                  final jenisPengajuanId = ref.read(
+                    selectedJenisPengajuanProvider,
+                  );
 
-                  if (customerId == null || typeEngineId == null || merkId == null || typeChassisId == null || jenisKendaraanId == null || jenisPengajuanId == null) {
+                  if (customerId == null ||
+                      typeEngineId == null ||
+                      merkId == null ||
+                      typeChassisId == null ||
+                      jenisKendaraanId == null ||
+                      jenisPengajuanId == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Harap lengkapi semua pilihan')),
+                      const SnackBar(
+                        content: Text('Harap lengkapi semua pilihan'),
+                      ),
                     );
                     return;
                   }
 
                   try {
-                    await ref.read(transaksiRepositoryProvider).addTransaksi(
+                    await ref
+                        .read(transaksiRepositoryProvider)
+                        .addTransaksi(
                           customerId: customerId,
                           typeEngineId: typeEngineId,
                           merkId: merkId,
@@ -132,16 +166,17 @@ class TambahTransaksiForm extends ConsumerWidget {
                           jenisKendaraanId: jenisKendaraanId,
                           jenisPengajuanId: jenisPengajuanId,
                         );
-                    
+
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Transaksi berhasil ditambahkan!')),
+                      const SnackBar(
+                        content: Text('Transaksi berhasil ditambahkan!'),
+                      ),
                     );
 
                     // Panggil callback untuk memberitahu parent
                     onTransaksiAdded();
-
                   } catch (e) {
-                     ScaffoldMessenger.of(context).showSnackBar(
+                    ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Gagal menambah transaksi: $e')),
                     );
                   }
