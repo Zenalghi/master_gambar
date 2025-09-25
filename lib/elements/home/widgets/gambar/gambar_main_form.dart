@@ -9,7 +9,9 @@ import 'package:master_gambar/elements/home/widgets/gambar/gambar_utama_row.dart
 
 class GambarMainForm extends ConsumerWidget {
   final Transaksi transaksi;
+  // Pastikan tipe data fungsi ini benar: menerima 'int'
   final Function(int) onPreviewPressed;
+
   const GambarMainForm({
     super.key,
     required this.transaksi,
@@ -40,6 +42,7 @@ class GambarMainForm extends ConsumerWidget {
             _buildSection(
               title: 'Gambar Utama',
               itemCount: jumlahGambar,
+              // --- PERBAIKAN: Teruskan fungsi onPreviewPressed ---
               itemBuilder: (index) => GambarUtamaRow(
                 index: index,
                 transaksi: transaksi,
@@ -51,6 +54,7 @@ class GambarMainForm extends ConsumerWidget {
             _buildSection(
               title: 'Gambar Terurai',
               itemCount: jumlahGambar,
+              // --- PERBAIKAN: Teruskan fungsi onPreviewPressed ---
               itemBuilder: (index) => GambarSyncedRow(
                 index: index,
                 title: 'Gambar Terurai',
@@ -63,6 +67,7 @@ class GambarMainForm extends ConsumerWidget {
             _buildSection(
               title: 'Gambar Kontruksi',
               itemCount: jumlahGambar,
+              // --- PERBAIKAN: Teruskan fungsi onPreviewPressed ---
               itemBuilder: (index) => GambarSyncedRow(
                 index: index,
                 title: 'Gambar Kontruksi',
@@ -80,10 +85,10 @@ class GambarMainForm extends ConsumerWidget {
               controlAffinity: ListTileControlAffinity.leading,
             ),
             if (showOptional) ...[
-              // Panggil widget baru
               GambarOptionalSection(
                 pageNumber: optionalPageNumber,
                 totalHalaman: totalHalaman,
+                // --- PERBAIKAN: Teruskan fungsi onPreviewPressed ---
                 onPreviewPressed: () =>
                     onPreviewPressed(optionalPageNumber - 1),
               ),
@@ -97,12 +102,12 @@ class GambarMainForm extends ConsumerWidget {
                       value!,
               controlAffinity: ListTileControlAffinity.leading,
             ),
-            // Panggil widget baru
             if (showKelistrikan)
               GambarKelistrikanSection(
                 transaksi: transaksi,
                 pageNumber: kelistrikanPageNumber,
                 totalHalaman: totalHalaman,
+                // --- PERBAIKAN: Teruskan fungsi onPreviewPressed ---
                 onPreviewPressed: () =>
                     onPreviewPressed(kelistrikanPageNumber - 1),
               ),

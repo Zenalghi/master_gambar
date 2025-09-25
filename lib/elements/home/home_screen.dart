@@ -1,57 +1,68 @@
-// File: lib/elements/home/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../app/core/providers.dart';
+import 'package:master_gambar/app/core/providers.dart';
+import 'package:master_gambar/data/models/transaksi.dart';
+import 'package:master_gambar/elements/home/providers/page_state_provider.dart';
+
+import 'screens/input_gambar_screen.dart';
+import 'screens/input_transaksi_screen.dart';
 import 'widgets/custom_app_bar.dart';
 import 'widgets/sidebar.dart';
-import 'screens/input_transaksi_screen.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pageState = ref.watch(pageStateProvider);
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int _selectedIndex = 0;
-
-  // Definisikan daftar halaman di sini agar tidak dibuat ulang setiap saat
-  final List<Widget> _screens = [
-    const InputTransaksiScreen(),
-    const Scaffold(body: Center(child: Text("Halaman Input Gambar"))),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
+    // --- LOGIKA BARU: HITUNG JUMLAH TAB ---
+    // Logika ini dibutuhkan untuk DefaultTabController
     final authService = ref.watch(authServiceProvider);
     final tabCount = authService.canViewAdminTabs() ? 3 : 1;
+    // ------------------------------------
 
+    Widget currentPage;
+    switch (pageState.pageIndex) {
+      case 0:
+        currentPage = const InputTransaksiScreen();
+        break;
+      case 1:
+        if (pageState.data != null) {
+          currentPage = InputGambarScreen(
+            transaksi: pageState.data as Transaksi,
+          );
+        } else {
+          currentPage = const InputTransaksiScreen();
+        }
+        break;
+      default:
+        currentPage = const InputTransaksiScreen();
+    }
+
+    // --- PERUBAHAN UTAMA: BUNGKUS SCAFFOLD DENGAN DEFAULTTABCONTROLLER ---
     return DefaultTabController(
-      length: tabCount,
+      length: tabCount, // Wajib diisi sesuai jumlah tab
       child: Scaffold(
         appBar: const CustomAppBar(),
         body: Row(
           children: [
             Sidebar(
-              selectedIndex: _selectedIndex,
+              selectedIndex: pageState.pageIndex,
               onItemSelected: (index) {
-                setState(() {
-                  _selectedIndex = index;
-                });
+                if (index == 0) {
+                  ref.read(pageStateProvider.notifier).state = PageState(
+                    pageIndex: index,
+                  );
+                }
               },
             ),
             const VerticalDivider(thickness: 1, width: 1),
-
-            // --- PERUBAHAN UTAMA DI SINI ---
-            // Ganti cara menampilkan halaman dengan IndexedStack
-            Expanded(
-              child: IndexedStack(index: _selectedIndex, children: _screens),
-            ),
-            // ---------------------------------
+            Expanded(child: currentPage),
           ],
         ),
       ),
     );
+    // --- AKHIR PERUBAHAN ---
   }
 }

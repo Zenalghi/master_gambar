@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/elements/home/providers/transaksi_providers.dart';
 import 'package:master_gambar/elements/home/repository/options_repository.dart';
 
+import '../../../app/core/notifiers/refresh_notifier.dart';
+
 class TambahTransaksiDialog extends ConsumerStatefulWidget {
   final VoidCallback onTransaksiAdded;
 
@@ -26,6 +28,16 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(refreshNotifierProvider, (previous, next) {
+      // Saat lonceng berbunyi, invalidate semua provider yang relevan untuk dialog ini
+      ref.invalidate(customerOptionsProvider);
+      ref.invalidate(typeEngineOptionsProvider);
+      ref.invalidate(merkOptionsFamilyProvider);
+      ref.invalidate(typeChassisOptionsFamilyProvider);
+      ref.invalidate(jenisKendaraanOptionsFamilyProvider);
+      ref.invalidate(jenisPengajuanOptionsProvider);
+      // .family provider akan otomatis refresh karena induknya di-invalidate
+    });
     return AlertDialog(
       title: const Text('Tambah Transaksi Baru'),
       content: SizedBox(

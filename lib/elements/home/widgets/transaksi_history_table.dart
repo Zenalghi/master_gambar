@@ -3,9 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:data_table_2/data_table_2.dart';
 import '../../../data/models/transaksi.dart';
+import '../providers/page_state_provider.dart';
 import '../providers/transaksi_providers.dart';
-import '../screens/input_gambar_screen.dart';
-import '../widgets/advanced_filter_panel.dart';
 import 'package:master_gambar/app/core/providers.dart'; // <-- Import provider
 import 'package:master_gambar/elements/auth/auth_service.dart';
 import 'edit_transaksi_dialog.dart'; // <-- Import dialog yang baru dibuat
@@ -72,11 +71,10 @@ class TransaksiDataSource extends DataTableSource {
                 icon: Icon(Icons.open_in_new, color: Colors.blue.shade700),
                 tooltip: 'Open',
                 onPressed: () {
-                  // Navigasi ke halaman Input Gambar dengan membawa data transaksi
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => InputGambarScreen(transaksi: trx),
-                    ),
+                  // Update state global, bukan navigasi manual
+                  ref.read(pageStateProvider.notifier).state = PageState(
+                    pageIndex: 1, // Index untuk InputGambarScreen
+                    data: trx, // Kirim data transaksi yang dipilih
                   );
                 },
               ),
@@ -240,7 +238,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
 
           // --- KONTROL PAGINASI DAN ENTRIES ---
           rowsPerPage: rowsPerPage,
-          availableRowsPerPage: const [10, 25, 50],
+          availableRowsPerPage: const [25, 50, 100],
           onRowsPerPageChanged: (value) {
             // Update state saat user memilih jumlah baris baru
             if (value != null) {

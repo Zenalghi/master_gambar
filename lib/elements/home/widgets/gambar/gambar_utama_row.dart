@@ -3,9 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
 import 'package:master_gambar/elements/home/providers/input_gambar_providers.dart';
 
-import '../../repository/proses_transaksi_repository.dart';
-import '../../screens/pdf_viewer_screen.dart';
-
 class GambarUtamaRow extends ConsumerWidget {
   final int index;
   final Transaksi transaksi;

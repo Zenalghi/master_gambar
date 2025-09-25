@@ -61,7 +61,7 @@ class GambarOptionalSection extends ConsumerWidget {
         ),
         const SizedBox(width: 8),
         SizedBox(
-          width: 180,
+          width: 170,
           child: ElevatedButton(
             // <-- 3. Gunakan fungsi yang diterima
             onPressed: isSelected ? onPreviewPressed : null,

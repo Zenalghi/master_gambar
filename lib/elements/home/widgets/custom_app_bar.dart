@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/presentation/login_screen.dart';
 import '../../../app/core/providers.dart';
+// import 'global_refresh_button.dart';
 
 class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   const CustomAppBar({super.key});
@@ -26,6 +27,10 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
         ],
       ),
       actions: [
+        // const GlobalRefreshButton(),
+
+        // const SizedBox(width: 16),
+
         // --- TAMPILKAN NAMA PENGGUNA DI SINI ---
         // Cek jika nama tidak null sebelum menampilkannya
         if (userName != null)

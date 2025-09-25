@@ -58,7 +58,7 @@ final transaksiHistoryProvider = FutureProvider<List<Transaksi>>((ref) {
   return ref.watch(transaksiRepositoryProvider).getTransaksiHistory();
 });
 
-final rowsPerPageProvider = StateProvider<int>((ref) => 10);
+final rowsPerPageProvider = StateProvider<int>((ref) => 25);
 
 // StateProvider untuk menyimpan query pencarian global
 final globalSearchQueryProvider = StateProvider<String>((ref) => '');
