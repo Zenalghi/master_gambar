@@ -26,10 +26,28 @@ class GambarSyncedRow extends ConsumerWidget {
     final varianBodyOptions = ref.watch(
       varianBodyOptionsFamilyProvider(transaksi.dJenisKendaraan.id),
     );
+
+    // --- 1. Ambil juga data opsi judul ---
+    final judulOptions = ref.watch(judulGambarOptionsProvider);
+
     final bool isRowComplete =
         selection.judulId != null && selection.varianBodyId != null;
 
+    // --- 2. Siapkan variabel untuk nama judul dan nama varian ---
+    String judulName = '...';
     String varianBodyName = '...';
+
+    // Cari nama judul berdasarkan ID
+    judulOptions.whenData((items) {
+      if (selection.judulId != null) {
+        final selectedItem = items.where((e) => e.id == selection.judulId);
+        if (selectedItem.isNotEmpty) {
+          judulName = selectedItem.first.name;
+        }
+      }
+    });
+
+    // Cari nama varian berdasarkan ID
     varianBodyOptions.whenData((items) {
       if (selection.varianBodyId != null) {
         final selectedItem = items.where((e) => e.id == selection.varianBodyId);
@@ -56,7 +74,8 @@ class GambarSyncedRow extends ConsumerWidget {
               color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Text(varianBodyName),
+            // --- 3. Tampilkan nama judul di sini ---
+            child: Text(judulName),
           ),
         ),
         const SizedBox(width: 10),
@@ -68,6 +87,7 @@ class GambarSyncedRow extends ConsumerWidget {
               color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(4),
             ),
+            // Tampilkan nama varian di sini (ini sudah benar)
             child: Text(varianBodyName),
           ),
         ),
@@ -86,7 +106,7 @@ class GambarSyncedRow extends ConsumerWidget {
         ),
         const SizedBox(width: 10),
         SizedBox(
-          width: 170,
+          width: 180,
           child: ElevatedButton(
             onPressed: isRowComplete ? onPreviewPressed : null,
             child: const Text('Preview Gambar'),
