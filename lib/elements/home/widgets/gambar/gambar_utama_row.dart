@@ -26,6 +26,8 @@ class GambarUtamaRow extends ConsumerWidget {
     final judulOptions = ref.watch(judulGambarOptionsProvider);
     final bool isRowComplete =
         selection.judulId != null && selection.varianBodyId != null;
+    final isLoading = ref.watch(isProcessingProvider);
+
     final pageNumber = index + 1;
 
     return Row(
@@ -104,7 +106,7 @@ class GambarUtamaRow extends ConsumerWidget {
         SizedBox(
           width: 170,
           child: ElevatedButton(
-            onPressed: isRowComplete ? onPreviewPressed : null,
+            onPressed: isRowComplete && !isLoading ? onPreviewPressed : null,
             child: const Text('Preview Gambar'),
           ),
         ),

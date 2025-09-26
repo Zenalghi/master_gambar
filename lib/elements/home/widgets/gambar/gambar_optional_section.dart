@@ -92,6 +92,7 @@ class _GambarOptionalRow extends ConsumerWidget {
     final options = ref.watch(gambarOptionalOptionsProvider);
     final selection = ref.watch(gambarOptionalSelectionProvider)[index];
     final isSelected = selection.gambarOptionalId != null;
+    final isLoading = ref.watch(isProcessingProvider);
     return Row(
       children: [
         const SizedBox(width: 150, child: Text('Gambar Optional:')),
@@ -137,7 +138,7 @@ class _GambarOptionalRow extends ConsumerWidget {
           width: 170,
           child: ElevatedButton(
             // <-- 3. Gunakan fungsi yang diterima
-            onPressed: isSelected ? onPreviewPressed : null,
+            onPressed: isSelected && !isLoading ? onPreviewPressed : null,
             child: const Text('Preview Gambar'),
           ),
         ),

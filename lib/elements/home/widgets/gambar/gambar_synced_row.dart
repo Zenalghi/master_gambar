@@ -32,6 +32,7 @@ class GambarSyncedRow extends ConsumerWidget {
 
     final bool isRowComplete =
         selection.judulId != null && selection.varianBodyId != null;
+    final isLoading = ref.watch(isProcessingProvider);
 
     // --- 2. Siapkan variabel untuk nama judul dan nama varian ---
     String judulName = '...';
@@ -108,7 +109,7 @@ class GambarSyncedRow extends ConsumerWidget {
         SizedBox(
           width: 170,
           child: ElevatedButton(
-            onPressed: isRowComplete ? onPreviewPressed : null,
+            onPressed: isRowComplete && !isLoading ? onPreviewPressed : null,
             child: const Text('Preview Gambar'),
           ),
         ),
