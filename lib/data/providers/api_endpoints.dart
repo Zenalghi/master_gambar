@@ -6,9 +6,11 @@ class ApiEndpoints {
   // Untuk endpoint dengan parameter, kita buat fungsi
   static String merks(String engineId) => '/options/merks/$engineId';
   static String typeChassis(String merkId) => '/options/type-chassis/$merkId';
-  static String jenisKendaraan(String chassisId) => '/options/jenis-kendaraan/$chassisId';
+  static String jenisKendaraan(String chassisId) =>
+      '/options/jenis-kendaraan/$chassisId';
   static const String jenisPengajuan = '/options/pengajuan';
-  
+  static const String judulGambar = '/options/judul-gambar';
+
   // Endpoint untuk POST transaksi
   static const String transaksi = '/transaksi';
 }

@@ -27,7 +27,7 @@ class GambarSyncedRow extends ConsumerWidget {
       varianBodyOptionsFamilyProvider(transaksi.dJenisKendaraan.id),
     );
     final bool isRowComplete =
-        selection.judul != null && selection.varianBodyId != null;
+        selection.judulId != null && selection.varianBodyId != null;
 
     String varianBodyName = '...';
     varianBodyOptions.whenData((items) {
@@ -56,7 +56,7 @@ class GambarSyncedRow extends ConsumerWidget {
               color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Text(selection.judul ?? '...'),
+            child: Text(varianBodyName),
           ),
         ),
         const SizedBox(width: 10),

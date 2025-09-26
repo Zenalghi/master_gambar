@@ -4,6 +4,7 @@ import 'package:master_gambar/data/models/option_item.dart';
 // import 'package:master_gambar/data/models/transaksi.dart';
 
 import '../../../app/core/providers.dart';
+import '../../../data/providers/api_endpoints.dart';
 
 // === State untuk Pilihan Utama ===
 
@@ -31,15 +32,14 @@ final gambarKelistrikanIdProvider = StateProvider<int?>((ref) => null);
 
 // Tipe data untuk merepresentasikan satu baris pilihan
 class GambarUtamaSelection {
-  final String? judul;
+  final int? judulId; // Ganti dari 'String? judul'
   final int? varianBodyId;
 
-  GambarUtamaSelection({this.judul, this.varianBodyId});
+  GambarUtamaSelection({this.judulId, this.varianBodyId});
 
-  // Helper untuk membuat salinan dengan perubahan
-  GambarUtamaSelection copyWith({String? judul, int? varianBodyId}) {
+  GambarUtamaSelection copyWith({int? judulId, int? varianBodyId}) {
     return GambarUtamaSelection(
-      judul: judul ?? this.judul,
+      judulId: judulId ?? this.judulId,
       varianBodyId: varianBodyId ?? this.varianBodyId,
     );
   }
@@ -60,19 +60,18 @@ class GambarUtamaSelectionNotifier
   GambarUtamaSelectionNotifier(int initialSize)
     : super(List.generate(initialSize, (_) => GambarUtamaSelection()));
 
-  // Method untuk mengupdate pilihan pada baris tertentu
-  void updateSelection(int index, {String? judul, int? varianBodyId}) {
+  void updateSelection(int index, {int? judulId, int? varianBodyId}) {
+    // Ganti 'String? judul'
     if (index < 0 || index >= state.length) return;
 
     final newList = List<GambarUtamaSelection>.from(state);
     newList[index] = newList[index].copyWith(
-      judul: judul,
+      judulId: judulId,
       varianBodyId: varianBodyId,
     );
     state = newList;
   }
 
-  // Method untuk mengubah ukuran list saat jumlah gambar berubah
   void resize(int newSize) {
     if (newSize == state.length) return;
 
@@ -87,6 +86,22 @@ class GambarUtamaSelectionNotifier
     state = currentList;
   }
 }
+
+final judulGambarOptionsProvider = FutureProvider<List<OptionItem>>((
+  ref,
+) async {
+  // --- UBAH STRING MENJADI KONSTANTA ---
+  final response = await ref
+      .watch(apiClientProvider)
+      .dio
+      .get(ApiEndpoints.judulGambar);
+  // ------------------------------------
+
+  final List<dynamic> data = response.data;
+  return data
+      .map((item) => OptionItem.fromJson(item, nameKey: 'name'))
+      .toList();
+});
 
 // === Provider untuk mengambil data dropdown dari API ===
 

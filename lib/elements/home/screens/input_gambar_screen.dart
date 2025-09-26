@@ -38,9 +38,9 @@ class InputGambarScreen extends ConsumerWidget {
         .where((s) => s.varianBodyId != null)
         .map((s) => s.varianBodyId!)
         .toList();
-    final judulGambar = selections
-        .where((s) => s.judul != null)
-        .map((s) => s.judul!)
+    final judulGambarIds = selections
+        .where((s) => s.judulId != null)
+        .map((s) => s.judulId!)
         .toList();
 
     if (varianBodyIds.isEmpty) {
@@ -57,14 +57,14 @@ class InputGambarScreen extends ConsumerWidget {
             transaksiId: transaksi.id,
             pemeriksaId: pemeriksaId,
             varianBodyIds: varianBodyIds,
-            judulGambar: judulGambar,
+            judulGambarIds: judulGambarIds,
             hGambarOptionalId: showOptional ? optionalId : null,
             iGambarKelistrikanId: showKelistrikan ? kelistrikanId : null,
           );
 
       if (context.mounted) {
         final previewTitle = selections.length > rowIndex
-            ? selections[rowIndex].judul ?? 'Preview'
+            ? selections[rowIndex].judulId ?? 'Preview'
             : 'Preview';
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -98,9 +98,9 @@ class InputGambarScreen extends ConsumerWidget {
         .where((s) => s.varianBodyId != null)
         .map((s) => s.varianBodyId!)
         .toList();
-    final judulGambar = selections
-        .where((s) => s.judul != null)
-        .map((s) => s.judul!)
+    final judulGambarIds = selections
+        .where((s) => s.judulId != null)
+        .map((s) => s.judulId!)
         .toList();
 
     // 2. Panggil repository dengan aksi 'proses'
@@ -111,7 +111,7 @@ class InputGambarScreen extends ConsumerWidget {
             transaksiId: transaksi.id,
             pemeriksaId: pemeriksaId!,
             varianBodyIds: varianBodyIds,
-            judulGambar: judulGambar,
+            judulGambarIds: judulGambarIds, // <-- Kirim ID
             hGambarOptionalId: showOptional ? optionalId : null,
             iGambarKelistrikanId: showKelistrikan ? kelistrikanId : null,
           );
@@ -183,7 +183,7 @@ class InputGambarScreen extends ConsumerWidget {
     // Validasi: pastikan list tidak kosong sebelum .every()
     final bool areSelectionsValid =
         selections.isNotEmpty &&
-        selections.every((s) => s.judul != null && s.varianBodyId != null);
+        selections.every((s) => s.judulId != null && s.varianBodyId != null);
     final bool isFormValid = pemeriksaId != null && areSelectionsValid;
 
     return SizedBox(

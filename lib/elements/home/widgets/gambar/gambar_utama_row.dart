@@ -23,8 +23,9 @@ class GambarUtamaRow extends ConsumerWidget {
     final varianBodyOptions = ref.watch(
       varianBodyOptionsFamilyProvider(transaksi.dJenisKendaraan.id),
     );
+    final judulOptions = ref.watch(judulGambarOptionsProvider);
     final bool isRowComplete =
-        selection.judul != null && selection.varianBodyId != null;
+        selection.judulId != null && selection.varianBodyId != null;
     final pageNumber = index + 1;
 
     return Row(
@@ -33,22 +34,29 @@ class GambarUtamaRow extends ConsumerWidget {
 
         // --- PERUBAHAN FLEX ---
         Expanded(
-          flex: 2, // Sebelumnya 3
-          child: DropdownButtonFormField<String>(
-            value: selection.judul,
-            isDense: true,
-            decoration: const InputDecoration(border: OutlineInputBorder()),
-            items: [
-              'STANDAR',
-              'VARIAN 1',
-              'VARIAN 2',
-              'VARIAN 3',
-            ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-            onChanged: (value) {
-              ref
-                  .read(gambarUtamaSelectionProvider.notifier)
-                  .updateSelection(index, judul: value);
-            },
+          flex: 2,
+          child: judulOptions.when(
+            data: (items) => DropdownButtonFormField<int>(
+              // Tipe data menjadi <int>
+              value: selection.judulId,
+              isDense: true,
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+              items: items
+                  .map(
+                    (e) => DropdownMenuItem<int>(
+                      value: e.id as int,
+                      child: Text(e.name),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                ref
+                    .read(gambarUtamaSelectionProvider.notifier)
+                    .updateSelection(index, judulId: value);
+              },
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => const Text('Error Judul'),
           ),
         ),
         const SizedBox(width: 10),
@@ -74,7 +82,7 @@ class GambarUtamaRow extends ConsumerWidget {
               },
             ),
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, stack) => const Text('Error'),
+            error: (err, stack) => const Text('Error Varian'),
           ),
         ),
 
