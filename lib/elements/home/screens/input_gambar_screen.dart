@@ -23,7 +23,13 @@ class InputGambarScreen extends ConsumerWidget {
     final pemeriksaId = ref.read(pemeriksaIdProvider);
     final selections = ref.read(gambarUtamaSelectionProvider);
     final showOptional = ref.read(showGambarOptionalProvider);
-    final optionalId = ref.read(gambarOptionalIdProvider);
+    final optionalSelections = ref.read(gambarOptionalSelectionProvider);
+    final hGambarOptionalIds = showOptional
+        ? optionalSelections
+              .where((s) => s.gambarOptionalId != null)
+              .map((s) => s.gambarOptionalId!)
+              .toList()
+        : null;
     final showKelistrikan = ref.read(showGambarKelistrikanProvider);
     final kelistrikanId = ref.read(gambarKelistrikanIdProvider);
 
@@ -58,7 +64,7 @@ class InputGambarScreen extends ConsumerWidget {
             pemeriksaId: pemeriksaId,
             varianBodyIds: varianBodyIds,
             judulGambarIds: judulGambarIds,
-            hGambarOptionalId: showOptional ? optionalId : null,
+            hGambarOptionalIds: hGambarOptionalIds,
             iGambarKelistrikanId: showKelistrikan ? kelistrikanId : null,
           );
 
@@ -90,7 +96,13 @@ class InputGambarScreen extends ConsumerWidget {
     final pemeriksaId = ref.read(pemeriksaIdProvider);
     final selections = ref.read(gambarUtamaSelectionProvider);
     final showOptional = ref.read(showGambarOptionalProvider);
-    final optionalId = ref.read(gambarOptionalIdProvider);
+    final optionalSelections = ref.read(gambarOptionalSelectionProvider);
+    final hGambarOptionalIds = showOptional
+        ? optionalSelections
+              .where((s) => s.gambarOptionalId != null)
+              .map((s) => s.gambarOptionalId!)
+              .toList()
+        : null;
     final showKelistrikan = ref.read(showGambarKelistrikanProvider);
     final kelistrikanId = ref.read(gambarKelistrikanIdProvider);
 
@@ -112,7 +124,7 @@ class InputGambarScreen extends ConsumerWidget {
             pemeriksaId: pemeriksaId!,
             varianBodyIds: varianBodyIds,
             judulGambarIds: judulGambarIds, // <-- Kirim ID
-            hGambarOptionalId: showOptional ? optionalId : null,
+            hGambarOptionalIds: hGambarOptionalIds,
             iGambarKelistrikanId: showKelistrikan ? kelistrikanId : null,
           );
 

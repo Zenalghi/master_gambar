@@ -9,7 +9,6 @@ import 'package:master_gambar/elements/home/widgets/gambar/gambar_utama_row.dart
 
 class GambarMainForm extends ConsumerWidget {
   final Transaksi transaksi;
-  // Pastikan tipe data fungsi ini benar: menerima 'int'
   final Function(int) onPreviewPressed;
 
   const GambarMainForm({
@@ -20,18 +19,28 @@ class GambarMainForm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final jumlahGambar = ref.watch(jumlahGambarProvider);
+    // Ambil semua state yang dibutuhkan untuk perhitungan
+    final jumlahGambarUtama = ref.watch(jumlahGambarProvider);
     final showOptional = ref.watch(showGambarOptionalProvider);
+    final jumlahGambarOptional = ref.watch(jumlahGambarOptionalProvider);
     final showKelistrikan = ref.watch(showGambarKelistrikanProvider);
 
-    int totalHalaman = jumlahGambar * 3;
-    if (showOptional) totalHalaman++;
-    if (showKelistrikan) totalHalaman++;
+    // --- LOGIKA PERHITUNGAN HALAMAN YANG DIPERBAIKI ---
+    int totalHalaman = jumlahGambarUtama * 3;
+    if (showOptional) {
+      totalHalaman += jumlahGambarOptional;
+    }
+    if (showKelistrikan) {
+      totalHalaman++;
+    }
 
-    int optionalPageNumber = jumlahGambar * 3 + 1;
-    int kelistrikanPageNumber = showOptional
-        ? optionalPageNumber + 1
-        : optionalPageNumber;
+    // Nomor halaman awal untuk section optional
+    int optionalBasePageNumber = jumlahGambarUtama * 3 + 1;
+
+    // Nomor halaman untuk section kelistrikan, dihitung setelah optional
+    int kelistrikanPageNumber =
+        jumlahGambarUtama * 3 + (showOptional ? jumlahGambarOptional : 0) + 1;
+    // ---------------------------------------------------
 
     return Card(
       child: Padding(
@@ -41,8 +50,7 @@ class GambarMainForm extends ConsumerWidget {
           children: [
             _buildSection(
               title: 'Gambar Utama',
-              itemCount: jumlahGambar,
-              // --- PERBAIKAN: Teruskan fungsi onPreviewPressed ---
+              itemCount: jumlahGambarUtama,
               itemBuilder: (index) => GambarUtamaRow(
                 index: index,
                 transaksi: transaksi,
@@ -53,8 +61,7 @@ class GambarMainForm extends ConsumerWidget {
             const Divider(height: 32),
             _buildSection(
               title: 'Gambar Terurai',
-              itemCount: jumlahGambar,
-              // --- PERBAIKAN: Teruskan fungsi onPreviewPressed ---
+              itemCount: jumlahGambarUtama,
               itemBuilder: (index) => GambarSyncedRow(
                 index: index,
                 title: 'Gambar Terurai',
@@ -66,8 +73,7 @@ class GambarMainForm extends ConsumerWidget {
             const Divider(height: 32),
             _buildSection(
               title: 'Gambar Kontruksi',
-              itemCount: jumlahGambar,
-              // --- PERBAIKAN: Teruskan fungsi onPreviewPressed ---
+              itemCount: jumlahGambarUtama,
               itemBuilder: (index) => GambarSyncedRow(
                 index: index,
                 title: 'Gambar Kontruksi',
@@ -86,11 +92,9 @@ class GambarMainForm extends ConsumerWidget {
             ),
             if (showOptional) ...[
               GambarOptionalSection(
-                pageNumber: optionalPageNumber,
+                basePageNumber: optionalBasePageNumber,
                 totalHalaman: totalHalaman,
-                // --- PERBAIKAN: Teruskan fungsi onPreviewPressed ---
-                onPreviewPressed: () =>
-                    onPreviewPressed(optionalPageNumber - 1),
+                onPreviewPressed: onPreviewPressed,
               ),
               const SizedBox(height: 16),
             ],
@@ -107,7 +111,6 @@ class GambarMainForm extends ConsumerWidget {
                 transaksi: transaksi,
                 pageNumber: kelistrikanPageNumber,
                 totalHalaman: totalHalaman,
-                // --- PERBAIKAN: Teruskan fungsi onPreviewPressed ---
                 onPreviewPressed: () =>
                     onPreviewPressed(kelistrikanPageNumber - 1),
               ),

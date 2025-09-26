@@ -18,7 +18,8 @@ class ProsesTransaksiRepository {
     required int pemeriksaId,
     required List<int> varianBodyIds,
     required List<int> judulGambarIds, // <-- Tambah
-    int? hGambarOptionalId,
+    // int? hGambarOptionalId,
+    required List<int>? hGambarOptionalIds,
     int? iGambarKelistrikanId,
   }) async {
     try {
@@ -31,7 +32,7 @@ class ProsesTransaksiRepository {
               'pemeriksa_id': pemeriksaId,
               'varian_body_ids': varianBodyIds,
               'judul_gambar_ids': judulGambarIds,
-              'h_gambar_optional_id': hGambarOptionalId,
+              'h_gambar_optional_id': hGambarOptionalIds,
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'preview', // Kirim aksi 'preview'
             },
@@ -59,7 +60,7 @@ class ProsesTransaksiRepository {
     required int pemeriksaId,
     required List<int> varianBodyIds,
     required List<int> judulGambarIds, // <-- Tambah
-    int? hGambarOptionalId,
+    required List<int>? hGambarOptionalIds,
     int? iGambarKelistrikanId,
   }) async {
     try {
@@ -72,7 +73,7 @@ class ProsesTransaksiRepository {
               'pemeriksa_id': pemeriksaId,
               'varian_body_ids': varianBodyIds,
               'judul_gambar_ids': judulGambarIds,
-              'h_gambar_optional_id': hGambarOptionalId,
+              'h_gambar_optional_id': hGambarOptionalIds,
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'proses', // Kirim aksi 'proses'
             },

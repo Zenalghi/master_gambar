@@ -81,7 +81,11 @@ class AuthRepository {
     ref.read(jumlahGambarProvider.notifier).state = 1;
     ref.read(pemeriksaIdProvider.notifier).state = null;
     ref.read(showGambarOptionalProvider.notifier).state = false;
-    ref.read(gambarOptionalIdProvider.notifier).state = null;
+    // PERBAIKAN:
+    // 1. Reset jumlah baris kembali ke 1
+    ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
+    // 2. Hapus semua pilihan yang tersimpan dengan meng-invalidate provider-nya
+    ref.invalidate(gambarOptionalSelectionProvider);
     ref.read(showGambarKelistrikanProvider.notifier).state = false;
     ref.read(gambarKelistrikanIdProvider.notifier).state = null;
     ref.invalidate(gambarUtamaSelectionProvider);

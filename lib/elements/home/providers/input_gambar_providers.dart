@@ -20,7 +20,44 @@ final pemeriksaIdProvider = StateProvider<int?>((ref) => null);
 final showGambarOptionalProvider = StateProvider<bool>((ref) => false);
 
 // Menyimpan ID gambar optional yang dipilih
-final gambarOptionalIdProvider = StateProvider<int?>((ref) => null);
+// final gambarOptionalIdProvider = StateProvider<int?>((ref) => null);
+final jumlahGambarOptionalProvider = StateProvider<int>((ref) => 1);
+
+class GambarOptionalSelection {
+  final int? gambarOptionalId;
+  GambarOptionalSelection({this.gambarOptionalId});
+}
+
+final gambarOptionalSelectionProvider =
+    StateNotifierProvider<
+      GambarOptionalSelectionNotifier,
+      List<GambarOptionalSelection>
+    >((ref) {
+      final jumlah = ref.watch(jumlahGambarOptionalProvider);
+      return GambarOptionalSelectionNotifier(jumlah);
+    });
+
+class GambarOptionalSelectionNotifier
+    extends StateNotifier<List<GambarOptionalSelection>> {
+  GambarOptionalSelectionNotifier(int initialSize)
+    : super(List.generate(initialSize, (_) => GambarOptionalSelection()));
+
+  void updateSelection(int index, {int? gambarOptionalId}) {
+    if (index < 0 || index >= state.length) return;
+    final newList = List<GambarOptionalSelection>.from(state);
+    newList[index] = GambarOptionalSelection(
+      gambarOptionalId: gambarOptionalId,
+    );
+    state = newList;
+  }
+
+  void resize(int newSize) {
+    state = List.generate(
+      newSize,
+      (i) => i < state.length ? state[i] : GambarOptionalSelection(),
+    );
+  }
+}
 
 // Menyimpan status checkbox gambar kelistrikan
 final showGambarKelistrikanProvider = StateProvider<bool>((ref) => false);
