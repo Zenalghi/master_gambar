@@ -20,6 +20,8 @@ class InputGambarScreen extends ConsumerWidget {
     WidgetRef ref,
     int rowIndex,
   ) async {
+    ref.read(isProcessingProvider.notifier).state = true;
+
     final pemeriksaId = ref.read(pemeriksaIdProvider);
     final selections = ref.read(gambarUtamaSelectionProvider);
     final showOptional = ref.read(showGambarOptionalProvider);
@@ -69,6 +71,7 @@ class InputGambarScreen extends ConsumerWidget {
           );
 
       if (context.mounted) {
+        ref.read(isProcessingProvider.notifier).state = false;
         final previewTitle = selections.length > rowIndex
             ? selections[rowIndex].judulId ?? 'Preview'
             : 'Preview';
@@ -92,6 +95,8 @@ class InputGambarScreen extends ConsumerWidget {
 
   // --- METHOD BARU UNTUK PROSES GAMBAR ---
   Future<void> _handleProses(BuildContext context, WidgetRef ref) async {
+    ref.read(isProcessingProvider.notifier).state = true;
+
     // 1. Kumpulkan semua data dari state (sama seperti preview)
     final pemeriksaId = ref.read(pemeriksaIdProvider);
     final selections = ref.read(gambarUtamaSelectionProvider);
@@ -130,6 +135,8 @@ class InputGambarScreen extends ConsumerWidget {
 
       // 3. Tampilkan dialog sukses dan kembali ke halaman utama
       if (context.mounted) {
+        ref.read(isProcessingProvider.notifier).state = false;
+
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -197,18 +204,32 @@ class InputGambarScreen extends ConsumerWidget {
         selections.isNotEmpty &&
         selections.every((s) => s.judulId != null && s.varianBodyId != null);
     final bool isFormValid = pemeriksaId != null && areSelectionsValid;
+    final isLoading = ref.watch(isProcessingProvider);
 
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        icon: const Icon(Icons.arrow_forward),
-        label: const Text('Proses Gambar'),
+        icon: isLoading
+            ? Container() // Sembunyikan ikon saat loading
+            : const Icon(Icons.arrow_forward),
+        label: isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
+              )
+            : const Text('Proses Gambar'),
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        // --- HUBUNGKAN TOMBOL KE LOGIKA PROSES ---
-        onPressed: isFormValid ? () => _handleProses(context, ref) : null,
+        // Tombol akan nonaktif jika form tidak valid ATAU sedang loading
+        onPressed: isFormValid && !isLoading
+            ? () => _handleProses(context, ref)
+            : null,
       ),
     );
   }

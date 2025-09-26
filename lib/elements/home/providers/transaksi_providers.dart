@@ -1,6 +1,7 @@
 // File: lib/elements/home/providers/transaksi_providers.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import '../../../app/core/providers.dart';
 import '../../../data/models/option_item.dart'; // Pastikan model di-import
 import '../../../data/models/transaksi.dart';
 import '../repository/options_repository.dart';
@@ -52,10 +53,18 @@ final jenisKendaraanOptionsProvider = FutureProvider<List<OptionItem>>((ref) {
 });
 
 // Provider untuk data histori transaksi
-final transaksiHistoryProvider = FutureProvider<List<Transaksi>>((ref) {
-  // Kita asumsikan TransaksiRepository sudah ada di file options_repository.dart
-  // dan providernya sudah dibuat.
-  return ref.watch(transaksiRepositoryProvider).getTransaksiHistory();
+final transaksiHistoryProvider = FutureProvider<List<Transaksi>>((ref) async {
+  // 1. Tonton provider token
+  final token = ref.watch(authTokenProvider);
+
+  // 2. Jika tidak ada token (user belum login/sudah logout), jangan lakukan apa-apa
+  if (token == null) {
+    return []; // Kembalikan list kosong
+  }
+
+  // 3. Jika ada token, baru ambil data dari API
+  final repo = ref.watch(transaksiRepositoryProvider);
+  return repo.getTransaksiHistory();
 });
 
 final rowsPerPageProvider = StateProvider<int>((ref) => 25);

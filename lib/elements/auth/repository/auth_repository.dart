@@ -30,7 +30,9 @@ class AuthRepository {
         await prefs.setString('user_role', userRole);
         await prefs.setString('user_name', userName); // Simpan nama
         await prefs.setInt('user_id', userId);
+
         // Update kedua StateProvider
+        ref.read(authTokenProvider.notifier).state = token;
         ref.read(userRoleProvider.notifier).state = userRole;
         ref.read(userNameProvider.notifier).state = userName;
         ref.read(currentUserIdProvider.notifier).state = userId;
@@ -51,6 +53,7 @@ class AuthRepository {
     await prefs.remove('user_id');
 
     // 2. Reset provider otentikasi
+    ref.read(authTokenProvider.notifier).state = null;
     ref.read(userRoleProvider.notifier).state = null;
     ref.read(userNameProvider.notifier).state = null;
     ref.read(currentUserIdProvider.notifier).state = null;

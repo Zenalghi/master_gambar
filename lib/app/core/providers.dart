@@ -26,8 +26,10 @@ final initialAuthProvider = FutureProvider<String?>((ref) async {
   final prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('auth_token');
 
+  // Set semua state awal, termasuk token
+  ref.read(authTokenProvider.notifier).state = token;
+
   if (token != null) {
-    // Jika token ada, inisialisasi state role dan nama
     final role = prefs.getString('user_role');
     final name = prefs.getString('user_name');
     final userId = prefs.getInt('user_id');
@@ -43,3 +45,4 @@ final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(ref);
 });
 final currentUserIdProvider = StateProvider<int?>((ref) => null);
+final authTokenProvider = StateProvider<String?>((ref) => null);

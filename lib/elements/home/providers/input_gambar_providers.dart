@@ -200,3 +200,5 @@ final gambarKelistrikanOptionsFamilyProvider =
           .map((item) => OptionItem.fromJson(item, nameKey: 'deskripsi'))
           .toList();
     });
+
+final isProcessingProvider = StateProvider<bool>((ref) => false);
