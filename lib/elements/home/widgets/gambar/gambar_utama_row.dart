@@ -18,6 +18,7 @@ class GambarUtamaRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final pemeriksaId = ref.watch(pemeriksaIdProvider);
     final selections = ref.watch(gambarUtamaSelectionProvider);
     final selection = selections[index];
     final varianBodyOptions = ref.watch(
@@ -25,7 +26,9 @@ class GambarUtamaRow extends ConsumerWidget {
     );
     final judulOptions = ref.watch(judulGambarOptionsProvider);
     final bool isRowComplete =
-        selection.judulId != null && selection.varianBodyId != null;
+        selection.judulId != null &&
+        selection.varianBodyId != null &&
+        pemeriksaId != null;
     final isLoading = ref.watch(isProcessingProvider);
 
     final pageNumber = index + 1;

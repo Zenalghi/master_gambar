@@ -20,45 +20,45 @@ class InputGambarScreen extends ConsumerWidget {
     WidgetRef ref,
     int rowIndex,
   ) async {
+    // 1. Aktifkan loading state
     ref.read(isProcessingProvider.notifier).state = true;
-
-    final pemeriksaId = ref.read(pemeriksaIdProvider);
-    final selections = ref.read(gambarUtamaSelectionProvider);
-    final showOptional = ref.read(showGambarOptionalProvider);
-    final optionalSelections = ref.read(gambarOptionalSelectionProvider);
-    final hGambarOptionalIds = showOptional
-        ? optionalSelections
-              .where((s) => s.gambarOptionalId != null)
-              .map((s) => s.gambarOptionalId!)
-              .toList()
-        : null;
-    final showKelistrikan = ref.read(showGambarKelistrikanProvider);
-    final kelistrikanId = ref.read(gambarKelistrikanIdProvider);
-
-    if (pemeriksaId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih pemeriksa terlebih dahulu.')),
-      );
-      return;
-    }
-
-    final varianBodyIds = selections
-        .where((s) => s.varianBodyId != null)
-        .map((s) => s.varianBodyId!)
-        .toList();
-    final judulGambarIds = selections
-        .where((s) => s.judulId != null)
-        .map((s) => s.judulId!)
-        .toList();
-
-    if (varianBodyIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih setidaknya satu varian body.')),
-      );
-      return;
-    }
-
     try {
+      final pemeriksaId = ref.read(pemeriksaIdProvider);
+      final selections = ref.read(gambarUtamaSelectionProvider);
+      final showOptional = ref.read(showGambarOptionalProvider);
+      final optionalSelections = ref.read(gambarOptionalSelectionProvider);
+      final showKelistrikan = ref.read(showGambarKelistrikanProvider);
+      final kelistrikanId = ref.read(gambarKelistrikanIdProvider);
+
+      if (pemeriksaId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pilih pemeriksa terlebih dahulu.')),
+        );
+        return;
+      }
+
+      final varianBodyIds = selections
+          .where((s) => s.varianBodyId != null)
+          .map((s) => s.varianBodyId!)
+          .toList();
+      final judulGambarIds = selections
+          .where((s) => s.judulId != null)
+          .map((s) => s.judulId!)
+          .toList();
+      final hGambarOptionalIds = showOptional
+          ? optionalSelections
+                .where((s) => s.gambarOptionalId != null)
+                .map((s) => s.gambarOptionalId!)
+                .toList()
+          : null;
+
+      if (varianBodyIds.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pilih setidaknya satu varian body.')),
+        );
+        return;
+      }
+
       final pdfData = await ref
           .read(prosesTransaksiRepositoryProvider)
           .getPreviewPdf(
@@ -71,72 +71,89 @@ class InputGambarScreen extends ConsumerWidget {
           );
 
       if (context.mounted) {
-        ref.read(isProcessingProvider.notifier).state = false;
-        final previewTitle = selections.length > rowIndex
-            ? selections[rowIndex].judulId ?? 'Preview'
-            : 'Preview';
+        // --- PERBAIKAN LOGIKA PENCARIAN JUDUL ---
+        final judulOptions = await ref.read(judulGambarOptionsProvider.future);
+        final selection = selections[rowIndex];
+
+        String judulName = 'Preview'; // Nilai default
+        if (selection.judulId != null) {
+          final matchingJudul = judulOptions.where(
+            (e) => e.id == selection.judulId,
+          );
+          if (matchingJudul.isNotEmpty) {
+            judulName = matchingJudul.first.name;
+          }
+        }
+
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => PdfViewerScreen(
               pdfData: pdfData,
-              title: 'Preview - $previewTitle',
+              title: 'Preview - $judulName',
             ),
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
+        // --- PERBAIKI SNACKBAR AGAR LEBIH LAMA ---
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error Preview: ${e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 8), // Tahan selama 8 detik
+            action: SnackBarAction(label: 'TUTUP', onPressed: () {}),
+          ),
         );
+      }
+    } finally {
+      // 2. APAPUN YANG TERJADI (SUKSES/GAGAL), SELALU MATIKAN LOADING
+      if (context.mounted) {
+        ref.read(isProcessingProvider.notifier).state = false;
       }
     }
   }
 
   // --- METHOD BARU UNTUK PROSES GAMBAR ---
   Future<void> _handleProses(BuildContext context, WidgetRef ref) async {
+    // 1. Aktifkan loading state
     ref.read(isProcessingProvider.notifier).state = true;
-
-    // 1. Kumpulkan semua data dari state (sama seperti preview)
-    final pemeriksaId = ref.read(pemeriksaIdProvider);
-    final selections = ref.read(gambarUtamaSelectionProvider);
-    final showOptional = ref.read(showGambarOptionalProvider);
-    final optionalSelections = ref.read(gambarOptionalSelectionProvider);
-    final hGambarOptionalIds = showOptional
-        ? optionalSelections
-              .where((s) => s.gambarOptionalId != null)
-              .map((s) => s.gambarOptionalId!)
-              .toList()
-        : null;
-    final showKelistrikan = ref.read(showGambarKelistrikanProvider);
-    final kelistrikanId = ref.read(gambarKelistrikanIdProvider);
-
-    final varianBodyIds = selections
-        .where((s) => s.varianBodyId != null)
-        .map((s) => s.varianBodyId!)
-        .toList();
-    final judulGambarIds = selections
-        .where((s) => s.judulId != null)
-        .map((s) => s.judulId!)
-        .toList();
-
-    // 2. Panggil repository dengan aksi 'proses'
     try {
+      // (Logika pengumpulan data dan pemanggilan repository tetap sama)
+      final pemeriksaId = ref.read(pemeriksaIdProvider);
+      final selections = ref.read(gambarUtamaSelectionProvider);
+      final showOptional = ref.read(showGambarOptionalProvider);
+      final optionalSelections = ref.read(gambarOptionalSelectionProvider);
+      final showKelistrikan = ref.read(showGambarKelistrikanProvider);
+      final kelistrikanId = ref.read(gambarKelistrikanIdProvider);
+
+      final varianBodyIds = selections
+          .where((s) => s.varianBodyId != null)
+          .map((s) => s.varianBodyId!)
+          .toList();
+      final judulGambarIds = selections
+          .where((s) => s.judulId != null)
+          .map((s) => s.judulId!)
+          .toList();
+      final hGambarOptionalIds = showOptional
+          ? optionalSelections
+                .where((s) => s.gambarOptionalId != null)
+                .map((s) => s.gambarOptionalId!)
+                .toList()
+          : null;
+
       final result = await ref
           .read(prosesTransaksiRepositoryProvider)
           .prosesGambar(
             transaksiId: transaksi.id,
             pemeriksaId: pemeriksaId!,
             varianBodyIds: varianBodyIds,
-            judulGambarIds: judulGambarIds, // <-- Kirim ID
+            judulGambarIds: judulGambarIds,
             hGambarOptionalIds: hGambarOptionalIds,
             iGambarKelistrikanId: showKelistrikan ? kelistrikanId : null,
           );
 
-      // 3. Tampilkan dialog sukses dan kembali ke halaman utama
       if (context.mounted) {
-        ref.read(isProcessingProvider.notifier).state = false;
-
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -152,16 +169,25 @@ class InputGambarScreen extends ConsumerWidget {
             ],
           ),
         );
-
-        // Refresh tabel histori dan kembali ke halaman utama
         ref.invalidate(transaksiHistoryProvider);
         ref.read(pageStateProvider.notifier).state = PageState(pageIndex: 0);
       }
     } catch (e) {
       if (context.mounted) {
+        // --- PERBAIKI SNACKBAR AGAR LEBIH LAMA ---
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error Proses: ${e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 8), // Tahan selama 8 detik
+            action: SnackBarAction(label: 'TUTUP', onPressed: () {}),
+          ),
         );
+      }
+    } finally {
+      // 2. APAPUN YANG TERJADI (SUKSES/GAGAL), SELALU MATIKAN LOADING
+      if (context.mounted) {
+        ref.read(isProcessingProvider.notifier).state = false;
       }
     }
   }

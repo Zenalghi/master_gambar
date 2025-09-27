@@ -22,6 +22,7 @@ class GambarSyncedRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selections = ref.watch(gambarUtamaSelectionProvider);
+    final pemeriksaId = ref.watch(pemeriksaIdProvider);
     final selection = selections[index];
     final varianBodyOptions = ref.watch(
       varianBodyOptionsFamilyProvider(transaksi.dJenisKendaraan.id),
@@ -31,7 +32,9 @@ class GambarSyncedRow extends ConsumerWidget {
     final judulOptions = ref.watch(judulGambarOptionsProvider);
 
     final bool isRowComplete =
-        selection.judulId != null && selection.varianBodyId != null;
+        selection.judulId != null &&
+        selection.varianBodyId != null &&
+        pemeriksaId != null;
     final isLoading = ref.watch(isProcessingProvider);
 
     // --- 2. Siapkan variabel untuk nama judul dan nama varian ---

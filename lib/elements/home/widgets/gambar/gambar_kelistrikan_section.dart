@@ -19,11 +19,12 @@ class GambarKelistrikanSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final pemeriksaId = ref.watch(pemeriksaIdProvider);
     final options = ref.watch(
       gambarKelistrikanOptionsFamilyProvider(transaksi.cTypeChassis.id),
     );
     final selectedId = ref.watch(gambarKelistrikanIdProvider);
-    final isSelected = selectedId != null;
+    final isSelected = selectedId != null && pemeriksaId != null;
     final isLoading = ref.watch(isProcessingProvider);
 
     return Row(

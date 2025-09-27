@@ -89,9 +89,11 @@ class _GambarOptionalRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final pemeriksaId = ref.watch(pemeriksaIdProvider);
     final options = ref.watch(gambarOptionalOptionsProvider);
     final selection = ref.watch(gambarOptionalSelectionProvider)[index];
-    final isSelected = selection.gambarOptionalId != null;
+    final isSelected =
+        selection.gambarOptionalId != null && pemeriksaId != null;
     final isLoading = ref.watch(isProcessingProvider);
     return Row(
       children: [

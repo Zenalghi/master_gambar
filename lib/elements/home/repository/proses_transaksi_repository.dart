@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/app/core/providers.dart';
 
+import '../../../data/providers/api_endpoints.dart';
+
 // Provider untuk repository ini
 final prosesTransaksiRepositoryProvider = Provider(
   (ref) => ProsesTransaksiRepository(ref),
@@ -17,9 +19,8 @@ class ProsesTransaksiRepository {
     required String transaksiId,
     required int pemeriksaId,
     required List<int> varianBodyIds,
-    required List<int> judulGambarIds, // <-- Tambah
-    // int? hGambarOptionalId,
-    required List<int>? hGambarOptionalIds,
+    required List<int> judulGambarIds,
+    required List<int>? hGambarOptionalIds, // <-- Terima List<int>?
     int? iGambarKelistrikanId,
   }) async {
     try {
@@ -27,26 +28,23 @@ class ProsesTransaksiRepository {
           .read(apiClientProvider)
           .dio
           .post(
-            '/transaksi/$transaksiId/proses',
+            '${ApiEndpoints.transaksi}/$transaksiId/proses',
             data: {
               'pemeriksa_id': pemeriksaId,
               'varian_body_ids': varianBodyIds,
               'judul_gambar_ids': judulGambarIds,
-              'h_gambar_optional_id': hGambarOptionalIds,
+              'h_gambar_optional_ids':
+                  hGambarOptionalIds, // <-- Kirim dengan key yang benar
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
-              'aksi': 'preview', // Kirim aksi 'preview'
+              'aksi': 'preview',
             },
-            // Minta Dio untuk menerima respons sebagai byte mentah
             options: Options(responseType: ResponseType.bytes),
           );
-      // Kembalikan data PDF sebagai Uint8List
       return response.data;
     } on DioException catch (e) {
-      // Jika ada error dari server, coba ekstrak pesannya
       final errorData = e.response?.data;
       String message = e.message ?? 'Unknown error';
       if (errorData is List<int>) {
-        // Coba decode error JSON jika responsnya byte
         try {
           message = String.fromCharCodes(errorData);
         } catch (_) {}
@@ -59,8 +57,8 @@ class ProsesTransaksiRepository {
     required String transaksiId,
     required int pemeriksaId,
     required List<int> varianBodyIds,
-    required List<int> judulGambarIds, // <-- Tambah
-    required List<int>? hGambarOptionalIds,
+    required List<int> judulGambarIds,
+    required List<int>? hGambarOptionalIds, // <-- Terima List<int>?
     int? iGambarKelistrikanId,
   }) async {
     try {
@@ -68,22 +66,19 @@ class ProsesTransaksiRepository {
           .read(apiClientProvider)
           .dio
           .post(
-            '/transaksi/$transaksiId/proses',
+            '${ApiEndpoints.transaksi}/$transaksiId/proses',
             data: {
               'pemeriksa_id': pemeriksaId,
               'varian_body_ids': varianBodyIds,
               'judul_gambar_ids': judulGambarIds,
-              'h_gambar_optional_id': hGambarOptionalIds,
+              'h_gambar_optional_ids':
+                  hGambarOptionalIds, // <-- Kirim dengan key yang benar
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
-              'aksi': 'proses', // Kirim aksi 'proses'
+              'aksi': 'proses',
             },
-            // Untuk 'proses', kita harapkan respons JSON, bukan byte
-            // Jadi tidak perlu options ResponseType.bytes
           );
-      // Kembalikan data JSON sebagai Map
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
-      // Tangani error dari server
       throw Exception(
         'Gagal memproses gambar: ${e.response?.data['message'] ?? e.message}',
       );
