@@ -10,6 +10,7 @@ class ApiEndpoints {
       '/options/jenis-kendaraan/$chassisId';
   static const String jenisPengajuan = '/options/pengajuan';
   static const String judulGambar = '/options/judul-gambar';
+  static const String roles = '/options/roles';
 
   // Endpoint untuk POST transaksi
   static const String transaksi = '/transaksi';

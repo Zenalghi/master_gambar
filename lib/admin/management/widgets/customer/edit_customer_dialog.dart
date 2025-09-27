@@ -253,12 +253,13 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
         ),
       ),
       actions: [
-        if (_isLoading) const CircularProgressIndicator(),
         TextButton(
           onPressed: _isLoading ? null : _submitDelete,
           child: const Text('Hapus'),
           style: TextButton.styleFrom(foregroundColor: Colors.red),
         ),
+        SizedBox(width: 150),
+        if (_isLoading) const CircularProgressIndicator(),
         const Spacer(),
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
