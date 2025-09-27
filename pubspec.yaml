@@ -42,7 +42,8 @@ dependencies:
   intl: ^0.20.2
   data_table_2: ^2.6.0
   pdfx: ^2.9.2
-
+  vector_math: ^2.2.0
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
