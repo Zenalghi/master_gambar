@@ -43,6 +43,7 @@ dependencies:
   data_table_2: ^2.6.0
   pdfx: ^2.9.2
   vector_math: ^2.2.0
+  window_manager: ^0.5.1
   
 dev_dependencies:
   flutter_test:
