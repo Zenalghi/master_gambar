@@ -6,11 +6,20 @@ import 'package:master_gambar/admin/management/providers/customer_providers.dart
 import 'package:master_gambar/admin/management/widgets/customer/edit_customer_dialog.dart';
 import 'package:master_gambar/data/models/customer.dart';
 
-class CustomerDataTable extends ConsumerWidget {
+class CustomerDataTable extends ConsumerStatefulWidget {
   const CustomerDataTable({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CustomerDataTable> createState() => _CustomerDataTableState();
+}
+
+class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
+  // --- 2. TAMBAHKAN STATE UNTUK SORTING ---
+  int? _sortColumnIndex = 0;
+  bool _sortAscending = true;
+
+  @override
+  Widget build(BuildContext context) {
     final asyncCustomers = ref.watch(customerListProvider);
     final searchQuery = ref.watch(customerSearchQueryProvider);
     final rowsPerPage = ref.watch(customerRowsPerPageProvider);
@@ -23,6 +32,37 @@ class CustomerDataTable extends ConsumerWidget {
             return c.namaPt.toLowerCase().contains(query) ||
                 c.pj.toLowerCase().contains(query);
           }).toList();
+          // --- 3. TAMBAHKAN BLOK LOGIKA SORTING ---
+          final sortedCustomers = List<Customer>.from(filteredCustomers);
+          if (_sortColumnIndex != null) {
+            sortedCustomers.sort((a, b) {
+              late final Comparable<Object> cellA;
+              late final Comparable<Object> cellB;
+              switch (_sortColumnIndex!) {
+                case 0:
+                  cellA = a.namaPt.toLowerCase();
+                  cellB = b.namaPt.toLowerCase();
+                  break;
+                case 1:
+                  cellA = a.pj.toLowerCase();
+                  cellB = b.pj.toLowerCase();
+                  break;
+                case 3:
+                  cellA = a.createdAt;
+                  cellB = b.createdAt;
+                  break;
+                case 4:
+                  cellA = a.updatedAt;
+                  cellB = b.updatedAt;
+                  break;
+                default:
+                  return 0;
+              }
+              return _sortAscending
+                  ? cellA.compareTo(cellB)
+                  : cellB.compareTo(cellA);
+            });
+          }
 
           return PaginatedDataTable2(
             // fillViewport: true,
@@ -36,25 +76,56 @@ class CustomerDataTable extends ConsumerWidget {
                 ref.read(customerRowsPerPageProvider.notifier).state = value;
               }
             },
-            // --- 1. TAMBAHKAN HEADER KOLOM BARU ---
-            columns: const [
-              DataColumn2(label: Text('Customer'), size: ColumnSize.L),
-              DataColumn2(label: Text('Penanggung Jawab'), size: ColumnSize.L),
-              DataColumn2(
-                label: Text('Paraf'),
-                size: ColumnSize.S,
-              ), // Kolom baru
-              DataColumn2(label: Text('Tanggal Input'), size: ColumnSize.M),
-              DataColumn2(label: Text('Terakhir Update'), size: ColumnSize.M),
-              DataColumn2(label: Text('Option'), size: ColumnSize.S),
-            ],
-            source: _CustomerDataSource(filteredCustomers, context, ref),
+            sortColumnIndex: _sortColumnIndex,
+            sortAscending: _sortAscending,
+            columns: _createColumns(), // Panggil method untuk membuat kolom
+            source: _CustomerDataSource(sortedCustomers, context, ref),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(child: Text('Error: $e')),
       ),
     );
+  }
+
+  // --- 5. BUAT METHOD UNTUK MENGELOLA HEADER KOLOM ---
+  List<DataColumn2> _createColumns() {
+    return [
+      DataColumn2(
+        label: const Text('Customer'),
+        size: ColumnSize.L,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Penanggung Jawab'),
+        size: ColumnSize.L,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: Text('Paraf'),
+        size: ColumnSize.S,
+        // numeric: true,
+      ), // Dibuat rata tengah
+      DataColumn2(
+        label: const Text('Tanggal Input'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Terakhir Update'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
+      const DataColumn2(label: Text('Option'), size: ColumnSize.S),
+    ];
+  }
+
+  // --- 6. BUAT METHOD UNTUK MENG-UPDATE STATE SAAT SORT ---
+  void _onSort(int columnIndex, bool ascending) {
+    setState(() {
+      _sortColumnIndex = columnIndex;
+      _sortAscending = ascending;
+    });
   }
 }
 
@@ -68,32 +139,23 @@ class _CustomerDataSource extends DataTableSource {
   DataRow? getRow(int index) {
     if (index >= customers.length) return null;
     final customer = customers[index];
-    final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
+    final dateFormat = DateFormat('yyyy.MM.dd HH:mm');
     return DataRow(
       cells: [
         DataCell(Text(customer.namaPt)),
         DataCell(Text(customer.pj)),
-        // --- 2. TAMBAHKAN CELL DATA BARU UNTUK PARAF ---
         DataCell(
-          Row(
-            children: [
-              Center(
-                child:
-                    customer.signaturePj != null &&
-                        customer.signaturePj!.isNotEmpty
-                    ? const Icon(
-                        Icons.check_circle,
-                        color: Colors.green,
-                        semanticLabel: 'Ada',
-                      )
-                    : const Icon(
-                        Icons.cancel,
-                        color: Colors.red,
-                        semanticLabel: 'Tidak Ada',
-                      ),
-              ),
-            ],
-          ),
+          customer.signaturePj != null && customer.signaturePj!.isNotEmpty
+              ? const Icon(
+                  Icons.check_circle,
+                  color: Colors.green,
+                  semanticLabel: 'Ada',
+                )
+              : const Icon(
+                  Icons.cancel,
+                  color: Colors.red,
+                  semanticLabel: 'Tidak Ada',
+                ),
         ),
         DataCell(Text(dateFormat.format(customer.createdAt.toLocal()))),
         DataCell(Text(dateFormat.format(customer.updatedAt.toLocal()))),
