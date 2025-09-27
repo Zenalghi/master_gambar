@@ -192,13 +192,27 @@ class InputGambarScreen extends ConsumerWidget {
     }
   }
 
+  void _resetInputGambarState(WidgetRef ref) {
+    // Reset semua provider yang terkait dengan form ini ke nilai defaultnya
+    ref.read(isProcessingProvider.notifier).state = false;
+    ref.read(jumlahGambarProvider.notifier).state = 1;
+    ref.read(pemeriksaIdProvider.notifier).state = null;
+    ref.read(showGambarOptionalProvider.notifier).state = false;
+    ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
+    ref.invalidate(
+      gambarOptionalSelectionProvider,
+    ); // Invalidate untuk membuat ulang state
+    ref.read(showGambarKelistrikanProvider.notifier).state = false;
+    ref.read(gambarKelistrikanIdProvider.notifier).state = null;
+    ref.invalidate(gambarUtamaSelectionProvider);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen<int>(jumlahGambarProvider, (previous, next) {
       ref.read(gambarUtamaSelectionProvider.notifier).resize(next);
     });
 
-    // Struktur layout dengan header statis dan body scroll
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -215,7 +229,6 @@ class InputGambarScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Panggil method build untuk tombol aksi
           _buildAksiButton(context, ref),
         ],
       ),
@@ -225,7 +238,6 @@ class InputGambarScreen extends ConsumerWidget {
   Widget _buildAksiButton(BuildContext context, WidgetRef ref) {
     final pemeriksaId = ref.watch(pemeriksaIdProvider);
     final selections = ref.watch(gambarUtamaSelectionProvider);
-    // Validasi: pastikan list tidak kosong sebelum .every()
     final bool areSelectionsValid =
         selections.isNotEmpty &&
         selections.every((s) => s.judulId != null && s.varianBodyId != null);
@@ -235,9 +247,7 @@ class InputGambarScreen extends ConsumerWidget {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        icon: isLoading
-            ? Container() // Sembunyikan ikon saat loading
-            : const Icon(Icons.arrow_forward),
+        icon: isLoading ? Container() : const Icon(Icons.arrow_forward),
         label: isLoading
             ? const SizedBox(
                 height: 20,
@@ -252,9 +262,12 @@ class InputGambarScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(vertical: 16),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        // Tombol akan nonaktif jika form tidak valid ATAU sedang loading
         onPressed: isFormValid && !isLoading
-            ? () => _handleProses(context, ref)
+            ? () async {
+                await _handleProses(context, ref);
+                // --- PANGGIL FUNGSI RESET SETELAH PROSES SELESAI ---
+                _resetInputGambarState(ref);
+              }
             : null,
       ),
     );
