@@ -296,6 +296,10 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
                     ),
                   ],
                 ),
+                const Text(
+                  'Saran lebar gambar ± 500px',
+                  style: TextStyle(fontSize: 10, color: Colors.grey),
+                ),
               ],
             ),
           ),
