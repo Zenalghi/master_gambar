@@ -1,35 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:window_manager/window_manager.dart'; // <-- 1. Import package
+import 'package:window_manager/window_manager.dart';
 import 'app/theme/app_theme.dart';
 import 'app/core/auth_wrapper.dart';
+import 'package:flutter/foundation.dart' show kIsWeb; // <-- 1. Import 'kIsWeb'
 
-// 2. Ubah main menjadi async
 void main() async {
-  // 3. Pastikan semua binding siap sebelum menjalankan apapun
   WidgetsFlutterBinding.ensureInitialized();
-  // Inisialisasi window manager
-  await windowManager.ensureInitialized();
 
-  // 4. Atur opsi untuk window Anda
-  WindowOptions windowOptions = const WindowOptions(
-    size: Size(1280, 720), // Ukuran awal saat aplikasi dibuka
+  // --- 2. JALANKAN KODE INI HANYA JIKA BUKAN WEB ---
+  if (!kIsWeb) {
+    await windowManager.ensureInitialized();
 
-    center: true,
-    backgroundColor: Colors.transparent,
-    skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.normal,
-  );
+    WindowOptions windowOptions = const WindowOptions(
+      size: Size(1280, 720), // Ukuran awal saat aplikasi dibuka
+      center: true,
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.normal,
+    );
 
-  // Tunggu hingga window siap untuk ditampilkan, lalu atur propertinya
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    // --- 5. INI BAGIAN KUNCINYA: ATUR UKURAN MINIMAL ---
-    await windowManager.setMinimumSize(const Size(1280, 720));
-    // --------------------------------------------------
-    await windowManager.show();
-    await windowManager.focus();
-    await windowManager.maximize();
-  });
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.setMinimumSize(const Size(1280, 720));
+      await windowManager.show();
+      await windowManager.focus();
+      await windowManager.maximize();
+    });
+  }
+  // ------------------------------------------------
 
   runApp(const ProviderScope(child: MyApp()));
 }
