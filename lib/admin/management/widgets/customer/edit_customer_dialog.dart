@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -196,44 +197,66 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
                 Row(
                   // Menggunakan Row biasa karena DropTarget tidak dibutuhkan di sini
                   children: [
-                    Container(
-                      width: 100,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                      ),
-                      child: _signatureFile != null
-                          ? Image.file(_signatureFile!, fit: BoxFit.contain)
-                          : (imageUrl != null
-                                ? Image.network(
-                                    imageUrl,
-                                    // --- PERBAIKAN: Gunakan ValueKey dengan data yang berubah ---
-                                    key: ValueKey(_currentCustomer.signaturePj),
-                                    fit: BoxFit.contain,
-                                    headers: {
-                                      'Authorization': 'Bearer $_authToken',
-                                    },
-                                    loadingBuilder: (context, child, progress) {
-                                      return progress == null
-                                          ? child
-                                          : const Center(
-                                              child:
-                                                  CircularProgressIndicator(),
+                    DropTarget(
+                      onDragDone: (details) {
+                        if (details.files.isNotEmpty) {
+                          setState(() {
+                            _signatureFile = File(details.files.first.path);
+                          });
+                        }
+                      },
+                      onDragEntered: (details) =>
+                          setState(() => _isDragging = true),
+                      onDragExited: (details) =>
+                          setState(() => _isDragging = false),
+                      child: Container(
+                        width: 100,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: _isDragging
+                                ? Theme.of(context).primaryColor
+                                : Colors.grey,
+                            width: _isDragging ? 3 : 1,
+                          ),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: _signatureFile != null
+                            ? Image.file(_signatureFile!, fit: BoxFit.contain)
+                            : (imageUrl != null
+                                  ? Image.network(
+                                      imageUrl,
+                                      // --- PERBAIKAN: Gunakan ValueKey dengan data yang berubah ---
+                                      key: ValueKey(
+                                        _currentCustomer.signaturePj,
+                                      ),
+                                      fit: BoxFit.contain,
+                                      headers: {
+                                        'Authorization': 'Bearer $_authToken',
+                                      },
+                                      loadingBuilder: (context, child, progress) {
+                                        return progress == null
+                                            ? child
+                                            : const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              );
+                                      },
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return const Icon(
+                                              Icons.error_outline,
+                                              color: Colors.red,
                                             );
-                                    },
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return const Icon(
-                                        Icons.error_outline,
-                                        color: Colors.red,
-                                      );
-                                    },
-                                  )
-                                : const Center(
-                                    child: Text(
-                                      'PNG',
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  )),
+                                          },
+                                    )
+                                  : const Center(
+                                      child: Text(
+                                        'PNG',
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    )),
+                      ),
                     ),
                     const SizedBox(width: 8),
                     ElevatedButton.icon(

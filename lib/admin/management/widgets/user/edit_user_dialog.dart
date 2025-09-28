@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,6 +27,7 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
   bool _isLoading = false;
   String? _authToken;
   late AppUser _currentUser;
+  bool _isDragging = false;
 
   @override
   void initState() {
@@ -160,6 +162,7 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
   Widget build(BuildContext context) {
     final roleOptions = ref.watch(roleOptionsProvider);
     final imageUrl = (_authToken != null && _currentUser.signature != null)
+        // URL ini sekarang akan memanggil route yang benar
         ? 'http://master-gambar.test/api/admin/users/${_currentUser.id}/paraf?v=${DateTime.now().millisecondsSinceEpoch}'
         : null;
 
@@ -192,6 +195,14 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
                     labelText: 'Password Baru (Opsional)',
                   ),
                   obscureText: true,
+                  // --- TAMBAHKAN VALIDATOR INI ---
+                  validator: (value) {
+                    // Hanya validasi jika field tidak kosong
+                    if (value != null && value.isNotEmpty && value.length < 8) {
+                      return 'Minimal 8 karakter';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -200,7 +211,17 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
                     labelText: 'Konfirmasi Password Baru',
                   ),
                   obscureText: true,
+                  // --- TAMBAHKAN VALIDATOR INI ---
+                  validator: (value) {
+                    // Hanya validasi jika password utama diisi
+                    if (_passwordController.text.isNotEmpty &&
+                        value != _passwordController.text) {
+                      return 'Password tidak cocok';
+                    }
+                    return null;
+                  },
                 ),
+
                 const SizedBox(height: 16),
                 roleOptions.when(
                   data: (roles) => DropdownButtonFormField<int>(
@@ -227,26 +248,45 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Container(
-                      width: 100,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
+                    DropTarget(
+                      onDragDone: (details) {
+                        if (details.files.isNotEmpty) {
+                          setState(() {
+                            _signatureFile = File(details.files.first.path);
+                          });
+                        }
+                      },
+                      onDragEntered: (details) =>
+                          setState(() => _isDragging = true),
+                      onDragExited: (details) =>
+                          setState(() => _isDragging = false),
+                      child: Container(
+                        width: 100,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: _isDragging
+                                ? Theme.of(context).primaryColor
+                                : Colors.grey,
+                            width: _isDragging ? 3 : 1,
+                          ),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: _signatureFile != null
+                            ? Image.file(_signatureFile!, fit: BoxFit.contain)
+                            : (imageUrl != null
+                                  ? Image.network(
+                                      imageUrl,
+                                      key: ValueKey(_currentUser.signature),
+                                      fit: BoxFit.contain,
+                                      headers: {
+                                        'Authorization': 'Bearer $_authToken',
+                                      },
+                                      errorBuilder: (c, e, st) =>
+                                          const Icon(Icons.error),
+                                    )
+                                  : const Center(child: Text('PNG'))),
                       ),
-                      child: _signatureFile != null
-                          ? Image.file(_signatureFile!, fit: BoxFit.contain)
-                          : (imageUrl != null
-                                ? Image.network(
-                                    imageUrl,
-                                    key: ValueKey(_currentUser.signature),
-                                    fit: BoxFit.contain,
-                                    headers: {
-                                      'Authorization': 'Bearer $_authToken',
-                                    },
-                                    errorBuilder: (c, e, st) =>
-                                        const Icon(Icons.error),
-                                  )
-                                : const Center(child: Text('PNG'))),
                     ),
                     const SizedBox(width: 8),
                     ElevatedButton.icon(
@@ -268,7 +308,7 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
           child: const Text('Hapus'),
           style: TextButton.styleFrom(foregroundColor: Colors.red),
         ),
-        const Spacer(),
+        SizedBox(width: 200),
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
           child: const Text('Tutup'),

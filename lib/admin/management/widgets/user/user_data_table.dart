@@ -28,28 +28,40 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
         data: (users) {
           final filteredUsers = users.where((u) {
             final query = searchQuery.toLowerCase();
-            return u.name.toLowerCase().contains(query) || u.username.toLowerCase().contains(query);
+            return u.name.toLowerCase().contains(query) ||
+                u.username.toLowerCase().contains(query);
           }).toList();
 
           final sortedUsers = List<AppUser>.from(filteredUsers);
-            sortedUsers.sort((a, b) {
-              int result = 0;
-              switch (_sortColumnIndex) {
-                case 0: result = a.name.compareTo(b.name); break;
-                case 1: result = a.username.compareTo(b.username); break;
-                case 2: result = (a.role?.name ?? '').compareTo(b.role?.name ?? ''); break;
-                case 4: result = a.createdAt.compareTo(b.createdAt); break;
-                case 5: result = a.updatedAt.compareTo(b.updatedAt); break;
-              }
-              return _sortAscending ? result : -result;
-            });
+          sortedUsers.sort((a, b) {
+            int result = 0;
+            switch (_sortColumnIndex) {
+              case 0:
+                result = a.name.compareTo(b.name);
+                break;
+              case 1:
+                result = a.username.compareTo(b.username);
+                break;
+              case 2:
+                result = (a.role?.name ?? '').compareTo(b.role?.name ?? '');
+                break;
+              case 4:
+                result = a.createdAt.compareTo(b.createdAt);
+                break;
+              case 5:
+                result = a.updatedAt.compareTo(b.updatedAt);
+                break;
+            }
+            return _sortAscending ? result : -result;
+          });
 
           return PaginatedDataTable2(
             // fillViewport: true,
             minWidth: 900,
             rowsPerPage: rowsPerPage,
             availableRowsPerPage: const [10, 25, 50, 100],
-            onRowsPerPageChanged: (value) => ref.read(userRowsPerPageProvider.notifier).state = value!,
+            onRowsPerPageChanged: (value) =>
+                ref.read(userRowsPerPageProvider.notifier).state = value!,
             sortColumnIndex: _sortColumnIndex,
             sortAscending: _sortAscending,
             columns: _createColumns(),
@@ -64,12 +76,32 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
 
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('Nama'), size: ColumnSize.L, onSort: _onSort),
-      DataColumn2(label: const Text('Username'), size: ColumnSize.M, onSort: _onSort),
-      DataColumn2(label: const Text('Role'), size: ColumnSize.S, onSort: _onSort),
-      const DataColumn2(label: Text('Paraf'), size: ColumnSize.S),
-      DataColumn2(label: const Text('Tanggal Input'), size: ColumnSize.M, onSort: _onSort),
-      DataColumn2(label: const Text('Terakhir Update'), size: ColumnSize.M, onSort: _onSort),
+      DataColumn2(
+        label: const Text('Nama'),
+        size: ColumnSize.L,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Username'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Role'),
+        size: ColumnSize.S,
+        onSort: _onSort,
+      ),
+      DataColumn2(label: Text('Paraf'), size: ColumnSize.S),
+      DataColumn2(
+        label: const Text('Tanggal Input'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Terakhir Update'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
       const DataColumn2(label: Text('Option'), size: ColumnSize.S),
     ];
   }
@@ -92,27 +124,35 @@ class _UserDataDataSource extends DataTableSource {
   DataRow? getRow(int index) {
     final user = users[index];
     final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
-    return DataRow(cells: [
-      DataCell(Text(user.name)),
-      DataCell(Text(user.username)),
-      DataCell(Text(user.role?.name ?? 'N/A')),
-      DataCell(Center(child: user.signature != null ? const Icon(Icons.check_circle, color: Colors.green) : const Icon(Icons.cancel, color: Colors.red))),
-      DataCell(Text(dateFormat.format(user.createdAt.toLocal()))),
-      DataCell(Text(dateFormat.format(user.updatedAt.toLocal()))),
-      DataCell(Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.edit, color: Colors.orange),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (_) => EditUserDialog(user: user),
-              );
-            },
+    return DataRow(
+      cells: [
+        DataCell(Text(user.name)),
+        DataCell(Text(user.username)),
+        DataCell(Text(user.role?.name ?? 'N/A')),
+        DataCell(
+          user.signature != null
+              ? const Icon(Icons.check_circle, color: Colors.green)
+              : const Icon(Icons.cancel, color: Colors.red),
+        ),
+        DataCell(Text(dateFormat.format(user.createdAt.toLocal()))),
+        DataCell(Text(dateFormat.format(user.updatedAt.toLocal()))),
+        DataCell(
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.orange),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) => EditUserDialog(user: user),
+                  );
+                },
+              ),
+            ],
           ),
-        ],
-      )),
-    ]);
+        ),
+      ],
+    );
   }
 
   @override

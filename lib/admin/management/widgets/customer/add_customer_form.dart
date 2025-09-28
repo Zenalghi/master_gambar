@@ -116,59 +116,60 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                     const Text('Paraf', style: TextStyle(fontSize: 12)),
                     const SizedBox(height: 4),
                     // --- BUNGKUS DENGAN DROPTARGET ---
-                    DropTarget(
-                      onDragDone: (details) {
-                        if (details.files.isNotEmpty) {
-                          setState(() {
-                            _signatureFile = File(details.files.first.path);
-                          });
-                        }
-                      },
-                      onDragEntered: (details) =>
-                          setState(() => _isDragging = true),
-                      onDragExited: (details) =>
-                          setState(() => _isDragging = false),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: _isDragging
-                                ? Theme.of(context).primaryColor
-                                : Colors.grey,
-                            width: _isDragging ? 3 : 1,
-                          ),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 100,
-                              height: 50,
-                              decoration: const BoxDecoration(
-                                border: Border(
-                                  right: BorderSide(color: Colors.grey),
-                                ),
+                    Row(
+                      children: [
+                        DropTarget(
+                          onDragDone: (details) {
+                            if (details.files.isNotEmpty) {
+                              setState(() {
+                                _signatureFile = File(details.files.first.path);
+                              });
+                            }
+                          },
+                          onDragEntered: (details) =>
+                              setState(() => _isDragging = true),
+                          onDragExited: (details) =>
+                              setState(() => _isDragging = false),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: _isDragging
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.grey,
+                                width: _isDragging ? 3 : 1,
                               ),
-                              child: _signatureFile != null
-                                  ? Image.file(
-                                      _signatureFile!,
-                                      fit: BoxFit.contain,
-                                    )
-                                  : const Center(
-                                      child: Text(
-                                        'PNG',
-                                        style: TextStyle(color: Colors.grey),
-                                      ),
-                                    ),
+                              borderRadius: BorderRadius.circular(4),
                             ),
-                            const SizedBox(width: 8),
-                            ElevatedButton.icon(
-                              icon: const Icon(Icons.upload_file),
-                              label: const Text('Pilih Gambar'),
-                              onPressed: _pickImage,
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 100,
+                                  height: 50,
+                                  child: _signatureFile != null
+                                      ? Image.file(
+                                          _signatureFile!,
+                                          fit: BoxFit.contain,
+                                        )
+                                      : const Center(
+                                          child: Text(
+                                            'PNG',
+                                            style: TextStyle(
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.upload_file),
+                          label: const Text('Pilih Gambar'),
+                          onPressed: _pickImage,
+                        ),
+                      ],
                     ),
                     const Text(
                       'Saran lebar gambar ± 500px',

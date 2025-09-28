@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +21,7 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
   int? _selectedRoleId;
   File? _signatureFile;
   bool _isLoading = false;
+  bool _isDragging = false; // State untuk feedback visual
 
   @override
   void dispose() {
@@ -123,32 +125,6 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: TextFormField(
-                      controller: _passwordController,
-                      decoration: const InputDecoration(labelText: 'Password'),
-                      obscureText: true,
-                      validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _passwordConfirmationController,
-                      decoration: const InputDecoration(
-                        labelText: 'Konfirmasi Password',
-                      ),
-                      obscureText: true,
-                      validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    flex: 2,
                     child: roleOptions.when(
                       data: (roles) => DropdownButtonFormField<int>(
                         value: _selectedRoleId,
@@ -170,9 +146,51 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
                       error: (e, st) => const Text('Gagal memuat role'),
                     ),
                   ),
+
+                  // --- PERBAIKAN VALIDATOR PASSWORD ---
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _passwordController,
+                      decoration: const InputDecoration(labelText: 'Password'),
+                      obscureText: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Password wajib diisi';
+                        }
+                        if (value.length < 8) {
+                          return 'Minimal 8 karakter';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
                   const SizedBox(width: 16),
                   Expanded(
-                    flex: 3,
+                    child: TextFormField(
+                      controller: _passwordConfirmationController,
+                      decoration: const InputDecoration(
+                        labelText: 'Konfirmasi Password',
+                      ),
+                      obscureText: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Wajib diisi';
+                        }
+                        if (value != _passwordController.text) {
+                          return 'Password tidak cocok';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -180,18 +198,39 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            Container(
-                              width: 100,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey),
+                            DropTarget(
+                              onDragDone: (details) {
+                                if (details.files.isNotEmpty) {
+                                  setState(() {
+                                    _signatureFile = File(
+                                      details.files.first.path,
+                                    );
+                                  });
+                                }
+                              },
+                              onDragEntered: (details) =>
+                                  setState(() => _isDragging = true),
+                              onDragExited: (details) =>
+                                  setState(() => _isDragging = false),
+                              child: Container(
+                                width: 100,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: _isDragging
+                                        ? Theme.of(context).primaryColor
+                                        : Colors.grey,
+                                    width: _isDragging ? 3 : 1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: _signatureFile != null
+                                    ? Image.file(
+                                        _signatureFile!,
+                                        fit: BoxFit.contain,
+                                      )
+                                    : const Center(child: Text('PNG')),
                               ),
-                              child: _signatureFile != null
-                                  ? Image.file(
-                                      _signatureFile!,
-                                      fit: BoxFit.contain,
-                                    )
-                                  : const Center(child: Text('PNG')),
                             ),
                             const SizedBox(width: 8),
                             ElevatedButton.icon(
@@ -201,12 +240,16 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
                             ),
                           ],
                         ),
+                        const Text(
+                          'Saran lebar gambar ± 500px',
+                          style: TextStyle(fontSize: 10, color: Colors.grey),
+                        ),
                       ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 10),
               SizedBox(
                 width: double.infinity,
                 child: _isLoading

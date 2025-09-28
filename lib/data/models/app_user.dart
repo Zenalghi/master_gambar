@@ -35,7 +35,7 @@ class AppUser {
       id: json['id'],
       name: json['name'],
       username: json['username'],
-      role: json['roles'] != null ? Role.fromJson(json['roles']) : null,
+      role: json['role'] != null ? Role.fromJson(json['role']) : null,
       signature: json['signature'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
