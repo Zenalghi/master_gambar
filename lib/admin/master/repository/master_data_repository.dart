@@ -5,6 +5,7 @@ import 'package:master_gambar/app/core/providers.dart';
 import '../models/jenis_kendaraan.dart';
 import '../models/merk.dart';
 import '../models/type_chassis.dart';
+import '../models/varian_body.dart';
 
 final masterDataRepositoryProvider = Provider(
   (ref) => MasterDataRepository(ref),
@@ -154,5 +155,51 @@ class MasterDataRepository {
 
   Future<void> deleteJenisKendaraan({required String id}) async {
     await _ref.read(apiClientProvider).dio.delete('/jenis-kendaraan/$id');
+  }
+
+  // --- TAMBAHKAN FUNGSI UNTUK VARIAN BODY ---
+  Future<List<VarianBody>> getVarianBodyList() async {
+    final response = await _ref.read(apiClientProvider).dio.get('/varian-body');
+    final List<dynamic> data = response.data;
+    return data.map((item) => VarianBody.fromJson(item)).toList();
+  }
+
+  Future<VarianBody> addVarianBody({
+    required String jenisKendaraanId,
+    required String varianBody,
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .post(
+          '/varian-body',
+          data: {
+            'jenis_kendaraan_id': jenisKendaraanId,
+            'varian_body': varianBody,
+          },
+        );
+    return VarianBody.fromJson(response.data);
+  }
+
+  Future<VarianBody> updateVarianBody({
+    required int id,
+    required String jenisKendaraanId,
+    required String varianBody,
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .put(
+          '/varian-body/$id',
+          data: {
+            'jenis_kendaraan_id': jenisKendaraanId,
+            'varian_body': varianBody,
+          },
+        );
+    return VarianBody.fromJson(response.data);
+  }
+
+  Future<void> deleteVarianBody({required int id}) async {
+    await _ref.read(apiClientProvider).dio.delete('/varian-body/$id');
   }
 }

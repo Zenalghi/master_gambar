@@ -4,6 +4,7 @@ import 'package:master_gambar/admin/master/models/jenis_kendaraan.dart';
 import 'package:master_gambar/admin/master/models/merk.dart';
 import 'package:master_gambar/admin/master/models/type_chassis.dart';
 import 'package:master_gambar/admin/master/models/type_engine.dart';
+import 'package:master_gambar/admin/master/models/varian_body.dart'; // Import model baru
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/option_item.dart';
@@ -25,10 +26,15 @@ final typeChassisListProvider = FutureProvider<List<TypeChassis>>((ref) {
   return ref.read(masterDataRepositoryProvider).getTypeChassis();
 });
 
-// Provider untuk Jenis Kendaraan
 final jenisKendaraanListProvider = FutureProvider<List<JenisKendaraan>>((ref) {
   ref.watch(masterDataRepositoryProvider);
   return ref.read(masterDataRepositoryProvider).getJenisKendaraanList();
+});
+
+// Provider untuk Varian Body
+final varianBodyListProvider = FutureProvider<List<VarianBody>>((ref) {
+  ref.watch(masterDataRepositoryProvider);
+  return ref.read(masterDataRepositoryProvider).getVarianBodyList();
 });
 
 // == PROVIDER UNTUK DROPDOWN DINAMIS (OPTIONS) ==
@@ -45,7 +51,6 @@ final merkOptionsFamilyProvider =
           .toList();
     });
 
-// Provider .family untuk dropdown Type Chassis yang bergantung pada Merk
 final typeChassisOptionsFamilyProvider =
     FutureProvider.family<List<OptionItem>, String?>((ref, merkId) async {
       if (merkId == null || merkId.isEmpty) return [];
@@ -56,6 +61,23 @@ final typeChassisOptionsFamilyProvider =
       final List<dynamic> data = response.data;
       return data
           .map((item) => OptionItem.fromJson(item, nameKey: 'type_chassis'))
+          .toList();
+    });
+
+// Provider .family untuk dropdown Jenis Kendaraan yang bergantung pada Type Chassis
+final jenisKendaraanOptionsFamilyProvider =
+    FutureProvider.family<List<OptionItem>, String?>((
+      ref,
+      typeChassisId,
+    ) async {
+      if (typeChassisId == null || typeChassisId.isEmpty) return [];
+      final response = await ref
+          .watch(apiClientProvider)
+          .dio
+          .get(ApiEndpoints.jenisKendaraan(typeChassisId));
+      final List<dynamic> data = response.data;
+      return data
+          .map((item) => OptionItem.fromJson(item, nameKey: 'jenis_kendaraan'))
           .toList();
     });
 
@@ -71,3 +93,6 @@ final typeChassisSearchQueryProvider = StateProvider<String>((ref) => '');
 // Jenis Kendaraan
 final jenisKendaraanRowsPerPageProvider = StateProvider<int>((ref) => 25);
 final jenisKendaraanSearchQueryProvider = StateProvider<String>((ref) => '');
+// Varian Body
+final varianBodyRowsPerPageProvider = StateProvider<int>((ref) => 25);
+final varianBodySearchQueryProvider = StateProvider<String>((ref) => '');
