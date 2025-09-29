@@ -64,6 +64,18 @@ final typeChassisOptionsFamilyProvider =
           .toList();
     });
 
+final jenisVarianOptionsProvider = FutureProvider<List<OptionItem>>((
+  ref,
+) async {
+  final response = await ref
+      .watch(apiClientProvider)
+      .dio
+      .get(ApiEndpoints.judulGambar);
+  final List<dynamic> data = response.data;
+  return data
+      .map((item) => OptionItem.fromJson(item, nameKey: 'name'))
+      .toList();
+});
 // Provider .family untuk dropdown Jenis Kendaraan yang bergantung pada Type Chassis
 final jenisKendaraanOptionsFamilyProvider =
     FutureProvider.family<List<OptionItem>, String?>((

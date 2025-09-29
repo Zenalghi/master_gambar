@@ -9,7 +9,7 @@ class GambarSyncedRow extends ConsumerWidget {
   final Transaksi transaksi;
   final int totalHalaman;
   final VoidCallback onPreviewPressed;
-  final int jumlahGambarUtama; // <-- Tambahkan parameter ini
+  final int jumlahGambarUtama;
 
   const GambarSyncedRow({
     super.key,
@@ -18,32 +18,31 @@ class GambarSyncedRow extends ConsumerWidget {
     required this.transaksi,
     required this.totalHalaman,
     required this.onPreviewPressed,
-    required this.jumlahGambarUtama, // <-- Tambahkan parameter ini
+    required this.jumlahGambarUtama,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selections = ref.watch(gambarUtamaSelectionProvider);
+    //pemeriksa
     final pemeriksaId = ref.watch(pemeriksaIdProvider);
+
+    if (index >= selections.length) {
+      return const SizedBox.shrink(); // Tampilkan widget kosong jika state belum siap
+    }
+
     final selection = selections[index];
     final varianBodyOptions = ref.watch(
       varianBodyOptionsFamilyProvider(transaksi.dJenisKendaraan.id),
     );
-
-    // --- 1. Ambil juga data opsi judul ---
     final judulOptions = ref.watch(judulGambarOptionsProvider);
 
     final bool isRowComplete =
         selection.judulId != null &&
         selection.varianBodyId != null &&
         pemeriksaId != null;
-    final isLoading = ref.watch(isProcessingProvider);
 
-    // --- 2. Siapkan variabel untuk nama judul dan nama varian ---
     String judulName = '...';
-    String varianBodyName = '...';
-
-    // Cari nama judul berdasarkan ID
     judulOptions.whenData((items) {
       if (selection.judulId != null) {
         final selectedItem = items.where((e) => e.id == selection.judulId);
@@ -53,7 +52,7 @@ class GambarSyncedRow extends ConsumerWidget {
       }
     });
 
-    // Cari nama varian berdasarkan ID
+    String varianBodyName = '...';
     varianBodyOptions.whenData((items) {
       if (selection.varianBodyId != null) {
         final selectedItem = items.where((e) => e.id == selection.varianBodyId);
@@ -63,7 +62,7 @@ class GambarSyncedRow extends ConsumerWidget {
       }
     });
 
-    final basePageNumber = jumlahGambarUtama; // Gunakan parameter
+    final basePageNumber = jumlahGambarUtama;
     final pageNumber =
         (title.contains('Terurai') ? basePageNumber : basePageNumber * 2) +
         index +
@@ -80,7 +79,6 @@ class GambarSyncedRow extends ConsumerWidget {
               color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(4),
             ),
-            // --- 3. Tampilkan nama judul di sini ---
             child: Text(judulName),
           ),
         ),
@@ -93,7 +91,6 @@ class GambarSyncedRow extends ConsumerWidget {
               color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(4),
             ),
-            // Tampilkan nama varian di sini (ini sudah benar)
             child: Text(varianBodyName),
           ),
         ),
@@ -112,9 +109,9 @@ class GambarSyncedRow extends ConsumerWidget {
         ),
         const SizedBox(width: 10),
         SizedBox(
-          width: 170,
+          width: 180,
           child: ElevatedButton(
-            onPressed: isRowComplete && !isLoading ? onPreviewPressed : null,
+            onPressed: isRowComplete ? onPreviewPressed : null,
             child: const Text('Preview Gambar'),
           ),
         ),

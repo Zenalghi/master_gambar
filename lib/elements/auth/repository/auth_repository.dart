@@ -53,16 +53,15 @@ class AuthRepository {
     await prefs.remove('user_id');
 
     // 2. Reset provider otentikasi
-    ref.read(authTokenProvider.notifier).state = null;
+    ref.read(authTokenProvider.notifier).state =
+        null; // Penting untuk transaksi histori
     ref.read(userRoleProvider.notifier).state = null;
     ref.read(userNameProvider.notifier).state = null;
     ref.read(currentUserIdProvider.notifier).state = null;
 
-    // --- RESET SEMUA STATE APLIKASI ---
-
     // 3. Reset state navigasi & tabel
     ref.read(pageStateProvider.notifier).state = PageState(pageIndex: 0);
-    ref.read(rowsPerPageProvider.notifier).state = 25; // Kembali ke default
+    ref.read(rowsPerPageProvider.notifier).state = 25;
     ref.invalidate(transaksiHistoryProvider);
 
     // 4. Reset semua state filter
@@ -81,13 +80,9 @@ class AuthRepository {
     ref.invalidate(jenisPengajuanOptionsProvider);
 
     // 6. Reset semua state form Input Gambar
-    // ref.read(jumlahGambarProvider.notifier).state = 1;
     ref.read(pemeriksaIdProvider.notifier).state = null;
     ref.read(showGambarOptionalProvider.notifier).state = false;
-    // PERBAIKAN:
-    // 1. Reset jumlah baris kembali ke 1
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
-    // 2. Hapus semua pilihan yang tersimpan dengan meng-invalidate provider-nya
     ref.invalidate(gambarOptionalSelectionProvider);
     ref.read(showGambarKelistrikanProvider.notifier).state = false;
     ref.read(gambarKelistrikanIdProvider.notifier).state = null;

@@ -14,13 +14,12 @@ class InputGambarScreen extends ConsumerWidget {
 
   const InputGambarScreen({super.key, required this.transaksi});
 
-  // Method untuk handle preview (sudah ada)
+  // Method untuk handle preview
   Future<void> _handlePreview(
     BuildContext context,
     WidgetRef ref,
     int rowIndex,
   ) async {
-    // 1. Aktifkan loading state
     ref.read(isProcessingProvider.notifier).state = true;
     try {
       final pemeriksaId = ref.read(pemeriksaIdProvider);
@@ -71,11 +70,10 @@ class InputGambarScreen extends ConsumerWidget {
           );
 
       if (context.mounted) {
-        // --- PERBAIKAN LOGIKA PENCARIAN JUDUL ---
         final judulOptions = await ref.read(judulGambarOptionsProvider.future);
         final selection = selections[rowIndex];
 
-        String judulName = 'Preview'; // Nilai default
+        String judulName = 'Preview';
         if (selection.judulId != null) {
           final matchingJudul = judulOptions.where(
             (e) => e.id == selection.judulId,
@@ -96,30 +94,26 @@ class InputGambarScreen extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        // --- PERBAIKI SNACKBAR AGAR LEBIH LAMA ---
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error Preview: ${e.toString()}'),
             backgroundColor: Theme.of(context).colorScheme.error,
-            duration: const Duration(seconds: 8), // Tahan selama 8 detik
+            duration: const Duration(seconds: 8),
             action: SnackBarAction(label: 'TUTUP', onPressed: () {}),
           ),
         );
       }
     } finally {
-      // 2. APAPUN YANG TERJADI (SUKSES/GAGAL), SELALU MATIKAN LOADING
       if (context.mounted) {
         ref.read(isProcessingProvider.notifier).state = false;
       }
     }
   }
 
-  // --- METHOD BARU UNTUK PROSES GAMBAR ---
+  // Method untuk handle proses
   Future<void> _handleProses(BuildContext context, WidgetRef ref) async {
-    // 1. Aktifkan loading state
     ref.read(isProcessingProvider.notifier).state = true;
     try {
-      // (Logika pengumpulan data dan pemanggilan repository tetap sama)
       final pemeriksaId = ref.read(pemeriksaIdProvider);
       final selections = ref.read(gambarUtamaSelectionProvider);
       final showOptional = ref.read(showGambarOptionalProvider);
@@ -169,39 +163,36 @@ class InputGambarScreen extends ConsumerWidget {
             ],
           ),
         );
+
         ref.invalidate(transaksiHistoryProvider);
         ref.read(pageStateProvider.notifier).state = PageState(pageIndex: 0);
       }
     } catch (e) {
       if (context.mounted) {
-        // --- PERBAIKI SNACKBAR AGAR LEBIH LAMA ---
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error Proses: ${e.toString()}'),
             backgroundColor: Theme.of(context).colorScheme.error,
-            duration: const Duration(seconds: 8), // Tahan selama 8 detik
+            duration: const Duration(seconds: 8),
             action: SnackBarAction(label: 'TUTUP', onPressed: () {}),
           ),
         );
       }
     } finally {
-      // 2. APAPUN YANG TERJADI (SUKSES/GAGAL), SELALU MATIKAN LOADING
       if (context.mounted) {
         ref.read(isProcessingProvider.notifier).state = false;
       }
     }
   }
 
+  // Method untuk me-reset semua state form
   void _resetInputGambarState(WidgetRef ref) {
-    // Reset semua provider yang terkait dengan form ini ke nilai defaultnya
     ref.read(isProcessingProvider.notifier).state = false;
-    // ref.read(jumlahGambarProvider.notifier).state = 1;
+    ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
     ref.read(pemeriksaIdProvider.notifier).state = null;
     ref.read(showGambarOptionalProvider.notifier).state = false;
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
-    ref.invalidate(
-      gambarOptionalSelectionProvider,
-    ); // Invalidate untuk membuat ulang state
+    ref.invalidate(gambarOptionalSelectionProvider);
     ref.read(showGambarKelistrikanProvider.notifier).state = false;
     ref.read(gambarKelistrikanIdProvider.notifier).state = null;
     ref.invalidate(gambarUtamaSelectionProvider);
@@ -209,27 +200,22 @@ class InputGambarScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // --- LOGIKA DINAMIS UTAMA ADA DI SINI ---
-    final selections = ref.watch(gambarUtamaSelectionProvider);
-    final highestJudulId = selections
-        .map((s) => s.judulId ?? 0)
-        .fold(0, (max, current) => current > max ? current : max);
-    final jumlahGambarUtama = highestJudulId > 0 ? highestJudulId : 1;
-    // ----------------------------------------
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(gambarUtamaSelectionProvider.notifier).resize(jumlahGambarUtama);
+    // --- PERBAIKAN UTAMA: GUNAKAN ref.listen UNTUK MENCEGAH RACE CONDITION ---
+    ref.listen<int>(jumlahGambarProvider, (previous, next) {
+      // Saat dropdown jumlah berubah, langsung resize list state.
+      // Ini terjadi SEBELUM UI mencoba membangun ulang.
+      ref.read(gambarUtamaSelectionProvider.notifier).resize(next);
     });
+    // --------------------------------------------------------------------
+
+    // Tonton provider untuk mendapatkan nilai saat ini untuk di-render
+    final jumlahGambarUtama = ref.watch(jumlahGambarProvider);
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         children: [
-          // Teruskan jumlahGambarUtama ke header
-          GambarHeaderInfo(
-            transaksi: transaksi,
-            jumlahGambar: jumlahGambarUtama,
-          ),
+          GambarHeaderInfo(transaksi: transaksi),
           const SizedBox(height: 24),
           Expanded(
             child: SingleChildScrollView(
@@ -237,7 +223,8 @@ class InputGambarScreen extends ConsumerWidget {
                 transaksi: transaksi,
                 onPreviewPressed: (index) =>
                     _handlePreview(context, ref, index),
-                jumlahGambarUtama: jumlahGambarUtama, // Teruskan ke main form
+                // Teruskan jumlah yang benar ke widget anak
+                jumlahGambarUtama: jumlahGambarUtama,
               ),
             ),
           ),
@@ -278,7 +265,6 @@ class InputGambarScreen extends ConsumerWidget {
         onPressed: isFormValid && !isLoading
             ? () async {
                 await _handleProses(context, ref);
-                // --- PANGGIL FUNGSI RESET SETELAH PROSES SELESAI ---
                 _resetInputGambarState(ref);
               }
             : null,

@@ -21,13 +21,10 @@ class GambarMainForm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Ambil semua state yang dibutuhkan untuk perhitungan
-    // final jumlahGambarUtama = ref.watch(jumlahGambarProvider);
     final showOptional = ref.watch(showGambarOptionalProvider);
     final jumlahGambarOptional = ref.watch(jumlahGambarOptionalProvider);
     final showKelistrikan = ref.watch(showGambarKelistrikanProvider);
 
-    // --- LOGIKA PERHITUNGAN HALAMAN YANG DIPERBAIKI ---
     int totalHalaman = jumlahGambarUtama * 3;
     if (showOptional) {
       totalHalaman += jumlahGambarOptional;
@@ -36,13 +33,9 @@ class GambarMainForm extends ConsumerWidget {
       totalHalaman++;
     }
 
-    // Nomor halaman awal untuk section optional
     int optionalBasePageNumber = jumlahGambarUtama * 3 + 1;
-
-    // Nomor halaman untuk section kelistrikan, dihitung setelah optional
     int kelistrikanPageNumber =
         jumlahGambarUtama * 3 + (showOptional ? jumlahGambarOptional : 0) + 1;
-    // ---------------------------------------------------
 
     return Card(
       child: Padding(
@@ -69,8 +62,8 @@ class GambarMainForm extends ConsumerWidget {
                 title: 'Gambar Terurai',
                 transaksi: transaksi,
                 totalHalaman: totalHalaman,
-                onPreviewPressed: () => onPreviewPressed(index),
                 jumlahGambarUtama: jumlahGambarUtama,
+                onPreviewPressed: () => onPreviewPressed(index),
               ),
             ),
             const Divider(height: 32),
@@ -82,8 +75,8 @@ class GambarMainForm extends ConsumerWidget {
                 title: 'Gambar Kontruksi',
                 transaksi: transaksi,
                 totalHalaman: totalHalaman,
-                onPreviewPressed: () => onPreviewPressed(index),
                 jumlahGambarUtama: jumlahGambarUtama,
+                onPreviewPressed: () => onPreviewPressed(index),
               ),
             ),
             const Divider(height: 32),

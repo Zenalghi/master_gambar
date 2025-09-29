@@ -2,16 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
 import 'package:master_gambar/elements/home/providers/input_gambar_providers.dart';
+import '../../../../admin/master/providers/master_data_providers.dart';
 
 class GambarHeaderInfo extends ConsumerWidget {
   final Transaksi transaksi;
-  final int jumlahGambar;
 
-  const GambarHeaderInfo({
-    super.key,
-    required this.transaksi,
-    required this.jumlahGambar,
-  });
+  const GambarHeaderInfo({super.key, required this.transaksi});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
@@ -19,7 +16,7 @@ class GambarHeaderInfo extends ConsumerWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // --- BARIS PERTAMA ---
+            // --- BARIS PERTAMA (Tidak berubah) ---
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -39,7 +36,7 @@ class GambarHeaderInfo extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 16),
-            // --- BARIS KEDUA ---
+            // --- BARIS KEDUA (Ada perubahan) ---
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -55,20 +52,14 @@ class GambarHeaderInfo extends ConsumerWidget {
                   transaksi.fPengajuan.jenisPengajuan,
                 ),
                 const SizedBox(width: 16),
-                // Kolom terakhir berisi 2 dropdown
                 Expanded(
                   flex: 1,
-                  child: Column(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(child: _buildJumlahGambarInfo()),
-                          const SizedBox(width: 16),
-                          Expanded(child: _buildPemeriksaDropdown(ref)),
-                        ],
-                      ),
-                      // Menambahkan spasi kosong agar tingginya sama dengan field info
-                      const SizedBox(height: 25),
+                      Expanded(child: _buildJumlahGambarDropdown(ref)),
+                      const SizedBox(width: 16),
+                      Expanded(child: _buildPemeriksaDropdown(ref)),
                     ],
                   ),
                 ),
@@ -107,51 +98,73 @@ class GambarHeaderInfo extends ConsumerWidget {
   }
 
   // Dropdown ini diubah agar tidak memiliki label eksplisit untuk tampilan yang lebih bersih
-  Widget _buildJumlahGambarInfo() {
-    return InputDecorator(
-      decoration: const InputDecoration(
-        labelText: 'Jumlah Gbr. Utama',
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      ),
-      child: Text(
-        jumlahGambar.toString(),
-        style: const TextStyle(fontSize: 16),
-      ),
-    );
-  }
+  Widget _buildJumlahGambarDropdown(WidgetRef ref) {
+    final jenisVarianAsync = ref.watch(jenisVarianOptionsProvider);
+    // --- PERBAIKAN 1: Tonton provider yang benar ---
+    final selectedJumlah = ref.watch(jumlahGambarProvider);
 
-  Widget _buildPemeriksaDropdown(WidgetRef ref) {
-    final pemeriksaOptions = ref.watch(pemeriksaOptionsProvider);
-    final selectedId = ref.watch(pemeriksaIdProvider);
+    return jenisVarianAsync.when(
+      data: (jenisVarianList) {
+        final options = List<int>.generate(
+          jenisVarianList.length,
+          (i) => i + 1,
+        );
 
-    return pemeriksaOptions.when(
-      data: (items) => DropdownButtonFormField<int>(
-        value: selectedId,
-        hint: const Text('Pemeriksa'), // Gunakan hintText
-        decoration: const InputDecoration(
-          // Hapus labelText
-          border: OutlineInputBorder(),
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 8,
-          ), // Atur padding
-        ),
-        items: items
-            .map(
-              (e) => DropdownMenuItem<int>(
-                value: e.id as int,
-                child: Text(e.name),
-              ),
-            )
-            .toList(),
-        onChanged: (value) {
-          ref.read(pemeriksaIdProvider.notifier).state = value;
-        },
-      ),
+        return DropdownButtonFormField<int>(
+          value: selectedJumlah,
+          decoration: const InputDecoration(
+            labelText: 'Jumlah Gbr',
+            border: OutlineInputBorder(),
+            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+          ),
+          items: options
+              .map(
+                (e) =>
+                    DropdownMenuItem<int>(value: e, child: Text(e.toString())),
+              )
+              .toList(),
+          onChanged: (value) {
+            if (value != null) {
+              // --- PERBAIKAN 2: Update provider yang benar ---
+              ref.read(jumlahGambarProvider.notifier).state = value;
+            }
+          },
+        );
+      },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) =>
-          const Tooltip(message: 'Error', child: Icon(Icons.error)),
+      error: (e, st) => const Text('Error'),
     );
   }
+}
+
+Widget _buildPemeriksaDropdown(WidgetRef ref) {
+  final pemeriksaOptions = ref.watch(pemeriksaOptionsProvider);
+  final selectedId = ref.watch(pemeriksaIdProvider);
+
+  return pemeriksaOptions.when(
+    data: (items) => DropdownButtonFormField<int>(
+      initialValue: selectedId,
+      hint: const Text('Pemeriksa'), // Gunakan hintText
+      decoration: const InputDecoration(
+        // Hapus labelText
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 8,
+        ), // Atur padding
+      ),
+      items: items
+          .map(
+            (e) =>
+                DropdownMenuItem<int>(value: e.id as int, child: Text(e.name)),
+          )
+          .toList(),
+      onChanged: (value) {
+        ref.read(pemeriksaIdProvider.notifier).state = value;
+      },
+    ),
+    loading: () => const Center(child: CircularProgressIndicator()),
+    error: (err, stack) =>
+        const Tooltip(message: 'Error', child: Icon(Icons.error)),
+  );
 }

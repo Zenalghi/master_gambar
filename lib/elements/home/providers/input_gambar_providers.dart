@@ -9,6 +9,7 @@ final isProcessingProvider = StateProvider<bool>((ref) => false);
 
 // === State untuk Pilihan Utama ===
 // Provider 'jumlahGambarProvider' telah dihapus dari sini.
+final jumlahGambarProvider = StateProvider<int>((ref) => 1);
 
 // Menyimpan ID pemeriksa yang dipilih
 final pemeriksaIdProvider = StateProvider<int?>((ref) => null);
