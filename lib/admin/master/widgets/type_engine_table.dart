@@ -13,18 +13,30 @@ class TypeEngineTable extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncData = ref.watch(typeEngineListProvider);
+    final searchQuery = ref.watch(typeEngineSearchQueryProvider);
+
     return asyncData.when(
-      data: (data) => PaginatedDataTable2(
-        // --- TAMBAHKAN KOLOM BARU ---
-        columns: const [
-          DataColumn2(label: Text('ID'), fixedWidth: 80),
-          DataColumn2(label: Text('Type Engine'), size: ColumnSize.L),
-          DataColumn2(label: Text('Dibuat Pada'), size: ColumnSize.M),
-          DataColumn2(label: Text('Diupdate Pada'), size: ColumnSize.M),
-          DataColumn2(label: Text('Options'), fixedWidth: 120),
-        ],
-        source: _TypeEngineDataSource(data, context, ref),
-      ),
+      data: (data) {
+        // --- 2. Filter data berdasarkan pencarian ---
+        final filteredData = data.where((item) {
+          final query = searchQuery.toLowerCase();
+          return item.name.toLowerCase().contains(query) ||
+              item.id.toLowerCase().contains(query);
+        }).toList();
+        // -----------------------------------------
+
+        return PaginatedDataTable2(
+          columns: const [
+            DataColumn2(label: Text('ID'), fixedWidth: 80),
+            DataColumn2(label: Text('Type Engine'), size: ColumnSize.L),
+            DataColumn2(label: Text('Dibuat Pada'), size: ColumnSize.M),
+            DataColumn2(label: Text('Diupdate Pada'), size: ColumnSize.M),
+            DataColumn2(label: Text('Options'), fixedWidth: 120),
+          ],
+          // --- 3. Gunakan data yang sudah difilter ---
+          source: _TypeEngineDataSource(filteredData, context, ref),
+        );
+      },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, st) => Center(child: Text('Error: $e')),
     );

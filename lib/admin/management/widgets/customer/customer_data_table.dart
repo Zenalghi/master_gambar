@@ -142,8 +142,8 @@ class _CustomerDataSource extends DataTableSource {
     final dateFormat = DateFormat('yyyy.MM.dd HH:mm');
     return DataRow(
       cells: [
-        DataCell(Text(customer.namaPt)),
-        DataCell(Text(customer.pj)),
+        DataCell(SelectableText(customer.namaPt)),
+        DataCell(SelectableText(customer.pj)),
         DataCell(
           customer.signaturePj != null && customer.signaturePj!.isNotEmpty
               ? const Icon(
@@ -157,8 +157,12 @@ class _CustomerDataSource extends DataTableSource {
                   semanticLabel: 'Tidak Ada',
                 ),
         ),
-        DataCell(Text(dateFormat.format(customer.createdAt.toLocal()))),
-        DataCell(Text(dateFormat.format(customer.updatedAt.toLocal()))),
+        DataCell(
+          SelectableText(dateFormat.format(customer.createdAt.toLocal())),
+        ),
+        DataCell(
+          SelectableText(dateFormat.format(customer.updatedAt.toLocal())),
+        ),
         DataCell(
           Row(
             children: [

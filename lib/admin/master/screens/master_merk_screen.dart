@@ -66,6 +66,26 @@ class _MasterMerkScreenState extends ConsumerState<MasterMerkScreen> {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
+
+              // --- TAMBAHKAN KOLOM SEARCH DI SINI ---
+              SizedBox(
+                width: 250,
+                child: TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Search Merk...',
+                    prefixIcon: const Icon(Icons.search),
+                    isDense: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onChanged: (value) =>
+                      ref.read(merkSearchQueryProvider.notifier).state = value,
+                ),
+              ),
+
+              // ------------------------------------
+              const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data',

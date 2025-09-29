@@ -126,16 +126,16 @@ class _UserDataDataSource extends DataTableSource {
     final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
     return DataRow(
       cells: [
-        DataCell(Text(user.name)),
-        DataCell(Text(user.username)),
+        DataCell(SelectableText(user.name)),
+        DataCell(SelectableText(user.username)),
         DataCell(Text(user.role?.name ?? 'N/A')),
         DataCell(
           user.signature != null
               ? const Icon(Icons.check_circle, color: Colors.green)
               : const Icon(Icons.cancel, color: Colors.red),
         ),
-        DataCell(Text(dateFormat.format(user.createdAt.toLocal()))),
-        DataCell(Text(dateFormat.format(user.updatedAt.toLocal()))),
+        DataCell(SelectableText(dateFormat.format(user.createdAt.toLocal()))),
+        DataCell(SelectableText(dateFormat.format(user.updatedAt.toLocal()))),
         DataCell(
           Row(
             children: [
