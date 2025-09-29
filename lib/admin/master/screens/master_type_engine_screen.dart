@@ -39,6 +39,7 @@ class MasterTypeEngineScreen extends ConsumerWidget {
                   Expanded(
                     child: TextFormField(
                       controller: controller,
+                      textCapitalization: TextCapitalization.characters,
                       decoration: const InputDecoration(
                         labelText: 'Nama Type Engine Baru',
                         hintText: 'Contoh: EURO 4',

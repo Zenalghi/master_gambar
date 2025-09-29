@@ -1,53 +1,134 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart'; // Import package intl untuk format tanggal
-import 'package:master_gambar/admin/master/models/type_engine.dart';
+import 'package:intl/intl.dart';
+import 'package:master_gambar/admin/master/models/merk.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:dio/dio.dart';
 import '../repository/master_data_repository.dart';
 
-class TypeEngineTable extends ConsumerWidget {
-  const TypeEngineTable({super.key});
+class MerkTable extends ConsumerStatefulWidget {
+  const MerkTable({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final asyncData = ref.watch(typeEngineListProvider);
+  ConsumerState<MerkTable> createState() => _MerkTableState();
+}
+
+class _MerkTableState extends ConsumerState<MerkTable> {
+  // 2. Tambahkan state untuk sorting
+  int? _sortColumnIndex;
+  bool _sortAscending = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final asyncData = ref.watch(merkListProvider);
+    final rowsPerPage = ref.watch(merkRowsPerPageProvider);
+
     return asyncData.when(
-      data: (data) => PaginatedDataTable2(
-        // --- TAMBAHKAN KOLOM BARU ---
-        columns: const [
-          DataColumn2(label: Text('ID'), fixedWidth: 80),
-          DataColumn2(label: Text('Type Engine'), size: ColumnSize.L),
-          DataColumn2(label: Text('Dibuat Pada'), size: ColumnSize.M),
-          DataColumn2(label: Text('Diupdate Pada'), size: ColumnSize.M),
-          DataColumn2(label: Text('Options'), fixedWidth: 120),
-        ],
-        source: _TypeEngineDataSource(data, context, ref),
-      ),
+      data: (data) {
+        // 3. Tambahkan logika sorting
+        final sortedData = List<Merk>.from(data);
+        if (_sortColumnIndex != null) {
+          sortedData.sort((a, b) {
+            late final Comparable<Object> cellA;
+            late final Comparable<Object> cellB;
+            switch (_sortColumnIndex!) {
+              case 1:
+                cellA = a.name.toLowerCase();
+                cellB = b.name.toLowerCase();
+                break;
+              case 2:
+                cellA = a.typeEngine.name.toLowerCase();
+                cellB = b.typeEngine.name.toLowerCase();
+                break;
+              case 3:
+                cellA = a.createdAt;
+                cellB = b.createdAt;
+                break;
+              case 4:
+                cellA = a.updatedAt;
+                cellB = b.updatedAt;
+                break;
+              default:
+                return 0;
+            }
+            return _sortAscending
+                ? cellA.compareTo(cellB)
+                : cellB.compareTo(cellA);
+          });
+        }
+
+        return PaginatedDataTable2(
+          rowsPerPage: rowsPerPage,
+          availableRowsPerPage: const [10, 25, 50, 100],
+          onRowsPerPageChanged: (value) {
+            if (value != null) {
+              ref.read(merkRowsPerPageProvider.notifier).state = value;
+            }
+          },
+          sortColumnIndex: _sortColumnIndex,
+          sortAscending: _sortAscending,
+          columns: _createColumns(),
+          source: _MerkDataSource(sortedData, context, ref),
+        );
+      },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, st) => Center(child: Text('Error: $e')),
     );
   }
+
+  // 4. Buat method untuk header kolom yang bisa di-sort
+  List<DataColumn2> _createColumns() {
+    return [
+      const DataColumn2(label: Text('ID'), fixedWidth: 100),
+      DataColumn2(
+        label: const Text('Merk'),
+        size: ColumnSize.L,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Type Engine (Induk)'),
+        size: ColumnSize.L,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Dibuat Pada'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Diupdate Pada'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
+      const DataColumn2(label: Text('Options'), fixedWidth: 120),
+    ];
+  }
+
+  void _onSort(int columnIndex, bool ascending) {
+    setState(() {
+      _sortColumnIndex = columnIndex;
+      _sortAscending = ascending;
+    });
+  }
 }
 
-class _TypeEngineDataSource extends DataTableSource {
-  final List<TypeEngine> data;
+class _MerkDataSource extends DataTableSource {
+  final List<Merk> data;
   final BuildContext context;
   final WidgetRef ref;
-  _TypeEngineDataSource(this.data, this.context, this.ref);
+  _MerkDataSource(this.data, this.context, this.ref);
 
   @override
   DataRow? getRow(int index) {
     final item = data[index];
-    // Buat formatter tanggal
     final dateFormat = DateFormat('yyyy.MM.dd HH:mm');
-
     return DataRow(
       cells: [
         DataCell(Text(item.id)),
         DataCell(Text(item.name)),
-        // --- TAMBAHKAN CELL BARU ---
+        DataCell(Text('${item.typeEngine.name} (${item.typeEngine.id})')),
+        // --- 5. TAMBAHKAN CELL BARU UNTUK TIMESTAMPS ---
         DataCell(Text(dateFormat.format(item.createdAt.toLocal()))),
         DataCell(Text(dateFormat.format(item.updatedAt.toLocal()))),
         DataCell(
@@ -68,16 +149,16 @@ class _TypeEngineDataSource extends DataTableSource {
     );
   }
 
-  void _showEditDialog(TypeEngine item) {
+  void _showEditDialog(Merk item) {
     final controller = TextEditingController(text: item.name);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Type Engine: ${item.id}'),
+        title: Text('Edit Merk: ${item.id}'),
         content: TextFormField(
           controller: controller,
           textCapitalization: TextCapitalization.characters,
-          decoration: const InputDecoration(labelText: 'Nama Type Engine'),
+          decoration: const InputDecoration(labelText: 'Nama Merk'),
         ),
         actions: [
           TextButton(
@@ -89,8 +170,8 @@ class _TypeEngineDataSource extends DataTableSource {
               try {
                 await ref
                     .read(masterDataRepositoryProvider)
-                    .updateTypeEngine(id: item.id, typeEngine: controller.text);
-                ref.invalidate(typeEngineListProvider);
+                    .updateMerk(id: item.id, merk: controller.text);
+                ref.invalidate(merkListProvider);
                 Navigator.of(context).pop();
               } on DioException catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -108,7 +189,7 @@ class _TypeEngineDataSource extends DataTableSource {
     );
   }
 
-  void _showDeleteDialog(TypeEngine item) {
+  void _showDeleteDialog(Merk item) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -125,8 +206,8 @@ class _TypeEngineDataSource extends DataTableSource {
               try {
                 await ref
                     .read(masterDataRepositoryProvider)
-                    .deleteTypeEngine(id: item.id);
-                ref.invalidate(typeEngineListProvider);
+                    .deleteMerk(id: item.id);
+                ref.invalidate(merkListProvider);
                 Navigator.of(context).pop();
               } on DioException catch (e) {
                 final errorMessages = e.response?.data['errors'];
