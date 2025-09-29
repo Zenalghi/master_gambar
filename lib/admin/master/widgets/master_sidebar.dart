@@ -12,7 +12,6 @@ class MasterSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // NavigationRail tidak mendukung header, jadi kita beri jarak saja
     return NavigationRail(
       selectedIndex: selectedIndex,
       onDestinationSelected: onItemSelected,
@@ -38,6 +37,12 @@ class MasterSidebar extends StatelessWidget {
         NavigationRailDestination(
           icon: Icon(Icons.build),
           label: Text('Varian Body'),
+        ),
+
+        // --- TAMBAHKAN ITEM BARU DI SINI ---
+        NavigationRailDestination(
+          icon: Icon(Icons.category),
+          label: Text('Jenis Varian'),
         ),
 
         // --- Group Master Gambar ---

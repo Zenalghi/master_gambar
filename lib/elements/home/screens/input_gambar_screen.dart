@@ -195,7 +195,7 @@ class InputGambarScreen extends ConsumerWidget {
   void _resetInputGambarState(WidgetRef ref) {
     // Reset semua provider yang terkait dengan form ini ke nilai defaultnya
     ref.read(isProcessingProvider.notifier).state = false;
-    ref.read(jumlahGambarProvider.notifier).state = 1;
+    // ref.read(jumlahGambarProvider.notifier).state = 1;
     ref.read(pemeriksaIdProvider.notifier).state = null;
     ref.read(showGambarOptionalProvider.notifier).state = false;
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
@@ -209,15 +209,27 @@ class InputGambarScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<int>(jumlahGambarProvider, (previous, next) {
-      ref.read(gambarUtamaSelectionProvider.notifier).resize(next);
+    // --- LOGIKA DINAMIS UTAMA ADA DI SINI ---
+    final selections = ref.watch(gambarUtamaSelectionProvider);
+    final highestJudulId = selections
+        .map((s) => s.judulId ?? 0)
+        .fold(0, (max, current) => current > max ? current : max);
+    final jumlahGambarUtama = highestJudulId > 0 ? highestJudulId : 1;
+    // ----------------------------------------
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(gambarUtamaSelectionProvider.notifier).resize(jumlahGambarUtama);
     });
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         children: [
-          GambarHeaderInfo(transaksi: transaksi),
+          // Teruskan jumlahGambarUtama ke header
+          GambarHeaderInfo(
+            transaksi: transaksi,
+            jumlahGambar: jumlahGambarUtama,
+          ),
           const SizedBox(height: 24),
           Expanded(
             child: SingleChildScrollView(
@@ -225,6 +237,7 @@ class InputGambarScreen extends ConsumerWidget {
                 transaksi: transaksi,
                 onPreviewPressed: (index) =>
                     _handlePreview(context, ref, index),
+                jumlahGambarUtama: jumlahGambarUtama, // Teruskan ke main form
               ),
             ),
           ),

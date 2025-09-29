@@ -9,6 +9,7 @@ class GambarSyncedRow extends ConsumerWidget {
   final Transaksi transaksi;
   final int totalHalaman;
   final VoidCallback onPreviewPressed;
+  final int jumlahGambarUtama; // <-- Tambahkan parameter ini
 
   const GambarSyncedRow({
     super.key,
@@ -17,6 +18,7 @@ class GambarSyncedRow extends ConsumerWidget {
     required this.transaksi,
     required this.totalHalaman,
     required this.onPreviewPressed,
+    required this.jumlahGambarUtama, // <-- Tambahkan parameter ini
   });
 
   @override
@@ -61,7 +63,7 @@ class GambarSyncedRow extends ConsumerWidget {
       }
     });
 
-    final basePageNumber = ref.read(jumlahGambarProvider);
+    final basePageNumber = jumlahGambarUtama; // Gunakan parameter
     final pageNumber =
         (title.contains('Terurai') ? basePageNumber : basePageNumber * 2) +
         index +

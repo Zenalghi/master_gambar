@@ -5,8 +5,13 @@ import 'package:master_gambar/elements/home/providers/input_gambar_providers.dar
 
 class GambarHeaderInfo extends ConsumerWidget {
   final Transaksi transaksi;
-  const GambarHeaderInfo({super.key, required this.transaksi});
+  final int jumlahGambar;
 
+  const GambarHeaderInfo({
+    super.key,
+    required this.transaksi,
+    required this.jumlahGambar,
+  });
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
@@ -57,7 +62,7 @@ class GambarHeaderInfo extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          Expanded(child: _buildJumlahGambarDropdown(ref)),
+                          Expanded(child: _buildJumlahGambarInfo()),
                           const SizedBox(width: 16),
                           Expanded(child: _buildPemeriksaDropdown(ref)),
                         ],
@@ -102,28 +107,17 @@ class GambarHeaderInfo extends ConsumerWidget {
   }
 
   // Dropdown ini diubah agar tidak memiliki label eksplisit untuk tampilan yang lebih bersih
-  Widget _buildJumlahGambarDropdown(WidgetRef ref) {
-    final jumlahGambar = ref.watch(jumlahGambarProvider);
-    return DropdownButtonFormField<int>(
-      value: jumlahGambar,
+  Widget _buildJumlahGambarInfo() {
+    return InputDecorator(
       decoration: const InputDecoration(
-        // Hapus labelText, biarkan implisit
+        labelText: 'Jumlah Gbr. Utama',
         border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 8,
-        ), // Atur padding
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
-      items: [1, 2, 3, 4]
-          .map(
-            (e) => DropdownMenuItem<int>(value: e, child: Text("Jml Gbr: $e")),
-          )
-          .toList(),
-      onChanged: (value) {
-        if (value != null) {
-          ref.read(jumlahGambarProvider.notifier).state = value;
-        }
-      },
+      child: Text(
+        jumlahGambar.toString(),
+        style: const TextStyle(fontSize: 16),
+      ),
     );
   }
 

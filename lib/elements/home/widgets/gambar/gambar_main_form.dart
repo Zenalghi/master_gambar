@@ -10,17 +10,19 @@ import 'package:master_gambar/elements/home/widgets/gambar/gambar_utama_row.dart
 class GambarMainForm extends ConsumerWidget {
   final Transaksi transaksi;
   final Function(int) onPreviewPressed;
+  final int jumlahGambarUtama;
 
   const GambarMainForm({
     super.key,
     required this.transaksi,
     required this.onPreviewPressed,
+    required this.jumlahGambarUtama,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Ambil semua state yang dibutuhkan untuk perhitungan
-    final jumlahGambarUtama = ref.watch(jumlahGambarProvider);
+    // final jumlahGambarUtama = ref.watch(jumlahGambarProvider);
     final showOptional = ref.watch(showGambarOptionalProvider);
     final jumlahGambarOptional = ref.watch(jumlahGambarOptionalProvider);
     final showKelistrikan = ref.watch(showGambarKelistrikanProvider);
@@ -68,6 +70,7 @@ class GambarMainForm extends ConsumerWidget {
                 transaksi: transaksi,
                 totalHalaman: totalHalaman,
                 onPreviewPressed: () => onPreviewPressed(index),
+                jumlahGambarUtama: jumlahGambarUtama,
               ),
             ),
             const Divider(height: 32),
@@ -80,6 +83,7 @@ class GambarMainForm extends ConsumerWidget {
                 transaksi: transaksi,
                 totalHalaman: totalHalaman,
                 onPreviewPressed: () => onPreviewPressed(index),
+                jumlahGambarUtama: jumlahGambarUtama,
               ),
             ),
             const Divider(height: 32),

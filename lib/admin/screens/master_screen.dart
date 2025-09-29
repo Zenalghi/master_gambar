@@ -4,6 +4,7 @@ import 'package:master_gambar/admin/master/screens/master_gambar_kelistrikan_scr
 import 'package:master_gambar/admin/master/screens/master_gambar_optional_screen.dart';
 import 'package:master_gambar/admin/master/screens/master_gambar_utama_screen.dart';
 import 'package:master_gambar/admin/master/screens/master_jenis_kendaraan_screen.dart';
+import 'package:master_gambar/admin/master/screens/master_jenis_varian_screen.dart'; // <-- 1. Import halaman baru
 import 'package:master_gambar/admin/master/screens/master_merk_screen.dart';
 import 'package:master_gambar/admin/master/screens/master_type_chassis_screen.dart';
 import 'package:master_gambar/admin/master/screens/master_type_engine_screen.dart';
@@ -28,6 +29,7 @@ class _MasterScreenState extends ConsumerState<MasterScreen> {
     MasterTypeChassisScreen(),
     MasterJenisKendaraanScreen(),
     MasterVarianBodyScreen(),
+    MasterJenisVarianScreen(), // <-- 2. Tambahkan halaman baru ke daftar
     // Master Gambar
     MasterGambarUtamaScreen(),
     MasterGambarOptionalScreen(),
