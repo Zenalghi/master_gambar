@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/models/type_engine.dart';
 import 'package:master_gambar/app/core/providers.dart';
 
+import '../models/jenis_kendaraan.dart';
 import '../models/merk.dart';
 import '../models/type_chassis.dart';
 
@@ -112,5 +113,46 @@ class MasterDataRepository {
 
   Future<void> deleteTypeChassis({required String id}) async {
     await _ref.read(apiClientProvider).dio.delete('/type-chassis/$id');
+  }
+
+  Future<List<JenisKendaraan>> getJenisKendaraanList() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/jenis-kendaraan');
+    final List<dynamic> data = response.data;
+    return data.map((item) => JenisKendaraan.fromJson(item)).toList();
+  }
+
+  Future<JenisKendaraan> addJenisKendaraan({
+    required String typeChassisId,
+    required String jenisKendaraan,
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .post(
+          '/jenis-kendaraan',
+          data: {
+            'type_chassis_id': typeChassisId,
+            'jenis_kendaraan': jenisKendaraan,
+          },
+        );
+    return JenisKendaraan.fromJson(response.data);
+  }
+
+  Future<JenisKendaraan> updateJenisKendaraan({
+    required String id,
+    required String jenisKendaraan,
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .put('/jenis-kendaraan/$id', data: {'jenis_kendaraan': jenisKendaraan});
+    return JenisKendaraan.fromJson(response.data);
+  }
+
+  Future<void> deleteJenisKendaraan({required String id}) async {
+    await _ref.read(apiClientProvider).dio.delete('/jenis-kendaraan/$id');
   }
 }
