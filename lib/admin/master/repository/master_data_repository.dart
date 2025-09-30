@@ -6,6 +6,7 @@ import '../models/jenis_kendaraan.dart';
 import '../models/merk.dart';
 import '../models/type_chassis.dart';
 import '../models/varian_body.dart';
+import '../models/jenis_varian.dart';
 
 final masterDataRepositoryProvider = Provider(
   (ref) => MasterDataRepository(ref),
@@ -202,4 +203,31 @@ class MasterDataRepository {
   Future<void> deleteVarianBody({required int id}) async {
     await _ref.read(apiClientProvider).dio.delete('/varian-body/$id');
   }
+
+// == JENIS VARIAN ==
+Future<List<JenisVarian>> getJenisVarianList() async {
+  final response = await _ref.read(apiClientProvider).dio.get('/admin/jenis-varian');
+  final List<dynamic> data = response.data;
+  return data.map((item) => JenisVarian.fromJson(item)).toList();
+}
+
+Future<JenisVarian> addJenisVarian({required String namaJudul}) async {
+  final response = await _ref.read(apiClientProvider).dio.post(
+    '/admin/jenis-varian',
+    data: {'nama_judul': namaJudul},
+  );
+  return JenisVarian.fromJson(response.data);
+}
+
+Future<JenisVarian> updateJenisVarian({required int id, required String namaJudul}) async {
+  final response = await _ref.read(apiClientProvider).dio.put(
+    '/admin/jenis-varian/$id',
+    data: {'nama_judul': namaJudul},
+  );
+  return JenisVarian.fromJson(response.data);
+}
+
+Future<void> deleteJenisVarian({required int id}) async {
+  await _ref.read(apiClientProvider).dio.delete('/admin/jenis-varian/$id');
+}
 }

@@ -10,6 +10,8 @@ import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/data/providers/api_endpoints.dart';
 
+import '../models/jenis_varian.dart';
+
 // == PROVIDER UNTUK MENGAMBIL DATA LIST LENGKAP ==
 final typeEngineListProvider = FutureProvider<List<TypeEngine>>((ref) {
   ref.watch(masterDataRepositoryProvider);
@@ -108,3 +110,12 @@ final jenisKendaraanSearchQueryProvider = StateProvider<String>((ref) => '');
 // Varian Body
 final varianBodyRowsPerPageProvider = StateProvider<int>((ref) => 25);
 final varianBodySearchQueryProvider = StateProvider<String>((ref) => '');
+
+// --- TAMBAHKAN PROVIDER UNTUK JENIS VARIAN ---
+final jenisVarianListProvider = FutureProvider<List<JenisVarian>>((ref) {
+  ref.watch(masterDataRepositoryProvider);
+  return ref.read(masterDataRepositoryProvider).getJenisVarianList();
+});
+
+final jenisVarianRowsPerPageProvider = StateProvider<int>((ref) => 12);
+final jenisVarianSearchQueryProvider = StateProvider<String>((ref) => '');
