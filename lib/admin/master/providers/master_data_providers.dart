@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:master_gambar/admin/master/models/jenis_kendaraan.dart';
@@ -119,3 +121,35 @@ final jenisVarianListProvider = FutureProvider<List<JenisVarian>>((ref) {
 
 final jenisVarianRowsPerPageProvider = StateProvider<int>((ref) => 12);
 final jenisVarianSearchQueryProvider = StateProvider<String>((ref) => '');
+
+// State untuk menyimpan ID yang dipilih di setiap dropdown
+final mguSelectedTypeEngineIdProvider = StateProvider<String?>((ref) => null);
+final mguSelectedMerkIdProvider = StateProvider<String?>((ref) => null);
+final mguSelectedTypeChassisIdProvider = StateProvider<String?>((ref) => null);
+final mguSelectedJenisKendaraanIdProvider = StateProvider<String?>(
+  (ref) => null,
+);
+final mguSelectedVarianBodyIdProvider = StateProvider<int?>((ref) => null);
+
+// State untuk menyimpan file-file yang dipilih
+final mguGambarUtamaFileProvider = StateProvider<File?>((ref) => null);
+final mguGambarTeruraiFileProvider = StateProvider<File?>((ref) => null);
+final mguGambarKontruksiFileProvider = StateProvider<File?>((ref) => null);
+
+// Provider untuk dropdown Varian Body (berdasarkan Jenis Kendaraan)
+// Kita menggunakan OptionItem karena hanya butuh ID dan nama
+final varianBodyOptionsFamilyProvider =
+    FutureProvider.family<List<OptionItem>, String?>((
+      ref,
+      jenisKendaraanId,
+    ) async {
+      if (jenisKendaraanId == null || jenisKendaraanId.isEmpty) return [];
+      final response = await ref
+          .watch(apiClientProvider)
+          .dio
+          .get(ApiEndpoints.varianBody(jenisKendaraanId));
+      final List<dynamic> data = response.data;
+      return data
+          .map((item) => OptionItem.fromJson(item, nameKey: 'varian_body'))
+          .toList();
+    });

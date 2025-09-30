@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/models/type_engine.dart';
 import 'package:master_gambar/app/core/providers.dart';
@@ -204,30 +207,66 @@ class MasterDataRepository {
     await _ref.read(apiClientProvider).dio.delete('/varian-body/$id');
   }
 
-// == JENIS VARIAN ==
-Future<List<JenisVarian>> getJenisVarianList() async {
-  final response = await _ref.read(apiClientProvider).dio.get('/admin/jenis-varian');
-  final List<dynamic> data = response.data;
-  return data.map((item) => JenisVarian.fromJson(item)).toList();
-}
+  // == JENIS VARIAN ==
+  Future<List<JenisVarian>> getJenisVarianList() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/admin/jenis-varian');
+    final List<dynamic> data = response.data;
+    return data.map((item) => JenisVarian.fromJson(item)).toList();
+  }
 
-Future<JenisVarian> addJenisVarian({required String namaJudul}) async {
-  final response = await _ref.read(apiClientProvider).dio.post(
-    '/admin/jenis-varian',
-    data: {'nama_judul': namaJudul},
-  );
-  return JenisVarian.fromJson(response.data);
-}
+  Future<JenisVarian> addJenisVarian({required String namaJudul}) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/jenis-varian', data: {'nama_judul': namaJudul});
+    return JenisVarian.fromJson(response.data);
+  }
 
-Future<JenisVarian> updateJenisVarian({required int id, required String namaJudul}) async {
-  final response = await _ref.read(apiClientProvider).dio.put(
-    '/admin/jenis-varian/$id',
-    data: {'nama_judul': namaJudul},
-  );
-  return JenisVarian.fromJson(response.data);
-}
+  Future<JenisVarian> updateJenisVarian({
+    required int id,
+    required String namaJudul,
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .put('/admin/jenis-varian/$id', data: {'nama_judul': namaJudul});
+    return JenisVarian.fromJson(response.data);
+  }
 
-Future<void> deleteJenisVarian({required int id}) async {
-  await _ref.read(apiClientProvider).dio.delete('/admin/jenis-varian/$id');
-}
+  Future<void> deleteJenisVarian({required int id}) async {
+    await _ref.read(apiClientProvider).dio.delete('/admin/jenis-varian/$id');
+  }
+
+  // == MASTER GAMBAR UTAMA ==
+  Future<void> uploadGambarUtama({
+    required int varianBodyId,
+    required File gambarUtama,
+    required File gambarTerurai,
+    required File gambarKontruksi,
+  }) async {
+    final formData = FormData.fromMap({
+      'e_varian_body_id': varianBodyId,
+      'gambar_utama': await MultipartFile.fromFile(
+        gambarUtama.path,
+        filename: gambarUtama.path.split(Platform.pathSeparator).last,
+      ),
+      'gambar_terurai': await MultipartFile.fromFile(
+        gambarTerurai.path,
+        filename: gambarTerurai.path.split(Platform.pathSeparator).last,
+      ),
+      'gambar_kontruksi': await MultipartFile.fromFile(
+        gambarKontruksi.path,
+        filename: gambarKontruksi.path.split(Platform.pathSeparator).last,
+      ),
+    });
+
+    // Endpoint ini perlu ditambahkan di api.php di dalam grup admin
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/gambar-master/utama', data: formData);
+  }
 }
