@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/models/type_engine.dart';
 import 'package:master_gambar/app/core/providers.dart';
 
+import '../models/gambar_optional.dart';
 import '../models/jenis_kendaraan.dart';
 import '../models/merk.dart';
 import '../models/type_chassis.dart';
@@ -268,5 +269,51 @@ class MasterDataRepository {
         .read(apiClientProvider)
         .dio
         .post('/admin/gambar-master/utama', data: formData);
+  }
+
+  // --- TAMBAHKAN FUNGSI UNTUK GAMBAR OPTIONAL ---
+  Future<List<GambarOptional>> getGambarOptionalList() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/admin/gambar-optional');
+    final List<dynamic> data = response.data;
+    return data.map((item) => GambarOptional.fromJson(item)).toList();
+  }
+
+  Future<void> addGambarOptional({
+    required int varianBodyId,
+    required String deskripsi,
+    required File gambarOptionalFile,
+  }) async {
+    final fileName = gambarOptionalFile.path.split(Platform.pathSeparator).last;
+    final formData = FormData.fromMap({
+      'e_varian_body_id': varianBodyId,
+      'deskripsi': deskripsi,
+      'gambar_optional': await MultipartFile.fromFile(
+        gambarOptionalFile.path,
+        filename: fileName,
+        // contentType: MediaType('application', 'pdf'),
+      ),
+    });
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/gambar-optional', data: formData);
+  }
+
+  Future<GambarOptional> updateGambarOptional({
+    required int id,
+    required String deskripsi,
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .put('/admin/gambar-optional/$id', data: {'deskripsi': deskripsi});
+    return GambarOptional.fromJson(response.data);
+  }
+
+  Future<void> deleteGambarOptional({required int id}) async {
+    await _ref.read(apiClientProvider).dio.delete('/admin/gambar-optional/$id');
   }
 }

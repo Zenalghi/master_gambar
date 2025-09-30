@@ -12,6 +12,7 @@ import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/data/providers/api_endpoints.dart';
 
+import '../models/gambar_optional.dart';
 import '../models/jenis_varian.dart';
 
 // == PROVIDER UNTUK MENGAMBIL DATA LIST LENGKAP ==
@@ -153,3 +154,12 @@ final varianBodyOptionsFamilyProvider =
           .map((item) => OptionItem.fromJson(item, nameKey: 'varian_body'))
           .toList();
     });
+
+// --- TAMBAHKAN PROVIDER UNTUK GAMBAR OPTIONAL ---
+final gambarOptionalListProvider = FutureProvider<List<GambarOptional>>((ref) {
+  ref.watch(masterDataRepositoryProvider);
+  return ref.read(masterDataRepositoryProvider).getGambarOptionalList();
+});
+
+final gambarOptionalRowsPerPageProvider = StateProvider<int>((ref) => 25);
+final gambarOptionalSearchQueryProvider = StateProvider<String>((ref) => '');
