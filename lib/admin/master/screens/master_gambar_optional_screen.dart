@@ -5,7 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
-import '../widgets/add_gambar_optional_form.dart'; // Import form baru
+import '../widgets/add_gambar_optional_form.dart';
+import '../widgets/gambar_optional_table.dart'; // Import form baru
 
 class MasterGambarOptionalScreen extends ConsumerStatefulWidget {
   const MasterGambarOptionalScreen({super.key});
@@ -59,31 +60,59 @@ class _MasterGambarOptionalScreenState
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Padding(
+      // Ubah menjadi Padding, bukan SingleChildScrollView
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Manajemen Gambar Optional',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              const Text(
+                'Manajemen Gambar Optional',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const Spacer(),
+              SizedBox(
+                width: 250,
+                child: TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Search...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onChanged: (value) =>
+                      ref
+                              .read(gambarOptionalSearchQueryProvider.notifier)
+                              .state =
+                          value,
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Refresh Data',
+                onPressed: () => ref.invalidate(gambarOptionalListProvider),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
 
-          // Panggil widget form di sini
-          if (_isLoading)
-            const Center(child: CircularProgressIndicator())
-          else
-            AddGambarOptionalForm(onUpload: _handleUpload),
-
-          const SizedBox(height: 24),
-
-          // Di sini nanti akan ada tabel untuk menampilkan data Gambar Optional
-          const Divider(),
-          const Text(
-            'Tabel Data Gambar Optional (akan dibuat)',
-            style: TextStyle(fontSize: 18),
+          // Form untuk menambah data (sekarang dibungkus ExpansionTile)
+          ExpansionTile(
+            title: const Text('Tambah Gambar Optional Baru'),
+            initiallyExpanded: true,
+            children: [AddGambarOptionalForm(onUpload: _handleUpload)],
           ),
+
+          const SizedBox(height: 16),
+          // const Divider(),
+          // const SizedBox(height: 16),
+
+          // Tabel untuk menampilkan data
+          const Expanded(child: GambarOptionalTable()),
         ],
       ),
     );
