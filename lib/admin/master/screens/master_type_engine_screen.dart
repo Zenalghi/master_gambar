@@ -29,7 +29,7 @@ class MasterTypeEngineScreen extends ConsumerWidget {
                 width: 250,
                 child: TextField(
                   decoration: InputDecoration(
-                    labelText: 'Search Type Engine...',
+                    labelText: 'Search...',
                     prefixIcon: const Icon(Icons.search),
                     isDense: true,
                     border: OutlineInputBorder(

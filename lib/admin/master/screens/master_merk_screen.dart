@@ -72,7 +72,7 @@ class _MasterMerkScreenState extends ConsumerState<MasterMerkScreen> {
                 width: 250,
                 child: TextField(
                   decoration: InputDecoration(
-                    labelText: 'Search Merk...',
+                    labelText: 'Search...',
                     prefixIcon: const Icon(Icons.search),
                     isDense: true,
                     border: OutlineInputBorder(

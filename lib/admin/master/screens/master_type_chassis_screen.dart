@@ -78,7 +78,7 @@ class _MasterTypeChassisScreenState
                 width: 250,
                 child: TextField(
                   decoration: InputDecoration(
-                    labelText: 'Search Type Chassis...',
+                    labelText: 'Search...',
                     prefixIcon: const Icon(Icons.search),
                     isDense: true,
                     border: OutlineInputBorder(
