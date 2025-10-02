@@ -1,3 +1,5 @@
+// File: lib/admin/master/widgets/add_gambar_kelistrikan_form.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,26 +7,28 @@ import 'package:file_picker/file_picker.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:pdfx/pdfx.dart';
 
-class AddGambarOptionalForm extends ConsumerStatefulWidget {
-  final Function(int varianBodyId, String deskripsi, File file) onUpload;
+class AddGambarKelistrikanForm extends ConsumerStatefulWidget {
+  // Callback untuk mengirim data yang siap di-upload ke parent widget
+  final Function(String typeChassisId, String deskripsi, File file) onUpload;
 
-  const AddGambarOptionalForm({super.key, required this.onUpload});
+  const AddGambarKelistrikanForm({super.key, required this.onUpload});
 
   @override
-  ConsumerState<AddGambarOptionalForm> createState() =>
-      _AddGambarOptionalFormState();
+  ConsumerState<AddGambarKelistrikanForm> createState() =>
+      _AddGambarKelistrikanFormState();
 }
 
-class _AddGambarOptionalFormState extends ConsumerState<AddGambarOptionalForm> {
+class _AddGambarKelistrikanFormState
+    extends ConsumerState<AddGambarKelistrikanForm> {
   final _formKey = GlobalKey<FormState>();
   final _deskripsiController = TextEditingController();
 
+  // State untuk melacak ID yang dipilih di dropdown
   String? _selectedTypeEngineId;
   String? _selectedMerkId;
   String? _selectedTypeChassisId;
-  String? _selectedJenisKendaraanId;
-  int? _selectedVarianBodyId;
 
+  // State untuk file PDF yang dipilih
   File? _selectedFile;
   PdfController? _pdfController;
 
@@ -61,18 +65,12 @@ class _AddGambarOptionalFormState extends ConsumerState<AddGambarOptionalForm> {
     final typeChassisOptions = ref.watch(
       typeChassisOptionsFamilyProvider(_selectedMerkId),
     );
-    final jenisKendaraanOptions = ref.watch(
-      jenisKendaraanOptionsFamilyProvider(_selectedTypeChassisId),
-    );
-    final varianBodyOptions = ref.watch(
-      varianBodyOptionsFamilyProvider(_selectedJenisKendaraanId),
-    );
 
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SizedBox(
-          height: 460,
+          height: 450, // Memberikan tinggi tetap untuk area form dan preview
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -104,8 +102,6 @@ class _AddGambarOptionalFormState extends ConsumerState<AddGambarOptionalForm> {
                               _selectedTypeEngineId = value;
                               _selectedMerkId = null;
                               _selectedTypeChassisId = null;
-                              _selectedJenisKendaraanId = null;
-                              _selectedVarianBodyId = null;
                             }),
                             validator: (v) =>
                                 v == null ? 'Wajib dipilih' : null,
@@ -133,8 +129,6 @@ class _AddGambarOptionalFormState extends ConsumerState<AddGambarOptionalForm> {
                             onChanged: (value) => setState(() {
                               _selectedMerkId = value;
                               _selectedTypeChassisId = null;
-                              _selectedJenisKendaraanId = null;
-                              _selectedVarianBodyId = null;
                             }),
                             validator: (v) =>
                                 v == null ? 'Wajib dipilih' : null,
@@ -161,61 +155,7 @@ class _AddGambarOptionalFormState extends ConsumerState<AddGambarOptionalForm> {
                                 .toList(),
                             onChanged: (value) => setState(() {
                               _selectedTypeChassisId = value;
-                              _selectedJenisKendaraanId = null;
-                              _selectedVarianBodyId = null;
                             }),
-                            validator: (v) =>
-                                v == null ? 'Wajib dipilih' : null,
-                          ),
-                          loading: () => const LinearProgressIndicator(),
-                          error: (e, st) => const Text('Error'),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Dropdown Jenis Kendaraan
-                        jenisKendaraanOptions.when(
-                          data: (options) => DropdownButtonFormField<String>(
-                            value: _selectedJenisKendaraanId,
-                            decoration: const InputDecoration(
-                              labelText: 'Jenis Kendaraan',
-                            ),
-                            items: options
-                                .map(
-                                  (opt) => DropdownMenuItem(
-                                    value: opt.id as String,
-                                    child: Text(opt.name),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) => setState(() {
-                              _selectedJenisKendaraanId = value;
-                              _selectedVarianBodyId = null;
-                            }),
-                            validator: (v) =>
-                                v == null ? 'Wajib dipilih' : null,
-                          ),
-                          loading: () => const LinearProgressIndicator(),
-                          error: (e, st) => const Text('Error'),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Dropdown Varian Body
-                        varianBodyOptions.when(
-                          data: (options) => DropdownButtonFormField<int>(
-                            value: _selectedVarianBodyId,
-                            decoration: const InputDecoration(
-                              labelText: 'Varian Body',
-                            ),
-                            items: options
-                                .map(
-                                  (opt) => DropdownMenuItem(
-                                    value: opt.id as int,
-                                    child: Text(opt.name),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) =>
-                                setState(() => _selectedVarianBodyId = value),
                             validator: (v) =>
                                 v == null ? 'Wajib dipilih' : null,
                           ),
@@ -235,14 +175,12 @@ class _AddGambarOptionalFormState extends ConsumerState<AddGambarOptionalForm> {
                               (v == null || v.isEmpty) ? 'Wajib diisi' : null,
                         ),
                         const SizedBox(height: 24),
-                        // Tombol Pilih Gambar
-                        // --- PERUBAHAN 1: TOMBOL BERSEBELAHAN & NAMA FILE ---
+
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Row(
                               children: [
-                                // Tombol Pilih/Ganti Gambar
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     icon: const Icon(Icons.picture_as_pdf),
@@ -259,8 +197,6 @@ class _AddGambarOptionalFormState extends ConsumerState<AddGambarOptionalForm> {
                                     ),
                                   ),
                                 ),
-
-                                // Tombol Upload (muncul jika file sudah dipilih)
                                 if (_selectedFile != null) ...[
                                   const SizedBox(width: 16),
                                   Expanded(
@@ -270,7 +206,7 @@ class _AddGambarOptionalFormState extends ConsumerState<AddGambarOptionalForm> {
                                       onPressed: () {
                                         if (_formKey.currentState!.validate()) {
                                           widget.onUpload(
-                                            _selectedVarianBodyId!,
+                                            _selectedTypeChassisId!,
                                             _deskripsiController.text,
                                             _selectedFile!,
                                           );
@@ -287,8 +223,6 @@ class _AddGambarOptionalFormState extends ConsumerState<AddGambarOptionalForm> {
                                 ],
                               ],
                             ),
-
-                            // Menampilkan nama file yang dipilih
                             if (_selectedFile != null)
                               Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
@@ -308,28 +242,23 @@ class _AddGambarOptionalFormState extends ConsumerState<AddGambarOptionalForm> {
               ),
               const SizedBox(width: 16),
               // --- KOLOM KANAN: PREVIEW PDF ---
-              // --- PERUBAHAN 2: FRAME DENGAN CARD ---
               Expanded(
-                flex: 2,
-                child: Container(
-                  // height: 400,
-                  clipBehavior: Clip
-                      .antiAlias, // Penting agar preview tidak keluar dari border
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade400),
-                    borderRadius: BorderRadius.circular(
-                      8.0,
-                    ), // Samakan dengan field input
-                  ),
-                  child: _pdfController != null
-                      ? PdfView(controller: _pdfController!)
-                      : const Center(
-                          child: Icon(
-                            Icons.picture_as_pdf_outlined,
-                            color: Colors.grey,
-                            size: 60,
+                flex: 3,
+                child: Card(
+                  elevation: 4.0,
+                  clipBehavior: Clip.antiAlias,
+                  child: Container(
+                    color: Colors.grey.shade100,
+                    child: _pdfController != null
+                        ? PdfView(controller: _pdfController!)
+                        : const Center(
+                            child: Icon(
+                              Icons.picture_as_pdf_outlined,
+                              color: Colors.grey,
+                              size: 60,
+                            ),
                           ),
-                        ),
+                  ),
                 ),
               ),
             ],

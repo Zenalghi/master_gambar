@@ -12,6 +12,7 @@ import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/data/providers/api_endpoints.dart';
 
+import '../models/gambar_kelistrikan.dart';
 import '../models/gambar_optional.dart';
 import '../models/jenis_varian.dart';
 
@@ -163,3 +164,14 @@ final gambarOptionalListProvider = FutureProvider<List<GambarOptional>>((ref) {
 
 final gambarOptionalRowsPerPageProvider = StateProvider<int>((ref) => 25);
 final gambarOptionalSearchQueryProvider = StateProvider<String>((ref) => '');
+
+// --- TAMBAHKAN PROVIDER UNTUK GAMBAR KELISTRIKAN ---
+final gambarKelistrikanListProvider = FutureProvider<List<GambarKelistrikan>>((
+  ref,
+) {
+  ref.watch(masterDataRepositoryProvider);
+  return ref.read(masterDataRepositoryProvider).getGambarKelistrikanList();
+});
+
+final gambarKelistrikanRowsPerPageProvider = StateProvider<int>((ref) => 15);
+final gambarKelistrikanSearchQueryProvider = StateProvider<String>((ref) => '');

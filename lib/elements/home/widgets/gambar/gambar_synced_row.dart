@@ -109,7 +109,7 @@ class GambarSyncedRow extends ConsumerWidget {
         ),
         const SizedBox(width: 10),
         SizedBox(
-          width: 180,
+          width: 170,
           child: ElevatedButton(
             onPressed: isRowComplete ? onPreviewPressed : null,
             child: const Text('Preview Gambar'),

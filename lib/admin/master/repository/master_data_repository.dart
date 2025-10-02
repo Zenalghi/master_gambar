@@ -2,15 +2,16 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:master_gambar/admin/master/models/type_engine.dart';
 import 'package:master_gambar/app/core/providers.dart';
 
-import '../models/gambar_optional.dart';
-import '../models/jenis_kendaraan.dart';
+import '../models/type_engine.dart';
 import '../models/merk.dart';
 import '../models/type_chassis.dart';
+import '../models/jenis_kendaraan.dart';
 import '../models/varian_body.dart';
 import '../models/jenis_varian.dart';
+import '../models/gambar_optional.dart';
+import '../models/gambar_kelistrikan.dart';
 
 final masterDataRepositoryProvider = Provider(
   (ref) => MasterDataRepository(ref),
@@ -315,5 +316,57 @@ class MasterDataRepository {
 
   Future<void> deleteGambarOptional({required int id}) async {
     await _ref.read(apiClientProvider).dio.delete('/admin/gambar-optional/$id');
+  }
+
+  //tambahkan fungsi untuk gambar kelistrikan berdasarkan id type chassis
+  // == GAMBAR KELISTRIKAN ==
+  Future<List<GambarKelistrikan>> getGambarKelistrikanList() async {
+    // Pastikan endpoint ini sudah ada di api.php Anda
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/admin/gambar-kelistrikan');
+    final List<dynamic> data = response.data;
+    return data.map((item) => GambarKelistrikan.fromJson(item)).toList();
+  }
+
+  Future<void> addGambarKelistrikan({
+    required String typeChassisId,
+    required String deskripsi,
+    required File gambarKelistrikanFile,
+  }) async {
+    final fileName = gambarKelistrikanFile.path
+        .split(Platform.pathSeparator)
+        .last;
+    final formData = FormData.fromMap({
+      'c_type_chassis_id': typeChassisId,
+      'deskripsi': deskripsi,
+      'gambar_kelistrikan': await MultipartFile.fromFile(
+        gambarKelistrikanFile.path,
+        filename: fileName,
+      ),
+    });
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/gambar-kelistrikan', data: formData);
+  }
+
+  Future<GambarKelistrikan> updateGambarKelistrikan({
+    required int id,
+    required String deskripsi,
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .put('/admin/gambar-kelistrikan/$id', data: {'deskripsi': deskripsi});
+    return GambarKelistrikan.fromJson(response.data);
+  }
+
+  Future<void> deleteGambarKelistrikan({required int id}) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/gambar-kelistrikan/$id');
   }
 }
