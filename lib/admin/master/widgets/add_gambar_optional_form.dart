@@ -310,7 +310,7 @@ class _AddGambarOptionalFormState extends ConsumerState<AddGambarOptionalForm> {
               // --- KOLOM KANAN: PREVIEW PDF ---
               // --- PERUBAHAN 2: FRAME DENGAN CARD ---
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: Container(
                   // height: 400,
                   clipBehavior: Clip
