@@ -177,7 +177,7 @@ class PilihFilePdfCard extends ConsumerWidget {
                   )
                 : const Center(
                     child: Icon(
-                      Icons.image_search,
+                      Icons.picture_as_pdf_outlined,
                       color: Colors.grey,
                       size: 40,
                     ),
