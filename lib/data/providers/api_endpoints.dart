@@ -17,4 +17,7 @@ class ApiEndpoints {
 
   static String varianBody(String jenisKendaraanId) =>
       '/options/varian-body/$jenisKendaraanId';
+
+  static const String gambarOptionalByVarian =
+      '/options/gambar-optional-by-varian';
 }

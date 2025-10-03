@@ -159,10 +159,39 @@ final varianBodyOptionsFamilyProvider =
 final gambarOptionalOptionsProvider = FutureProvider<List<OptionItem>>((
   ref,
 ) async {
+  // 1. Awasi (watch) pilihan yang dibuat di baris-baris Gambar Utama
+  final utamaSelections = ref.watch(gambarUtamaSelectionProvider);
+
+  // 2. Ekstrak semua ID Varian Body yang telah dipilih,
+  //    hapus duplikat dan nilai null.
+  final selectedVarianIds = utamaSelections
+      .map((s) => s.varianBodyId)
+      .where((id) => id != null)
+      .toSet() // toSet() secara otomatis menghapus duplikat
+      .toList();
+
+  // 3. Jika tidak ada Varian Body yang dipilih, kembalikan daftar kosong.
+  if (selectedVarianIds.isEmpty) {
+    return [];
+  }
+
+  // 4. Panggil endpoint BARU dengan membawa daftar ID sebagai parameter query
+  // File: lib/elements/home/providers/input_gambar_providers.dart
+
+  // ...
   final response = await ref
       .watch(apiClientProvider)
       .dio
-      .get('/options/gambar-optional');
+      .post(
+        // <-- Ubah ke .post
+        ApiEndpoints.gambarOptionalByVarian,
+        data: {
+          // <-- Ubah ke data
+          'varian_ids': selectedVarianIds,
+        },
+      );
+  // ...
+
   final List<dynamic> data = response.data;
   return data
       .map((item) => OptionItem.fromJson(item, nameKey: 'deskripsi'))
