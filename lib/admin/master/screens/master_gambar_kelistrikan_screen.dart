@@ -106,16 +106,7 @@ class _MasterGambarKelistrikanScreenState
           ExpansionTile(
             title: const Text('Tambah Gambar Kelistrikan Baru'),
             initiallyExpanded: true, // Biarkan form terbuka saat pertama kali
-            children: [
-              // Tampilkan loading atau form
-              if (_isUploading)
-                const Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else
-                AddGambarKelistrikanForm(onUpload: _handleUpload),
-            ],
+            children: [AddGambarKelistrikanForm(onUpload: _handleUpload)],
           ),
 
           const SizedBox(height: 16),
