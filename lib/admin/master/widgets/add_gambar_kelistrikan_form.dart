@@ -250,7 +250,10 @@ class _AddGambarKelistrikanFormState
                   child: Container(
                     color: Colors.grey.shade100,
                     child: _pdfController != null
-                        ? PdfView(controller: _pdfController!)
+                        ? PdfView(
+                            key: ValueKey(_selectedFile!.path),
+                            controller: _pdfController!,
+                          )
                         : const Center(
                             child: Icon(
                               Icons.picture_as_pdf_outlined,

@@ -322,7 +322,10 @@ class _AddGambarOptionalFormState extends ConsumerState<AddGambarOptionalForm> {
                     ), // Samakan dengan field input
                   ),
                   child: _pdfController != null
-                      ? PdfView(controller: _pdfController!)
+                      ? PdfView(
+                          key: ValueKey(_selectedFile!.path),
+                          controller: _pdfController!,
+                        )
                       : const Center(
                           child: Icon(
                             Icons.picture_as_pdf_outlined,

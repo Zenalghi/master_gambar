@@ -110,8 +110,7 @@ class _MasterGambarKelistrikanScreenState
           ),
 
           const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 16),
+          // const Divider(),
 
           // Tabel untuk menampilkan data
           const Expanded(child: GambarKelistrikanTable()),
