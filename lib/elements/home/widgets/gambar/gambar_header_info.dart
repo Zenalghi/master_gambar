@@ -99,40 +99,30 @@ class GambarHeaderInfo extends ConsumerWidget {
 
   // Dropdown ini diubah agar tidak memiliki label eksplisit untuk tampilan yang lebih bersih
   Widget _buildJumlahGambarDropdown(WidgetRef ref) {
-    final jenisVarianAsync = ref.watch(jenisVarianOptionsProvider);
-    // --- PERBAIKAN 1: Tonton provider yang benar ---
+    // Tonton provider untuk mendapatkan nilai yang sedang dipilih
     final selectedJumlah = ref.watch(jumlahGambarProvider);
 
-    return jenisVarianAsync.when(
-      data: (jenisVarianList) {
-        final options = List<int>.generate(
-          jenisVarianList.length,
-          (i) => i + 1,
-        );
+    // Buat daftar opsi statis dari 1 sampai 4
+    final options = [1, 2, 3, 4];
 
-        return DropdownButtonFormField<int>(
-          value: selectedJumlah,
-          decoration: const InputDecoration(
-            labelText: 'Jumlah Gbr',
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-          ),
-          items: options
-              .map(
-                (e) =>
-                    DropdownMenuItem<int>(value: e, child: Text(e.toString())),
-              )
-              .toList(),
-          onChanged: (value) {
-            if (value != null) {
-              // --- PERBAIKAN 2: Update provider yang benar ---
-              ref.read(jumlahGambarProvider.notifier).state = value;
-            }
-          },
-        );
+    return DropdownButtonFormField<int>(
+      value: selectedJumlah,
+      decoration: const InputDecoration(
+        labelText: 'Jumlah Gbr',
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+      ),
+      items: options
+          .map(
+            (e) => DropdownMenuItem<int>(value: e, child: Text(e.toString())),
+          )
+          .toList(),
+      onChanged: (value) {
+        if (value != null) {
+          // Update provider saat nilai diubah
+          ref.read(jumlahGambarProvider.notifier).state = value;
+        }
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, st) => const Text('Error'),
     );
   }
 }
