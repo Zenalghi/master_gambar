@@ -242,3 +242,15 @@ final dependentOptionalOptionsProvider = FutureProvider<List<OptionItem>>((
       .map((item) => OptionItem.fromJson(item, nameKey: 'deskripsi'))
       .toList();
 });
+
+final activeDependentOptionalIdsProvider = Provider<List<int>>((ref) {
+  // Awasi provider yang mengambil data dependen
+  final dependentOptionalsAsync = ref.watch(dependentOptionalOptionsProvider);
+
+  // Jika datanya ada, ambil semua ID-nya. Jika tidak, kembalikan list kosong.
+  return dependentOptionalsAsync.when(
+    data: (items) => items.map((item) => item.id as int).toList(),
+    loading: () => [],
+    error: (_, __) => [],
+  );
+});

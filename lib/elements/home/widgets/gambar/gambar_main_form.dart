@@ -26,17 +26,18 @@ class GambarMainForm extends ConsumerWidget {
     final showKelistrikan = ref.watch(showGambarKelistrikanProvider);
     final dependentOptionals = ref.watch(dependentOptionalOptionsProvider);
 
-    int totalHalaman = jumlahGambarUtama * 3;
-    if (showOptional) {
-      totalHalaman += jumlahGambarOptional;
-    }
-    if (showKelistrikan) {
-      totalHalaman++;
-    }
+    final dependentCount = dependentOptionals.asData?.value.length ?? 0;
 
-    int optionalBasePageNumber = jumlahGambarUtama * 3 + 1;
+    int totalHalaman =
+        (jumlahGambarUtama * 3) +
+        dependentCount +
+        (showOptional ? jumlahGambarOptional : 0) +
+        (showKelistrikan ? 1 : 0);
+
+    int dependentBasePageNumber = (jumlahGambarUtama * 3) + 1;
+    int optionalBasePageNumber = dependentBasePageNumber + dependentCount;
     int kelistrikanPageNumber =
-        jumlahGambarUtama * 3 + (showOptional ? jumlahGambarOptional : 0) + 1;
+        optionalBasePageNumber + (showOptional ? jumlahGambarOptional : 0);
 
     return Card(
       child: Padding(
@@ -94,7 +95,10 @@ class GambarMainForm extends ConsumerWidget {
                       itemCount: items.length,
                       itemBuilder: (index) {
                         final item = items[index];
-                        // Kita bisa buat widget baru, atau tampilkan Text sederhana di sini
+                        final pageNumber = dependentBasePageNumber + index;
+                        final isPreviewEnabled =
+                            ref.watch(pemeriksaIdProvider) !=
+                            null; // Kita bisa buat widget baru, atau tampilkan Text sederhana di sini
                         return Row(
                           children: [
                             SizedBox(
@@ -102,6 +106,7 @@ class GambarMainForm extends ConsumerWidget {
                               child: Text('Dependen ${index + 1}:'),
                             ),
                             Expanded(
+                              flex: 6, // Beri ruang lebih untuk deskripsi
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12,
@@ -111,12 +116,36 @@ class GambarMainForm extends ConsumerWidget {
                                   color: Colors.grey.shade200,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: Text(
-                                  item.name,
-                                ), // item.name berisi deskripsi
+                                child: Text(item.name),
                               ),
                             ),
-                            // Di sini Anda bisa menambahkan tombol preview jika diperlukan di masa depan
+                            const SizedBox(width: 10),
+                            SizedBox(
+                              width: 70,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.yellow.shade200,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.grey),
+                                ),
+                                child: Center(
+                                  child: Text('$pageNumber/$totalHalaman'),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            SizedBox(
+                              width: 170, // Sesuai permintaan Anda
+                              child: ElevatedButton(
+                                onPressed: isPreviewEnabled
+                                    ? () => onPreviewPressed(index)
+                                    : null,
+                                child: const Text('Preview Gambar'),
+                              ),
+                            ),
                           ],
                         );
                       },

@@ -28,6 +28,21 @@ class InputGambarScreen extends ConsumerWidget {
       final optionalSelections = ref.read(gambarOptionalSelectionProvider);
       final showKelistrikan = ref.read(showGambarKelistrikanProvider);
       final kelistrikanId = ref.read(gambarKelistrikanIdProvider);
+      List<int> independentOptionalIds = showOptional
+          ? optionalSelections
+                .where((s) => s.gambarOptionalId != null)
+                .map((s) => s.gambarOptionalId!)
+                .toList()
+          : [];
+
+      // 2. Ambil ID dari gambar optional dependen yang aktif
+      final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
+
+      // 3. Gabungkan kedua daftar ID tersebut
+      final allOptionalIds = [
+        ...independentOptionalIds,
+        ...dependentOptionalIds,
+      ];
 
       if (pemeriksaId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -65,7 +80,9 @@ class InputGambarScreen extends ConsumerWidget {
             pemeriksaId: pemeriksaId,
             varianBodyIds: varianBodyIds,
             judulGambarIds: judulGambarIds,
-            hGambarOptionalIds: hGambarOptionalIds,
+            hGambarOptionalIds: allOptionalIds.isNotEmpty
+                ? allOptionalIds
+                : null, // <-- Gunakan daftar ID yang sudah digabung
             iGambarKelistrikanId: showKelistrikan ? kelistrikanId : null,
           );
 
