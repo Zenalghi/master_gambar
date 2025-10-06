@@ -12,6 +12,7 @@ import '../models/varian_body.dart';
 import '../models/jenis_varian.dart';
 import '../models/gambar_optional.dart';
 import '../models/gambar_kelistrikan.dart';
+import '../models/g_gambar_utama.dart';
 
 final masterDataRepositoryProvider = Provider(
   (ref) => MasterDataRepository(ref),
@@ -243,7 +244,7 @@ class MasterDataRepository {
   }
 
   // == MASTER GAMBAR UTAMA ==
-  Future<void> uploadGambarUtama({
+  Future<GGambarUtama> uploadGambarUtama({
     required int varianBodyId,
     required File gambarUtama,
     required File gambarTerurai,
@@ -265,11 +266,13 @@ class MasterDataRepository {
       ),
     });
 
-    // Endpoint ini perlu ditambahkan di api.php di dalam grup admin
-    await _ref
+    final response = await _ref
         .read(apiClientProvider)
         .dio
         .post('/admin/gambar-master/utama', data: formData);
+
+    // Parse dan kembalikan objek GGambarUtama
+    return GGambarUtama.fromJson(response.data);
   }
 
   // --- TAMBAHKAN FUNGSI UNTUK GAMBAR OPTIONAL ---
@@ -286,17 +289,23 @@ class MasterDataRepository {
     required int varianBodyId,
     required String deskripsi,
     required File gambarOptionalFile,
+    String tipe = 'independen', // Parameter baru dengan default value
+    int? gambarUtamaId, // Parameter baru opsional
   }) async {
     final fileName = gambarOptionalFile.path.split(Platform.pathSeparator).last;
     final formData = FormData.fromMap({
+      'tipe': tipe,
       'e_varian_body_id': varianBodyId,
+      'g_gambar_utama_id': gambarUtamaId,
       'deskripsi': deskripsi,
       'gambar_optional': await MultipartFile.fromFile(
         gambarOptionalFile.path,
         filename: fileName,
-        // contentType: MediaType('application', 'pdf'),
       ),
     });
+    // Hapus key null dari map agar tidak dikirim ke backend
+    formData.fields.removeWhere((entry) => entry.value == null.toString());
+
     await _ref
         .read(apiClientProvider)
         .dio

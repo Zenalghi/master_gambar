@@ -24,6 +24,7 @@ class GambarMainForm extends ConsumerWidget {
     final showOptional = ref.watch(showGambarOptionalProvider);
     final jumlahGambarOptional = ref.watch(jumlahGambarOptionalProvider);
     final showKelistrikan = ref.watch(showGambarKelistrikanProvider);
+    final dependentOptionals = ref.watch(dependentOptionalOptionsProvider);
 
     int totalHalaman = jumlahGambarUtama * 3;
     if (showOptional) {
@@ -78,6 +79,58 @@ class GambarMainForm extends ConsumerWidget {
                 jumlahGambarUtama: jumlahGambarUtama,
                 onPreviewPressed: () => onPreviewPressed(index),
               ),
+            ),
+            dependentOptionals.when(
+              data: (items) {
+                if (items.isEmpty) {
+                  return const SizedBox.shrink(); // Jangan tampilkan apa-apa jika kosong
+                }
+                // Jika ada data, tampilkan section-nya
+                return Column(
+                  children: [
+                    const Divider(height: 32),
+                    _buildSection(
+                      title: 'Gambar Optional Dependen',
+                      itemCount: items.length,
+                      itemBuilder: (index) {
+                        final item = items[index];
+                        // Kita bisa buat widget baru, atau tampilkan Text sederhana di sini
+                        return Row(
+                          children: [
+                            SizedBox(
+                              width: 150,
+                              child: Text('Dependen ${index + 1}:'),
+                            ),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  item.name,
+                                ), // item.name berisi deskripsi
+                              ),
+                            ),
+                            // Di sini Anda bisa menambahkan tombol preview jika diperlukan di masa depan
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              error: (err, stack) => Text('Error: $err'),
             ),
             const Divider(height: 32),
             CheckboxListTile(

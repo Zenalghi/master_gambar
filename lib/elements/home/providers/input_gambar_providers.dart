@@ -209,3 +209,36 @@ final gambarKelistrikanOptionsFamilyProvider =
           .map((item) => OptionItem.fromJson(item, nameKey: 'deskripsi'))
           .toList();
     });
+
+final dependentOptionalOptionsProvider = FutureProvider<List<OptionItem>>((
+  ref,
+) async {
+  // 1. Awasi pilihan di baris-baris Gambar Utama
+  final utamaSelections = ref.watch(gambarUtamaSelectionProvider);
+
+  // 2. Kumpulkan semua ID Varian Body yang unik dan tidak null
+  final selectedVarianIds = utamaSelections
+      .map((s) => s.varianBodyId)
+      .where((id) => id != null)
+      .toSet()
+      .toList();
+
+  // 3. Jika tidak ada yang dipilih, kembalikan daftar kosong
+  if (selectedVarianIds.isEmpty) {
+    return [];
+  }
+
+  // 4. Panggil endpoint baru dengan metode POST
+  final response = await ref
+      .watch(apiClientProvider)
+      .dio
+      .post(
+        '/options/dependent-optionals', // Endpoint baru
+        data: {'varian_ids': selectedVarianIds},
+      );
+
+  final List<dynamic> data = response.data;
+  return data
+      .map((item) => OptionItem.fromJson(item, nameKey: 'deskripsi'))
+      .toList();
+});

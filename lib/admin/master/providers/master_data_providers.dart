@@ -175,3 +175,9 @@ final gambarKelistrikanListProvider = FutureProvider<List<GambarKelistrikan>>((
 
 final gambarKelistrikanRowsPerPageProvider = StateProvider<int>((ref) => 15);
 final gambarKelistrikanSearchQueryProvider = StateProvider<String>((ref) => '');
+
+// State untuk checkbox "Tambahkan Gambar Optional Dependen"
+final mguShowDependentOptionalProvider = StateProvider<bool>((ref) => false);
+
+// State untuk file PDF opsional dependen yang dipilih
+final mguDependentFileProvider = StateProvider<File?>((ref) => null);
