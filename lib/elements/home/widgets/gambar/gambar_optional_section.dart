@@ -56,7 +56,7 @@ class GambarOptionalSection extends ConsumerWidget {
           child: DropdownButtonFormField<int>(
             value: ref.watch(jumlahGambarOptionalProvider),
             decoration: const InputDecoration(border: OutlineInputBorder()),
-            items: [1, 2, 3, 4, 5]
+            items: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                 .map(
                   (e) => DropdownMenuItem(value: e, child: Text(e.toString())),
                 )
