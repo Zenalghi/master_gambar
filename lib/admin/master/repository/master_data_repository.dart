@@ -286,7 +286,7 @@ class MasterDataRepository {
   }
 
   Future<void> addGambarOptional({
-    required int varianBodyId,
+    int? varianBodyId,
     required String deskripsi,
     required File gambarOptionalFile,
     String tipe = 'independen', // Parameter baru dengan default value

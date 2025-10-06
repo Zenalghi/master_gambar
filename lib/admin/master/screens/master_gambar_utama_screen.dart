@@ -122,8 +122,7 @@ class _MasterGambarUtamaScreenState
         await ref
             .read(masterDataRepositoryProvider)
             .addGambarOptional(
-              // Menggunakan method yang sudah ada, tapi dengan data berbeda
-              varianBodyId: 0, // Dibuat tidak valid karena tidak digunakan
+              varianBodyId: null, // Dibuat tidak valid karena tidak digunakan
               deskripsi: _deskripsiController.text,
               gambarOptionalFile: dependentFile!,
               // Parameter tambahan untuk logika baru di backend

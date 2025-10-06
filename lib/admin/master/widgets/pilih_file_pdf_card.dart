@@ -1,9 +1,11 @@
+// File: lib/admin/master/widgets/pilih_file_pdf_card.dart
+
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import 'package:pdfx/pdfx.dart'; // <-- 1. Import package pdfx
+import 'package:pdfx/pdfx.dart';
 
 class PilihFilePdfCard extends ConsumerWidget {
   final VoidCallback onSubmit;
@@ -117,7 +119,6 @@ class PilihFilePdfCard extends ConsumerWidget {
     );
   }
 
-  // --- PERBAIKAN UTAMA ADA DI WIDGET INI ---
   Widget _buildFilePicker({
     required String label,
     File? file,
@@ -169,12 +170,9 @@ class PilihFilePdfCard extends ConsumerWidget {
               borderRadius: BorderRadius.circular(4),
               color: Colors.grey.shade200,
             ),
+            // --- INI PERUBAHAN UTAMANYA ---
             child: file != null
-                ? PdfView(
-                    controller: PdfController(
-                      document: PdfDocument.openFile(file.path),
-                    ),
-                  )
+                ? _PdfPreviewer(file: file) // Gunakan widget baru
                 : const Center(
                     child: Icon(
                       Icons.picture_as_pdf_outlined,
@@ -185,6 +183,58 @@ class PilihFilePdfCard extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// --- WIDGET BARU UNTUK MENGELOLA STATE PDF CONTROLLER ---
+class _PdfPreviewer extends StatefulWidget {
+  final File file;
+
+  const _PdfPreviewer({required this.file});
+
+  @override
+  State<_PdfPreviewer> createState() => _PdfPreviewerState();
+}
+
+class _PdfPreviewerState extends State<_PdfPreviewer> {
+  late PdfController _pdfController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Controller dibuat HANYA SEKALI saat widget pertama kali dibuat
+    _pdfController = PdfController(
+      document: PdfDocument.openFile(widget.file.path),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _PdfPreviewer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Jika file berubah (misalnya pengguna memilih file lain untuk slot yang sama)
+    if (widget.file.path != oldWidget.file.path) {
+      // Buang controller lama dan buat yang baru
+      _pdfController.dispose();
+      _pdfController = PdfController(
+        document: PdfDocument.openFile(widget.file.path),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    // Pastikan controller dibuang saat widget dihancurkan
+    _pdfController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PdfView(
+      // Beri key unik agar Flutter tahu kapan harus menggambar ulang
+      key: ValueKey(widget.file.path),
+      controller: _pdfController,
     );
   }
 }
