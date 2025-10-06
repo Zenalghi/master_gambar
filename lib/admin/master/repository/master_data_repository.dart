@@ -286,25 +286,34 @@ class MasterDataRepository {
   }
 
   Future<void> addGambarOptional({
-    int? varianBodyId,
     required String deskripsi,
     required File gambarOptionalFile,
-    String tipe = 'independen', // Parameter baru dengan default value
-    int? gambarUtamaId, // Parameter baru opsional
+    String tipe = 'independen',
+    int? varianBodyId, // <-- Diubah menjadi nullable
+    int? gambarUtamaId,
   }) async {
     final fileName = gambarOptionalFile.path.split(Platform.pathSeparator).last;
-    final formData = FormData.fromMap({
+
+    // 1. Mulai dengan map yang berisi data umum
+    final Map<String, dynamic> dataMap = {
       'tipe': tipe,
-      'e_varian_body_id': varianBodyId,
-      'g_gambar_utama_id': gambarUtamaId,
       'deskripsi': deskripsi,
       'gambar_optional': await MultipartFile.fromFile(
         gambarOptionalFile.path,
         filename: fileName,
       ),
-    });
-    // Hapus key null dari map agar tidak dikirim ke backend
-    formData.fields.removeWhere((entry) => entry.value == null.toString());
+    };
+
+    // 2. Tambahkan ID yang relevan secara kondisional
+    if (tipe == 'independen') {
+      dataMap['e_varian_body_id'] = varianBodyId;
+    } else {
+      // tipe == 'dependen'
+      dataMap['g_gambar_utama_id'] = gambarUtamaId;
+    }
+
+    // 3. Buat FormData dari map yang sudah benar
+    final formData = FormData.fromMap(dataMap);
 
     await _ref
         .read(apiClientProvider)

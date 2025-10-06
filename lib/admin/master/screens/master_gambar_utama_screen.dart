@@ -122,12 +122,12 @@ class _MasterGambarUtamaScreenState
         await ref
             .read(masterDataRepositoryProvider)
             .addGambarOptional(
-              varianBodyId: null, // Dibuat tidak valid karena tidak digunakan
+              // Parameter diubah sesuai repository baru
               deskripsi: _deskripsiController.text,
               gambarOptionalFile: dependentFile!,
-              // Parameter tambahan untuk logika baru di backend
               tipe: 'dependen',
               gambarUtamaId: gambarUtama.id,
+              // varianBodyId tidak perlu dikirim, jadi kita hapus
             );
       }
 
