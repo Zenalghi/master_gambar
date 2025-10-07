@@ -1,5 +1,3 @@
-// File: lib/admin/master/widgets/gambar_optional_table.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -8,7 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:master_gambar/admin/master/models/gambar_optional.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
-import 'edit_gambar_optional_dialog.dart'; // Import dialog edit
+import 'edit_gambar_optional_dialog.dart';
 
 class GambarOptionalDataSource extends DataTableSource {
   final BuildContext context;
@@ -22,20 +20,21 @@ class GambarOptionalDataSource extends DataTableSource {
   DataRow? getRow(int index) {
     if (index >= data.length) return null;
     final item = data[index];
+    // Gunakan ?. dan ?? untuk keamanan dari nilai null
     final varianBody = item.varianBody;
-    final jenisKendaraan = varianBody.jenisKendaraan;
-    final typeChassis = jenisKendaraan.typeChassis;
-    final merk = typeChassis.merk;
-    final typeEngine = merk.typeEngine;
+    final jenisKendaraan = varianBody?.jenisKendaraan;
+    final typeChassis = jenisKendaraan?.typeChassis;
+    final merk = typeChassis?.merk;
+    final typeEngine = merk?.typeEngine;
 
     return DataRow2(
       key: ValueKey(item.id),
       cells: [
-        DataCell(Text(typeEngine.name)),
-        DataCell(Text(merk.name)),
-        DataCell(Text(typeChassis.name)),
-        DataCell(Text(jenisKendaraan.name)),
-        DataCell(Text(varianBody.name)),
+        DataCell(Text(typeEngine?.name ?? 'N/A')),
+        DataCell(Text(merk?.name ?? 'N/A')),
+        DataCell(Text(typeChassis?.name ?? 'N/A')),
+        DataCell(Text(jenisKendaraan?.name ?? 'N/A')),
+        DataCell(Text(varianBody?.name ?? 'N/A')),
         DataCell(Text(item.deskripsi)),
         DataCell(Text(dateFormat.format(item.createdAt.toLocal()))),
         DataCell(Text(dateFormat.format(item.updatedAt.toLocal()))),
@@ -137,65 +136,89 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
 
     return asyncData.when(
       data: (data) {
-        final filteredData = data.where((item) {
+        final independentData = data
+            .where((item) => item.tipe == 'independen')
+            .toList();
+
+        // --- PERBAIKAN PADA LOGIKA FILTER ---
+        final filteredData = independentData.where((item) {
           final query = searchQuery.toLowerCase();
           if (query.isEmpty) return true;
-          return item.varianBody.jenisKendaraan.typeChassis.merk.typeEngine.name
-                  .toLowerCase()
-                  .contains(query) ||
-              item.varianBody.jenisKendaraan.typeChassis.merk.name
-                  .toLowerCase()
-                  .contains(query) ||
-              item.varianBody.jenisKendaraan.typeChassis.name
-                  .toLowerCase()
-                  .contains(query) ||
-              item.varianBody.jenisKendaraan.name.toLowerCase().contains(
-                query,
-              ) ||
-              item.varianBody.name.toLowerCase().contains(query) ||
-              item.deskripsi.toLowerCase().contains(query);
-        }).toList();
 
-        final sortedData = List<GambarOptional>.from(filteredData)
-          ..sort((a, b) {
-            final aVarianBody = a.varianBody;
-            final bVarianBody = b.varianBody;
-            int result = 0;
-            switch (_sortColumnIndex) {
-              case 0:
-                result = aVarianBody
-                    .jenisKendaraan
-                    .typeChassis
-                    .merk
-                    .typeEngine
-                    .name
-                    .compareTo(
-                      bVarianBody
-                          .jenisKendaraan
+          // Gunakan ?. dan ?? untuk mengakses data secara aman
+          return (item
+                          .varianBody
+                          ?.jenisKendaraan
                           .typeChassis
                           .merk
                           .typeEngine
-                          .name,
-                    );
+                          .name ??
+                      '')
+                  .toLowerCase()
+                  .contains(query) ||
+              (item.varianBody?.jenisKendaraan.typeChassis.merk.name ?? '')
+                  .toLowerCase()
+                  .contains(query) ||
+              (item.varianBody?.jenisKendaraan.typeChassis.name ?? '')
+                  .toLowerCase()
+                  .contains(query) ||
+              (item.varianBody?.jenisKendaraan.name ?? '')
+                  .toLowerCase()
+                  .contains(query) ||
+              (item.varianBody?.name ?? '').toLowerCase().contains(query) ||
+              item.deskripsi.toLowerCase().contains(query);
+        }).toList();
+
+        // --- PERBAIKAN PADA LOGIKA SORT ---
+        final sortedData = List<GambarOptional>.from(filteredData)
+          ..sort((a, b) {
+            int result = 0;
+            // Gunakan ?. dan ?? untuk perbandingan yang aman
+            switch (_sortColumnIndex) {
+              case 0:
+                result =
+                    (a
+                                .varianBody
+                                ?.jenisKendaraan
+                                .typeChassis
+                                .merk
+                                .typeEngine
+                                .name ??
+                            '')
+                        .compareTo(
+                          b
+                                  .varianBody
+                                  ?.jenisKendaraan
+                                  .typeChassis
+                                  .merk
+                                  .typeEngine
+                                  .name ??
+                              '',
+                        );
                 break;
               case 1:
-                result = aVarianBody.jenisKendaraan.typeChassis.merk.name
-                    .compareTo(
-                      bVarianBody.jenisKendaraan.typeChassis.merk.name,
-                    );
+                result =
+                    (a.varianBody?.jenisKendaraan.typeChassis.merk.name ?? '')
+                        .compareTo(
+                          b.varianBody?.jenisKendaraan.typeChassis.merk.name ??
+                              '',
+                        );
                 break;
               case 2:
-                result = aVarianBody.jenisKendaraan.typeChassis.name.compareTo(
-                  bVarianBody.jenisKendaraan.typeChassis.name,
-                );
+                result = (a.varianBody?.jenisKendaraan.typeChassis.name ?? '')
+                    .compareTo(
+                      b.varianBody?.jenisKendaraan.typeChassis.name ?? '',
+                    );
                 break;
               case 3:
-                result = aVarianBody.jenisKendaraan.name.compareTo(
-                  bVarianBody.jenisKendaraan.name,
+                result = (a.varianBody?.jenisKendaraan.name ?? '').compareTo(
+                  b.varianBody?.jenisKendaraan.name ?? '',
                 );
                 break;
               case 4:
-                result = aVarianBody.name.compareTo(bVarianBody.name);
+                result = (a.varianBody?.name ?? '').compareTo(
+                  b.varianBody?.name ?? '',
+                );
                 break;
               case 5:
                 result = a.deskripsi.compareTo(b.deskripsi);
