@@ -28,21 +28,6 @@ class InputGambarScreen extends ConsumerWidget {
       final optionalSelections = ref.read(gambarOptionalSelectionProvider);
       final showKelistrikan = ref.read(showGambarKelistrikanProvider);
       final kelistrikanId = ref.read(gambarKelistrikanIdProvider);
-      List<int> independentOptionalIds = showOptional
-          ? optionalSelections
-                .where((s) => s.gambarOptionalId != null)
-                .map((s) => s.gambarOptionalId!)
-                .toList()
-          : [];
-
-      // 2. Ambil ID dari gambar optional dependen yang aktif
-      final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
-
-      // 3. Gabungkan kedua daftar ID tersebut
-      final allOptionalIds = [
-        ...independentOptionalIds,
-        ...dependentOptionalIds,
-      ];
 
       if (pemeriksaId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -59,12 +44,23 @@ class InputGambarScreen extends ConsumerWidget {
           .where((s) => s.judulId != null)
           .map((s) => s.judulId!)
           .toList();
-      final hGambarOptionalIds = showOptional
+
+      // 1. Ambil ID dari gambar optional independen yang dipilih
+      List<int> independentOptionalIds = showOptional
           ? optionalSelections
                 .where((s) => s.gambarOptionalId != null)
                 .map((s) => s.gambarOptionalId!)
                 .toList()
-          : null;
+          : [];
+
+      // 2. Ambil ID dari gambar optional dependen yang aktif
+      final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
+
+      // 3. Gabungkan kedua daftar ID tersebut
+      final allOptionalIds = [
+        ...independentOptionalIds,
+        ...dependentOptionalIds,
+      ];
 
       if (varianBodyIds.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -82,7 +78,7 @@ class InputGambarScreen extends ConsumerWidget {
             judulGambarIds: judulGambarIds,
             hGambarOptionalIds: allOptionalIds.isNotEmpty
                 ? allOptionalIds
-                : null, // <-- Gunakan daftar ID yang sudah digabung
+                : null,
             iGambarKelistrikanId: showKelistrikan ? kelistrikanId : null,
           );
 
@@ -146,32 +142,47 @@ class InputGambarScreen extends ConsumerWidget {
           .where((s) => s.judulId != null)
           .map((s) => s.judulId!)
           .toList();
-      final hGambarOptionalIds = showOptional
+
+      // --- PERBAIKAN DI SINI (LOGIKA YANG SAMA DENGAN PREVIEW) ---
+      List<int> independentOptionalIds = showOptional
           ? optionalSelections
                 .where((s) => s.gambarOptionalId != null)
                 .map((s) => s.gambarOptionalId!)
                 .toList()
-          : null;
+          : [];
 
-      final result = await ref
+      final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
+
+      final allOptionalIds = [
+        ...independentOptionalIds,
+        ...dependentOptionalIds,
+      ];
+      // -----------------------------------------------------------
+
+      final suggestedFileName =
+          '${transaksi.user.name}-${transaksi.customer.namaPt}-${transaksi.cTypeChassis.typeChassis}.zip';
+
+      await ref
           .read(prosesTransaksiRepositoryProvider)
-          .prosesGambar(
+          .downloadProcessedPdfsAsZip(
             transaksiId: transaksi.id,
+            suggestedFileName: suggestedFileName,
             pemeriksaId: pemeriksaId!,
             varianBodyIds: varianBodyIds,
             judulGambarIds: judulGambarIds,
-            hGambarOptionalIds: hGambarOptionalIds,
+            hGambarOptionalIds: allOptionalIds.isNotEmpty
+                ? allOptionalIds
+                : null,
             iGambarKelistrikanId: showKelistrikan ? kelistrikanId : null,
           );
 
       if (context.mounted) {
+        // Tampilkan dialog sukses setelah download selesai
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Proses Berhasil'),
-            content: Text(
-              '${result['message']}\n\nFile disimpan di:\n${result['folder_path']}',
-            ),
+            title: const Text('Unduhan Berhasil'),
+            content: Text('File ZIP berhasil disimpan di perangkat Anda.'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -181,6 +192,7 @@ class InputGambarScreen extends ConsumerWidget {
           ),
         );
 
+        // Reset state dan kembali ke halaman utama
         ref.invalidate(transaksiHistoryProvider);
         ref.read(pageStateProvider.notifier).state = PageState(pageIndex: 0);
       }
