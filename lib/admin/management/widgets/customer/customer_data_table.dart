@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:master_gambar/admin/management/providers/customer_providers.dart';
 import 'package:master_gambar/admin/management/widgets/customer/edit_customer_dialog.dart';
+import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/customer.dart';
 
 class CustomerDataTable extends ConsumerStatefulWidget {
@@ -14,7 +15,6 @@ class CustomerDataTable extends ConsumerStatefulWidget {
 }
 
 class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
-  // --- 2. TAMBAHKAN STATE UNTUK SORTING ---
   int? _sortColumnIndex = 0;
   bool _sortAscending = true;
 
@@ -23,6 +23,7 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
     final asyncCustomers = ref.watch(customerListProvider);
     final searchQuery = ref.watch(customerSearchQueryProvider);
     final rowsPerPage = ref.watch(customerRowsPerPageProvider);
+    final authToken = ref.watch(authTokenProvider);
 
     return Card(
       child: asyncCustomers.when(
@@ -32,7 +33,7 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
             return c.namaPt.toLowerCase().contains(query) ||
                 c.pj.toLowerCase().contains(query);
           }).toList();
-          // --- 3. TAMBAHKAN BLOK LOGIKA SORTING ---
+
           final sortedCustomers = List<Customer>.from(filteredCustomers);
           if (_sortColumnIndex != null) {
             sortedCustomers.sort((a, b) {
@@ -65,10 +66,9 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
           }
 
           return PaginatedDataTable2(
-            // fillViewport: true,
             columnSpacing: 12,
             horizontalMargin: 12,
-            minWidth: 900, // Sedikit dilebarkan untuk kolom baru
+            minWidth: 900,
             rowsPerPage: rowsPerPage,
             availableRowsPerPage: const [10, 25, 50, 100],
             onRowsPerPageChanged: (value) {
@@ -78,8 +78,13 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
             },
             sortColumnIndex: _sortColumnIndex,
             sortAscending: _sortAscending,
-            columns: _createColumns(), // Panggil method untuk membuat kolom
-            source: _CustomerDataSource(sortedCustomers, context, ref),
+            columns: _createColumns(),
+            source: _CustomerDataSource(
+              sortedCustomers,
+              context,
+              ref,
+              authToken,
+            ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -88,7 +93,6 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
     );
   }
 
-  // --- 5. BUAT METHOD UNTUK MENGELOLA HEADER KOLOM ---
   List<DataColumn2> _createColumns() {
     return [
       DataColumn2(
@@ -101,11 +105,7 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
         size: ColumnSize.L,
         onSort: _onSort,
       ),
-      DataColumn2(
-        label: Text('Paraf'),
-        size: ColumnSize.S,
-        // numeric: true,
-      ), // Dibuat rata tengah
+      const DataColumn2(label: Text('Paraf'), size: ColumnSize.S),
       DataColumn2(
         label: const Text('Tanggal Input'),
         size: ColumnSize.M,
@@ -120,7 +120,6 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
     ];
   }
 
-  // --- 6. BUAT METHOD UNTUK MENG-UPDATE STATE SAAT SORT ---
   void _onSort(int columnIndex, bool ascending) {
     setState(() {
       _sortColumnIndex = columnIndex;
@@ -133,7 +132,8 @@ class _CustomerDataSource extends DataTableSource {
   final List<Customer> customers;
   final BuildContext context;
   final WidgetRef ref;
-  _CustomerDataSource(this.customers, this.context, this.ref);
+  final String? authToken;
+  _CustomerDataSource(this.customers, this.context, this.ref, this.authToken);
 
   @override
   DataRow? getRow(int index) {
@@ -145,11 +145,25 @@ class _CustomerDataSource extends DataTableSource {
         DataCell(SelectableText(customer.namaPt)),
         DataCell(SelectableText(customer.pj)),
         DataCell(
-          customer.signaturePj != null && customer.signaturePj!.isNotEmpty
-              ? const Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                  semanticLabel: 'Ada',
+          (customer.signaturePj != null &&
+                  customer.signaturePj!.isNotEmpty &&
+                  authToken != null)
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                  child: Image.network(
+                    // --- PERUBAHAN DI SINI ---
+                    'http://master-gambar.test/api/admin/customers/${customer.id}/paraf?v=${customer.updatedAt.millisecondsSinceEpoch}',
+                    headers: {'Authorization': 'Bearer $authToken'},
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, progress) =>
+                        progress == null
+                        ? child
+                        : const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.error, color: Colors.orange),
+                  ),
                 )
               : const Icon(
                   Icons.cancel,

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:master_gambar/admin/management/providers/user_providers.dart';
 import 'package:master_gambar/admin/management/widgets/user/edit_user_dialog.dart';
+import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/app_user.dart';
 
 class UserDataTable extends ConsumerStatefulWidget {
@@ -22,6 +23,7 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
     final asyncUsers = ref.watch(userListProvider);
     final searchQuery = ref.watch(userSearchQueryProvider);
     final rowsPerPage = ref.watch(userRowsPerPageProvider);
+    final authToken = ref.watch(authTokenProvider);
 
     return Card(
       child: asyncUsers.when(
@@ -56,7 +58,6 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
           });
 
           return PaginatedDataTable2(
-            // fillViewport: true,
             minWidth: 900,
             rowsPerPage: rowsPerPage,
             availableRowsPerPage: const [10, 25, 50, 100],
@@ -65,7 +66,7 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
             sortColumnIndex: _sortColumnIndex,
             sortAscending: _sortAscending,
             columns: _createColumns(),
-            source: _UserDataDataSource(sortedUsers, context, ref),
+            source: _UserDataDataSource(sortedUsers, context, ref, authToken),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -91,7 +92,7 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
         size: ColumnSize.S,
         onSort: _onSort,
       ),
-      DataColumn2(label: Text('Paraf'), size: ColumnSize.S),
+      const DataColumn2(label: Text('Paraf'), size: ColumnSize.S),
       DataColumn2(
         label: const Text('Tanggal Input'),
         size: ColumnSize.M,
@@ -118,7 +119,9 @@ class _UserDataDataSource extends DataTableSource {
   final List<AppUser> users;
   final BuildContext context;
   final WidgetRef ref;
-  _UserDataDataSource(this.users, this.context, this.ref);
+  final String? authToken;
+
+  _UserDataDataSource(this.users, this.context, this.ref, this.authToken);
 
   @override
   DataRow? getRow(int index) {
@@ -130,9 +133,29 @@ class _UserDataDataSource extends DataTableSource {
         DataCell(SelectableText(user.username)),
         DataCell(Text(user.role?.name ?? 'N/A')),
         DataCell(
-          user.signature != null
-              ? const Icon(Icons.check_circle, color: Colors.green)
-              : const Icon(Icons.cancel, color: Colors.red),
+          (user.signature != null && authToken != null)
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                  child: Image.network(
+                    // --- PERUBAHAN DI SINI ---
+                    'http://master-gambar.test/api/admin/users/${user.id}/paraf?v=${user.updatedAt.millisecondsSinceEpoch}',
+                    headers: {'Authorization': 'Bearer $authToken'},
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, progress) =>
+                        progress == null
+                        ? child
+                        : const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.error, color: Colors.orange),
+                  ),
+                )
+              : const Icon(
+                  Icons.cancel,
+                  color: Colors.red,
+                  semanticLabel: 'Tidak Ada',
+                ),
         ),
         DataCell(SelectableText(dateFormat.format(user.createdAt.toLocal()))),
         DataCell(SelectableText(dateFormat.format(user.updatedAt.toLocal()))),
