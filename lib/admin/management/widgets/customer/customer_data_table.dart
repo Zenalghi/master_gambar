@@ -7,6 +7,8 @@ import 'package:master_gambar/admin/management/widgets/customer/edit_customer_di
 import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/customer.dart';
 
+import '../../../../data/providers/api_client.dart';
+
 class CustomerDataTable extends ConsumerStatefulWidget {
   const CustomerDataTable({super.key});
 
@@ -152,7 +154,7 @@ class _CustomerDataSource extends DataTableSource {
                   padding: const EdgeInsets.symmetric(vertical: 2.0),
                   child: Image.network(
                     // --- PERUBAHAN DI SINI ---
-                    'http://master-gambar.test/api/admin/customers/${customer.id}/paraf?v=${customer.updatedAt.millisecondsSinceEpoch}',
+                    '${ApiClient.baseUrl}/api/admin/customers/${customer.id}/paraf?v=${customer.updatedAt.millisecondsSinceEpoch}',
                     headers: {'Authorization': 'Bearer $authToken'},
                     fit: BoxFit.contain,
                     loadingBuilder: (context, child, progress) =>

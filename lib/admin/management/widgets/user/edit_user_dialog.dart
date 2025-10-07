@@ -8,6 +8,8 @@ import 'package:master_gambar/admin/management/repository/user_repository.dart';
 import 'package:master_gambar/data/models/app_user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../data/providers/api_client.dart';
+
 class EditUserDialog extends ConsumerStatefulWidget {
   final AppUser user;
   const EditUserDialog({super.key, required this.user});
@@ -163,7 +165,7 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
     final roleOptions = ref.watch(roleOptionsProvider);
     final imageUrl = (_authToken != null && _currentUser.signature != null)
         // URL ini sekarang akan memanggil route yang benar
-        ? 'http://master-gambar.test/api/admin/users/${_currentUser.id}/paraf?v=${DateTime.now().millisecondsSinceEpoch}'
+        ? '${ApiClient.baseUrl}/api/admin/users/${_currentUser.id}/paraf?v=${DateTime.now().millisecondsSinceEpoch}'
         : null;
 
     return AlertDialog(

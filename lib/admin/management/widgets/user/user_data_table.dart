@@ -7,6 +7,8 @@ import 'package:master_gambar/admin/management/widgets/user/edit_user_dialog.dar
 import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/app_user.dart';
 
+import '../../../../data/providers/api_client.dart';
+
 class UserDataTable extends ConsumerStatefulWidget {
   const UserDataTable({super.key});
 
@@ -138,7 +140,7 @@ class _UserDataDataSource extends DataTableSource {
                   padding: const EdgeInsets.symmetric(vertical: 2.0),
                   child: Image.network(
                     // --- PERUBAHAN DI SINI ---
-                    'http://master-gambar.test/api/admin/users/${user.id}/paraf?v=${user.updatedAt.millisecondsSinceEpoch}',
+                    '${ApiClient.baseUrl}/api/admin/users/${user.id}/paraf?v=${user.updatedAt.millisecondsSinceEpoch}',
                     headers: {'Authorization': 'Bearer $authToken'},
                     fit: BoxFit.contain,
                     loadingBuilder: (context, child, progress) =>

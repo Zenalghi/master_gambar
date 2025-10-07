@@ -8,6 +8,8 @@ import 'package:master_gambar/admin/management/repository/customer_repository.da
 import 'package:master_gambar/data/models/customer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../data/providers/api_client.dart';
+
 class EditCustomerDialog extends ConsumerStatefulWidget {
   final Customer customer;
   const EditCustomerDialog({super.key, required this.customer});
@@ -165,7 +167,7 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
     final imageUrl =
         (_authToken != null && _currentCustomer.signaturePj != null)
         // Tambahkan timestamp sebagai 'cache buster'
-        ? 'http://master-gambar.test/api/admin/customers/${_currentCustomer.id}/paraf?v=${DateTime.now().millisecondsSinceEpoch}'
+        ? '${ApiClient.baseUrl}/api/admin/customers/${_currentCustomer.id}/paraf?v=${DateTime.now().millisecondsSinceEpoch}'
         : null;
     return AlertDialog(
       title: Text('Edit Customer: ${_currentCustomer.namaPt}'),
