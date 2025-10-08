@@ -91,7 +91,7 @@ class GambarMainForm extends ConsumerWidget {
                   children: [
                     const Divider(height: 32),
                     _buildSection(
-                      title: 'Gambar Optional Dependen',
+                      title: 'Gambar Optional Paket',
                       itemCount: items.length,
                       itemBuilder: (index) {
                         final item = items[index];
@@ -103,7 +103,7 @@ class GambarMainForm extends ConsumerWidget {
                           children: [
                             SizedBox(
                               width: 150,
-                              child: Text('Dependen ${index + 1}:'),
+                              child: Text('Optional Paket ${index + 1}:'),
                             ),
                             Expanded(
                               flex: 6, // Beri ruang lebih untuk deskripsi
@@ -163,7 +163,7 @@ class GambarMainForm extends ConsumerWidget {
             ),
             const Divider(height: 32),
             CheckboxListTile(
-              title: const Text("Tampilkan Gambar Optional"),
+              title: const Text("Tampilkan Gambar Optional Independen"),
               value: showOptional,
               onChanged: (value) =>
                   ref.read(showGambarOptionalProvider.notifier).state = value!,

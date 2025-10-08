@@ -2,11 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
 import 'package:master_gambar/elements/home/providers/input_gambar_providers.dart';
+import '../../../../app/core/notifiers/refresh_notifier.dart';
 
 class GambarHeaderInfo extends ConsumerWidget {
   final Transaksi transaksi;
 
   const GambarHeaderInfo({super.key, required this.transaksi});
+  // --- BUAT METHOD BARU UNTUK LOGIKA REFRESH ---
+  void _resetAndRefresh(BuildContext context, WidgetRef ref) {
+    // 1. Reset semua state pilihan di form
+    ref.read(pemeriksaIdProvider.notifier).state = null;
+    ref.read(jumlahGambarProvider.notifier).state = 1;
+    // invalidate akan mereset StateNotifier ke state awalnya
+    ref.invalidate(gambarUtamaSelectionProvider);
+
+    // 2. Tutup dan reset checkbox beserta isinya
+    ref.read(showGambarOptionalProvider.notifier).state = false;
+    ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
+    ref.invalidate(gambarOptionalSelectionProvider);
+
+    ref.read(showGambarKelistrikanProvider.notifier).state = false;
+    ref.read(gambarKelistrikanIdProvider.notifier).state = null;
+
+    // 3. Bunyikan "lonceng" untuk memicu FutureProvider mengambil data baru
+    ref.read(refreshNotifierProvider.notifier).refresh();
+
+    // 4. Beri feedback ke pengguna
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Memuat ulang data pilihan...'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -59,6 +87,12 @@ class GambarHeaderInfo extends ConsumerWidget {
                       Expanded(child: _buildJumlahGambarDropdown(ref)),
                       const SizedBox(width: 16),
                       Expanded(child: _buildPemeriksaDropdown(ref)),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.refresh),
+                        tooltip: 'Muat Ulang Pilihan',
+                        onPressed: () => _resetAndRefresh(context, ref),
+                      ),
                     ],
                   ),
                 ),

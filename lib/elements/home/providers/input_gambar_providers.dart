@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/data/providers/api_endpoints.dart';
+import '../../../app/core/notifiers/refresh_notifier.dart';
 
 // Provider untuk melacak status loading/processing
 final isProcessingProvider = StateProvider<bool>((ref) => false);
@@ -120,6 +121,7 @@ class GambarUtamaSelectionNotifier
 final judulGambarOptionsProvider = FutureProvider<List<OptionItem>>((
   ref,
 ) async {
+  ref.watch(refreshNotifierProvider);
   final response = await ref
       .watch(apiClientProvider)
       .dio
@@ -131,6 +133,7 @@ final judulGambarOptionsProvider = FutureProvider<List<OptionItem>>((
 });
 
 final pemeriksaOptionsProvider = FutureProvider<List<OptionItem>>((ref) async {
+  ref.watch(refreshNotifierProvider);
   final response = await ref
       .watch(apiClientProvider)
       .dio
@@ -146,6 +149,7 @@ final varianBodyOptionsFamilyProvider =
       ref,
       jenisKendaraanId,
     ) async {
+      ref.watch(refreshNotifierProvider);
       final response = await ref
           .watch(apiClientProvider)
           .dio
@@ -159,6 +163,7 @@ final varianBodyOptionsFamilyProvider =
 final gambarOptionalOptionsProvider = FutureProvider<List<OptionItem>>((
   ref,
 ) async {
+  ref.watch(refreshNotifierProvider);
   // 1. Awasi (watch) pilihan yang dibuat di baris-baris Gambar Utama
   final utamaSelections = ref.watch(gambarUtamaSelectionProvider);
 
@@ -200,6 +205,7 @@ final gambarOptionalOptionsProvider = FutureProvider<List<OptionItem>>((
 
 final gambarKelistrikanOptionsFamilyProvider =
     FutureProvider.family<List<OptionItem>, String>((ref, chassisId) async {
+      ref.watch(refreshNotifierProvider);
       final response = await ref
           .watch(apiClientProvider)
           .dio
@@ -213,6 +219,7 @@ final gambarKelistrikanOptionsFamilyProvider =
 final dependentOptionalOptionsProvider = FutureProvider<List<OptionItem>>((
   ref,
 ) async {
+  ref.watch(refreshNotifierProvider);
   // 1. Awasi pilihan di baris-baris Gambar Utama
   final utamaSelections = ref.watch(gambarUtamaSelectionProvider);
 
