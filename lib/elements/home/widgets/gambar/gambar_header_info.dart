@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
 import 'package:master_gambar/elements/home/providers/input_gambar_providers.dart';
-import '../../../../admin/master/providers/master_data_providers.dart';
 
 class GambarHeaderInfo extends ConsumerWidget {
   final Transaksi transaksi;
@@ -134,9 +133,9 @@ Widget _buildPemeriksaDropdown(WidgetRef ref) {
   return pemeriksaOptions.when(
     data: (items) => DropdownButtonFormField<int>(
       initialValue: selectedId,
-      hint: const Text('Pemeriksa'), // Gunakan hintText
+      hint: const Text('Pemeriksa'),
       decoration: const InputDecoration(
-        // Hapus labelText
+        labelText: 'Pemeriksa',
         border: OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(
           horizontal: 12,

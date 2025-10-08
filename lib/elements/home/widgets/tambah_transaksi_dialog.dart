@@ -25,6 +25,27 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
   int? _selectedJenisPengajuanId;
 
   final _formKey = GlobalKey<FormState>();
+  void _resetAndRefresh() {
+    // 1. Reset state lokal (pilihan dropdown)
+    setState(() {
+      _selectedCustomerId = null;
+      _selectedTypeEngineId = null;
+      _selectedMerkId = null;
+      _selectedTypeChassisId = null;
+      _selectedJenisKendaraanId = null;
+      _selectedJenisPengajuanId = null;
+    });
+
+    // 2. Bunyikan lonceng refresh
+    ref.read(refreshNotifierProvider.notifier).refresh();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Memuat ulang data master...'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +60,17 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
       // .family provider akan otomatis refresh karena induknya di-invalidate
     });
     return AlertDialog(
-      title: const Text('Tambah Transaksi Baru'),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text('Tambah Transaksi Baru'),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Muat Ulang Pilihan',
+            onPressed: _resetAndRefresh,
+          ),
+        ],
+      ),
       content: SizedBox(
         width: 500, // Atur lebar dialog
         child: Form(

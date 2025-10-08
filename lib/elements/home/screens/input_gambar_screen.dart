@@ -245,7 +245,7 @@ class InputGambarScreen extends ConsumerWidget {
       child: Column(
         children: [
           GambarHeaderInfo(transaksi: transaksi),
-          const SizedBox(height: 24),
+          const SizedBox(height: 10),
           Expanded(
             child: SingleChildScrollView(
               child: GambarMainForm(

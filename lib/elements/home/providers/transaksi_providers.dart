@@ -1,6 +1,7 @@
 // File: lib/elements/home/providers/transaksi_providers.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../../../app/core/providers.dart';
 import '../../../data/models/option_item.dart'; // Pastikan model di-import
 import '../../../data/models/transaksi.dart';
@@ -17,15 +18,18 @@ final selectedJenisPengajuanProvider = StateProvider<int?>((ref) => null);
 // 2. PROVIDER UNTUK MENGAMBIL DATA DROPDOWN (Dengan Perbaikan Tipe Data)
 
 // Dropdown mandiri
-final customerOptionsProvider = FutureProvider<List<OptionItem>>(
-  (ref) => ref.watch(optionsRepositoryProvider).getCustomers(),
-);
-final typeEngineOptionsProvider = FutureProvider<List<OptionItem>>(
-  (ref) => ref.watch(optionsRepositoryProvider).getTypeEngines(),
-);
-final jenisPengajuanOptionsProvider = FutureProvider<List<OptionItem>>(
-  (ref) => ref.watch(optionsRepositoryProvider).getJenisPengajuan(),
-);
+final customerOptionsProvider = FutureProvider<List<OptionItem>>((ref) {
+  ref.watch(refreshNotifierProvider);
+  return ref.watch(optionsRepositoryProvider).getCustomers();
+});
+final typeEngineOptionsProvider = FutureProvider<List<OptionItem>>((ref) {
+  ref.watch(refreshNotifierProvider);
+  return ref.watch(optionsRepositoryProvider).getTypeEngines();
+});
+final jenisPengajuanOptionsProvider = FutureProvider<List<OptionItem>>((ref) {
+  ref.watch(refreshNotifierProvider);
+  return ref.watch(optionsRepositoryProvider).getJenisPengajuan();
+});
 
 // Dropdown Bersyarat (Dependent)
 final merkOptionsProvider = FutureProvider<List<OptionItem>>((ref) {
