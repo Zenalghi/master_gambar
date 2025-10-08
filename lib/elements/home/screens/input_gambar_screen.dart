@@ -26,8 +26,10 @@ class InputGambarScreen extends ConsumerWidget {
       final selections = ref.read(gambarUtamaSelectionProvider);
       final showOptional = ref.read(showGambarOptionalProvider);
       final optionalSelections = ref.read(gambarOptionalSelectionProvider);
-      final showKelistrikan = ref.read(showGambarKelistrikanProvider);
-      final kelistrikanId = ref.read(gambarKelistrikanIdProvider);
+      final kelistrikanItem = await ref.read(
+        gambarKelistrikanDataProvider(transaksi.cTypeChassis.id).future,
+      );
+      final kelistrikanId = kelistrikanItem?.id as int?;
 
       if (pemeriksaId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -79,7 +81,8 @@ class InputGambarScreen extends ConsumerWidget {
             hGambarOptionalIds: allOptionalIds.isNotEmpty
                 ? allOptionalIds
                 : null,
-            iGambarKelistrikanId: showKelistrikan ? kelistrikanId : null,
+            iGambarKelistrikanId:
+                kelistrikanId, // <-- Kirim ID yang mungkin null
           );
 
       if (context.mounted) {
@@ -131,8 +134,11 @@ class InputGambarScreen extends ConsumerWidget {
       final selections = ref.read(gambarUtamaSelectionProvider);
       final showOptional = ref.read(showGambarOptionalProvider);
       final optionalSelections = ref.read(gambarOptionalSelectionProvider);
-      final showKelistrikan = ref.read(showGambarKelistrikanProvider);
-      final kelistrikanId = ref.read(gambarKelistrikanIdProvider);
+      final kelistrikanItem = await ref.read(
+        gambarKelistrikanDataProvider(transaksi.cTypeChassis.id).future,
+      );
+      final kelistrikanId =
+          kelistrikanItem?.id as int?; // Ambil ID-nya, bisa jadi null
 
       final varianBodyIds = selections
           .where((s) => s.varianBodyId != null)
@@ -173,7 +179,7 @@ class InputGambarScreen extends ConsumerWidget {
             hGambarOptionalIds: allOptionalIds.isNotEmpty
                 ? allOptionalIds
                 : null,
-            iGambarKelistrikanId: showKelistrikan ? kelistrikanId : null,
+            iGambarKelistrikanId: kelistrikanId,
           );
 
       if (context.mounted) {
@@ -222,8 +228,6 @@ class InputGambarScreen extends ConsumerWidget {
     ref.read(showGambarOptionalProvider.notifier).state = false;
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
     ref.invalidate(gambarOptionalSelectionProvider);
-    ref.read(showGambarKelistrikanProvider.notifier).state = false;
-    ref.read(gambarKelistrikanIdProvider.notifier).state = null;
     ref.invalidate(gambarUtamaSelectionProvider);
   }
 

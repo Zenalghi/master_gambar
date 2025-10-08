@@ -23,7 +23,11 @@ class GambarMainForm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final showOptional = ref.watch(showGambarOptionalProvider);
     final jumlahGambarOptional = ref.watch(jumlahGambarOptionalProvider);
-    final showKelistrikan = ref.watch(showGambarKelistrikanProvider);
+    final kelistrikanAsync = ref.watch(
+      gambarKelistrikanDataProvider(transaksi.cTypeChassis.id),
+    );
+    // Cek apakah data kelistrikan ada
+    final hasKelistrikan = kelistrikanAsync.asData?.value != null;
     final dependentOptionals = ref.watch(dependentOptionalOptionsProvider);
 
     final dependentCount = dependentOptionals.asData?.value.length ?? 0;
@@ -32,7 +36,7 @@ class GambarMainForm extends ConsumerWidget {
         (jumlahGambarUtama * 3) +
         dependentCount +
         (showOptional ? jumlahGambarOptional : 0) +
-        (showKelistrikan ? 1 : 0);
+        (hasKelistrikan ? 1 : 0);
 
     int dependentBasePageNumber = (jumlahGambarUtama * 3) + 1;
     int optionalBasePageNumber = dependentBasePageNumber + dependentCount;
@@ -175,24 +179,15 @@ class GambarMainForm extends ConsumerWidget {
                 totalHalaman: totalHalaman,
                 onPreviewPressed: onPreviewPressed,
               ),
-              const SizedBox(height: 16),
             ],
-            CheckboxListTile(
-              title: const Text("Tampilkan Gambar Kelistrikan"),
-              value: showKelistrikan,
-              onChanged: (value) =>
-                  ref.read(showGambarKelistrikanProvider.notifier).state =
-                      value!,
-              controlAffinity: ListTileControlAffinity.leading,
+            const Divider(height: 32),
+
+            GambarKelistrikanSection(
+              transaksi: transaksi,
+              pageNumber: kelistrikanPageNumber,
+              totalHalaman: totalHalaman,
+              onPreviewPressed: () => onPreviewPressed(0),
             ),
-            if (showKelistrikan)
-              GambarKelistrikanSection(
-                transaksi: transaksi,
-                pageNumber: kelistrikanPageNumber,
-                totalHalaman: totalHalaman,
-                onPreviewPressed: () =>
-                    onPreviewPressed(kelistrikanPageNumber - 1),
-              ),
           ],
         ),
       ),

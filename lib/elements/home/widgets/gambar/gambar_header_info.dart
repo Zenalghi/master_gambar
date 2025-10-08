@@ -20,9 +20,7 @@ class GambarHeaderInfo extends ConsumerWidget {
     ref.read(showGambarOptionalProvider.notifier).state = false;
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
     ref.invalidate(gambarOptionalSelectionProvider);
-
-    ref.read(showGambarKelistrikanProvider.notifier).state = false;
-    ref.read(gambarKelistrikanIdProvider.notifier).state = null;
+    
 
     // 3. Bunyikan "lonceng" untuk memicu FutureProvider mengambil data baru
     ref.read(refreshNotifierProvider.notifier).refresh();

@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/app/core/providers.dart';
 import '../../../data/providers/api_endpoints.dart';
 
-// Provider untuk repository ini
 final prosesTransaksiRepositoryProvider = Provider(
   (ref) => ProsesTransaksiRepository(ref),
 );
@@ -20,7 +19,7 @@ class ProsesTransaksiRepository {
     required int pemeriksaId,
     required List<int> varianBodyIds,
     required List<int> judulGambarIds,
-    required List<int>? hGambarOptionalIds, // <-- Terima List<int>?
+    required List<int>? hGambarOptionalIds,
     int? iGambarKelistrikanId,
   }) async {
     try {

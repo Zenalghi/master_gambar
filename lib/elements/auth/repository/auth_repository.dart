@@ -84,8 +84,6 @@ class AuthRepository {
     ref.read(showGambarOptionalProvider.notifier).state = false;
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
     ref.invalidate(gambarOptionalSelectionProvider);
-    ref.read(showGambarKelistrikanProvider.notifier).state = false;
-    ref.read(gambarKelistrikanIdProvider.notifier).state = null;
     ref.invalidate(gambarUtamaSelectionProvider);
     ref.invalidate(pemeriksaOptionsProvider);
     ref.invalidate(judulGambarOptionsProvider);

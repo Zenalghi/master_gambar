@@ -55,9 +55,6 @@ class GambarOptionalSelectionNotifier
   }
 }
 
-final showGambarKelistrikanProvider = StateProvider<bool>((ref) => false);
-final gambarKelistrikanIdProvider = StateProvider<int?>((ref) => null);
-
 // === State untuk Baris Gambar Utama yang Dinamis ===
 class GambarUtamaSelection {
   final int? judulId;
@@ -203,17 +200,24 @@ final gambarOptionalOptionsProvider = FutureProvider<List<OptionItem>>((
       .toList();
 });
 
-final gambarKelistrikanOptionsFamilyProvider =
-    FutureProvider.family<List<OptionItem>, String>((ref, chassisId) async {
+final gambarKelistrikanDataProvider =
+    FutureProvider.family<OptionItem?, String>((ref, chassisId) async {
+      // Selalu dengarkan lonceng refresh
       ref.watch(refreshNotifierProvider);
+
+      // Panggil endpoint yang sudah ada
       final response = await ref
           .watch(apiClientProvider)
           .dio
           .get('/options/gambar-kelistrikan/$chassisId');
+
       final List<dynamic> data = response.data;
-      return data
-          .map((item) => OptionItem.fromJson(item, nameKey: 'deskripsi'))
-          .toList();
+
+      // Jika ada data, ambil yang pertama. Jika tidak, kembalikan null.
+      if (data.isNotEmpty) {
+        return OptionItem.fromJson(data.first, nameKey: 'deskripsi');
+      }
+      return null;
     });
 
 final dependentOptionalOptionsProvider = FutureProvider<List<OptionItem>>((

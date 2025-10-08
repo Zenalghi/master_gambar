@@ -1,3 +1,5 @@
+// File: lib/elements/home/widgets/gambar/gambar_kelistrikan_section.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
@@ -7,75 +9,89 @@ class GambarKelistrikanSection extends ConsumerWidget {
   final Transaksi transaksi;
   final int pageNumber;
   final int totalHalaman;
-  final VoidCallback onPreviewPressed; // <-- 1. Tambahkan properti
+  final VoidCallback onPreviewPressed;
 
   const GambarKelistrikanSection({
     super.key,
     required this.transaksi,
     required this.pageNumber,
     required this.totalHalaman,
-    required this.onPreviewPressed, // <-- 2. Tambahkan di constructor
+    required this.onPreviewPressed,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pemeriksaId = ref.watch(pemeriksaIdProvider);
-    final options = ref.watch(
-      gambarKelistrikanOptionsFamilyProvider(transaksi.cTypeChassis.id),
+    // Awasi provider data yang baru
+    final kelistrikanAsync = ref.watch(
+      gambarKelistrikanDataProvider(transaksi.cTypeChassis.id),
     );
-    final selectedId = ref.watch(gambarKelistrikanIdProvider);
-    final isSelected = selectedId != null && pemeriksaId != null;
-    final isLoading = ref.watch(isProcessingProvider);
 
-    return Row(
-      children: [
-        const SizedBox(width: 150, child: Text('Gambar Kelistrikan:')),
-        Expanded(
-          child: options.when(
-            data: (items) => DropdownButtonFormField<int>(
-              value: selectedId,
-              decoration: const InputDecoration(
-                hintText: 'Pilih Gambar Kelistrikan',
-                border: OutlineInputBorder(),
+    return kelistrikanAsync.when(
+      data: (kelistrikanItem) {
+        final bool hasKelistrikan = kelistrikanItem != null;
+        final bool isPreviewEnabled =
+            hasKelistrikan && ref.watch(pemeriksaIdProvider) != null;
+        final isLoading = ref.watch(isProcessingProvider);
+
+        return Row(
+          children: [
+            const SizedBox(width: 150, child: Text('Gambar Kelistrikan:')),
+            Expanded(
+              flex: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                // Tampilkan deskripsi atau keterangan
+                child: Text(
+                  hasKelistrikan
+                      ? kelistrikanItem.name
+                      : 'Gambar Kelistrikan tidak tersedia',
+                  style: TextStyle(
+                    fontStyle: hasKelistrikan
+                        ? FontStyle.normal
+                        : FontStyle.italic,
+                    color: hasKelistrikan ? Colors.black : Colors.grey.shade600,
+                  ),
+                ),
               ),
-              items: items
-                  .map(
-                    (e) => DropdownMenuItem<int>(
-                      value: e.id as int,
-                      child: Text(e.name),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) =>
-                  ref.read(gambarKelistrikanIdProvider.notifier).state = value,
             ),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, stack) => const Text('Error'),
-          ),
-        ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 70,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.yellow.shade200,
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: Colors.grey),
+            const SizedBox(width: 10),
+            // Tampilkan nomor halaman hanya jika data ada
+            if (hasKelistrikan)
+              SizedBox(
+                width: 70,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.yellow.shade200,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.grey),
+                  ),
+                  child: Center(child: Text('$pageNumber/$totalHalaman')),
+                ),
+              ),
+            const SizedBox(width: 10),
+            // Tampilkan tombol preview hanya jika data ada
+            SizedBox(
+              width: 170,
+              child: ElevatedButton(
+                onPressed: isPreviewEnabled && !isLoading
+                    ? onPreviewPressed
+                    : null,
+                child: const Text('Preview Gambar'),
+              ),
             ),
-            child: Center(child: Text('$pageNumber/$totalHalaman')),
-          ),
-        ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 170,
-          child: ElevatedButton(
-            // <-- 3. Gunakan fungsi yang diterima
-            onPressed: isSelected && !isLoading ? onPreviewPressed : null,
-            child: const Text('Preview Gambar'),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Text('Error memuat data kelistrikan: $err'),
     );
   }
 }
