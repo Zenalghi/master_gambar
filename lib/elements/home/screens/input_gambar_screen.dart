@@ -209,6 +209,7 @@ class InputGambarScreen extends ConsumerWidget {
     ref.read(isProcessingProvider.notifier).state = false;
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
     ref.read(pemeriksaIdProvider.notifier).state = null;
+    ref.read(jumlahGambarProvider.notifier).state = 1;
     ref.read(showGambarOptionalProvider.notifier).state = false;
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
     ref.invalidate(gambarOptionalSelectionProvider);
