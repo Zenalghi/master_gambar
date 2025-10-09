@@ -18,7 +18,7 @@ class InputGambarScreen extends ConsumerWidget {
   Future<void> _handlePreview(
     BuildContext context,
     WidgetRef ref,
-    int rowIndex,
+    int pageNumber, // Menerima nomor halaman yang benar
   ) async {
     ref.read(isProcessingProvider.notifier).state = true;
     try {
@@ -38,6 +38,7 @@ class InputGambarScreen extends ConsumerWidget {
         return;
       }
 
+      // Bagian ini tidak berubah, kita tetap butuh semua ID
       final varianBodyIds = selections
           .where((s) => s.varianBodyId != null)
           .map((s) => s.varianBodyId!)
@@ -46,22 +47,16 @@ class InputGambarScreen extends ConsumerWidget {
           .where((s) => s.judulId != null)
           .map((s) => s.judulId!)
           .toList();
-
-      // 1. Ambil ID dari gambar optional independen yang dipilih
+      final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
       List<int> independentOptionalIds = showOptional
           ? optionalSelections
                 .where((s) => s.gambarOptionalId != null)
                 .map((s) => s.gambarOptionalId!)
                 .toList()
           : [];
-
-      // 2. Ambil ID dari gambar optional dependen yang aktif
-      final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
-
-      // 3. Gabungkan kedua daftar ID tersebut
       final allOptionalIds = [
-        ...independentOptionalIds,
         ...dependentOptionalIds,
+        ...independentOptionalIds,
       ];
 
       if (varianBodyIds.isEmpty) {
@@ -81,29 +76,19 @@ class InputGambarScreen extends ConsumerWidget {
             hGambarOptionalIds: allOptionalIds.isNotEmpty
                 ? allOptionalIds
                 : null,
-            iGambarKelistrikanId:
-                kelistrikanId, // <-- Kirim ID yang mungkin null
+            iGambarKelistrikanId: kelistrikanId,
+            pageNumber: pageNumber, // Kirim pageNumber yang benar ke backend
           );
 
+      // --- PERBAIKAN UTAMA DI SINI ---
       if (context.mounted) {
-        final judulOptions = await ref.read(judulGambarOptionsProvider.future);
-        final selection = selections[rowIndex];
-
-        String judulName = 'Preview';
-        if (selection.judulId != null) {
-          final matchingJudul = judulOptions.where(
-            (e) => e.id == selection.judulId,
-          );
-          if (matchingJudul.isNotEmpty) {
-            judulName = matchingJudul.first.name;
-          }
-        }
-
+        // Kita tidak lagi perlu mengakses 'selections' dengan index yang salah.
+        // Cukup gunakan pageNumber untuk judul.
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => PdfViewerScreen(
               pdfData: pdfData,
-              title: 'Preview - $judulName',
+              title: 'Preview Halaman $pageNumber', // Judul disederhanakan
             ),
           ),
         );
@@ -149,6 +134,7 @@ class InputGambarScreen extends ConsumerWidget {
           .map((s) => s.judulId!)
           .toList();
 
+      final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
       // --- PERBAIKAN DI SINI (LOGIKA YANG SAMA DENGAN PREVIEW) ---
       List<int> independentOptionalIds = showOptional
           ? optionalSelections
@@ -157,11 +143,9 @@ class InputGambarScreen extends ConsumerWidget {
                 .toList()
           : [];
 
-      final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
-
       final allOptionalIds = [
-        ...independentOptionalIds,
         ...dependentOptionalIds,
+        ...independentOptionalIds,
       ];
       // -----------------------------------------------------------
 

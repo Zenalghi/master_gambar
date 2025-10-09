@@ -21,6 +21,7 @@ class ProsesTransaksiRepository {
     required List<int> judulGambarIds,
     required List<int>? hGambarOptionalIds,
     int? iGambarKelistrikanId,
+    required int pageNumber,
   }) async {
     try {
       final response = await _ref
@@ -36,6 +37,7 @@ class ProsesTransaksiRepository {
                   hGambarOptionalIds, // <-- Kirim dengan key yang benar
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'preview',
+              'preview_page': pageNumber, // <-- Kirim nomor halaman ke backend
             },
             options: Options(responseType: ResponseType.bytes),
           );

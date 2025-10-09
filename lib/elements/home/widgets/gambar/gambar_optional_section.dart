@@ -3,22 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/elements/home/providers/input_gambar_providers.dart';
 
 class GambarOptionalSection extends ConsumerWidget {
-  final int basePageNumber;
   final int totalHalaman;
-  final Function(int) onPreviewPressed;
+  // --- PERUBAHAN 1: Callback sekarang hanya menerima index ---
+  final Function(int index) onPreviewPressed;
+  final int basePageNumber; // Kita masih perlu ini untuk ditampilkan di UI
 
   const GambarOptionalSection({
     super.key,
-    required this.basePageNumber,
     required this.totalHalaman,
     required this.onPreviewPressed,
+    required this.basePageNumber,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final jumlah = ref.watch(jumlahGambarOptionalProvider);
 
-    // Listener untuk mengubah ukuran state list saat dropdown jumlah berubah
     ref.listen<int>(jumlahGambarOptionalProvider, (prev, next) {
       ref.read(gambarOptionalSelectionProvider.notifier).resize(next);
     });
@@ -33,12 +33,13 @@ class GambarOptionalSection extends ConsumerWidget {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: jumlah,
           itemBuilder: (context, index) {
+            // --- PERUBAHAN 2: Panggil callback hanya dengan index ---
             return _GambarOptionalRow(
               index: index,
-              pageNumber: basePageNumber + index,
+              pageNumber: basePageNumber + index, // Untuk tampilan
               totalHalaman: totalHalaman,
               onPreviewPressed: () =>
-                  onPreviewPressed(basePageNumber + index - 1),
+                  onPreviewPressed(index), // Kirim index (0, 1, 2, ...)
             );
           },
           separatorBuilder: (context, index) => const SizedBox(height: 8),
@@ -141,6 +142,7 @@ class _GambarOptionalRow extends ConsumerWidget {
           child: ElevatedButton(
             // <-- 3. Gunakan fungsi yang diterima
             onPressed: isSelected && !isLoading ? onPreviewPressed : null,
+
             child: const Text('Preview Gambar'),
           ),
         ),

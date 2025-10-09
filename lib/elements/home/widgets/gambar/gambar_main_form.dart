@@ -9,7 +9,7 @@ import 'package:master_gambar/elements/home/widgets/gambar/gambar_utama_row.dart
 
 class GambarMainForm extends ConsumerWidget {
   final Transaksi transaksi;
-  final Function(int) onPreviewPressed;
+  final Function(int pageNumber) onPreviewPressed; // Tipe tetap sama
   final int jumlahGambarUtama;
 
   const GambarMainForm({
@@ -26,10 +26,8 @@ class GambarMainForm extends ConsumerWidget {
     final kelistrikanAsync = ref.watch(
       gambarKelistrikanDataProvider(transaksi.cTypeChassis.id),
     );
-    // Cek apakah data kelistrikan ada
     final hasKelistrikan = kelistrikanAsync.asData?.value != null;
     final dependentOptionals = ref.watch(dependentOptionalOptionsProvider);
-
     final dependentCount = dependentOptionals.asData?.value.length ?? 0;
 
     int totalHalaman =
@@ -37,7 +35,6 @@ class GambarMainForm extends ConsumerWidget {
         dependentCount +
         (showOptional ? jumlahGambarOptional : 0) +
         (hasKelistrikan ? 1 : 0);
-
     int dependentBasePageNumber = (jumlahGambarUtama * 3) + 1;
     int optionalBasePageNumber = dependentBasePageNumber + dependentCount;
     int kelistrikanPageNumber =
@@ -49,41 +46,52 @@ class GambarMainForm extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Gambar Utama (Sudah Benar)
             _buildSection(
               title: 'Gambar Utama',
               itemCount: jumlahGambarUtama,
-              itemBuilder: (index) => GambarUtamaRow(
-                index: index,
-                transaksi: transaksi,
-                totalHalaman: totalHalaman,
-                onPreviewPressed: () => onPreviewPressed(index),
-              ),
+              itemBuilder: (index) {
+                final pageNumber = index + 1;
+                return GambarUtamaRow(
+                  index: index,
+                  transaksi: transaksi,
+                  totalHalaman: totalHalaman,
+                  onPreviewPressed: () => onPreviewPressed(pageNumber),
+                );
+              },
             ),
             const Divider(height: 32),
+            // Gambar Terurai (Sudah Benar)
             _buildSection(
               title: 'Gambar Terurai',
               itemCount: jumlahGambarUtama,
-              itemBuilder: (index) => GambarSyncedRow(
-                index: index,
-                title: 'Gambar Terurai',
-                transaksi: transaksi,
-                totalHalaman: totalHalaman,
-                jumlahGambarUtama: jumlahGambarUtama,
-                onPreviewPressed: () => onPreviewPressed(index),
-              ),
+              itemBuilder: (index) {
+                final pageNumber = jumlahGambarUtama + index + 1;
+                return GambarSyncedRow(
+                  index: index,
+                  title: 'Gambar Terurai',
+                  transaksi: transaksi,
+                  totalHalaman: totalHalaman,
+                  jumlahGambarUtama: jumlahGambarUtama,
+                  onPreviewPressed: () => onPreviewPressed(pageNumber),
+                );
+              },
             ),
             const Divider(height: 32),
             _buildSection(
               title: 'Gambar Kontruksi',
               itemCount: jumlahGambarUtama,
-              itemBuilder: (index) => GambarSyncedRow(
-                index: index,
-                title: 'Gambar Kontruksi',
-                transaksi: transaksi,
-                totalHalaman: totalHalaman,
-                jumlahGambarUtama: jumlahGambarUtama,
-                onPreviewPressed: () => onPreviewPressed(index),
-              ),
+              itemBuilder: (index) {
+                final pageNumber = (jumlahGambarUtama * 2) + index + 1;
+                return GambarSyncedRow(
+                  index: index,
+                  title: 'Gambar Kontruksi',
+                  transaksi: transaksi,
+                  totalHalaman: totalHalaman,
+                  jumlahGambarUtama: jumlahGambarUtama,
+                  onPreviewPressed: () => onPreviewPressed(pageNumber),
+                );
+              },
             ),
             dependentOptionals.when(
               data: (items) {
@@ -101,8 +109,8 @@ class GambarMainForm extends ConsumerWidget {
                         final item = items[index];
                         final pageNumber = dependentBasePageNumber + index;
                         final isPreviewEnabled =
-                            ref.watch(pemeriksaIdProvider) !=
-                            null; // Kita bisa buat widget baru, atau tampilkan Text sederhana di sini
+                            ref.watch(pemeriksaIdProvider) != null;
+                        final isLoading = ref.watch(isProcessingProvider);
                         return Row(
                           children: [
                             SizedBox(
@@ -144,8 +152,8 @@ class GambarMainForm extends ConsumerWidget {
                             SizedBox(
                               width: 170, // Sesuai permintaan Anda
                               child: ElevatedButton(
-                                onPressed: isPreviewEnabled
-                                    ? () => onPreviewPressed(index)
+                                onPressed: isPreviewEnabled && !isLoading
+                                    ? () => onPreviewPressed(pageNumber)
                                     : null,
                                 child: const Text('Preview Gambar'),
                               ),
@@ -177,7 +185,12 @@ class GambarMainForm extends ConsumerWidget {
               GambarOptionalSection(
                 basePageNumber: optionalBasePageNumber,
                 totalHalaman: totalHalaman,
-                onPreviewPressed: onPreviewPressed,
+                onPreviewPressed: (index) {
+                  final pageNumber = optionalBasePageNumber + index;
+                  onPreviewPressed(
+                    pageNumber,
+                  ); // Kirim nomor halaman yang sudah benar
+                },
               ),
             ],
             const Divider(height: 32),
@@ -186,7 +199,7 @@ class GambarMainForm extends ConsumerWidget {
               transaksi: transaksi,
               pageNumber: kelistrikanPageNumber,
               totalHalaman: totalHalaman,
-              onPreviewPressed: () => onPreviewPressed(0),
+              onPreviewPressed: () => onPreviewPressed(kelistrikanPageNumber),
             ),
           ],
         ),
@@ -194,7 +207,6 @@ class GambarMainForm extends ConsumerWidget {
     );
   }
 
-  // Method _buildSection tetap di sini karena digunakan berkali-kali
   Widget _buildSection({
     required String title,
     required int itemCount,

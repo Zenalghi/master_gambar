@@ -41,6 +41,7 @@ class GambarSyncedRow extends ConsumerWidget {
         selection.judulId != null &&
         selection.varianBodyId != null &&
         pemeriksaId != null;
+    final isLoading = ref.watch(isProcessingProvider);
 
     String judulName = '...';
     judulOptions.whenData((items) {
@@ -111,7 +112,7 @@ class GambarSyncedRow extends ConsumerWidget {
         SizedBox(
           width: 170,
           child: ElevatedButton(
-            onPressed: isRowComplete ? onPreviewPressed : null,
+            onPressed: isRowComplete && !isLoading ? onPreviewPressed : null,
             child: const Text('Preview Gambar'),
           ),
         ),
