@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:dio/dio.dart';
+import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../widgets/merk_table.dart';
 
 class MasterMerkScreen extends ConsumerStatefulWidget {
@@ -19,6 +20,20 @@ class _MasterMerkScreenState extends ConsumerState<MasterMerkScreen> {
   void dispose() {
     _merkController.dispose();
     super.dispose();
+  }
+
+  void _resetAndRefresh() {
+    setState(() {
+      _selectedTypeEngineId = null;
+      _merkController.clear();
+    });
+    ref.invalidate(typeEngineListProvider);
+    ref.invalidate(merkOptionsFamilyProvider);
+    ref.invalidate(typeChassisOptionsFamilyProvider);
+    ref.invalidate(jenisKendaraanOptionsFamilyProvider);
+    ref.invalidate(varianBodyOptionsFamilyProvider);
+    ref.invalidate(gambarOptionalListProvider);
+    ref.read(refreshNotifierProvider.notifier).refresh();
   }
 
   void _submit() async {
@@ -90,6 +105,7 @@ class _MasterMerkScreenState extends ConsumerState<MasterMerkScreen> {
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data',
                 onPressed: () {
+                  _resetAndRefresh();
                   ref.invalidate(merkListProvider);
                   ref.invalidate(typeEngineListProvider);
                 },

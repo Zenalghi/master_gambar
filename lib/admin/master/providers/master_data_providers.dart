@@ -6,39 +6,44 @@ import 'package:master_gambar/admin/master/models/jenis_kendaraan.dart';
 import 'package:master_gambar/admin/master/models/merk.dart';
 import 'package:master_gambar/admin/master/models/type_chassis.dart';
 import 'package:master_gambar/admin/master/models/type_engine.dart';
-import 'package:master_gambar/admin/master/models/varian_body.dart'; // Import model baru
+import 'package:master_gambar/admin/master/models/varian_body.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/data/providers/api_endpoints.dart';
-
+import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../models/gambar_kelistrikan.dart';
 import '../models/gambar_optional.dart';
 import '../models/jenis_varian.dart';
 
 // == PROVIDER UNTUK MENGAMBIL DATA LIST LENGKAP ==
 final typeEngineListProvider = FutureProvider<List<TypeEngine>>((ref) {
+  ref.watch(refreshNotifierProvider);
   ref.watch(masterDataRepositoryProvider);
   return ref.read(masterDataRepositoryProvider).getTypeEngines();
 });
 
 final merkListProvider = FutureProvider<List<Merk>>((ref) {
+  ref.watch(refreshNotifierProvider);
   ref.watch(masterDataRepositoryProvider);
   return ref.read(masterDataRepositoryProvider).getMerks();
 });
 
 final typeChassisListProvider = FutureProvider<List<TypeChassis>>((ref) {
+  ref.watch(refreshNotifierProvider);
   ref.watch(masterDataRepositoryProvider);
   return ref.read(masterDataRepositoryProvider).getTypeChassis();
 });
 
 final jenisKendaraanListProvider = FutureProvider<List<JenisKendaraan>>((ref) {
+  ref.watch(refreshNotifierProvider);
   ref.watch(masterDataRepositoryProvider);
   return ref.read(masterDataRepositoryProvider).getJenisKendaraanList();
 });
 
 // Provider untuk Varian Body
 final varianBodyListProvider = FutureProvider<List<VarianBody>>((ref) {
+  ref.watch(refreshNotifierProvider);
   ref.watch(masterDataRepositoryProvider);
   return ref.read(masterDataRepositoryProvider).getVarianBodyList();
 });

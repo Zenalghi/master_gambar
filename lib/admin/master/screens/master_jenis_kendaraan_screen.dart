@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:dio/dio.dart';
+import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../widgets/jenis_kendaraan_table.dart';
 
 class MasterJenisKendaraanScreen extends ConsumerStatefulWidget {
@@ -23,6 +24,24 @@ class _MasterJenisKendaraanScreenState
   void dispose() {
     _jenisKendaraanController.dispose();
     super.dispose();
+  }
+
+  void _resetAndRefresh() {
+    // 1. Reset state lokal (membersihkan pilihan dropdown)
+    setState(() {
+      _jenisKendaraanController.clear();
+      _selectedTypeEngineId = null;
+      _selectedMerkId = null;
+      _selectedTypeChassisId = null;
+    });
+
+    ref.invalidate(typeEngineListProvider);
+    ref.invalidate(merkOptionsFamilyProvider);
+    ref.invalidate(typeChassisOptionsFamilyProvider);
+    ref.invalidate(jenisKendaraanOptionsFamilyProvider);
+    ref.invalidate(varianBodyOptionsFamilyProvider);
+    ref.invalidate(gambarOptionalListProvider);
+    ref.read(refreshNotifierProvider.notifier).refresh();
   }
 
   void _submit() async {
@@ -101,6 +120,7 @@ class _MasterJenisKendaraanScreenState
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data',
                 onPressed: () {
+                  _resetAndRefresh();
                   ref.invalidate(jenisKendaraanListProvider);
                   ref.invalidate(typeEngineListProvider);
                 },

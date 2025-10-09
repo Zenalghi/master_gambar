@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
+import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../widgets/add_gambar_optional_form.dart';
 import '../widgets/gambar_optional_table.dart'; // Import form baru
 
@@ -19,6 +20,16 @@ class MasterGambarOptionalScreen extends ConsumerStatefulWidget {
 class _MasterGambarOptionalScreenState
     extends ConsumerState<MasterGambarOptionalScreen> {
   bool _isLoading = false;
+  void _resetAndRefresh() {
+    //Tambahkan invalidate untuk semua .family
+    ref.invalidate(typeEngineListProvider);
+    ref.invalidate(merkOptionsFamilyProvider);
+    ref.invalidate(typeChassisOptionsFamilyProvider);
+    ref.invalidate(jenisKendaraanOptionsFamilyProvider);
+    ref.invalidate(varianBodyOptionsFamilyProvider);
+    ref.invalidate(gambarOptionalListProvider);
+    ref.read(refreshNotifierProvider.notifier).refresh();
+  }
 
   // Method ini akan dipanggil oleh widget form
   void _handleUpload(int varianBodyId, String deskripsi, File file) async {
@@ -94,7 +105,8 @@ class _MasterGambarOptionalScreenState
               IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data',
-                onPressed: () => ref.invalidate(gambarOptionalListProvider),
+                onPressed: () =>
+                    _resetAndRefresh(), // Panggil method reset dan refresh
               ),
             ],
           ),

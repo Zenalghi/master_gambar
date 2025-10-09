@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:pdfx/pdfx.dart';
+import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../widgets/pilih_file_pdf_card.dart';
 import '../widgets/pilih_varian_body_card.dart';
 
@@ -47,6 +48,17 @@ class _MasterGambarUtamaScreenState
       _pdfController?.dispose();
       _pdfController = null;
     });
+  }
+
+  void _resetAndRefresh() {
+    _resetForm();
+    ref.invalidate(typeEngineListProvider);
+    ref.invalidate(merkOptionsFamilyProvider);
+    ref.invalidate(typeChassisOptionsFamilyProvider);
+    ref.invalidate(jenisKendaraanOptionsFamilyProvider);
+    ref.invalidate(varianBodyOptionsFamilyProvider);
+    ref.invalidate(gambarOptionalListProvider);
+    ref.read(refreshNotifierProvider.notifier).refresh();
   }
 
   Future<void> _pickDependentFile() async {
@@ -160,9 +172,21 @@ class _MasterGambarUtamaScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Manajemen Gambar Utama',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              const Text(
+                'Manajemen Gambar Utama',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Refresh Data',
+                onPressed: () {
+                  _resetAndRefresh();
+                },
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           const PilihVarianBodyCard(),
@@ -255,7 +279,6 @@ class _MasterGambarUtamaScreenState
           // const SizedBox(height: 16),
           const Divider(),
 
-          // ---------------------------------------------
           // const SizedBox(height: 16),
           PilihFilePdfCard(onSubmit: _submit, isLoading: _isLoading),
         ],

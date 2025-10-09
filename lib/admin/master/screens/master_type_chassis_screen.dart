@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:dio/dio.dart';
+import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../widgets/type_chassis_table.dart';
 
 class MasterTypeChassisScreen extends ConsumerStatefulWidget {
@@ -22,6 +23,21 @@ class _MasterTypeChassisScreenState
   void dispose() {
     _chassisController.dispose();
     super.dispose();
+  }
+
+  void _resetAndRefresh() {
+    setState(() {
+      _selectedTypeEngineId = null;
+      _selectedMerkId = null;
+      _chassisController.clear();
+    });
+    ref.invalidate(typeEngineListProvider);
+    ref.invalidate(merkOptionsFamilyProvider);
+    ref.invalidate(typeChassisOptionsFamilyProvider);
+    ref.invalidate(jenisKendaraanOptionsFamilyProvider);
+    ref.invalidate(varianBodyOptionsFamilyProvider);
+    ref.invalidate(gambarOptionalListProvider);
+    ref.read(refreshNotifierProvider.notifier).refresh();
   }
 
   void _submit() async {
@@ -99,6 +115,7 @@ class _MasterTypeChassisScreenState
                 onPressed: () {
                   ref.invalidate(typeChassisListProvider);
                   ref.invalidate(typeEngineListProvider);
+                  _resetAndRefresh();
                 },
               ),
             ],

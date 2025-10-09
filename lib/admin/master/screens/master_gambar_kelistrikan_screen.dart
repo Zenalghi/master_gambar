@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
+import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../widgets/add_gambar_kelistrikan_form.dart';
 import '../widgets/gambar_kelistrikan_table.dart';
 
@@ -21,6 +22,15 @@ class _MasterGambarKelistrikanScreenState
     extends ConsumerState<MasterGambarKelistrikanScreen> {
   // State untuk melacak proses upload
   bool _isUploading = false;
+  void _resetAndRefresh() {
+    ref.invalidate(typeEngineListProvider);
+    ref.invalidate(merkOptionsFamilyProvider);
+    ref.invalidate(typeChassisOptionsFamilyProvider);
+    ref.invalidate(jenisKendaraanOptionsFamilyProvider);
+    ref.invalidate(varianBodyOptionsFamilyProvider);
+    ref.invalidate(gambarOptionalListProvider);
+    ref.read(refreshNotifierProvider.notifier).refresh();
+  }
 
   // Method ini akan dipanggil oleh widget form saat tombol upload ditekan
   void _handleUpload(String typeChassisId, String deskripsi, File file) async {
@@ -96,7 +106,8 @@ class _MasterGambarKelistrikanScreenState
               IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data',
-                onPressed: () => ref.invalidate(gambarKelistrikanListProvider),
+                onPressed: () =>
+                    _resetAndRefresh(), // Panggil method reset dan refresh
               ),
             ],
           ),

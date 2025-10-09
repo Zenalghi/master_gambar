@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:dio/dio.dart';
+import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../widgets/varian_body_table.dart';
 
 class MasterVarianBodyScreen extends ConsumerStatefulWidget {
@@ -24,6 +25,20 @@ class _MasterVarianBodyScreenState
   void dispose() {
     _varianBodyController.dispose();
     super.dispose();
+  }
+
+  void _resetAndRefresh() {
+    setState(() {
+      _selectedTypeEngineId = null;
+      _selectedMerkId = null;
+      _selectedTypeChassisId = null;
+      _selectedJenisKendaraanId = null;
+      _varianBodyController.clear();
+    });
+    ref.invalidate(merkOptionsFamilyProvider);
+    ref.invalidate(typeChassisOptionsFamilyProvider);
+    ref.invalidate(jenisKendaraanOptionsFamilyProvider);
+    ref.read(refreshNotifierProvider.notifier).refresh();
   }
 
   void _submit() async {
@@ -103,6 +118,7 @@ class _MasterVarianBodyScreenState
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data',
                 onPressed: () {
+                  _resetAndRefresh();
                   ref.invalidate(varianBodyListProvider);
                   ref.invalidate(typeEngineListProvider);
                 },
