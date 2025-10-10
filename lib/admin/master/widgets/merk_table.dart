@@ -67,7 +67,7 @@ class _MerkTableState extends ConsumerState<MerkTable> {
             }
             return _sortAscending
                 ? cellA.compareTo(cellB)
-                : cellB.compareTo(cellB);
+                : cellB.compareTo(cellA);
           });
         }
 
