@@ -51,6 +51,10 @@ class MasterSidebar extends StatelessWidget {
           label: Text('Gambar Utama'),
         ),
         NavigationRailDestination(
+          icon: Icon(Icons.inventory_2_outlined),
+          label: Text('Status Gambar'),
+        ),
+        NavigationRailDestination(
           icon: Icon(Icons.add_photo_alternate),
           label: Text('Gambar Optional'),
         ),

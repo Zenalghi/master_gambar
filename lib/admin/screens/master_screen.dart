@@ -11,6 +11,8 @@ import 'package:master_gambar/admin/master/screens/master_type_engine_screen.dar
 import 'package:master_gambar/admin/master/screens/master_varian_body_screen.dart';
 import 'package:master_gambar/admin/master/widgets/master_sidebar.dart';
 
+import '../master/screens/image_status_screen.dart';
+
 class MasterScreen extends ConsumerStatefulWidget {
   const MasterScreen({super.key});
 
@@ -29,9 +31,10 @@ class _MasterScreenState extends ConsumerState<MasterScreen> {
     MasterTypeChassisScreen(),
     MasterJenisKendaraanScreen(),
     MasterVarianBodyScreen(),
-    MasterJenisVarianScreen(), // <-- 2. Tambahkan halaman baru ke daftar
+    MasterJenisVarianScreen(),
     // Master Gambar
     MasterGambarUtamaScreen(),
+    ImageStatusScreen(), // <-- 2. Tambahkan halaman baru di sini
     MasterGambarOptionalScreen(),
     MasterGambarKelistrikanScreen(),
   ];

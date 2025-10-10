@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/app/core/providers.dart';
+import '../../../data/models/paginated_response.dart';
 
+import '../models/image_status.dart';
 import '../models/type_engine.dart';
 import '../models/merk.dart';
 import '../models/type_chassis.dart';
@@ -386,5 +388,28 @@ class MasterDataRepository {
         .read(apiClientProvider)
         .dio
         .delete('/admin/gambar-kelistrikan/$id');
+  }
+
+  Future<PaginatedResponse<ImageStatus>> getImageStatus({
+    int page = 1,
+    int perPage = 25,
+    String sortBy = 'updated_at',
+    String sortDirection = 'desc',
+    String search = '',
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          '/admin/image-status',
+          queryParameters: {
+            'page': page,
+            'perPage': perPage,
+            'sortBy': sortBy,
+            'sortDirection': sortDirection,
+            'search': search,
+          },
+        );
+    return PaginatedResponse.fromJson(response.data, ImageStatus.fromJson);
   }
 }

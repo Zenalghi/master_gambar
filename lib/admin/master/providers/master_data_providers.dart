@@ -186,3 +186,12 @@ final mguShowDependentOptionalProvider = StateProvider<bool>((ref) => false);
 
 // State untuk file PDF opsional dependen yang dipilih
 final mguDependentFileProvider = StateProvider<File?>((ref) => null);
+
+// lib/admin/master/providers/master_data_providers.dart
+
+// ...
+
+// --- TAMBAHKAN PROVIDER BARU UNTUK TABEL STATUS GAMBAR ---
+final imageStatusFilterProvider = StateProvider<Map<String, String>>((ref) {
+  return {'search': '', 'sortBy': 'updated_at', 'sortDirection': 'desc'};
+});
