@@ -35,6 +35,15 @@ class ImageStatusScreen extends ConsumerWidget {
                   },
                 ),
               ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Muat Ulang Laporan',
+                onPressed: () {
+                  // Invalidate provider akan memaksa data source untuk refresh
+                  ref.invalidate(imageStatusSourceProvider);
+                },
+              ),
             ],
           ),
           const SizedBox(height: 16),
