@@ -1,12 +1,12 @@
-// File: lib/admin/master/models/g_gambar_utama.dart
-
 class GGambarUtama {
   final int id;
-  // Tambahkan properti lain jika Anda membutuhkannya dari respons JSON
+  final DateTime updatedAt;
 
-  GGambarUtama({required this.id});
-
+  GGambarUtama({required this.id, required this.updatedAt});
   factory GGambarUtama.fromJson(Map<String, dynamic> json) {
-    return GGambarUtama(id: json['id']);
+    return GGambarUtama(
+      id: json['id'],
+      updatedAt: DateTime.parse(json['updated_at']),
+    );
   }
 }

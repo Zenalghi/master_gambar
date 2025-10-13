@@ -1,23 +1,29 @@
 // File: lib/admin/master/models/image_status.dart
 
 import 'package:master_gambar/admin/master/models/varian_body.dart';
+import 'package:master_gambar/admin/master/models/g_gambar_utama.dart';
+import 'package:master_gambar/admin/master/models/gambar_optional.dart';
 
 class ImageStatus {
   final VarianBody varianBody;
-  final bool hasGambarUtama;
-  final bool hasGambarOptional;
+  final GGambarUtama? gambarUtama; // <-- Bisa null
+  final GambarOptional? latestGambarOptional; // <-- Bisa null
 
   ImageStatus({
     required this.varianBody,
-    required this.hasGambarUtama,
-    required this.hasGambarOptional,
+    this.gambarUtama,
+    this.latestGambarOptional,
   });
 
   factory ImageStatus.fromJson(Map<String, dynamic> json) {
     return ImageStatus(
-      varianBody: VarianBody.fromJson(json), // VarianBody adalah objek root
-      hasGambarUtama: json['gambar_utama_exists'] as bool,
-      hasGambarOptional: json['gambar_optional_exists'] as bool,
+      varianBody: VarianBody.fromJson(json),
+      gambarUtama: json['gambar_utama'] != null
+          ? GGambarUtama.fromJson(json['gambar_utama'])
+          : null,
+      latestGambarOptional: json['latest_gambar_optional'] != null
+          ? GambarOptional.fromJson(json['latest_gambar_optional'])
+          : null,
     );
   }
 }
