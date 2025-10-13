@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
 import 'package:master_gambar/elements/home/providers/transaksi_providers.dart';
 import 'package:master_gambar/elements/home/repository/options_repository.dart';
+import 'transaksi_history_datasource.dart';
 
 class EditTransaksiDialog extends ConsumerStatefulWidget {
   final Transaksi transaksi;
@@ -77,7 +78,7 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
       // Tutup dialog edit
       if (mounted) Navigator.of(context).pop();
       // Refresh tabel
-      ref.invalidate(transaksiHistoryProvider);
+      ref.invalidate(transaksiDataSourceProvider);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -318,7 +319,7 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
             );
 
         if (mounted) Navigator.of(context).pop();
-        ref.invalidate(transaksiHistoryProvider);
+        ref.invalidate(transaksiDataSourceProvider);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

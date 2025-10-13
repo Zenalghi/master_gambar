@@ -25,8 +25,8 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
   int? _selectedJenisPengajuanId;
 
   final _formKey = GlobalKey<FormState>();
+
   void _resetAndRefresh() {
-    // 1. Reset state lokal (pilihan dropdown)
     setState(() {
       _selectedCustomerId = null;
       _selectedTypeEngineId = null;
@@ -36,7 +36,11 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
       _selectedJenisPengajuanId = null;
     });
 
-    // 2. Bunyikan lonceng refresh
+    ref.invalidate(merkOptionsFamilyProvider);
+    ref.invalidate(typeChassisOptionsFamilyProvider);
+    ref.invalidate(jenisKendaraanOptionsFamilyProvider);
+
+    // Bunyikan lonceng refresh untuk provider non-family
     ref.read(refreshNotifierProvider.notifier).refresh();
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -49,16 +53,6 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(refreshNotifierProvider, (previous, next) {
-      // Saat lonceng berbunyi, invalidate semua provider yang relevan untuk dialog ini
-      ref.invalidate(customerOptionsProvider);
-      ref.invalidate(typeEngineOptionsProvider);
-      ref.invalidate(merkOptionsFamilyProvider);
-      ref.invalidate(typeChassisOptionsFamilyProvider);
-      ref.invalidate(jenisKendaraanOptionsFamilyProvider);
-      ref.invalidate(jenisPengajuanOptionsProvider);
-      // .family provider akan otomatis refresh karena induknya di-invalidate
-    });
     return AlertDialog(
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -72,7 +66,7 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
         ],
       ),
       content: SizedBox(
-        width: 500, // Atur lebar dialog
+        width: 500,
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -109,9 +103,6 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
     );
   }
 
-  // Kumpulan method untuk membangun setiap dropdown
-  // Pola ini sama persis dengan dialog edit, memastikan konsistensi
-
   Widget _buildCustomerDropdown() {
     final options = ref.watch(customerOptionsProvider);
     return options.when(
@@ -119,8 +110,10 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
         value: _selectedCustomerId,
         items: items
             .map(
-              (item) =>
-                  DropdownMenuItem<int>(value: item.id, child: Text(item.name)),
+              (item) => DropdownMenuItem<int>(
+                value: item.id as int,
+                child: Text(item.name),
+              ),
             )
             .toList(),
         onChanged: (value) => setState(() => _selectedCustomerId = value),
@@ -128,7 +121,7 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
         validator: (val) => val == null ? 'Wajib diisi' : null,
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Gagal memuat Customer'),
+      error: (err, stack) => const Text('Gagal memuat Customer'),
     );
   }
 
@@ -140,7 +133,7 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
         items: items
             .map(
               (item) => DropdownMenuItem<String>(
-                value: item.id,
+                value: item.id as String,
                 child: Text(item.name),
               ),
             )
@@ -155,7 +148,7 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
         validator: (val) => val == null ? 'Wajib diisi' : null,
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Gagal memuat Type Engine'),
+      error: (err, stack) => const Text('Gagal memuat Type Engine'),
     );
   }
 
@@ -167,7 +160,7 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
         items: items
             .map(
               (item) => DropdownMenuItem<String>(
-                value: item.id,
+                value: item.id as String,
                 child: Text(item.name),
               ),
             )
@@ -181,7 +174,7 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
         validator: (val) => val == null ? 'Wajib diisi' : null,
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Gagal memuat Merk'),
+      error: (err, stack) => const Text('Gagal memuat Merk'),
     );
   }
 
@@ -195,7 +188,7 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
         items: items
             .map(
               (item) => DropdownMenuItem<String>(
-                value: item.id,
+                value: item.id as String,
                 child: Text(item.name),
               ),
             )
@@ -208,7 +201,7 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
         validator: (val) => val == null ? 'Wajib diisi' : null,
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Gagal memuat Type Chassis'),
+      error: (err, stack) => const Text('Gagal memuat Type Chassis'),
     );
   }
 
@@ -222,7 +215,7 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
         items: items
             .map(
               (item) => DropdownMenuItem<String>(
-                value: item.id,
+                value: item.id as String,
                 child: Text(item.name),
               ),
             )
@@ -232,7 +225,7 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
         validator: (val) => val == null ? 'Wajib diisi' : null,
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Gagal memuat Jenis Kendaraan'),
+      error: (err, stack) => const Text('Gagal memuat Jenis Kendaraan'),
     );
   }
 
@@ -243,8 +236,10 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
         value: _selectedJenisPengajuanId,
         items: items
             .map(
-              (item) =>
-                  DropdownMenuItem<int>(value: item.id, child: Text(item.name)),
+              (item) => DropdownMenuItem<int>(
+                value: item.id as int,
+                child: Text(item.name),
+              ),
             )
             .toList(),
         onChanged: (value) => setState(() => _selectedJenisPengajuanId = value),
@@ -252,7 +247,7 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
         validator: (val) => val == null ? 'Wajib diisi' : null,
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Gagal memuat Jenis Pengajuan'),
+      error: (err, stack) => const Text('Gagal memuat Jenis Pengajuan'),
     );
   }
 
@@ -270,9 +265,7 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
               jenisPengajuanId: _selectedJenisPengajuanId!,
             );
 
-        // Panggil callback untuk refresh tabel di parent
         widget.onTransaksiAdded();
-
         if (mounted) Navigator.of(context).pop();
 
         ScaffoldMessenger.of(context).showSnackBar(

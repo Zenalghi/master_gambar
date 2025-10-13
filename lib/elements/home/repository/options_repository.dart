@@ -1,8 +1,9 @@
 // File: lib/elements/home/repository/options_repository.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:master_gambar/data/models/transaksi.dart';
 import '../../../app/core/providers.dart';
 import '../../../data/models/option_item.dart';
+import '../../../data/models/paginated_response.dart';
+import '../../../data/models/transaksi.dart';
 import '../../../data/providers/api_endpoints.dart';
 
 // Provider untuk repository ini
@@ -38,42 +39,29 @@ final transaksiRepositoryProvider = Provider((ref) => TransaksiRepository(ref));
 class TransaksiRepository {
   final Ref _ref;
   TransaksiRepository(this._ref);
-  // Method baru untuk GET histori transaksi
-  Future<void> updateTransaksi({
-    required String transaksiId,
-    required int customerId,
-    required String jenisKendaraanId,
-    required int jenisPengajuanId,
+
+  Future<PaginatedResponse<Transaksi>> getTransaksiHistory({
+    int page = 1,
+    int perPage = 25,
+    String sortBy = 'updated_at',
+    String sortDirection = 'desc',
+    String search = '',
   }) async {
-    // Ekstrak ID induk dari jenis_kendaraan_id
-    final String typeEngineId = jenisKendaraanId.substring(0, 2);
-    final String merkId = jenisKendaraanId.substring(0, 4);
-    final String typeChassisId = jenisKendaraanId.substring(0, 7);
-
-    // Kirim request PUT ke endpoint update
-    await _ref
-        .read(apiClientProvider)
-        .dio
-        .put(
-          '${ApiEndpoints.transaksi}/$transaksiId', // Endpoint -> /transaksi/{id}
-          data: {
-            "customer_id": customerId,
-            "a_type_engine_id": typeEngineId,
-            "b_merk_id": merkId,
-            "c_type_chassis_id": typeChassisId,
-            "d_jenis_kendaraan_id": jenisKendaraanId,
-            "f_pengajuan_id": jenisPengajuanId,
-          },
-        );
-  }
-
-  Future<List<Transaksi>> getTransaksiHistory() async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .get(ApiEndpoints.transaksi);
-    final List<dynamic> data = response.data;
-    return data.map((item) => Transaksi.fromJson(item)).toList();
+        .get(
+          ApiEndpoints.transaksi,
+          queryParameters: {
+            'page': page,
+            'perPage': perPage,
+            'sortBy': sortBy,
+            'sortDirection': sortDirection,
+            'search': search,
+          },
+        );
+    // Gunakan model PaginatedResponse untuk mem-parsing data
+    return PaginatedResponse.fromJson(response.data, Transaksi.fromJson);
   }
 
   Future<void> addTransaksi({
@@ -100,6 +88,25 @@ class TransaksiRepository {
         );
   }
 
+  Future<void> updateTransaksi({
+    required String transaksiId,
+    required int customerId,
+    required String jenisKendaraanId,
+    required int jenisPengajuanId,
+  }) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .put(
+          '${ApiEndpoints.transaksi}/$transaksiId',
+          data: {
+            'customer_id': customerId,
+            'd_jenis_kendaraan_id': jenisKendaraanId,
+            'f_pengajuan_id': jenisPengajuanId,
+          },
+        );
+  }
+
   Future<void> deleteTransaksi({required String transaksiId}) async {
     await _ref
         .read(apiClientProvider)
@@ -109,5 +116,3 @@ class TransaksiRepository {
         );
   }
 }
-
-// Daftarkan juga providernya

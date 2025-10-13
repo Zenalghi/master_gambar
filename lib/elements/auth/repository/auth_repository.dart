@@ -61,18 +61,6 @@ class AuthRepository {
 
     // 3. Reset state navigasi & tabel
     ref.read(pageStateProvider.notifier).state = PageState(pageIndex: 0);
-    ref.read(rowsPerPageProvider.notifier).state = 25;
-    ref.invalidate(transaksiHistoryProvider);
-
-    // 4. Reset semua state filter
-    ref.read(globalSearchQueryProvider.notifier).state = '';
-    ref.read(customerFilterProvider.notifier).state = '';
-    ref.read(typeEngineFilterProvider.notifier).state = '';
-    ref.read(merkFilterProvider.notifier).state = '';
-    ref.read(typeChassisFilterProvider.notifier).state = '';
-    ref.read(jenisKendaraanFilterProvider.notifier).state = '';
-    ref.read(jenisPengajuanFilterProvider.notifier).state = '';
-    ref.read(userFilterProvider.notifier).state = '';
 
     // 5. Reset semua state form Tambah Transaksi
     ref.invalidate(customerOptionsProvider);

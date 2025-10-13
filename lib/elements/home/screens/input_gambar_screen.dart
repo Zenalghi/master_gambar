@@ -3,11 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
 import 'package:master_gambar/elements/home/providers/input_gambar_providers.dart';
 import 'package:master_gambar/elements/home/providers/page_state_provider.dart';
-import 'package:master_gambar/elements/home/providers/transaksi_providers.dart';
 import 'package:master_gambar/elements/home/repository/proses_transaksi_repository.dart';
 import 'package:master_gambar/elements/home/screens/pdf_viewer_screen.dart';
 import 'package:master_gambar/elements/home/widgets/gambar/gambar_header_info.dart';
 import 'package:master_gambar/elements/home/widgets/gambar/gambar_main_form.dart';
+
+import '../widgets/transaksi_history_datasource.dart';
 
 class InputGambarScreen extends ConsumerWidget {
   final Transaksi transaksi;
@@ -183,7 +184,7 @@ class InputGambarScreen extends ConsumerWidget {
         );
 
         // Reset state dan kembali ke halaman utama
-        ref.invalidate(transaksiHistoryProvider);
+        ref.invalidate(transaksiDataSourceProvider);
         ref.read(pageStateProvider.notifier).state = PageState(pageIndex: 0);
       }
     } catch (e) {

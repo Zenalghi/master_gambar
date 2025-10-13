@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/transaksi_providers.dart';
 import '../widgets/advanced_filter_panel.dart';
-// import '../widgets/_tambah_transaksi_forms.dart';
 import '../widgets/tambah_transaksi_dialog.dart';
+import '../widgets/transaksi_history_datasource.dart';
 import '../widgets/transaksi_history_table.dart';
 
 class InputTransaksiScreen extends ConsumerWidget {
@@ -14,25 +14,13 @@ class InputTransaksiScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24.0, 1.0, 24.0, 5.0),
-
       child: Column(
         children: [
-          // // Form Tambah Transaksi (tidak berubah)
-          // TambahTransaksiForm(
-          //   onTransaksiAdded: () {
-          //     ref.invalidate(transaksiHistoryProvider);
-          //   },
-          // ),
-
-          // // const SizedBox(height: 24),
-          // SizedBox(height: 16),
           const AdvancedFilterPanel(),
           const SizedBox(height: 16),
-          // --- TAMBAHAN BARU: BARIS KONTROL TABEL ---
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Bagian kiri tetap sama
               const Text(
                 "Histori Transaksi",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -54,7 +42,7 @@ class InputTransaksiScreen extends ConsumerWidget {
                     builder: (context) => TambahTransaksiDialog(
                       onTransaksiAdded: () {
                         // Callback untuk me-refresh tabel
-                        ref.invalidate(transaksiHistoryProvider);
+                        ref.invalidate(transaksiDataSourceProvider);
                       },
                     ),
                   );
@@ -78,9 +66,9 @@ class InputTransaksiScreen extends ConsumerWidget {
                         ),
                       ),
                       onChanged: (value) {
-                        // Update provider saat pengguna mengetik
-                        ref.read(globalSearchQueryProvider.notifier).state =
-                            value;
+                        ref
+                            .read(transaksiFilterProvider.notifier)
+                            .update((state) => {...state, 'search': value});
                       },
                     ),
                   ),
@@ -90,15 +78,14 @@ class InputTransaksiScreen extends ConsumerWidget {
                     icon: const Icon(Icons.refresh),
                     tooltip: 'Reload Data',
                     onPressed: () {
-                      ref.invalidate(transaksiHistoryProvider);
+                      ref.invalidate(transaksiDataSourceProvider);
                     },
                   ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 8), // Sedikit spasi
-          // --- AKHIR TAMBAHAN BARU ---
+          const SizedBox(height: 8),
           Expanded(
             child: Card(
               child: SizedBox(

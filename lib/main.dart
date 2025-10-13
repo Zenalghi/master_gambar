@@ -3,17 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'app/theme/app_theme.dart';
 import 'app/core/auth_wrapper.dart';
-import 'package:flutter/foundation.dart' show kIsWeb; // <-- 1. Import 'kIsWeb'
+import 'package:flutter/foundation.dart' show kIsWeb; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // --- 2. JALANKAN KODE INI HANYA JIKA BUKAN WEB ---
   if (!kIsWeb) {
     await windowManager.ensureInitialized();
 
     WindowOptions windowOptions = const WindowOptions(
-      // size: Size(1280, 720), // Ukuran awal saat aplikasi dibuka
       center: true,
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
@@ -27,8 +25,7 @@ void main() async {
       await windowManager.maximize();
     });
   }
-  // ------------------------------------------------
-
+  
   runApp(const ProviderScope(child: MyApp()));
 }
 
