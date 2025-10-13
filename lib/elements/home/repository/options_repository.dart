@@ -22,6 +22,8 @@ class OptionsRepository {
 
   Future<List<OptionItem>> getCustomers() =>
       _fetchOptions(ApiEndpoints.customers);
+  Future<List<OptionItem>> getUsers() =>
+      _fetchOptions(ApiEndpoints.users);
   Future<List<OptionItem>> getTypeEngines() =>
       _fetchOptions(ApiEndpoints.typeEngines);
   Future<List<OptionItem>> getMerks(String engineId) =>

@@ -2,6 +2,7 @@
 class ApiEndpoints {
   // Base URL sudah ada di ApiClient, jadi kita hanya butuh path-nya
   static const String customers = '/options/customers';
+  static const String users = '/options/users';
   static const String typeEngines = '/options/type-engines';
   // Untuk endpoint dengan parameter, kita buat fungsi
   static String merks(String engineId) => '/options/merks/$engineId';

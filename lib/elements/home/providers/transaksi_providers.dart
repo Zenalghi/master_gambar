@@ -15,18 +15,18 @@ final rowsPerPageProvider = StateProvider<int>((ref) => 25);
 final globalSearchQueryProvider = StateProvider<String>((ref) => '');
 
 // Provider ini menyimpan semua state untuk paginasi, filter, dan sort
-final transaksiFilterProvider = StateProvider<Map<String, dynamic>>((ref) {
+final transaksiFilterProvider = StateProvider<Map<String, String?>>((ref) {
   return {
     'search': '',
     'sortBy': 'updated_at',
     'sortDirection': 'desc',
-    'customer_id': null,
-    'a_type_engine_id': null,
-    'b_merk_id': null,
-    'c_type_chassis_id': null,
-    'd_jenis_kendaraan_id': null,
-    'f_pengajuan_id': null,
-    'user_id': null,
+    'customer': null,
+    'type_engine': null,
+    'merk': null,
+    'type_chassis': null,
+    'jenis_kendaraan': null,
+    'jenis_pengajuan': null,
+    'user': null,
   };
 });
 
@@ -46,7 +46,10 @@ final customerOptionsProvider = FutureProvider<List<OptionItem>>((ref) {
   ref.watch(refreshNotifierProvider);
   return ref.watch(optionsRepositoryProvider).getCustomers();
 });
-
+final userOptionsProvider = FutureProvider<List<OptionItem>>((ref) {
+  ref.watch(refreshNotifierProvider);
+  return ref.watch(optionsRepositoryProvider).getUsers();
+});
 final typeEngineOptionsProvider = FutureProvider<List<OptionItem>>((ref) {
   ref.watch(refreshNotifierProvider);
   return ref.watch(optionsRepositoryProvider).getTypeEngines();
@@ -63,7 +66,7 @@ final merkOptionsFamilyProvider =
     FutureProvider.family<List<OptionItem>, String?>((ref, engineId) {
       ref.watch(
         refreshNotifierProvider,
-      ); // <-- Tambahkan ini agar bisa di-refresh
+      );
       if (engineId == null || engineId.isEmpty) return Future.value([]);
       return ref.watch(optionsRepositoryProvider).getMerks(engineId);
     });

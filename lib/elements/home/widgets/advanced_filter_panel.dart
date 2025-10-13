@@ -1,15 +1,66 @@
-// File: lib/elements/home/widgets/advanced_filter_panel.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/elements/home/providers/transaksi_providers.dart';
 
-class AdvancedFilterPanel extends ConsumerWidget {
+class AdvancedFilterPanel extends ConsumerStatefulWidget {
   const AdvancedFilterPanel({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AdvancedFilterPanel> createState() =>
+      _AdvancedFilterPanelState();
+}
+
+class _AdvancedFilterPanelState extends ConsumerState<AdvancedFilterPanel> {
+  // Buat TextEditingController untuk setiap field
+  late final Map<String, TextEditingController> _controllers;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inisialisasi semua controller
+    _controllers = {
+      'customer': TextEditingController(),
+      'type_engine': TextEditingController(),
+      'merk': TextEditingController(),
+      'type_chassis': TextEditingController(),
+      'jenis_kendaraan': TextEditingController(),
+      'jenis_pengajuan': TextEditingController(),
+      'user': TextEditingController(),
+    };
+  }
+
+  @override
+  void dispose() {
+    // Jangan lupa dispose semua controller
+    _controllers.forEach((_, controller) => controller.dispose());
+    super.dispose();
+  }
+
+  void _applyFilters() {
+    // Buat map baru untuk menampung filter yang diisi
+    final Map<String, String?> newFilters = {};
+    _controllers.forEach((key, controller) {
+      if (controller.text.isNotEmpty) {
+        newFilters[key] = controller.text;
+      }
+    });
+
+    // Update provider utama dengan semua filter baru
+    ref.read(transaksiFilterProvider.notifier).update((state) {
+      // Gabungkan state lama (untuk sort) dengan filter baru
+      return {...state, ...newFilters};
+    });
+  }
+
+  void _clearFilters() {
+    // Kosongkan semua text field
+    _controllers.forEach((_, controller) => controller.clear());
+    // Invalidate provider untuk meresetnya ke state awal
+    ref.invalidate(transaksiFilterProvider);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return ExpansionTile(
       title: const Text('Filter Lanjutan'),
       maintainState: true,
@@ -22,37 +73,54 @@ class AdvancedFilterPanel extends ConsumerWidget {
                 spacing: 16.0,
                 runSpacing: 16.0,
                 children: [
-                  _buildFilterDropdown(
-                    ref,
-                    'customer_id',
-                    'Filter Customer',
-                    customerOptionsProvider,
+                  _buildFilterTextField(
+                    label: 'Filter Customer',
+                    controller: _controllers['customer']!,
                   ),
-                  _buildFilterDropdown(
-                    ref,
-                    'a_type_engine_id',
-                    'Filter Type Engine',
-                    typeEngineOptionsProvider,
+                  _buildFilterTextField(
+                    label: 'Filter Type Engine',
+                    controller: _controllers['type_engine']!,
                   ),
-                  _buildFilterDropdown(
-                    ref,
-                    'f_pengajuan_id',
-                    'Filter Jenis Pengajuan',
-                    jenisPengajuanOptionsProvider,
+                  _buildFilterTextField(
+                    label: 'Filter Merk',
+                    controller: _controllers['merk']!,
                   ),
-                  // Anda bisa menambahkan dropdown lain di sini jika perlu (Merk, Chassis, dll.)
+                  _buildFilterTextField(
+                    label: 'Filter Type Chassis',
+                    controller: _controllers['type_chassis']!,
+                  ),
+                  _buildFilterTextField(
+                    label: 'Filter Jenis Kendaraan',
+                    controller: _controllers['jenis_kendaraan']!,
+                  ),
+                  _buildFilterTextField(
+                    label: 'Filter Jenis Pengajuan',
+                    controller: _controllers['jenis_pengajuan']!,
+                  ),
+                  _buildFilterTextField(
+                    label: 'Filter User',
+                    controller: _controllers['user']!,
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Invalidate akan mereset provider ke state awalnya
-                    ref.invalidate(transaksiFilterProvider);
-                  },
-                  child: const Text('Bersihkan Filter'),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ElevatedButton(
+                    onPressed: _clearFilters,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey.shade700,
+                    ),
+                    child: const Text('Bersihkan'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: _applyFilters,
+                    icon: const Icon(Icons.search),
+                    label: const Text('Terapkan Filter'),
+                  ),
+                ],
               ),
             ],
           ),
@@ -61,37 +129,17 @@ class AdvancedFilterPanel extends ConsumerWidget {
     );
   }
 
-  Widget _buildFilterDropdown(
-    WidgetRef ref,
-    String filterKey,
-    String label,
-    FutureProvider<List<OptionItem>> optionsProvider,
-  ) {
-    final options = ref.watch(optionsProvider);
-    final currentFilters = ref.watch(transaksiFilterProvider);
-
+  Widget _buildFilterTextField({
+    required String label,
+    required TextEditingController controller,
+  }) {
     return SizedBox(
       width: 250,
-      child: options.when(
-        data: (items) => DropdownButtonFormField<dynamic>(
-          value: currentFilters[filterKey],
-          decoration: InputDecoration(labelText: label, isDense: true),
-          items: items
-              .map(
-                (item) => DropdownMenuItem<dynamic>(
-                  value: item.id,
-                  child: Text(item.name),
-                ),
-              )
-              .toList(),
-          onChanged: (value) {
-            ref.read(transaksiFilterProvider.notifier).update((state) {
-              return {...state, filterKey: value};
-            });
-          },
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => Text('Error memuat $label'),
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(labelText: label, isDense: true),
+        onSubmitted: (_) =>
+            _applyFilters(), // Terapkan filter saat menekan Enter
       ),
     );
   }
