@@ -106,7 +106,7 @@ class _AddGambarKelistrikanFormState
                             validator: (v) =>
                                 v == null ? 'Wajib dipilih' : null,
                           ),
-                          loading: () => const LinearProgressIndicator(),
+                          loading: () => const CircularProgressIndicator(),
                           error: (e, st) => const Text('Error'),
                         ),
                         const SizedBox(height: 16),
@@ -133,7 +133,7 @@ class _AddGambarKelistrikanFormState
                             validator: (v) =>
                                 v == null ? 'Wajib dipilih' : null,
                           ),
-                          loading: () => const LinearProgressIndicator(),
+                          loading: () => const CircularProgressIndicator(),
                           error: (e, st) => const Text('Error'),
                         ),
                         const SizedBox(height: 16),
@@ -159,7 +159,7 @@ class _AddGambarKelistrikanFormState
                             validator: (v) =>
                                 v == null ? 'Wajib dipilih' : null,
                           ),
-                          loading: () => const LinearProgressIndicator(),
+                          loading: () => const CircularProgressIndicator(),
                           error: (e, st) => const Text('Error'),
                         ),
                         const SizedBox(height: 16),
