@@ -58,7 +58,9 @@ class _MasterTypeChassisScreenState
             typeChassis: _chassisController.text,
           );
       _chassisController.clear();
-      ref.invalidate(typeChassisListProvider);
+      ref
+          .read(typeChassisFilterProvider.notifier)
+          .update((state) => Map.from(state));
     } on DioException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -101,9 +103,11 @@ class _MasterTypeChassisScreenState
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (value) =>
-                      ref.read(typeChassisSearchQueryProvider.notifier).state =
-                          value,
+                  onChanged: (value) {
+                    ref
+                        .read(typeChassisFilterProvider.notifier)
+                        .update((state) => {...state, 'search': value});
+                  },
                 ),
               ),
 
@@ -113,7 +117,9 @@ class _MasterTypeChassisScreenState
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data',
                 onPressed: () {
-                  ref.invalidate(typeChassisListProvider);
+                  ref
+                      .read(typeChassisFilterProvider.notifier)
+                      .update((state) => Map.from(state));
                   ref.invalidate(typeEngineListProvider);
                   _resetAndRefresh();
                 },

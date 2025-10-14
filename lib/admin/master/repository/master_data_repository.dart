@@ -104,13 +104,27 @@ class MasterDataRepository {
   }
 
   // --- TAMBAHKAN FUNGSI UNTUK TYPE CHASSIS ---
-  Future<List<TypeChassis>> getTypeChassis() async {
+  Future<PaginatedResponse<TypeChassis>> getTypeChassisPaginated({
+    int page = 1,
+    int perPage = 25,
+    String sortBy = 'id',
+    String sortDirection = 'asc',
+    String search = '',
+  }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .get('/type-chassis');
-    final List<dynamic> data = response.data;
-    return data.map((item) => TypeChassis.fromJson(item)).toList();
+        .get(
+          '/type-chassis', // Endpoint tidak berubah
+          queryParameters: {
+            'page': page,
+            'perPage': perPage,
+            'sortBy': sortBy,
+            'sortDirection': sortDirection,
+            'search': search,
+          },
+        );
+    return PaginatedResponse.fromJson(response.data, TypeChassis.fromJson);
   }
 
   Future<TypeChassis> addTypeChassis({
