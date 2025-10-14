@@ -156,13 +156,27 @@ class MasterDataRepository {
     await _ref.read(apiClientProvider).dio.delete('/type-chassis/$id');
   }
 
-  Future<List<JenisKendaraan>> getJenisKendaraanList() async {
+  Future<PaginatedResponse<JenisKendaraan>> getJenisKendaraanListPaginated({
+    int page = 1,
+    int perPage = 25,
+    String sortBy = 'id',
+    String sortDirection = 'asc',
+    String search = '',
+  }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .get('/jenis-kendaraan');
-    final List<dynamic> data = response.data;
-    return data.map((item) => JenisKendaraan.fromJson(item)).toList();
+        .get(
+          '/jenis-kendaraan', // Endpoint tidak berubah
+          queryParameters: {
+            'page': page,
+            'perPage': perPage,
+            'sortBy': sortBy,
+            'sortDirection': sortDirection,
+            'search': search,
+          },
+        );
+    return PaginatedResponse.fromJson(response.data, JenisKendaraan.fromJson);
   }
 
   Future<JenisKendaraan> addJenisKendaraan({

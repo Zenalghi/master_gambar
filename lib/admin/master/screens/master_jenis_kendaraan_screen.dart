@@ -63,7 +63,9 @@ class _MasterJenisKendaraanScreenState
             jenisKendaraan: _jenisKendaraanController.text,
           );
       _jenisKendaraanController.clear();
-      ref.invalidate(jenisKendaraanListProvider);
+      ref
+          .read(jenisKendaraanFilterProvider.notifier)
+          .update((state) => Map.from(state));
     } on DioException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -108,11 +110,11 @@ class _MasterJenisKendaraanScreenState
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (value) =>
-                      ref
-                              .read(jenisKendaraanSearchQueryProvider.notifier)
-                              .state =
-                          value,
+                  onChanged: (value) {
+                    ref
+                        .read(jenisKendaraanFilterProvider.notifier)
+                        .update((state) => {...state, 'search': value});
+                  },
                 ),
               ),
               const SizedBox(width: 8),
@@ -121,7 +123,9 @@ class _MasterJenisKendaraanScreenState
                 tooltip: 'Refresh Data',
                 onPressed: () {
                   _resetAndRefresh();
-                  ref.invalidate(jenisKendaraanListProvider);
+                  ref
+                      .read(jenisKendaraanFilterProvider.notifier)
+                      .update((state) => Map.from(state));
                   ref.invalidate(typeEngineListProvider);
                 },
               ),

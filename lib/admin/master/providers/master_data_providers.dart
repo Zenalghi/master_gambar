@@ -2,9 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:master_gambar/admin/master/models/jenis_kendaraan.dart';
-// ignore: unused_import
-import 'package:master_gambar/admin/master/models/type_chassis.dart';
+
 import 'package:master_gambar/admin/master/models/type_engine.dart';
 import 'package:master_gambar/admin/master/models/varian_body.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
@@ -31,10 +29,8 @@ final typeChassisFilterProvider = StateProvider<Map<String, String>>((ref) {
   return {'search': '', 'sortBy': 'id', 'sortDirection': 'asc'};
 });
 
-final jenisKendaraanListProvider = FutureProvider<List<JenisKendaraan>>((ref) {
-  ref.watch(refreshNotifierProvider);
-  ref.watch(masterDataRepositoryProvider);
-  return ref.read(masterDataRepositoryProvider).getJenisKendaraanList();
+final jenisKendaraanFilterProvider = StateProvider<Map<String, String>>((ref) {
+  return {'search': '', 'sortBy': 'id', 'sortDirection': 'asc'};
 });
 
 // Provider untuk Varian Body
@@ -109,7 +105,6 @@ final merkRowsPerPageProvider = StateProvider<int>((ref) => 25);
 final typeChassisRowsPerPageProvider = StateProvider<int>((ref) => 25);
 // Jenis Kendaraan
 final jenisKendaraanRowsPerPageProvider = StateProvider<int>((ref) => 25);
-final jenisKendaraanSearchQueryProvider = StateProvider<String>((ref) => '');
 // Varian Body
 final varianBodyRowsPerPageProvider = StateProvider<int>((ref) => 25);
 final varianBodySearchQueryProvider = StateProvider<String>((ref) => '');
