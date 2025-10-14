@@ -32,7 +32,7 @@ class TypeChassisDataSource extends AsyncDataTableSource {
       return AsyncRowsResponse(
         response.total,
         response.data.map((item) {
-          final dateFormat = DateFormat('yyyy.MM.dd HH:mm');
+          final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
           return DataRow(
             key: ValueKey(item.id),
             cells: [
