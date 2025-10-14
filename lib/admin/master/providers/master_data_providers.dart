@@ -1,10 +1,7 @@
 import 'dart:io';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-
 import 'package:master_gambar/admin/master/models/type_engine.dart';
-import 'package:master_gambar/admin/master/models/varian_body.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/option_item.dart';
@@ -34,10 +31,12 @@ final jenisKendaraanFilterProvider = StateProvider<Map<String, String>>((ref) {
 });
 
 // Provider untuk Varian Body
-final varianBodyListProvider = FutureProvider<List<VarianBody>>((ref) {
-  ref.watch(refreshNotifierProvider);
-  ref.watch(masterDataRepositoryProvider);
-  return ref.read(masterDataRepositoryProvider).getVarianBodyList();
+final varianBodyFilterProvider = StateProvider<Map<String, String>>((ref) {
+  return {
+    'search': '',
+    'sortBy': 'updated_at', // Default sort
+    'sortDirection': 'desc', // Default direction
+  };
 });
 
 // == PROVIDER UNTUK DROPDOWN DINAMIS (OPTIONS) ==
@@ -107,7 +106,6 @@ final typeChassisRowsPerPageProvider = StateProvider<int>((ref) => 25);
 final jenisKendaraanRowsPerPageProvider = StateProvider<int>((ref) => 25);
 // Varian Body
 final varianBodyRowsPerPageProvider = StateProvider<int>((ref) => 25);
-final varianBodySearchQueryProvider = StateProvider<String>((ref) => '');
 
 // --- TAMBAHKAN PROVIDER UNTUK JENIS VARIAN ---
 final jenisVarianListProvider = FutureProvider<List<JenisVarian>>((ref) {

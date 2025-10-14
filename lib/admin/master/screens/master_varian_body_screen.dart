@@ -60,7 +60,9 @@ class _MasterVarianBodyScreenState
             varianBody: _varianBodyController.text,
           );
       _varianBodyController.clear();
-      ref.invalidate(varianBodyListProvider);
+      ref
+          .read(varianBodyFilterProvider.notifier)
+          .update((state) => Map.from(state));
     } on DioException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -108,9 +110,11 @@ class _MasterVarianBodyScreenState
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (value) =>
-                      ref.read(varianBodySearchQueryProvider.notifier).state =
-                          value,
+                  onChanged: (value) {
+                    ref
+                        .read(varianBodyFilterProvider.notifier)
+                        .update((state) => {...state, 'search': value});
+                  },
                 ),
               ),
               const SizedBox(width: 8),
@@ -119,7 +123,9 @@ class _MasterVarianBodyScreenState
                 tooltip: 'Refresh Data',
                 onPressed: () {
                   _resetAndRefresh();
-                  ref.invalidate(varianBodyListProvider);
+                  ref
+                      .read(varianBodyFilterProvider.notifier)
+                      .update((state) => Map.from(state));
                   ref.invalidate(typeEngineListProvider);
                 },
               ),

@@ -212,10 +212,27 @@ class MasterDataRepository {
   }
 
   // --- TAMBAHKAN FUNGSI UNTUK VARIAN BODY ---
-  Future<List<VarianBody>> getVarianBodyList() async {
-    final response = await _ref.read(apiClientProvider).dio.get('/varian-body');
-    final List<dynamic> data = response.data;
-    return data.map((item) => VarianBody.fromJson(item)).toList();
+  Future<PaginatedResponse<VarianBody>> getVarianBodyListPaginated({
+    int page = 1,
+    int perPage = 25,
+    String sortBy = 'updated_at',
+    String sortDirection = 'desc',
+    String search = '',
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          '/varian-body', // The endpoint remains the same
+          queryParameters: {
+            'page': page,
+            'perPage': perPage,
+            'sortBy': sortBy,
+            'sortDirection': sortDirection,
+            'search': search,
+          },
+        );
+    return PaginatedResponse.fromJson(response.data, VarianBody.fromJson);
   }
 
   Future<VarianBody> addVarianBody({
