@@ -18,7 +18,7 @@ final transaksiDataSourceProvider =
 class TransaksiDataSource extends AsyncDataTableSource {
   final Ref _ref;
   final Function(Transaksi trx) onEdit;
-  final DateFormat dateFormat = DateFormat('yyyy.MM.dd HH:mm');
+  final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
   TransaksiDataSource(this._ref, {required this.onEdit}) {
     // Dengarkan perubahan pada filter, lalu refresh tabel

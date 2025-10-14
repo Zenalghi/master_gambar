@@ -141,7 +141,7 @@ class _CustomerDataSource extends DataTableSource {
   DataRow? getRow(int index) {
     if (index >= customers.length) return null;
     final customer = customers[index];
-    final dateFormat = DateFormat('yyyy.MM.dd HH:mm');
+    final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
     return DataRow(
       cells: [
         DataCell(SelectableText(customer.namaPt)),

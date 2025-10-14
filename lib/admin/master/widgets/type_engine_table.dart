@@ -105,7 +105,7 @@ class _TypeEngineDataSource extends DataTableSource {
   DataRow? getRow(int index) {
     final item = data[index];
     // Buat formatter tanggal
-    final dateFormat = DateFormat('yyyy.MM.dd HH:mm');
+    final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
     return DataRow(
       cells: [
