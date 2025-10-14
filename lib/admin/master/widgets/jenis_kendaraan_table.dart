@@ -56,8 +56,8 @@ class _JenisKendaraanTableState extends ConsumerState<JenisKendaraanTable> {
       final Map<int, String> columnMapping = {
         0: 'id',
         1: 'jenis_kendaraan',
-        2: 'merk',
-        3: 'type_chassis',
+        2: 'type_chassis',
+        3: 'merk',
         4: 'created_at',
         5: 'updated_at',
       };
@@ -74,16 +74,16 @@ class _JenisKendaraanTableState extends ConsumerState<JenisKendaraanTable> {
       DataColumn2(label: const Text('ID'), fixedWidth: 120, onSort: _onSort),
       DataColumn2(
         label: const Text('Jenis Kendaraan'),
+        size: ColumnSize.S,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Type Chassis (Induk)'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Merk (Induk)'),
-        size: ColumnSize.M,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Type Chassis (Induk)'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),

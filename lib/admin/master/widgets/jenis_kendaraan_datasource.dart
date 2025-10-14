@@ -40,12 +40,12 @@ class JenisKendaraanDataSource extends AsyncDataTableSource {
               DataCell(SelectableText(item.name)),
               DataCell(
                 SelectableText(
-                  '${item.typeChassis.merk.name} (${item.typeChassis.merk.id})',
+                  '${item.typeChassis.name} (${item.typeChassis.id})',
                 ),
               ),
               DataCell(
                 SelectableText(
-                  '${item.typeChassis.name} (${item.typeChassis.id})',
+                  '${item.typeChassis.merk.name} (${item.typeChassis.merk.id})',
                 ),
               ),
               DataCell(

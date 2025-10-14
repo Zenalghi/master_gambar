@@ -64,22 +64,22 @@ class _TypeChassisTableState extends ConsumerState<TypeChassisTable> {
       DataColumn2(label: const Text('ID'), fixedWidth: 100, onSort: _onSort),
       DataColumn2(
         label: const Text('Type Chassis'),
-        size: ColumnSize.L,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Merk (Induk)'),
-        size: ColumnSize.L,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Dibuat Pada'),
-        size: ColumnSize.M,
+        size: ColumnSize.S,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Diupdate Pada'),
-        size: ColumnSize.M,
+        size: ColumnSize.S,
         onSort: _onSort,
       ),
       const DataColumn2(label: Text('Options'), fixedWidth: 120),

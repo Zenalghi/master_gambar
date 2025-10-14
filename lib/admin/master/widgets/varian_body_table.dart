@@ -12,7 +12,7 @@ class VarianBodyTable extends ConsumerStatefulWidget {
 }
 
 class _VarianBodyTableState extends ConsumerState<VarianBodyTable> {
-  int _sortColumnIndex = 4; // Default: updated_at
+  int _sortColumnIndex = 6; // Default: updated_at
   bool _sortAscending = false; // Default: desc
 
   @override
