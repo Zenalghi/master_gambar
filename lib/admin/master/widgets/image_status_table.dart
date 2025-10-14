@@ -107,6 +107,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
     final rowsPerPage = ref.watch(merkRowsPerPageProvider);
 
     return AsyncPaginatedDataTable2(
+      loading: const Center(child: CircularProgressIndicator()),
       sortColumnIndex: _sortColumnIndex,
       sortAscending: _sortAscending,
       rowsPerPage: rowsPerPage,

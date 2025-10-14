@@ -35,6 +35,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
     final rowsPerPage = ref.watch(rowsPerPageProvider);
 
     return AsyncPaginatedDataTable2(
+      loading: const Center(child: CircularProgressIndicator()),
       columnSpacing: 12,
       horizontalMargin: 12,
       minWidth: 1600,
