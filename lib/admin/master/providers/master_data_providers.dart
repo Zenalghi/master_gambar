@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:master_gambar/admin/master/models/jenis_kendaraan.dart';
-import 'package:master_gambar/admin/master/models/merk.dart';
 import 'package:master_gambar/admin/master/models/type_chassis.dart';
 import 'package:master_gambar/admin/master/models/type_engine.dart';
 import 'package:master_gambar/admin/master/models/varian_body.dart';
@@ -23,10 +22,8 @@ final typeEngineListProvider = FutureProvider<List<TypeEngine>>((ref) {
   return ref.read(masterDataRepositoryProvider).getTypeEngines();
 });
 
-final merkListProvider = FutureProvider<List<Merk>>((ref) {
-  ref.watch(refreshNotifierProvider);
-  ref.watch(masterDataRepositoryProvider);
-  return ref.read(masterDataRepositoryProvider).getMerks();
+final merkFilterProvider = StateProvider<Map<String, String>>((ref) {
+  return {'search': '', 'sortBy': 'id', 'sortDirection': 'asc'};
 });
 
 final typeChassisListProvider = FutureProvider<List<TypeChassis>>((ref) {
@@ -109,7 +106,6 @@ final jenisKendaraanOptionsFamilyProvider =
 final typeEngineSearchQueryProvider = StateProvider<String>((ref) => '');
 // Merk
 final merkRowsPerPageProvider = StateProvider<int>((ref) => 25);
-final merkSearchQueryProvider = StateProvider<String>((ref) => '');
 // Type Chassis
 final typeChassisRowsPerPageProvider = StateProvider<int>((ref) => 25);
 final typeChassisSearchQueryProvider = StateProvider<String>((ref) => '');

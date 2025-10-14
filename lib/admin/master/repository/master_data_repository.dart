@@ -57,10 +57,27 @@ class MasterDataRepository {
     await _ref.read(apiClientProvider).dio.delete('/type-engines/$id');
   }
 
-  Future<List<Merk>> getMerks() async {
-    final response = await _ref.read(apiClientProvider).dio.get('/merks');
-    final List<dynamic> data = response.data;
-    return data.map((item) => Merk.fromJson(item)).toList();
+  Future<PaginatedResponse<Merk>> getMerksPaginated({
+    int page = 1,
+    int perPage = 25,
+    String sortBy = 'id',
+    String sortDirection = 'asc',
+    String search = '',
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          '/merks', // Endpoint tidak berubah
+          queryParameters: {
+            'page': page,
+            'perPage': perPage,
+            'sortBy': sortBy,
+            'sortDirection': sortDirection,
+            'search': search,
+          },
+        );
+    return PaginatedResponse.fromJson(response.data, Merk.fromJson);
   }
 
   Future<Merk> addMerk({

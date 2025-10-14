@@ -54,7 +54,7 @@ class _MasterMerkScreenState extends ConsumerState<MasterMerkScreen> {
             merk: _merkController.text,
           );
       _merkController.clear();
-      ref.invalidate(merkListProvider);
+      ref.read(merkFilterProvider.notifier).update((state) => Map.from(state));
     } on DioException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -82,31 +82,34 @@ class _MasterMerkScreenState extends ConsumerState<MasterMerkScreen> {
               ),
               const Spacer(),
 
-              // --- TAMBAHKAN KOLOM SEARCH DI SINI ---
               SizedBox(
                 width: 250,
                 child: TextField(
                   decoration: InputDecoration(
-                    labelText: 'Search...',
+                    labelText: 'Search Merk...',
                     prefixIcon: const Icon(Icons.search),
                     isDense: true,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (value) =>
-                      ref.read(merkSearchQueryProvider.notifier).state = value,
+                  onChanged: (value) {
+                    ref
+                        .read(merkFilterProvider.notifier)
+                        .update((state) => {...state, 'search': value});
+                  },
                 ),
               ),
 
-              // ------------------------------------
               const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data',
                 onPressed: () {
                   _resetAndRefresh();
-                  ref.invalidate(merkListProvider);
+                  ref
+                      .read(merkFilterProvider.notifier)
+                      .update((state) => Map.from(state));
                   ref.invalidate(typeEngineListProvider);
                 },
               ),
