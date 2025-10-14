@@ -22,8 +22,7 @@ class OptionsRepository {
 
   Future<List<OptionItem>> getCustomers() =>
       _fetchOptions(ApiEndpoints.customers);
-  Future<List<OptionItem>> getUsers() =>
-      _fetchOptions(ApiEndpoints.users);
+  Future<List<OptionItem>> getUsers() => _fetchOptions(ApiEndpoints.users);
   Future<List<OptionItem>> getTypeEngines() =>
       _fetchOptions(ApiEndpoints.typeEngines);
   Future<List<OptionItem>> getMerks(String engineId) =>
@@ -48,21 +47,33 @@ class TransaksiRepository {
     String sortBy = 'updated_at',
     String sortDirection = 'desc',
     String search = '',
+    Map<String, String?>?
+    advancedFilters, // <-- Parameter baru untuk filter lanjutan
   }) async {
+    // Mulai dengan parameter dasar
+    final Map<String, dynamic> queryParameters = {
+      'page': page,
+      'perPage': perPage,
+      'sortBy': sortBy,
+      'sortDirection': sortDirection,
+      'search': search,
+    };
+
+    // Gabungkan dengan filter lanjutan jika ada
+    if (advancedFilters != null) {
+      queryParameters.addAll(advancedFilters);
+      queryParameters.removeWhere((key, value) => value == null);
+    }
+
     final response = await _ref
         .read(apiClientProvider)
         .dio
         .get(
           ApiEndpoints.transaksi,
-          queryParameters: {
-            'page': page,
-            'perPage': perPage,
-            'sortBy': sortBy,
-            'sortDirection': sortDirection,
-            'search': search,
-          },
+          queryParameters:
+              queryParameters, // <-- Gunakan map yang sudah digabung
         );
-    // Gunakan model PaginatedResponse untuk mem-parsing data
+
     return PaginatedResponse.fromJson(response.data, Transaksi.fromJson);
   }
 

@@ -70,7 +70,7 @@ class _AdvancedFilterPanelState extends ConsumerState<AdvancedFilterPanel> {
           child: Column(
             children: [
               Wrap(
-                spacing: 16.0,
+                // spacing: 16.0,
                 runSpacing: 16.0,
                 children: [
                   _buildFilterTextField(
@@ -107,12 +107,13 @@ class _AdvancedFilterPanelState extends ConsumerState<AdvancedFilterPanel> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  ElevatedButton(
+                  ElevatedButton.icon(
                     onPressed: _clearFilters,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey.shade700,
+                      backgroundColor: const Color.fromARGB(255, 255, 0, 0),
                     ),
-                    child: const Text('Bersihkan'),
+                    icon: const Icon(Icons.clear),
+                    label: const Text('Bersihkan'),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton.icon(

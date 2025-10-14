@@ -39,9 +39,10 @@ class TransaksiDataSource extends AsyncDataTableSource {
           .getTransaksiHistory(
             perPage: count,
             page: (startIndex ~/ count) + 1,
-            search: filters['search']!,
-            sortBy: filters['sortBy']!,
-            sortDirection: filters['sortDirection']!,
+            search: filters['search'] as String,
+            sortBy: filters['sortBy'] as String,
+            sortDirection: filters['sortDirection'] as String,
+            advancedFilters: filters.cast<String, String?>(),
           );
 
       return AsyncRowsResponse(
