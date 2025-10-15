@@ -63,7 +63,7 @@ class _JenisVarianTableState extends ConsumerState<JenisVarianTable> {
 
         return PaginatedDataTable2(
           rowsPerPage: rowsPerPage,
-          availableRowsPerPage: const [12, 25, 50],
+          availableRowsPerPage: const [13, 25, 50],
           onRowsPerPageChanged: (value) =>
               ref.read(jenisVarianRowsPerPageProvider.notifier).state = value!,
           sortColumnIndex: _sortColumnIndex,
