@@ -49,7 +49,7 @@ class _EditGambarKelistrikanDialogState
               deskripsi: _deskripsiController.text,
             );
 
-        ref.invalidate(gambarKelistrikanListProvider);
+        ref.invalidate(gambarKelistrikanFilterProvider);
         if (mounted) Navigator.of(context).pop();
 
         ScaffoldMessenger.of(context).showSnackBar(
