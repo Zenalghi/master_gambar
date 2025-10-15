@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
+import '../widgets/image_status_datasource.dart';
 import '../widgets/image_status_table.dart';
 
 class ImageStatusScreen extends ConsumerWidget {
@@ -40,14 +41,14 @@ class ImageStatusScreen extends ConsumerWidget {
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Muat Ulang Laporan',
                 onPressed: () {
-                  // Invalidate provider akan memaksa data source untuk refresh
-                  ref.invalidate(imageStatusSourceProvider);
+                  // Panggil method refreshDatasource() secara langsung pada provider
+                  ref.read(imageStatusSourceProvider).refreshDatasource();
                 },
               ),
             ],
           ),
           const SizedBox(height: 16),
-          const Expanded(child: ImageStatusTable()),
+          Expanded(child: ImageStatusTable()),
         ],
       ),
     );

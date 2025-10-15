@@ -3,94 +3,10 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:master_gambar/admin/master/models/image_status.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
-import 'package:master_gambar/data/models/paginated_response.dart';
-import 'package:intl/intl.dart';
+import 'image_status_datasource.dart';
 
-// Provider untuk data source tabel
-final imageStatusSourceProvider = Provider<ImageStatusDataSource>(
-  (ref) => ImageStatusDataSource(ref),
-);
-
-// Data source untuk AsyncPaginatedDataTable2
-class ImageStatusDataSource extends AsyncDataTableSource {
-  final Ref _ref;
-  PaginatedResponse<ImageStatus>? _lastData;
-
-  ImageStatusDataSource(this._ref) {
-    _ref.listen(imageStatusFilterProvider, (_, __) => refreshDatasource());
-  }
-
-  @override
-  Future<AsyncRowsResponse> getRows(int startIndex, int count) async {
-    final filters = _ref.read(imageStatusFilterProvider);
-
-    final response = await _ref
-        .read(masterDataRepositoryProvider)
-        .getImageStatus(
-          perPage: count,
-          page: (startIndex ~/ count) + 1,
-          search: filters['search']!,
-          sortBy: filters['sortBy']!,
-          sortDirection: filters['sortDirection']!,
-        );
-
-    _lastData = response;
-
-    return AsyncRowsResponse(
-      response.total,
-      response.data.map((item) {
-        final vb = item.varianBody;
-        var dateFormat = DateFormat('dd.MM.yyyy HH:mm');
-        return DataRow(
-          key: ValueKey(vb.id),
-          cells: [
-            DataCell(Text(vb.jenisKendaraan.typeChassis.merk.typeEngine.name)),
-            DataCell(Text(vb.jenisKendaraan.typeChassis.merk.name)),
-            DataCell(Text(vb.jenisKendaraan.typeChassis.name)),
-            DataCell(Text(vb.jenisKendaraan.name)),
-            DataCell(Text(vb.name)),
-            DataCell(Center(child: _buildStatusIcon(item.gambarUtama != null))),
-            DataCell(
-              Text(
-                item.gambarUtama != null
-                    ? dateFormat.format(item.gambarUtama!.updatedAt.toLocal())
-                    : 'N/A',
-              ),
-            ),
-            DataCell(
-              Center(
-                child: _buildStatusIcon(item.latestGambarOptional != null),
-              ),
-            ),
-            DataCell(
-              Text(
-                item.latestGambarOptional != null
-                    ? dateFormat.format(
-                        item.latestGambarOptional!.updatedAt.toLocal(),
-                      )
-                    : 'N/A',
-              ),
-            ),
-          ],
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildStatusIcon(bool hasImage) {
-    return Icon(
-      hasImage ? Icons.check_circle : Icons.cancel,
-      color: hasImage ? Colors.green : Colors.red,
-    );
-  }
-}
-
-// Widget Tabel Utama
 class ImageStatusTable extends ConsumerStatefulWidget {
-  // Ubah menjadi stateful
   const ImageStatusTable({super.key});
 
   @override
@@ -98,49 +14,63 @@ class ImageStatusTable extends ConsumerStatefulWidget {
 }
 
 class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
-  int _sortColumnIndex = 6;
-  bool _sortAscending = false;
+  // State lokal untuk mengelola tampilan panah sort di UI
+  int _sortColumnIndex = 6; // Default: Updated At Gbr. Utama
+  bool _sortAscending = false; // Default: Terbaru di atas (desc)
 
   @override
   Widget build(BuildContext context) {
     final source = ref.watch(imageStatusSourceProvider);
-    final rowsPerPage = ref.watch(merkRowsPerPageProvider);
+    final rowsPerPage = ref.watch(imageStatusRowsPerPageProvider);
 
     return AsyncPaginatedDataTable2(
       loading: const Center(child: CircularProgressIndicator()),
+      rowsPerPage: rowsPerPage,
+      availableRowsPerPage: const [25, 50, 100],
+      onRowsPerPageChanged: (value) {
+        if (value != null) {
+          ref.read(imageStatusRowsPerPageProvider.notifier).state = value;
+        }
+      },
       sortColumnIndex: _sortColumnIndex,
       sortAscending: _sortAscending,
-      rowsPerPage: rowsPerPage,
       columns: _createColumns(),
       source: source,
+      empty: const Center(child: Text('Tidak ada data ditemukan')),
     );
   }
 
-  // Method baru untuk handle sort
   void _onSort(int columnIndex, bool ascending) {
+    // Mapping antara index kolom di UI dengan nama kolom di backend
     final Map<int, String> columnMapping = {
-      0: 'type_engine', 1: 'merk', 2: 'type_chassis',
-      3: 'jenis_kendaraan', 4: 'varian_body',
-      // Kita tidak bisa sort berdasarkan status, tapi bisa berdasarkan tanggal
-      6: 'updated_at', // Asumsi untuk Gbr. Utama
-      8: 'updated_at', // Asumsi untuk Gbr. Optional
+      0: 'type_engine',
+      1: 'merk',
+      2: 'type_chassis',
+      3: 'jenis_kendaraan',
+      4: 'varian_body',
+      6: 'gambar_utama_updated_at',
+      8: 'gambar_optional_updated_at',
     };
 
+    // 1. Update state lokal untuk mengubah tampilan panah di UI
     setState(() {
       _sortColumnIndex = columnIndex;
       _sortAscending = ascending;
+    });
 
-      ref.read(imageStatusFilterProvider.notifier).update((state) {
-        return {
-          ...state,
-          'sortBy': columnMapping[columnIndex] ?? 'updated_at',
-          'sortDirection': ascending ? 'asc' : 'desc',
-        };
-      });
+    // 2. Update provider filter untuk mengirim request baru ke server
+    ref.read(imageStatusFilterProvider.notifier).update((state) {
+      return {
+        ...state,
+        'sortBy':
+            columnMapping[columnIndex] ??
+            'gambar_utama_updated_at', // Default sort baru
+        'sortDirection': ascending ? 'asc' : 'desc',
+      };
     });
   }
 
-  // Buat kolom baru
+  // Method untuk membuat header kolom
   List<DataColumn2> _createColumns() {
     return [
       DataColumn2(

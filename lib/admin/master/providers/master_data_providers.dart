@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import
+
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -7,8 +9,6 @@ import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/data/providers/api_endpoints.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
-import '../models/gambar_kelistrikan.dart';
-// ignore: unused_import
 import '../models/gambar_optional.dart';
 import '../models/jenis_varian.dart';
 
@@ -107,6 +107,7 @@ final typeChassisRowsPerPageProvider = StateProvider<int>((ref) => 25);
 final jenisKendaraanRowsPerPageProvider = StateProvider<int>((ref) => 25);
 // Varian Body
 final varianBodyRowsPerPageProvider = StateProvider<int>((ref) => 25);
+final imageStatusRowsPerPageProvider = StateProvider<int>((ref) => 25);
 
 // --- TAMBAHKAN PROVIDER UNTUK JENIS VARIAN ---
 final jenisVarianListProvider = FutureProvider<List<JenisVarian>>((ref) {
