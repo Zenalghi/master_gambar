@@ -46,7 +46,7 @@ class _EditGambarOptionalDialogState
               deskripsi: _deskripsiController.text,
             );
 
-        ref.invalidate(gambarOptionalListProvider);
+        ref.invalidate(gambarOptionalFilterProvider);
         if (mounted) Navigator.of(context).pop();
 
         ScaffoldMessenger.of(context).showSnackBar(

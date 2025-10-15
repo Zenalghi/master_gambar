@@ -40,7 +40,7 @@ class _MasterJenisKendaraanScreenState
     ref.invalidate(typeChassisOptionsFamilyProvider);
     ref.invalidate(jenisKendaraanOptionsFamilyProvider);
     ref.invalidate(varianBodyOptionsFamilyProvider);
-    ref.invalidate(gambarOptionalListProvider);
+    ref.invalidate(gambarOptionalFilterProvider);
     ref.read(refreshNotifierProvider.notifier).refresh();
   }
 
