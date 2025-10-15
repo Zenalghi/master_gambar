@@ -1,313 +1,117 @@
+// File: lib/admin/master/widgets/gambar_optional_table.dart
+
+import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import 'package:data_table_2/data_table_2.dart';
-import 'package:dio/dio.dart';
-import 'package:master_gambar/admin/master/models/gambar_optional.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
-import 'edit_gambar_optional_dialog.dart';
+import 'gambar_optional_datasource.dart';
 
-class GambarOptionalDataSource extends DataTableSource {
-  final BuildContext context;
-  final WidgetRef ref;
-  final List<GambarOptional> data;
-  final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
-
-  GambarOptionalDataSource(this.context, this.ref, this.data);
+class GambarOptionalTable extends ConsumerWidget {
+  const GambarOptionalTable({super.key});
 
   @override
-  DataRow? getRow(int index) {
-    if (index >= data.length) return null;
-    final item = data[index];
-    // Gunakan ?. dan ?? untuk keamanan dari nilai null
-    final varianBody = item.varianBody;
-    final jenisKendaraan = varianBody?.jenisKendaraan;
-    final typeChassis = jenisKendaraan?.typeChassis;
-    final merk = typeChassis?.merk;
-    final typeEngine = merk?.typeEngine;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dataSource = GambarOptionalDataSource(ref, context);
+    final rowsPerPage = ref.watch(gambarOptionalRowsPerPageProvider);
+    final sortState = ref.watch(gambarOptionalFilterProvider);
+    final sortColumnIndex = _getColumnIndex(sortState['sortBy']);
+    final sortAscending = sortState['sortDirection'] == 'asc';
 
-    return DataRow2(
-      key: ValueKey(item.id),
-      cells: [
-        DataCell(Text(typeEngine?.name ?? 'N/A')),
-        DataCell(Text(merk?.name ?? 'N/A')),
-        DataCell(Text(typeChassis?.name ?? 'N/A')),
-        DataCell(Text(jenisKendaraan?.name ?? 'N/A')),
-        DataCell(Text(varianBody?.name ?? 'N/A')),
-        DataCell(Text(item.deskripsi)),
-        DataCell(Text(dateFormat.format(item.createdAt.toLocal()))),
-        DataCell(Text(dateFormat.format(item.updatedAt.toLocal()))),
-        DataCell(
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: Icon(Icons.edit, color: Colors.orange.shade700),
-                tooltip: 'Edit Deskripsi',
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (_) =>
-                        EditGambarOptionalDialog(gambarOptional: item),
-                  );
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.delete, color: Colors.red.shade700),
-                tooltip: 'Hapus',
-                onPressed: () => _showDeleteConfirmation(item),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return AsyncPaginatedDataTable2(
+      rowsPerPage: rowsPerPage,
+      availableRowsPerPage: const [25, 50, 100],
+      onRowsPerPageChanged: (value) {
+        if (value != null) {
+          ref.read(gambarOptionalRowsPerPageProvider.notifier).state = value;
+        }
+      },
+      sortColumnIndex: sortColumnIndex,
+      sortAscending: sortAscending,
+      columns: _createColumns(ref),
+      source: dataSource,
+      loading: const Center(child: CircularProgressIndicator()),
+      empty: const Center(child: Text('Tidak ada data ditemukan')),
     );
   }
 
-  void _showDeleteConfirmation(GambarOptional item) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Konfirmasi Hapus'),
-        content: Text('Anda yakin ingin menghapus "${item.deskripsi}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Ya, Hapus'),
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              _deleteItem(item.id);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _deleteItem(int id) async {
-    try {
-      await ref.read(masterDataRepositoryProvider).deleteGambarOptional(id: id);
-      ref.invalidate(gambarOptionalListProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Data berhasil dihapus'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } on DioException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.response?.data['message']}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+  int _getColumnIndex(String? sortBy) {
+    switch (sortBy) {
+      case 'type_engine':
+        return 0;
+      case 'merk':
+        return 1;
+      case 'type_chassis':
+        return 2;
+      case 'jenis_kendaraan':
+        return 3;
+      case 'varian_body':
+        return 4;
+      case 'deskripsi':
+        return 5;
+      case 'created_at':
+        return 6;
+      case 'updated_at':
+        return 7;
+      default:
+        return 7;
     }
   }
 
-  @override
-  bool get isRowCountApproximate => false;
-  @override
-  int get rowCount => data.length;
-  @override
-  int get selectedRowCount => 0;
-}
-
-class GambarOptionalTable extends ConsumerStatefulWidget {
-  const GambarOptionalTable({super.key});
-  @override
-  ConsumerState<GambarOptionalTable> createState() =>
-      _GambarOptionalTableState();
-}
-
-class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
-  int _sortColumnIndex = 7; // Default sort: Updated At
-  bool _sortAscending = false; // Default: Descending (terbaru di atas)
-
-  @override
-  Widget build(BuildContext context) {
-    final asyncData = ref.watch(gambarOptionalListProvider);
-    final searchQuery = ref.watch(gambarOptionalSearchQueryProvider);
-    final rowsPerPage = ref.watch(gambarOptionalRowsPerPageProvider);
-
-    return asyncData.when(
-      data: (data) {
-        final independentData = data
-            .where((item) => item.tipe == 'independen')
-            .toList();
-
-        // --- PERBAIKAN PADA LOGIKA FILTER ---
-        final filteredData = independentData.where((item) {
-          final query = searchQuery.toLowerCase();
-          if (query.isEmpty) return true;
-
-          // Gunakan ?. dan ?? untuk mengakses data secara aman
-          return (item
-                          .varianBody
-                          ?.jenisKendaraan
-                          .typeChassis
-                          .merk
-                          .typeEngine
-                          .name ??
-                      '')
-                  .toLowerCase()
-                  .contains(query) ||
-              (item.varianBody?.jenisKendaraan.typeChassis.merk.name ?? '')
-                  .toLowerCase()
-                  .contains(query) ||
-              (item.varianBody?.jenisKendaraan.typeChassis.name ?? '')
-                  .toLowerCase()
-                  .contains(query) ||
-              (item.varianBody?.jenisKendaraan.name ?? '')
-                  .toLowerCase()
-                  .contains(query) ||
-              (item.varianBody?.name ?? '').toLowerCase().contains(query) ||
-              item.deskripsi.toLowerCase().contains(query);
-        }).toList();
-
-        // --- PERBAIKAN PADA LOGIKA SORT ---
-        final sortedData = List<GambarOptional>.from(filteredData)
-          ..sort((a, b) {
-            int result = 0;
-            // Gunakan ?. dan ?? untuk perbandingan yang aman
-            switch (_sortColumnIndex) {
-              case 0:
-                result =
-                    (a
-                                .varianBody
-                                ?.jenisKendaraan
-                                .typeChassis
-                                .merk
-                                .typeEngine
-                                .name ??
-                            '')
-                        .compareTo(
-                          b
-                                  .varianBody
-                                  ?.jenisKendaraan
-                                  .typeChassis
-                                  .merk
-                                  .typeEngine
-                                  .name ??
-                              '',
-                        );
-                break;
-              case 1:
-                result =
-                    (a.varianBody?.jenisKendaraan.typeChassis.merk.name ?? '')
-                        .compareTo(
-                          b.varianBody?.jenisKendaraan.typeChassis.merk.name ??
-                              '',
-                        );
-                break;
-              case 2:
-                result = (a.varianBody?.jenisKendaraan.typeChassis.name ?? '')
-                    .compareTo(
-                      b.varianBody?.jenisKendaraan.typeChassis.name ?? '',
-                    );
-                break;
-              case 3:
-                result = (a.varianBody?.jenisKendaraan.name ?? '').compareTo(
-                  b.varianBody?.jenisKendaraan.name ?? '',
-                );
-                break;
-              case 4:
-                result = (a.varianBody?.name ?? '').compareTo(
-                  b.varianBody?.name ?? '',
-                );
-                break;
-              case 5:
-                result = a.deskripsi.compareTo(b.deskripsi);
-                break;
-              case 6:
-                result = a.createdAt.compareTo(b.createdAt);
-                break;
-              case 7:
-                result = a.updatedAt.compareTo(b.updatedAt);
-                break;
-            }
-            return _sortAscending ? result : -result;
-          });
-
-        final dataSource = GambarOptionalDataSource(context, ref, sortedData);
-
-        return PaginatedDataTable2(
-          columnSpacing: 12,
-          horizontalMargin: 12,
-          minWidth: 1600,
-          sortColumnIndex: _sortColumnIndex,
-          sortAscending: _sortAscending,
-          rowsPerPage: rowsPerPage,
-          availableRowsPerPage: const [15, 25, 50],
-          onRowsPerPageChanged: (value) {
-            if (value != null) {
-              ref.read(gambarOptionalRowsPerPageProvider.notifier).state =
-                  value;
-            }
-          },
-          columns: _createColumns(),
-          source: dataSource,
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text('Gagal memuat data: $err')),
-    );
-  }
-
-  void _onSort(int columnIndex, bool ascending) {
-    setState(() {
-      _sortColumnIndex = columnIndex;
-      _sortAscending = ascending;
+  void _onSort(WidgetRef ref, String columnName) {
+    ref.read(gambarOptionalFilterProvider.notifier).update((state) {
+      final currentSortBy = state['sortBy'];
+      final currentDirection = state['sortDirection'];
+      final newDirection =
+          (currentSortBy == columnName && currentDirection == 'asc')
+          ? 'desc'
+          : 'asc';
+      return {...state, 'sortBy': columnName, 'sortDirection': newDirection};
     });
   }
 
-  List<DataColumn2> _createColumns() {
+  List<DataColumn2> _createColumns(WidgetRef ref) {
     return [
       DataColumn2(
-        label: const Text('Type Engine'),
-        size: ColumnSize.M,
-        onSort: _onSort,
+        label: const Text('Type\nEngine'),
+        fixedWidth: 100,
+        onSort: (i, a) => _onSort(ref, 'type_engine'),
       ),
       DataColumn2(
         label: const Text('Merk'),
-        size: ColumnSize.M,
-        onSort: _onSort,
+        fixedWidth: 175,
+        onSort: (i, a) => _onSort(ref, 'merk'),
       ),
       DataColumn2(
         label: const Text('Type Chassis'),
-        size: ColumnSize.L,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Jenis Kendaraan'),
-        size: ColumnSize.L,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Varian Body'),
         size: ColumnSize.M,
-        onSort: _onSort,
+        onSort: (i, a) => _onSort(ref, 'type_chassis'),
+      ),
+      DataColumn2(
+        label: const Text('Jenis\nKendaraan'),
+        size: ColumnSize.S,
+        onSort: (i, a) => _onSort(ref, 'jenis_kendaraan'),
+      ),
+      DataColumn2(
+        label: const Text('Varian\nBody'),
+        size: ColumnSize.S,
+        onSort: (i, a) => _onSort(ref, 'varian_body'),
       ),
       DataColumn2(
         label: const Text('Deskripsi'),
-        size: ColumnSize.L,
-        onSort: _onSort,
+        size: ColumnSize.M,
+        onSort: (i, a) => _onSort(ref, 'deskripsi'),
       ),
       DataColumn2(
         label: const Text('Created At'),
-        size: ColumnSize.M,
-        onSort: _onSort,
+        size: ColumnSize.S,
+        onSort: (i, a) => _onSort(ref, 'created_at'),
       ),
       DataColumn2(
         label: const Text('Updated At'),
-        size: ColumnSize.M,
-        onSort: _onSort,
+        size: ColumnSize.S,
+        onSort: (i, a) => _onSort(ref, 'updated_at'),
       ),
-      const DataColumn2(label: Text('Option'), size: ColumnSize.S),
+      const DataColumn2(label: Text('Options'), fixedWidth: 120),
     ];
   }
 }

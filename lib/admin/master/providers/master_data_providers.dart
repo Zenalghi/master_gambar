@@ -8,6 +8,7 @@ import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/data/providers/api_endpoints.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../models/gambar_kelistrikan.dart';
+// ignore: unused_import
 import '../models/gambar_optional.dart';
 import '../models/jenis_varian.dart';
 
@@ -149,13 +150,11 @@ final varianBodyOptionsFamilyProvider =
     });
 
 // --- TAMBAHKAN PROVIDER UNTUK GAMBAR OPTIONAL ---
-final gambarOptionalListProvider = FutureProvider<List<GambarOptional>>((ref) {
-  ref.watch(masterDataRepositoryProvider);
-  return ref.read(masterDataRepositoryProvider).getGambarOptionalList();
+final gambarOptionalFilterProvider = StateProvider<Map<String, String>>((ref) {
+  return {'search': '', 'sortBy': 'updated_at', 'sortDirection': 'desc'};
 });
 
 final gambarOptionalRowsPerPageProvider = StateProvider<int>((ref) => 25);
-final gambarOptionalSearchQueryProvider = StateProvider<String>((ref) => '');
 
 // --- TAMBAHKAN PROVIDER UNTUK GAMBAR KELISTRIKAN ---
 final gambarKelistrikanListProvider = FutureProvider<List<GambarKelistrikan>>((

@@ -340,13 +340,27 @@ class MasterDataRepository {
   }
 
   // --- TAMBAHKAN FUNGSI UNTUK GAMBAR OPTIONAL ---
-  Future<List<GambarOptional>> getGambarOptionalList() async {
+  Future<PaginatedResponse<GambarOptional>> getGambarOptionalListPaginated({
+    int page = 1,
+    int perPage = 25,
+    String sortBy = 'updated_at',
+    String sortDirection = 'desc',
+    String search = '',
+  }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .get('/admin/gambar-optional');
-    final List<dynamic> data = response.data;
-    return data.map((item) => GambarOptional.fromJson(item)).toList();
+        .get(
+          '/admin/gambar-optional',
+          queryParameters: {
+            'page': page,
+            'perPage': perPage,
+            'sortBy': sortBy,
+            'sortDirection': sortDirection,
+            'search': search,
+          },
+        );
+    return PaginatedResponse.fromJson(response.data, GambarOptional.fromJson);
   }
 
   Future<void> addGambarOptional({

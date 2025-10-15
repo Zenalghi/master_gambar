@@ -27,7 +27,7 @@ class _MasterGambarOptionalScreenState
     ref.invalidate(typeChassisOptionsFamilyProvider);
     ref.invalidate(jenisKendaraanOptionsFamilyProvider);
     ref.invalidate(varianBodyOptionsFamilyProvider);
-    ref.invalidate(gambarOptionalListProvider);
+    ref.invalidate(gambarOptionalFilterProvider);
     ref.read(refreshNotifierProvider.notifier).refresh();
   }
 
@@ -44,7 +44,7 @@ class _MasterGambarOptionalScreenState
           );
 
       // Refresh tabel data (jika sudah ada) dan provider dropdown
-      ref.invalidate(gambarOptionalListProvider);
+      ref.invalidate(gambarOptionalFilterProvider);
       ref.invalidate(typeEngineListProvider); // Untuk mereset form
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -94,11 +94,11 @@ class _MasterGambarOptionalScreenState
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (value) =>
-                      ref
-                              .read(gambarOptionalSearchQueryProvider.notifier)
-                              .state =
-                          value,
+                  onChanged: (value) {
+                    ref
+                        .read(gambarOptionalFilterProvider.notifier)
+                        .update((state) => {...state, 'search': value});
+                  },
                 ),
               ),
               const SizedBox(width: 8),
