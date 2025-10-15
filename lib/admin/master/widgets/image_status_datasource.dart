@@ -7,25 +7,17 @@ import 'package:intl/intl.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 
-// Provider untuk data source tabel
-final imageStatusSourceProvider = Provider.autoDispose<ImageStatusDataSource>(
-  (ref) => ImageStatusDataSource(ref),
-);
-
-// Data source untuk AsyncPaginatedDataTable2
 class ImageStatusDataSource extends AsyncDataTableSource {
-  final Ref _ref;
+  final WidgetRef _ref;
   final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
   ImageStatusDataSource(this._ref) {
-    // Dengarkan perubahan pada filter, lalu refresh tabel
     _ref.listen(imageStatusFilterProvider, (_, __) => refreshDatasource());
   }
 
   @override
   Future<AsyncRowsResponse> getRows(int startIndex, int count) async {
     final filters = _ref.read(imageStatusFilterProvider);
-
     try {
       final response = await _ref
           .read(masterDataRepositoryProvider)
@@ -41,6 +33,12 @@ class ImageStatusDataSource extends AsyncDataTableSource {
         response.total,
         response.data.map((item) {
           final vb = item.varianBody;
+          final optionalDescriptions =
+              item.gambarUtama?.gambarOptionals
+                  .map((opt) => opt.deskripsi)
+                  .join(', ') ??
+              '';
+
           return DataRow(
             key: ValueKey(vb.id),
             cells: [
@@ -64,16 +62,9 @@ class ImageStatusDataSource extends AsyncDataTableSource {
                 ),
               ),
               DataCell(
-                Center(
-                  child: _buildStatusIcon(item.latestGambarOptional != null),
-                ),
-              ),
-              DataCell(
                 SelectableText(
-                  item.latestGambarOptional != null
-                      ? dateFormat.format(
-                          item.latestGambarOptional!.updatedAt.toLocal(),
-                        )
+                  optionalDescriptions.isNotEmpty
+                      ? optionalDescriptions
                       : 'N/A',
                 ),
               ),

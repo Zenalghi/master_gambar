@@ -14,13 +14,13 @@ class ImageStatusTable extends ConsumerStatefulWidget {
 }
 
 class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
-  // State lokal untuk mengelola tampilan panah sort di UI
-  int _sortColumnIndex = 6; // Default: Updated At Gbr. Utama
-  bool _sortAscending = false; // Default: Terbaru di atas (desc)
+  int _sortColumnIndex = 6;
+  bool _sortAscending = false;
 
   @override
   Widget build(BuildContext context) {
-    final source = ref.watch(imageStatusSourceProvider);
+    // Sesuai preferensi Anda, DataSource dibuat di dalam build
+    final source = ImageStatusDataSource(ref);
     final rowsPerPage = ref.watch(imageStatusRowsPerPageProvider);
 
     return AsyncPaginatedDataTable2(
@@ -41,36 +41,30 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
   }
 
   void _onSort(int columnIndex, bool ascending) {
-    // Mapping antara index kolom di UI dengan nama kolom di backend
     final Map<int, String> columnMapping = {
       0: 'type_engine',
       1: 'merk',
       2: 'type_chassis',
       3: 'jenis_kendaraan',
       4: 'varian_body',
-      6: 'gambar_utama_updated_at',
-      8: 'gambar_optional_updated_at',
+      6: 'updated_at',
+      7: 'deskripsi_optional',
     };
 
-    // 1. Update state lokal untuk mengubah tampilan panah di UI
     setState(() {
       _sortColumnIndex = columnIndex;
       _sortAscending = ascending;
     });
 
-    // 2. Update provider filter untuk mengirim request baru ke server
     ref.read(imageStatusFilterProvider.notifier).update((state) {
       return {
         ...state,
-        'sortBy':
-            columnMapping[columnIndex] ??
-            'gambar_utama_updated_at', // Default sort baru
+        'sortBy': columnMapping[columnIndex] ?? 'updated_at',
         'sortDirection': ascending ? 'asc' : 'desc',
       };
     });
   }
 
-  // Method untuk membuat header kolom
   List<DataColumn2> _createColumns() {
     return [
       DataColumn2(
@@ -107,13 +101,9 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
         size: ColumnSize.M,
         onSort: _onSort,
       ),
-      const DataColumn2(
-        label: Center(child: Text('Gbr. Optional')),
-        fixedWidth: 100,
-      ),
       DataColumn2(
-        label: const Text('Updated At'),
-        size: ColumnSize.M,
+        label: const Text('Gbr. Optional Paket'),
+        size: ColumnSize.L,
         onSort: _onSort,
       ),
     ];

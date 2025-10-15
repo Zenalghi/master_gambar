@@ -109,7 +109,7 @@ class _MasterGambarUtamaScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Harap isi deskripsi dan pilih file untuk Gambar Optional Dependen.',
+            'Harap isi deskripsi dan pilih file untuk Gambar Optional Paket.',
           ),
           backgroundColor: Colors.orange,
         ),
@@ -195,7 +195,7 @@ class _MasterGambarUtamaScreenState
 
           // --- UI BARU UNTUK GAMBAR OPTIONAL DEPENDEN ---
           CheckboxListTile(
-            title: const Text("Tambahkan Gambar Optional Dependen"),
+            title: const Text("Tambahkan Gambar Optional Paket"),
             value: showDependent,
             onChanged: (value) =>
                 ref.read(mguShowDependentOptionalProvider.notifier).state =
@@ -219,7 +219,7 @@ class _MasterGambarUtamaScreenState
                             TextFormField(
                               controller: _deskripsiController,
                               decoration: const InputDecoration(
-                                labelText: 'Deskripsi Optional Dependen',
+                                labelText: 'Deskripsi Optional Paket',
                               ),
                               textCapitalization: TextCapitalization.characters,
                             ),
@@ -228,7 +228,7 @@ class _MasterGambarUtamaScreenState
                               icon: const Icon(Icons.picture_as_pdf),
                               label: Text(
                                 dependentFile == null
-                                    ? 'Pilih Gambar Dependen'
+                                    ? 'Pilih Gambar Optional Paket'
                                     : 'Ganti Gambar',
                               ),
                               onPressed: _pickDependentFile,
