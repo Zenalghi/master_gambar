@@ -416,14 +416,31 @@ class MasterDataRepository {
 
   //tambahkan fungsi untuk gambar kelistrikan berdasarkan id type chassis
   // == GAMBAR KELISTRIKAN ==
-  Future<List<GambarKelistrikan>> getGambarKelistrikanList() async {
-    // Pastikan endpoint ini sudah ada di api.php Anda
+  Future<PaginatedResponse<GambarKelistrikan>>
+  getGambarKelistrikanListPaginated({
+    int page = 1,
+    int perPage = 25,
+    String sortBy = 'updated_at',
+    String sortDirection = 'desc',
+    String search = '',
+  }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .get('/admin/gambar-kelistrikan');
-    final List<dynamic> data = response.data;
-    return data.map((item) => GambarKelistrikan.fromJson(item)).toList();
+        .get(
+          '/admin/gambar-kelistrikan',
+          queryParameters: {
+            'page': page,
+            'perPage': perPage,
+            'sortBy': sortBy,
+            'sortDirection': sortDirection,
+            'search': search,
+          },
+        );
+    return PaginatedResponse.fromJson(
+      response.data,
+      GambarKelistrikan.fromJson,
+    );
   }
 
   Future<void> addGambarKelistrikan({

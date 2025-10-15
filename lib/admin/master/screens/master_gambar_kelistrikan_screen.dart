@@ -29,6 +29,9 @@ class _MasterGambarKelistrikanScreenState
     ref.invalidate(jenisKendaraanOptionsFamilyProvider);
     ref.invalidate(varianBodyOptionsFamilyProvider);
     ref.invalidate(gambarOptionalFilterProvider);
+    ref
+        .read(gambarKelistrikanFilterProvider.notifier)
+        .update((state) => Map.from(state));
     ref.read(refreshNotifierProvider.notifier).refresh();
   }
 
@@ -45,7 +48,7 @@ class _MasterGambarKelistrikanScreenState
           );
 
       // Refresh tabel data dan provider dropdown (untuk mereset form)
-      ref.invalidate(gambarKelistrikanListProvider);
+      ref.invalidate(gambarKelistrikanFilterProvider);
       ref.invalidate(typeEngineListProvider);
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -93,13 +96,11 @@ class _MasterGambarKelistrikanScreenState
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (value) =>
-                      ref
-                              .read(
-                                gambarKelistrikanSearchQueryProvider.notifier,
-                              )
-                              .state =
-                          value,
+                  onChanged: (value) {
+                    ref
+                        .read(gambarKelistrikanFilterProvider.notifier)
+                        .update((state) => {...state, 'search': value});
+                  },
                 ),
               ),
               const SizedBox(width: 8),

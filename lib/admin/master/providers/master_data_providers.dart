@@ -157,25 +157,19 @@ final gambarOptionalFilterProvider = StateProvider<Map<String, String>>((ref) {
 final gambarOptionalRowsPerPageProvider = StateProvider<int>((ref) => 25);
 
 // --- TAMBAHKAN PROVIDER UNTUK GAMBAR KELISTRIKAN ---
-final gambarKelistrikanListProvider = FutureProvider<List<GambarKelistrikan>>((
+final gambarKelistrikanFilterProvider = StateProvider<Map<String, String>>((
   ref,
 ) {
-  ref.watch(masterDataRepositoryProvider);
-  return ref.read(masterDataRepositoryProvider).getGambarKelistrikanList();
+  return {'search': '', 'sortBy': 'updated_at', 'sortDirection': 'desc'};
 });
 
-final gambarKelistrikanRowsPerPageProvider = StateProvider<int>((ref) => 15);
-final gambarKelistrikanSearchQueryProvider = StateProvider<String>((ref) => '');
+final gambarKelistrikanRowsPerPageProvider = StateProvider<int>((ref) => 25);
 
 // State untuk checkbox "Tambahkan Gambar Optional Dependen"
 final mguShowDependentOptionalProvider = StateProvider<bool>((ref) => false);
 
 // State untuk file PDF opsional dependen yang dipilih
 final mguDependentFileProvider = StateProvider<File?>((ref) => null);
-
-// lib/admin/master/providers/master_data_providers.dart
-
-// ...
 
 // --- TAMBAHKAN PROVIDER BARU UNTUK TABEL STATUS GAMBAR ---
 final imageStatusFilterProvider = StateProvider<Map<String, String>>((ref) {
