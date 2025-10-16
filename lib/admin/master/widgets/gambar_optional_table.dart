@@ -110,12 +110,12 @@ class GambarOptionalTable extends ConsumerWidget {
       ),
       DataColumn2(
         label: const Text('Created At'),
-        fixedWidth: 176,
+        fixedWidth: 177,
         onSort: (i, a) => _onSort(ref, 'created_at'),
       ),
       DataColumn2(
         label: const Text('Updated At'),
-        fixedWidth: 176,
+        fixedWidth: 177,
         onSort: (i, a) => _onSort(ref, 'updated_at'),
       ),
       const DataColumn2(label: Text('Options'), fixedWidth: 120),

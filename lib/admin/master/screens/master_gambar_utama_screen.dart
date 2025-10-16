@@ -32,11 +32,11 @@ class _MasterGambarUtamaScreenState
 
   void _resetForm() {
     // Reset semua state provider setelah berhasil
-    ref.read(mguSelectedTypeEngineIdProvider.notifier).state = null;
-    ref.read(mguSelectedMerkIdProvider.notifier).state = null;
-    ref.read(mguSelectedTypeChassisIdProvider.notifier).state = null;
-    ref.read(mguSelectedJenisKendaraanIdProvider.notifier).state = null;
-    ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
+    // ref.read(mguSelectedTypeEngineIdProvider.notifier).state = null;
+    // ref.read(mguSelectedMerkIdProvider.notifier).state = null;
+    // ref.read(mguSelectedTypeChassisIdProvider.notifier).state = null;
+    // ref.read(mguSelectedJenisKendaraanIdProvider.notifier).state = null;
+    // ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
     ref.read(mguGambarUtamaFileProvider.notifier).state = null;
     ref.read(mguGambarTeruraiFileProvider.notifier).state = null;
     ref.read(mguGambarKontruksiFileProvider.notifier).state = null;

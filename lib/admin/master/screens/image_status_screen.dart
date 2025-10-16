@@ -25,7 +25,7 @@ class ImageStatusScreen extends ConsumerWidget {
                 width: 300,
                 child: TextField(
                   decoration: InputDecoration(
-                    labelText: 'Search (Type Engine, Merk, Varian, dll...)',
+                    labelText: 'Search...',
                     prefixIcon: const Icon(Icons.search),
                   ),
                   onChanged: (value) {
