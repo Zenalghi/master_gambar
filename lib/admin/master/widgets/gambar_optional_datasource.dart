@@ -1,5 +1,3 @@
-// File: lib/admin/master/widgets/gambar_optional_datasource.dart
-
 import 'package:data_table_2/data_table_2.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -42,8 +40,7 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
             cells: [
               DataCell(
                 SelectableText(
-                  vb?.jenisKendaraan.typeChassis.merk.typeEngine.name ??
-                      'N/A',
+                  vb?.jenisKendaraan.typeChassis.merk.typeEngine.name ?? 'N/A',
                 ),
               ),
               DataCell(
@@ -56,6 +53,7 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
               ),
               DataCell(SelectableText(vb?.jenisKendaraan.name ?? 'N/A')),
               DataCell(SelectableText(vb?.name ?? 'N/A')),
+              DataCell(SelectableText(item.tipe)),
               DataCell(SelectableText(item.deskripsi)),
               DataCell(
                 SelectableText(dateFormat.format(item.createdAt.toLocal())),

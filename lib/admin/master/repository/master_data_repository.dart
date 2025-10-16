@@ -365,7 +365,7 @@ class MasterDataRepository {
     required String deskripsi,
     required File gambarOptionalFile,
     String tipe = 'independen',
-    int? varianBodyId, // <-- Diubah menjadi nullable
+    int? varianBodyId,
     int? gambarUtamaId,
   }) async {
     final fileName = gambarOptionalFile.path.split(Platform.pathSeparator).last;
@@ -384,7 +384,7 @@ class MasterDataRepository {
     if (tipe == 'independen') {
       dataMap['e_varian_body_id'] = varianBodyId;
     } else {
-      // tipe == 'dependen'
+      // tipe == 'paket'
       dataMap['g_gambar_utama_id'] = gambarUtamaId;
     }
 

@@ -46,14 +46,16 @@ class GambarOptionalTable extends ConsumerWidget {
         return 3;
       case 'varian_body':
         return 4;
-      case 'deskripsi':
+      case 'tipe':
         return 5;
-      case 'created_at':
+      case 'deskripsi':
         return 6;
+      case 'created_at':
+        return 7;
       case 'updated_at':
-        return 7;
+        return 8;
       default:
-        return 7;
+        return 8;
     }
   }
 
@@ -97,18 +99,23 @@ class GambarOptionalTable extends ConsumerWidget {
         onSort: (i, a) => _onSort(ref, 'varian_body'),
       ),
       DataColumn2(
+        label: const Text('Tipe'),
+        size: ColumnSize.S,
+        onSort: (i, a) => _onSort(ref, 'tipe'),
+      ),
+      DataColumn2(
         label: const Text('Deskripsi'),
         size: ColumnSize.M,
         onSort: (i, a) => _onSort(ref, 'deskripsi'),
       ),
       DataColumn2(
         label: const Text('Created At'),
-        size: ColumnSize.S,
+        fixedWidth: 176,
         onSort: (i, a) => _onSort(ref, 'created_at'),
       ),
       DataColumn2(
         label: const Text('Updated At'),
-        size: ColumnSize.S,
+        fixedWidth: 176,
         onSort: (i, a) => _onSort(ref, 'updated_at'),
       ),
       const DataColumn2(label: Text('Options'), fixedWidth: 120),

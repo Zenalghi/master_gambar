@@ -137,7 +137,7 @@ class _MasterGambarUtamaScreenState
               // Parameter diubah sesuai repository baru
               deskripsi: _deskripsiController.text,
               gambarOptionalFile: dependentFile!,
-              tipe: 'dependen',
+              tipe: 'paket',
               gambarUtamaId: gambarUtama.id,
               // varianBodyId tidak perlu dikirim, jadi kita hapus
             );

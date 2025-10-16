@@ -24,7 +24,7 @@ class GambarOptional {
   factory GambarOptional.fromJson(Map<String, dynamic> json) {
     return GambarOptional(
       id: json['id'],
-      tipe: json['tipe'] ?? 'independen', // <-- Tambahkan
+      tipe: json['tipe'], // <-- Tambahkan
       deskripsi: json['deskripsi'] ?? 'Tanpa Deskripsi',
       path: json['path_gambar_optional'],
       // Cek jika varian_body tidak null sebelum di-parse
