@@ -85,12 +85,12 @@ class _VarianBodyTableState extends ConsumerState<VarianBodyTable> {
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Dibuat Pada'),
+        label: const Text('Created At'),
         size: ColumnSize.S,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Diupdate Pada'),
+        label: const Text('Updated At'),
         size: ColumnSize.S,
         onSort: _onSort,
       ),

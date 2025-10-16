@@ -66,12 +66,12 @@ class _TypeEngineTableState extends ConsumerState<TypeEngineTable> {
               onSort: _onSort,
             ),
             DataColumn2(
-              label: Text('Dibuat Pada'),
+              label: Text('Created At'),
               size: ColumnSize.M,
               onSort: _onSort,
             ),
             DataColumn2(
-              label: Text('Diupdate Pada'),
+              label: Text('Updated At'),
               size: ColumnSize.M,
               onSort: _onSort,
             ),

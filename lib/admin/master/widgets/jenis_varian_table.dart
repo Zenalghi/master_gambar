@@ -86,12 +86,12 @@ class _JenisVarianTableState extends ConsumerState<JenisVarianTable> {
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Dibuat Pada'),
+        label: const Text('Created At'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Diupdate Pada'),
+        label: const Text('Updated At'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
