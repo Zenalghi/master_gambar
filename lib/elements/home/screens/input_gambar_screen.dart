@@ -31,7 +31,7 @@ class InputGambarScreen extends ConsumerWidget {
         gambarKelistrikanDataProvider(transaksi.cTypeChassis.id).future,
       );
       final kelistrikanId = kelistrikanItem?.id as int?;
-
+      final deskripsiOptional = ref.read(deskripsiOptionalProvider);
       if (pemeriksaId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Pilih pemeriksa terlebih dahulu.')),
@@ -78,7 +78,10 @@ class InputGambarScreen extends ConsumerWidget {
                 ? allOptionalIds
                 : null,
             iGambarKelistrikanId: kelistrikanId,
-            pageNumber: pageNumber, // Kirim pageNumber yang benar ke backend
+            pageNumber: pageNumber,
+            deskripsiOptional: deskripsiOptional.isNotEmpty
+                ? deskripsiOptional
+                : null,
           );
 
       // --- PERBAIKAN UTAMA DI SINI ---
@@ -123,6 +126,7 @@ class InputGambarScreen extends ConsumerWidget {
       final kelistrikanItem = await ref.read(
         gambarKelistrikanDataProvider(transaksi.cTypeChassis.id).future,
       );
+      final deskripsiOptional = ref.read(deskripsiOptionalProvider);
       final kelistrikanId =
           kelistrikanItem?.id as int?; // Ambil ID-nya, bisa jadi null
 
@@ -165,6 +169,9 @@ class InputGambarScreen extends ConsumerWidget {
                 ? allOptionalIds
                 : null,
             iGambarKelistrikanId: kelistrikanId,
+            deskripsiOptional: deskripsiOptional.isNotEmpty
+                ? deskripsiOptional
+                : null,
           );
 
       if (context.mounted) {
@@ -213,6 +220,7 @@ class InputGambarScreen extends ConsumerWidget {
     ref.read(jumlahGambarProvider.notifier).state = 1;
     ref.read(showGambarOptionalProvider.notifier).state = false;
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
+    ref.read(deskripsiOptionalProvider.notifier).state = '';
     ref.invalidate(gambarOptionalSelectionProvider);
     ref.invalidate(gambarUtamaSelectionProvider);
   }

@@ -9,7 +9,8 @@ import '../../../app/core/notifiers/refresh_notifier.dart';
 final isProcessingProvider = StateProvider<bool>((ref) => false);
 
 // === State untuk Pilihan Utama ===
-// Provider 'jumlahGambarProvider' telah dihapus dari sini.
+final deskripsiOptionalProvider = StateProvider<String>((ref) => '');
+
 final jumlahGambarProvider = StateProvider<int>((ref) => 1);
 
 // Menyimpan ID pemeriksa yang dipilih

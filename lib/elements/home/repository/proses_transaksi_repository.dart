@@ -22,6 +22,7 @@ class ProsesTransaksiRepository {
     required List<int>? hGambarOptionalIds,
     int? iGambarKelistrikanId,
     required int pageNumber,
+    String? deskripsiOptional,
   }) async {
     try {
       final response = await _ref
@@ -37,7 +38,8 @@ class ProsesTransaksiRepository {
                   hGambarOptionalIds, // <-- Kirim dengan key yang benar
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'preview',
-              'preview_page': pageNumber, // <-- Kirim nomor halaman ke backend
+              'preview_page': pageNumber,
+              'deskripsi_optional': deskripsiOptional,
             },
             options: Options(responseType: ResponseType.bytes),
           );
@@ -94,6 +96,7 @@ class ProsesTransaksiRepository {
     required List<int> judulGambarIds,
     required List<int>? hGambarOptionalIds,
     int? iGambarKelistrikanId,
+    String? deskripsiOptional,
   }) async {
     try {
       // 1. Tampilkan dialog "Save As..." untuk mendapatkan path penyimpanan
@@ -122,6 +125,7 @@ class ProsesTransaksiRepository {
               'h_gambar_optional_ids': hGambarOptionalIds,
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'proses',
+              'deskripsi_optional': deskripsiOptional,
             },
             options: Options(
               responseType:

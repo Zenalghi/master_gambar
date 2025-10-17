@@ -21,6 +21,9 @@ class GambarMainForm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final jenisPengajuan = transaksi.fPengajuan.jenisPengajuan.toUpperCase();
+    final bool showDeskripsiOptional =
+        jenisPengajuan == 'VARIAN' || jenisPengajuan == 'REVISI';
     final showOptional = ref.watch(showGambarOptionalProvider);
     final jumlahGambarOptional = ref.watch(jumlahGambarOptionalProvider);
     final kelistrikanAsync = ref.watch(
@@ -201,6 +204,28 @@ class GambarMainForm extends ConsumerWidget {
               totalHalaman: totalHalaman,
               onPreviewPressed: () => onPreviewPressed(kelistrikanPageNumber),
             ),
+            if (showDeskripsiOptional) ...[
+              const Divider(height: 32),
+              Text(
+                'Deskripsi Optional (Untuk Varian/Revisi)',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                initialValue: ref.watch(deskripsiOptionalProvider),
+                onChanged: (value) =>
+                    ref.read(deskripsiOptionalProvider.notifier).state = value,
+                decoration: const InputDecoration(
+                  hintText: 'Masukkan deskripsi tambahan di sini...',
+                  border: OutlineInputBorder(),
+                ),
+                textCapitalization: TextCapitalization.characters,
+              ),
+            ],
           ],
         ),
       ),
