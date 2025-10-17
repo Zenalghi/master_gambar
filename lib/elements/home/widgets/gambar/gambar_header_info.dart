@@ -10,6 +10,9 @@ class GambarHeaderInfo extends ConsumerWidget {
   const GambarHeaderInfo({super.key, required this.transaksi});
   // --- BUAT METHOD BARU UNTUK LOGIKA REFRESH ---
   void _resetAndRefresh(BuildContext context, WidgetRef ref) {
+    ref.read(isProcessingProvider.notifier).state = false;
+    ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
+    ref.read(deskripsiOptionalProvider.notifier).state = '';
     // 1. Reset semua state pilihan di form
     ref.read(pemeriksaIdProvider.notifier).state = null;
     ref.read(jumlahGambarProvider.notifier).state = 1;
@@ -18,9 +21,7 @@ class GambarHeaderInfo extends ConsumerWidget {
 
     // 2. Tutup dan reset checkbox beserta isinya
     ref.read(showGambarOptionalProvider.notifier).state = false;
-    ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
     ref.invalidate(gambarOptionalSelectionProvider);
-    
 
     // 3. Bunyikan "lonceng" untuk memicu FutureProvider mengambil data baru
     ref.read(refreshNotifierProvider.notifier).refresh();

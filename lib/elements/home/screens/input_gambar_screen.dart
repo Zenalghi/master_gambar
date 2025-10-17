@@ -8,6 +8,7 @@ import 'package:master_gambar/elements/home/screens/pdf_viewer_screen.dart';
 import 'package:master_gambar/elements/home/widgets/gambar/gambar_header_info.dart';
 import 'package:master_gambar/elements/home/widgets/gambar/gambar_main_form.dart';
 
+import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../widgets/transaksi_history_datasource.dart';
 
 class InputGambarScreen extends ConsumerWidget {
@@ -216,13 +217,19 @@ class InputGambarScreen extends ConsumerWidget {
   void _resetInputGambarState(WidgetRef ref) {
     ref.read(isProcessingProvider.notifier).state = false;
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
+    ref.read(deskripsiOptionalProvider.notifier).state = '';
+    // 1. Reset semua state pilihan di form
     ref.read(pemeriksaIdProvider.notifier).state = null;
     ref.read(jumlahGambarProvider.notifier).state = 1;
-    ref.read(showGambarOptionalProvider.notifier).state = false;
-    ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
-    ref.read(deskripsiOptionalProvider.notifier).state = '';
-    ref.invalidate(gambarOptionalSelectionProvider);
+    // invalidate akan mereset StateNotifier ke state awalnya
     ref.invalidate(gambarUtamaSelectionProvider);
+
+    // 2. Tutup dan reset checkbox beserta isinya
+    ref.read(showGambarOptionalProvider.notifier).state = false;
+    ref.invalidate(gambarOptionalSelectionProvider);
+    
+    // 3. Bunyikan "lonceng" untuk memicu FutureProvider mengambil data baru
+    ref.read(refreshNotifierProvider.notifier).refresh();
   }
 
   @override

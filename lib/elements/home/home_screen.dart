@@ -6,6 +6,7 @@ import 'package:master_gambar/elements/home/providers/page_state_provider.dart';
 
 import '../../admin/screens/configuration_screen.dart';
 import '../../admin/screens/master_screen.dart';
+import 'providers/input_gambar_providers.dart';
 import 'screens/input_gambar_screen.dart';
 import 'screens/input_transaksi_screen.dart';
 import 'widgets/custom_app_bar.dart';
@@ -20,7 +21,6 @@ class HomeScreen extends ConsumerWidget {
     final authService = ref.watch(authServiceProvider);
     final tabCount = authService.canViewAdminTabs() ? 3 : 1;
 
-    // Logika untuk memilih halaman di dalam "WORK AREA"
     Widget currentPage;
     switch (pageState.pageIndex) {
       case 0:
@@ -39,14 +39,24 @@ class HomeScreen extends ConsumerWidget {
         currentPage = const InputTransaksiScreen();
     }
 
-    // --- 3. BUAT DAFTAR KONTEN UNTUK SETIAP TAB ---
     final List<Widget> tabViews = [
-      // Konten untuk Tab "WORK AREA"
       Row(
         children: [
           Sidebar(
             selectedIndex: pageState.pageIndex,
             onItemSelected: (index) {
+              if (pageState.pageIndex == 1 && index == 0) {
+                // Jalankan semua logika reset yang Anda berikan
+                ref.read(isProcessingProvider.notifier).state = false;
+                ref.read(pemeriksaIdProvider.notifier).state = null;
+                ref.read(jumlahGambarProvider.notifier).state = 1;
+                ref.invalidate(gambarUtamaSelectionProvider);
+                ref.read(showGambarOptionalProvider.notifier).state = false;
+                ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
+                ref.invalidate(gambarOptionalSelectionProvider);
+                ref.read(deskripsiOptionalProvider.notifier).state = '';
+              }
+
               if (index == 0) {
                 ref.read(pageStateProvider.notifier).state = PageState(
                   pageIndex: index,
@@ -60,20 +70,16 @@ class HomeScreen extends ConsumerWidget {
       ),
     ];
 
-    // Tambahkan halaman admin jika user adalah admin
     if (authService.canViewAdminTabs()) {
       tabViews.add(const MasterScreen());
       tabViews.add(const ConfigurationScreen());
     }
-    // ---------------------------------------------
 
     return DefaultTabController(
       length: tabCount,
       child: Scaffold(
         appBar: const CustomAppBar(),
-        // --- 4. GUNAKAN TABBARVIEW DI BODY ---
         body: TabBarView(children: tabViews),
-        // ------------------------------------
       ),
     );
   }
