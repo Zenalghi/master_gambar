@@ -18,13 +18,15 @@ class GambarSyncedRow extends ConsumerWidget {
     required this.transaksi,
     required this.totalHalaman,
     required this.onPreviewPressed,
-    required this.pageNumber, required int jumlahGambarUtama,
+    required this.pageNumber,
+    required int jumlahGambarUtama,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selections = ref.watch(gambarUtamaSelectionProvider);
     final pemeriksaId = ref.watch(pemeriksaIdProvider);
+    final isLoading = ref.watch(isProcessingProvider);
 
     if (index >= selections.length) {
       return const SizedBox.shrink();
@@ -111,7 +113,7 @@ class GambarSyncedRow extends ConsumerWidget {
         SizedBox(
           width: 170,
           child: ElevatedButton(
-            onPressed: isRowComplete ? onPreviewPressed : null,
+            onPressed: isRowComplete && !isLoading ? onPreviewPressed : null,
             child: const Text('Preview Gambar'),
           ),
         ),

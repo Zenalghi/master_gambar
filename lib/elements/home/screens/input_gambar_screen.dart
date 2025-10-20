@@ -87,14 +87,12 @@ class InputGambarScreen extends ConsumerWidget {
 
       // --- PERBAIKAN UTAMA DI SINI ---
       if (context.mounted) {
-        // Kita tidak lagi perlu mengakses 'selections' dengan index yang salah.
-        // Cukup gunakan pageNumber untuk judul.
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => PdfViewerScreen(
-              pdfData: pdfData,
-              title: 'Preview Halaman $pageNumber', // Judul disederhanakan
-            ),
+        showDialog(
+          context: context,
+          builder: (context) => PdfViewerDialog(
+            // Panggil dialog baru
+            pdfData: pdfData,
+            title: 'Preview Halaman $pageNumber',
           ),
         );
       }
@@ -227,7 +225,7 @@ class InputGambarScreen extends ConsumerWidget {
     // 2. Tutup dan reset checkbox beserta isinya
     ref.read(showGambarOptionalProvider.notifier).state = false;
     ref.invalidate(gambarOptionalSelectionProvider);
-    
+
     // 3. Bunyikan "lonceng" untuk memicu FutureProvider mengambil data baru
     ref.read(refreshNotifierProvider.notifier).refresh();
   }
