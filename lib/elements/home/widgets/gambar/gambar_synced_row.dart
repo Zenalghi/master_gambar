@@ -9,7 +9,7 @@ class GambarSyncedRow extends ConsumerWidget {
   final Transaksi transaksi;
   final int totalHalaman;
   final VoidCallback onPreviewPressed;
-  final int jumlahGambarUtama;
+  final int pageNumber;
 
   const GambarSyncedRow({
     super.key,
@@ -18,17 +18,16 @@ class GambarSyncedRow extends ConsumerWidget {
     required this.transaksi,
     required this.totalHalaman,
     required this.onPreviewPressed,
-    required this.jumlahGambarUtama,
+    required this.pageNumber, required int jumlahGambarUtama,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selections = ref.watch(gambarUtamaSelectionProvider);
-    //pemeriksa
     final pemeriksaId = ref.watch(pemeriksaIdProvider);
 
     if (index >= selections.length) {
-      return const SizedBox.shrink(); // Tampilkan widget kosong jika state belum siap
+      return const SizedBox.shrink();
     }
 
     final selection = selections[index];
@@ -41,7 +40,6 @@ class GambarSyncedRow extends ConsumerWidget {
         selection.judulId != null &&
         selection.varianBodyId != null &&
         pemeriksaId != null;
-    final isLoading = ref.watch(isProcessingProvider);
 
     String judulName = '...';
     judulOptions.whenData((items) {
@@ -63,11 +61,12 @@ class GambarSyncedRow extends ConsumerWidget {
       }
     });
 
-    final basePageNumber = jumlahGambarUtama;
-    final pageNumber =
-        (title.contains('Terurai') ? basePageNumber : basePageNumber * 2) +
-        index +
-        1;
+    // int pageNumber;
+    // if (title.contains('Terurai')) {
+    //   pageNumber = (index * 3) + 2;
+    // } else {
+    //   pageNumber = (index * 3) + 3;
+    // }
 
     return Row(
       children: [
@@ -112,7 +111,7 @@ class GambarSyncedRow extends ConsumerWidget {
         SizedBox(
           width: 170,
           child: ElevatedButton(
-            onPressed: isRowComplete && !isLoading ? onPreviewPressed : null,
+            onPressed: isRowComplete ? onPreviewPressed : null,
             child: const Text('Preview Gambar'),
           ),
         ),

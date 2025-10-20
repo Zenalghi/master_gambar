@@ -7,13 +7,16 @@ class GambarUtamaRow extends ConsumerWidget {
   final int index;
   final Transaksi transaksi;
   final int totalHalaman;
-  final VoidCallback onPreviewPressed;
+  final VoidCallback onPreviewPressed; // Tipe diubah menjadi VoidCallback
+  final int pageNumber; // Tambahkan ini untuk menampilkan nomor halaman yang benar
+
   const GambarUtamaRow({
     super.key,
     required this.index,
     required this.transaksi,
     required this.totalHalaman,
     required this.onPreviewPressed,
+    required this.pageNumber, // Tambahkan di constructor
   });
 
   @override
@@ -31,33 +34,21 @@ class GambarUtamaRow extends ConsumerWidget {
         pemeriksaId != null;
     final isLoading = ref.watch(isProcessingProvider);
 
-    final pageNumber = index + 1;
+    // final pageNumber = (index * 3) + 1;
 
     return Row(
       children: [
         SizedBox(width: 150, child: Text('Gambar Utama ${index + 1}:')),
-
-        // --- PERUBAHAN FLEX ---
         Expanded(
           flex: 2,
           child: judulOptions.when(
             data: (items) => DropdownButtonFormField<int>(
-              // Tipe data menjadi <int>
               value: selection.judulId,
               isDense: true,
               decoration: const InputDecoration(border: OutlineInputBorder()),
-              items: items
-                  .map(
-                    (e) => DropdownMenuItem<int>(
-                      value: e.id as int,
-                      child: Text(e.name),
-                    ),
-                  )
-                  .toList(),
+              items: items.map((e) => DropdownMenuItem<int>(value: e.id as int, child: Text(e.name))).toList(),
               onChanged: (value) {
-                ref
-                    .read(gambarUtamaSelectionProvider.notifier)
-                    .updateSelection(index, judulId: value);
+                ref.read(gambarUtamaSelectionProvider.notifier).updateSelection(index, judulId: value);
               },
             ),
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -66,32 +57,21 @@ class GambarUtamaRow extends ConsumerWidget {
         ),
         const SizedBox(width: 10),
         Expanded(
-          flex: 4, // Sebelumnya 5
+          flex: 4,
           child: varianBodyOptions.when(
             data: (items) => DropdownButtonFormField<int>(
               value: selection.varianBodyId,
               isDense: true,
               decoration: const InputDecoration(border: OutlineInputBorder()),
-              items: items
-                  .map(
-                    (e) => DropdownMenuItem<int>(
-                      value: e.id as int,
-                      child: Text(e.name),
-                    ),
-                  )
-                  .toList(),
+              items: items.map((e) => DropdownMenuItem<int>(value: e.id as int, child: Text(e.name))).toList(),
               onChanged: (value) {
-                ref
-                    .read(gambarUtamaSelectionProvider.notifier)
-                    .updateSelection(index, varianBodyId: value);
+                ref.read(gambarUtamaSelectionProvider.notifier).updateSelection(index, varianBodyId: value);
               },
             ),
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (err, stack) => const Text('Error Varian'),
           ),
         ),
-
-        // --- AKHIR PERUBAHAN ---
         const SizedBox(width: 10),
         SizedBox(
           width: 70,

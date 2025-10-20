@@ -9,7 +9,7 @@ import 'package:master_gambar/elements/home/widgets/gambar/gambar_utama_row.dart
 
 class GambarMainForm extends ConsumerWidget {
   final Transaksi transaksi;
-  final Function(int pageNumber) onPreviewPressed; // Tipe tetap sama
+  final Function(int pageNumber) onPreviewPressed;
   final int jumlahGambarUtama;
 
   const GambarMainForm({
@@ -54,12 +54,17 @@ class GambarMainForm extends ConsumerWidget {
               title: 'Gambar Utama',
               itemCount: jumlahGambarUtama,
               itemBuilder: (index) {
-                final pageNumber = index + 1;
+                // Rumus: (index * 3) + 1
+                final pageNumber = (index * 3) + 1;
                 return GambarUtamaRow(
                   index: index,
                   transaksi: transaksi,
                   totalHalaman: totalHalaman,
-                  onPreviewPressed: () => onPreviewPressed(pageNumber),
+                  pageNumber:
+                      pageNumber, // <-- Kirim nomor halaman untuk ditampilkan
+                  onPreviewPressed: () => onPreviewPressed(
+                    pageNumber,
+                  ), // <-- Kirim nomor halaman yang benar
                 );
               },
             ),
@@ -69,13 +74,15 @@ class GambarMainForm extends ConsumerWidget {
               title: 'Gambar Terurai',
               itemCount: jumlahGambarUtama,
               itemBuilder: (index) {
-                final pageNumber = jumlahGambarUtama + index + 1;
+                // Rumus: (index * 3) + 2
+                final pageNumber = (index * 3) + 2;
                 return GambarSyncedRow(
                   index: index,
                   title: 'Gambar Terurai',
                   transaksi: transaksi,
                   totalHalaman: totalHalaman,
                   jumlahGambarUtama: jumlahGambarUtama,
+                  pageNumber: pageNumber,
                   onPreviewPressed: () => onPreviewPressed(pageNumber),
                 );
               },
@@ -85,13 +92,15 @@ class GambarMainForm extends ConsumerWidget {
               title: 'Gambar Kontruksi',
               itemCount: jumlahGambarUtama,
               itemBuilder: (index) {
-                final pageNumber = (jumlahGambarUtama * 2) + index + 1;
+                // Rumus: (index * 3) + 3
+                final pageNumber = (index * 3) + 3;
                 return GambarSyncedRow(
                   index: index,
                   title: 'Gambar Kontruksi',
                   transaksi: transaksi,
                   totalHalaman: totalHalaman,
                   jumlahGambarUtama: jumlahGambarUtama,
+                  pageNumber: pageNumber,
                   onPreviewPressed: () => onPreviewPressed(pageNumber),
                 );
               },
