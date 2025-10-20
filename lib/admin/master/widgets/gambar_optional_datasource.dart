@@ -51,8 +51,14 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
               DataCell(
                 SelectableText(vb?.jenisKendaraan.typeChassis.name ?? 'N/A'),
               ),
-              DataCell(SelectableText(vb?.jenisKendaraan.name ?? 'N/A')),
-              DataCell(SelectableText(vb?.name ?? 'N/A')),
+              DataCell(
+                SelectableText(
+                  '${vb?.jenisKendaraan?.name ?? 'N/A'} (${vb?.jenisKendaraan.id ?? ''})',
+                ),
+              ),
+              DataCell(
+                SelectableText('${vb?.name ?? 'N/A'} (${vb?.id ?? ''})'),
+              ),
               DataCell(SelectableText(item.tipe)),
               DataCell(SelectableText(item.deskripsi)),
               DataCell(

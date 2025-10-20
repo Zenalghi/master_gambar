@@ -27,9 +27,9 @@ class _MasterGambarOptionalScreenState
     ref.invalidate(typeChassisOptionsFamilyProvider);
     ref.invalidate(jenisKendaraanOptionsFamilyProvider);
     ref.invalidate(varianBodyOptionsFamilyProvider);
-ref
-          .read(gambarOptionalFilterProvider.notifier)
-          .update((state) => Map.from(state));
+    ref
+        .read(gambarOptionalFilterProvider.notifier)
+        .update((state) => Map.from(state));
     ref.read(refreshNotifierProvider.notifier).refresh();
   }
 
@@ -46,7 +46,7 @@ ref
           );
 
       // Refresh tabel data (jika sudah ada) dan provider dropdown
-  ref
+      ref
           .read(gambarOptionalFilterProvider.notifier)
           .update((state) => Map.from(state));
       ref.invalidate(typeEngineListProvider); // Untuk mereset form
@@ -118,7 +118,7 @@ ref
 
           // Form untuk menambah data (sekarang dibungkus ExpansionTile)
           ExpansionTile(
-            title: const Text('Tambah Gambar Optional Baru'),
+            title: const Text('Tambah Gambar Optional Independen'),
             initiallyExpanded: true,
             children: [AddGambarOptionalForm(onUpload: _handleUpload)],
           ),

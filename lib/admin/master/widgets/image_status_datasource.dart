@@ -44,13 +44,25 @@ class ImageStatusDataSource extends AsyncDataTableSource {
             cells: [
               DataCell(
                 SelectableText(
-                  vb.jenisKendaraan.typeChassis.merk.typeEngine.name,
+                  '${vb.jenisKendaraan.typeChassis.merk.typeEngine.name} (${vb.jenisKendaraan.typeChassis.merk.typeEngine.id})',
                 ),
               ),
-              DataCell(SelectableText(vb.jenisKendaraan.typeChassis.merk.name)),
-              DataCell(SelectableText(vb.jenisKendaraan.typeChassis.name)),
-              DataCell(SelectableText(vb.jenisKendaraan.name)),
-              DataCell(SelectableText(vb.name)),
+              DataCell(
+                SelectableText(
+                  '${vb.jenisKendaraan.typeChassis.merk.name} (${vb.jenisKendaraan.typeChassis.merk.id})',
+                ),
+              ),
+              DataCell(
+                SelectableText(
+                  '${vb.jenisKendaraan.typeChassis.name} (${vb.jenisKendaraan.typeChassis.id})',
+                ),
+              ),
+              DataCell(
+                SelectableText(
+                  '${vb.jenisKendaraan.name} (${vb.jenisKendaraan.id})',
+                ),
+              ),
+              DataCell(SelectableText('${vb.name} (${vb.id})')),
               DataCell(
                 Center(child: _buildStatusIcon(item.gambarUtama != null)),
               ),

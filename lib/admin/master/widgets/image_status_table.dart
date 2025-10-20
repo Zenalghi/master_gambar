@@ -69,7 +69,8 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
     return [
       DataColumn2(
         label: const Text('Type Engine'),
-        size: ColumnSize.M,
+        fixedWidth: 131,
+        // size: ColumnSize.S,
         onSort: _onSort,
       ),
       DataColumn2(
@@ -93,8 +94,8 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
         onSort: _onSort,
       ),
       const DataColumn2(
-        label: Center(child: Text('Gbr. Utama')),
-        fixedWidth: 100,
+        label: Center(child: Text('Gambar\nUtama')),
+        fixedWidth: 120,
       ),
       DataColumn2(
         label: const Text('Updated At'),

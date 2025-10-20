@@ -46,7 +46,7 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
             cells: [
               DataCell(SelectableText(tc.merk.typeEngine.name)),
               DataCell(SelectableText(tc.merk.name)),
-              DataCell(SelectableText(tc.name)),
+              DataCell(SelectableText('${tc.name} (${tc.id})')),
               DataCell(SelectableText(item.deskripsi)),
               DataCell(
                 SelectableText(dateFormat.format(item.createdAt.toLocal())),
