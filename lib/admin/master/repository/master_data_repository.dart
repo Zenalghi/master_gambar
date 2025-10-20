@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/app/core/providers.dart';
@@ -412,6 +413,19 @@ class MasterDataRepository {
     await _ref.read(apiClientProvider).dio.delete('/admin/gambar-optional/$id');
   }
 
+  Future<Uint8List> getGambarOptionalPdf(int id) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          '/admin/gambar-optional/$id/pdf', // Panggil endpoint baru
+          options: Options(
+            responseType: ResponseType.bytes,
+          ), // Wajib untuk menerima file
+        );
+    return response.data;
+  }
+
   //tambahkan fungsi untuk gambar kelistrikan berdasarkan id type chassis
   // == GAMBAR KELISTRIKAN ==
   Future<PaginatedResponse<GambarKelistrikan>>
@@ -479,6 +493,19 @@ class MasterDataRepository {
         .read(apiClientProvider)
         .dio
         .delete('/admin/gambar-kelistrikan/$id');
+  }
+
+  Future<Uint8List> getGambarKelistrikanPdf(int id) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          '/admin/gambar-kelistrikan/$id/pdf',
+          options: Options(
+            responseType: ResponseType.bytes,
+          ), // Crucial for getting file data
+        );
+    return response.data;
   }
 
   Future<PaginatedResponse<ImageStatus>> getImageStatus({

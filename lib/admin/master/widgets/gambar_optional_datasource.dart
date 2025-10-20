@@ -7,6 +7,7 @@ import 'package:master_gambar/admin/master/models/gambar_optional.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'edit_gambar_optional_dialog.dart';
+import 'pdf_viewer_dialog.dart';
 
 class GambarOptionalDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;
@@ -53,7 +54,7 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
               ),
               DataCell(
                 SelectableText(
-                  '${vb?.jenisKendaraan?.name ?? 'N/A'} (${vb?.jenisKendaraan.id ?? ''})',
+                  '${vb?.jenisKendaraan.name ?? 'N/A'} (${vb?.jenisKendaraan.id ?? ''})',
                 ),
               ),
               DataCell(
@@ -70,6 +71,11 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
               DataCell(
                 Row(
                   children: [
+                    IconButton(
+                      icon: Icon(Icons.visibility, color: Colors.blue.shade700),
+                      tooltip: 'Lihat PDF',
+                      onPressed: () => _showPdfPreview(item),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () => showDialog(
@@ -136,6 +142,44 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: ${e.response?.data['message']}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showPdfPreview(GambarOptional item) async {
+    // Tampilkan loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // Panggil repository untuk mengambil data PDF
+      final pdfData = await _ref
+          .read(masterDataRepositoryProvider)
+          .getGambarOptionalPdf(item.id);
+
+      Navigator.of(context).pop(); // Tutup dialog loading
+
+      if (!context.mounted) return;
+
+      // Tampilkan dialog PDF viewer
+      showDialog(
+        context: context,
+        builder: (context) =>
+            PdfViewerDialog(pdfData: pdfData, title: item.deskripsi),
+      );
+    } catch (e) {
+      Navigator.of(context).pop(); // Tutup dialog loading jika error
+
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal memuat PDF: ${e.toString()}'),
           backgroundColor: Colors.red,
         ),
       );
