@@ -530,4 +530,28 @@ class MasterDataRepository {
         );
     return PaginatedResponse.fromJson(response.data, ImageStatus.fromJson);
   }
+
+  Future<Map<String, String>> getGambarUtamaPaths(int gambarUtamaId) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/admin/gambar-utama/$gambarUtamaId/paths');
+    // Ubah tipe data agar sesuai dengan Dart
+    return Map<String, String>.from(response.data);
+  }
+
+  // 2. Method untuk mengunduh konten PDF berdasarkan path-nya
+  Future<Uint8List> getPdfFromPath(String path) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          '/admin/master-gambar/view',
+          queryParameters: {'path': path}, // Kirim path sebagai query parameter
+          options: Options(
+            responseType: ResponseType.bytes,
+          ), // Wajib untuk file
+        );
+    return response.data;
+  }
 }

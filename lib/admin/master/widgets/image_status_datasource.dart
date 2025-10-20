@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 
+import 'gambar_utama_viewer_dialog.dart';
+
 class ImageStatusDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;
   final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
@@ -64,7 +66,25 @@ class ImageStatusDataSource extends AsyncDataTableSource {
               ),
               DataCell(SelectableText('${vb.name} (${vb.id})')),
               DataCell(
-                Center(child: _buildStatusIcon(item.gambarUtama != null)),
+                Center(
+                  child: item.gambarUtama != null
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.visibility,
+                            color: Colors.blue.shade700,
+                          ),
+                          tooltip: 'Lihat Gambar Utama',
+                          onPressed: () {
+                            showDialog(
+                              context: _ref.context,
+                              builder: (_) => GambarUtamaViewerDialog(
+                                gambarUtama: item.gambarUtama!,
+                              ),
+                            );
+                          },
+                        )
+                      : const Icon(Icons.cancel, color: Colors.red),
+                ),
               ),
               DataCell(
                 SelectableText(
@@ -88,12 +108,5 @@ class ImageStatusDataSource extends AsyncDataTableSource {
       debugPrint('Error fetching Image Status: $e');
       return AsyncRowsResponse(0, []);
     }
-  }
-
-  Widget _buildStatusIcon(bool hasImage) {
-    return Icon(
-      hasImage ? Icons.check_circle : Icons.cancel,
-      color: hasImage ? Colors.green : Colors.red,
-    );
   }
 }
