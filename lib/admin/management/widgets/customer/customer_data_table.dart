@@ -1,13 +1,8 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:master_gambar/admin/management/providers/customer_providers.dart';
-import 'package:master_gambar/admin/management/widgets/customer/edit_customer_dialog.dart';
-import 'package:master_gambar/app/core/providers.dart';
-import 'package:master_gambar/data/models/customer.dart';
-
-import '../../../../data/providers/api_client.dart';
+import 'customer_data_source.dart';
 
 class CustomerDataTable extends ConsumerStatefulWidget {
   const CustomerDataTable({super.key});
@@ -17,82 +12,117 @@ class CustomerDataTable extends ConsumerStatefulWidget {
 }
 
 class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
-  int? _sortColumnIndex = 0;
-  bool _sortAscending = true;
+  int _rowsPerPage = 25;
+  int _currentPage = 1;
+  String _sortBy = 'updated_at';
+  bool _sortAscending = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchData());
+  }
+
+  void _fetchData() {
+    final searchQuery = ref.read(customerSearchQueryProvider);
+    ref
+        .read(customerNotifierProvider.notifier)
+        .getCustomers(
+          page: _currentPage,
+          rowsPerPage: _rowsPerPage,
+          sortBy: _sortBy,
+          sortAscending: _sortAscending,
+          searchQuery: searchQuery,
+        );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final asyncCustomers = ref.watch(customerListProvider);
-    final searchQuery = ref.watch(customerSearchQueryProvider);
-    final rowsPerPage = ref.watch(customerRowsPerPageProvider);
-    final authToken = ref.watch(authTokenProvider);
+    ref.listen<String>(customerSearchQueryProvider, (previous, next) {
+      if (previous != next) {
+        _currentPage = 1;
+        _fetchData();
+      }
+    });
+
+    ref.listen<int>(customerInvalidator, (previous, next) {
+      if (previous != next) {
+        _fetchData();
+      }
+    });
+
+    final state = ref.watch(customerNotifierProvider);
+
+    // PERBARUI CARA MEMBUAT DATA SOURCE
+    final dataSource = CustomerDataSource(
+      customers: state.customers,
+      totalRecords: state.totalRecords,
+      rowsPerPage: _rowsPerPage,
+      currentPage: _currentPage,
+      context: context,
+      ref: ref,
+    );
 
     return Card(
-      child: asyncCustomers.when(
-        data: (customers) {
-          final filteredCustomers = customers.where((c) {
-            final query = searchQuery.toLowerCase();
-            return c.namaPt.toLowerCase().contains(query) ||
-                c.pj.toLowerCase().contains(query);
-          }).toList();
+      child: PaginatedDataTable2(
+        columnSpacing: 12,
+        horizontalMargin: 12,
+        minWidth: 900,
+        rowsPerPage: _rowsPerPage,
 
-          final sortedCustomers = List<Customer>.from(filteredCustomers);
-          if (_sortColumnIndex != null) {
-            sortedCustomers.sort((a, b) {
-              late final Comparable<Object> cellA;
-              late final Comparable<Object> cellB;
-              switch (_sortColumnIndex!) {
-                case 0:
-                  cellA = a.namaPt.toLowerCase();
-                  cellB = b.namaPt.toLowerCase();
-                  break;
-                case 1:
-                  cellA = a.pj.toLowerCase();
-                  cellB = b.pj.toLowerCase();
-                  break;
-                case 3:
-                  cellA = a.createdAt;
-                  cellB = b.createdAt;
-                  break;
-                case 4:
-                  cellA = a.updatedAt;
-                  cellB = b.updatedAt;
-                  break;
-                default:
-                  return 0;
-              }
-              return _sortAscending
-                  ? cellA.compareTo(cellB)
-                  : cellB.compareTo(cellA);
+        // PERMINTAAN ANDA
+        availableRowsPerPage: const [25, 50, 100],
+
+        onRowsPerPageChanged: (value) {
+          if (value != null) {
+            setState(() {
+              _rowsPerPage = value;
+              _currentPage = 1;
             });
+            _fetchData();
           }
-
-          return PaginatedDataTable2(
-            columnSpacing: 12,
-            horizontalMargin: 12,
-            minWidth: 900,
-            rowsPerPage: rowsPerPage,
-            availableRowsPerPage: const [10, 25, 50, 100],
-            onRowsPerPageChanged: (value) {
-              if (value != null) {
-                ref.read(customerRowsPerPageProvider.notifier).state = value;
-              }
-            },
-            sortColumnIndex: _sortColumnIndex,
-            sortAscending: _sortAscending,
-            columns: _createColumns(),
-            source: _CustomerDataSource(
-              sortedCustomers,
-              context,
-              ref,
-              authToken,
-            ),
-          );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text('Error: $e')),
+        sortColumnIndex: _getSortColumnIndex(),
+        sortAscending: _sortAscending,
+
+        // HAPUS BARIS INI KARENA INI YANG MENYEBABKAN ERROR
+        // total: state.totalRecords,
+        initialFirstRowIndex: (_currentPage - 1) * _rowsPerPage,
+        onPageChanged: (pageIndex) {
+          int newPage = (pageIndex / _rowsPerPage).floor() + 1;
+          if (newPage != _currentPage) {
+            setState(() {
+              _currentPage = newPage;
+            });
+            _fetchData();
+          }
+        },
+        empty: state.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : (state.error != null
+                  ? Center(child: Text('Error: ${state.error}'))
+                  : const Center(child: Text('Tidak ada data'))),
+        columns: _createColumns(),
+        source: dataSource,
       ),
     );
+  }
+
+  // ... (Sisa file _createColumns dan _onSort tidak berubah) ...
+
+  int _getSortColumnIndex() {
+    switch (_sortBy) {
+      case 'nama_pt':
+        return 0;
+      case 'pj':
+        return 1;
+      case 'created_at':
+        return 3;
+      case 'updated_at':
+        return 4;
+      default:
+        return 0;
+    }
   }
 
   List<DataColumn2> _createColumns() {
@@ -107,7 +137,7 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
         size: ColumnSize.L,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Paraf'), size: ColumnSize.S),
+      const DataColumn2(label: Text('Paraf'), size: ColumnSize.S, onSort: null),
       DataColumn2(
         label: const Text('Tanggal Input'),
         size: ColumnSize.M,
@@ -118,91 +148,36 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
         size: ColumnSize.M,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Option'), size: ColumnSize.S),
+      const DataColumn2(
+        label: Text('Option'),
+        size: ColumnSize.S,
+        onSort: null,
+      ),
     ];
   }
 
   void _onSort(int columnIndex, bool ascending) {
+    String newSortBy;
+    switch (columnIndex) {
+      case 0:
+        newSortBy = 'nama_pt';
+        break;
+      case 1:
+        newSortBy = 'pj';
+        break;
+      case 3:
+        newSortBy = 'created_at';
+        break;
+      case 4:
+        newSortBy = 'updated_at';
+        break;
+      default:
+        return;
+    }
     setState(() {
-      _sortColumnIndex = columnIndex;
+      _sortBy = newSortBy;
       _sortAscending = ascending;
     });
+    _fetchData();
   }
-}
-
-class _CustomerDataSource extends DataTableSource {
-  final List<Customer> customers;
-  final BuildContext context;
-  final WidgetRef ref;
-  final String? authToken;
-  _CustomerDataSource(this.customers, this.context, this.ref, this.authToken);
-
-  @override
-  DataRow? getRow(int index) {
-    if (index >= customers.length) return null;
-    final customer = customers[index];
-    final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
-    return DataRow(
-      cells: [
-        DataCell(SelectableText(customer.namaPt)),
-        DataCell(SelectableText(customer.pj)),
-        DataCell(
-          (customer.signaturePj != null &&
-                  customer.signaturePj!.isNotEmpty &&
-                  authToken != null)
-              ? Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2.0),
-                  child: Image.network(
-                    // --- PERUBAHAN DI SINI ---
-                    '${ApiClient.baseUrl}/api/admin/customers/${customer.id}/paraf?v=${customer.updatedAt.millisecondsSinceEpoch}',
-                    headers: {'Authorization': 'Bearer $authToken'},
-                    fit: BoxFit.contain,
-                    loadingBuilder: (context, child, progress) =>
-                        progress == null
-                        ? child
-                        : const Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error, color: Colors.orange),
-                  ),
-                )
-              : const Icon(
-                  Icons.cancel,
-                  color: Colors.red,
-                  semanticLabel: 'Tidak Ada',
-                ),
-        ),
-        DataCell(
-          SelectableText(dateFormat.format(customer.createdAt.toLocal())),
-        ),
-        DataCell(
-          SelectableText(dateFormat.format(customer.updatedAt.toLocal())),
-        ),
-        DataCell(
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.orange),
-                tooltip: 'Edit Customer',
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (_) => EditCustomerDialog(customer: customer),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  @override
-  bool get isRowCountApproximate => false;
-  @override
-  int get rowCount => customers.length;
-  @override
-  int get selectedRowCount => 0;
 }

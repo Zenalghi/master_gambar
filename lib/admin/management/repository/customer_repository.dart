@@ -1,9 +1,10 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http_parser/http_parser.dart'; // Pastikan import ini ada
-import 'package:master_gambar/app/core/providers.dart';
-import 'package:master_gambar/data/models/customer.dart';
+import '../../../data/models/paginated_response.dart';
+import '../../../app/core/providers.dart';
+import '../../../data/models/customer.dart';
+import 'package:http_parser/http_parser.dart';
 
 final customerRepositoryProvider = Provider((ref) => CustomerRepository(ref));
 
@@ -11,15 +12,32 @@ class CustomerRepository {
   final Ref _ref;
   CustomerRepository(this._ref);
 
-  // GET all customers
-  Future<List<Customer>> getCustomers() async {
+  Future<PaginatedResponse<Customer>> getCustomers({
+    required int page,
+    required int rowsPerPage,
+    required String sortBy,
+    required bool sortAscending,
+    String? searchQuery,
+  }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .get('/admin/customers');
-    final List<dynamic> data = response.data;
-    return data.map((item) => Customer.fromJson(item)).toList();
+        .get(
+          '/admin/customers',
+          queryParameters: {
+            'page': page,
+            'per_page': rowsPerPage,
+            'sort_by': sortBy,
+            'sort_asc': sortAscending
+                .toString(), // Kirim sebagai string 'true'/'false'
+            if (searchQuery != null && searchQuery.isNotEmpty)
+              'search': searchQuery,
+          },
+        );
+    // Parse response menggunakan PaginatedResponse
+    return PaginatedResponse.fromJson(response.data, Customer.fromJson);
   }
+  // --- AKHIR PERUBAHAN ---
 
   // POST a new customer
   Future<Customer> addCustomer({
@@ -58,14 +76,11 @@ class CustomerRepository {
   }) async {
     final fileName = signatureFile.path.split(Platform.pathSeparator).last;
     final formData = FormData.fromMap({
-      // --- PERBAIKAN KUNCI (KEY) DI SINI ---
       'paraf_pj': await MultipartFile.fromFile(
         signatureFile.path,
         filename: fileName,
         contentType: MediaType('image', 'png'),
       ),
-
-      // ------------------------------------
     });
 
     final response = await _ref

@@ -97,8 +97,9 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
             backgroundColor: Colors.green,
           ),
         );
-        ref.invalidate(customerListProvider);
-        // Jangan tutup dialog agar perubahan terlihat
+        ref
+            .read(customerInvalidator.notifier)
+            .state++; // Jangan tutup dialog agar perubahan terlihat
         // if (mounted) Navigator.of(context).pop();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -147,7 +148,7 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
             backgroundColor: Colors.green,
           ),
         );
-        ref.invalidate(customerListProvider);
+        ref.read(customerInvalidator.notifier).state++;
         Navigator.of(context).pop();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(

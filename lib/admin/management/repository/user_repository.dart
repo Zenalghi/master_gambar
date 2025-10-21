@@ -2,8 +2,9 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:master_gambar/app/core/providers.dart';
-import 'package:master_gambar/data/models/app_user.dart';
+import '../../../app/core/providers.dart';
+import '../../../data/models/app_user.dart';
+import '../../../data/models/paginated_response.dart';
 
 final userRepositoryProvider = Provider((ref) => UserRepository(ref));
 
@@ -11,12 +12,32 @@ class UserRepository {
   final Ref _ref;
   UserRepository(this._ref);
 
-  // GET all users
-  Future<List<AppUser>> getUsers() async {
-    final response = await _ref.read(apiClientProvider).dio.get('/admin/users');
-    final List<dynamic> data = response.data;
-    return data.map((item) => AppUser.fromJson(item)).toList();
+  Future<PaginatedResponse<AppUser>> getUsers({
+    required int page,
+    required int rowsPerPage,
+    required String sortBy,
+    required bool sortAscending,
+    String? searchQuery,
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          '/admin/users',
+          queryParameters: {
+            'page': page,
+            'per_page': rowsPerPage,
+            'sort_by': sortBy,
+            'sort_asc': sortAscending
+                .toString(), // Kirim sebagai string 'true'/'false'
+            if (searchQuery != null && searchQuery.isNotEmpty)
+              'search': searchQuery,
+          },
+        );
+    // Parse response menggunakan PaginatedResponse
+    return PaginatedResponse.fromJson(response.data, AppUser.fromJson);
   }
+  // --- AKHIR PERUBAHAN ---
 
   // POST a new user
   Future<AppUser> addUser({
@@ -47,7 +68,7 @@ class UserRepository {
     required String name,
     required String username,
     required int roleId,
-    String? password, // Password bersifat opsional saat update
+    String? password,
   }) async {
     final data = {'name': name, 'username': username, 'role_id': roleId};
 

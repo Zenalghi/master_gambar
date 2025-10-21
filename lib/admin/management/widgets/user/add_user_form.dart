@@ -84,7 +84,7 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
           _signatureFile = null;
           _selectedRoleId = null;
         });
-        ref.invalidate(userListProvider);
+        ref.read(userInvalidator.notifier).state++;
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),

@@ -13,7 +13,6 @@ class CustomerManagementScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(24.0),
       child: Column(
         children: [
-          // Bagian Atas: Form Tambah & Kontrol
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -32,9 +31,10 @@ class CustomerManagementScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (value) =>
-                      ref.read(customerSearchQueryProvider.notifier).state =
-                          value,
+                  // --- PERUBAHAN DI SINI ---
+                  onChanged: (value) => ref
+                      .read(customerNotifierProvider.notifier)
+                      .onSearchChanged(value),
                 ),
               ),
             ],
@@ -42,8 +42,6 @@ class CustomerManagementScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           const AddCustomerForm(),
           const SizedBox(height: 24),
-
-          // Bagian Bawah: Tabel
           const Expanded(child: CustomerDataTable()),
         ],
       ),

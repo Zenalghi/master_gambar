@@ -65,7 +65,7 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
         _namaPtController.clear();
         _pjController.clear();
         setState(() => _signatureFile = null);
-        ref.invalidate(customerListProvider);
+        ref.read(customerInvalidator.notifier).state++;
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),

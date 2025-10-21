@@ -1,13 +1,8 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:master_gambar/admin/management/providers/user_providers.dart';
-import 'package:master_gambar/admin/management/widgets/user/edit_user_dialog.dart';
-import 'package:master_gambar/app/core/providers.dart';
-import 'package:master_gambar/data/models/app_user.dart';
-
-import '../../../../data/providers/api_client.dart';
+import 'user_data_source.dart';
 
 class UserDataTable extends ConsumerStatefulWidget {
   const UserDataTable({super.key});
@@ -17,64 +12,117 @@ class UserDataTable extends ConsumerStatefulWidget {
 }
 
 class _UserDataTableState extends ConsumerState<UserDataTable> {
-  int? _sortColumnIndex = 0;
-  bool _sortAscending = true;
+  int _rowsPerPage = 25; // Ubah default ke 25
+  int _currentPage = 1;
+  String _sortBy = 'updated_at';
+  bool _sortAscending = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchData());
+  }
+
+  void _fetchData() {
+    final searchQuery = ref.read(userSearchQueryProvider);
+    ref
+        .read(userNotifierProvider.notifier)
+        .getUsers(
+          page: _currentPage,
+          rowsPerPage: _rowsPerPage,
+          sortBy: _sortBy,
+          sortAscending: _sortAscending,
+          searchQuery: searchQuery,
+        );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final asyncUsers = ref.watch(userListProvider);
-    final searchQuery = ref.watch(userSearchQueryProvider);
-    final rowsPerPage = ref.watch(userRowsPerPageProvider);
-    final authToken = ref.watch(authTokenProvider);
+    ref.listen<String>(userSearchQueryProvider, (previous, next) {
+      if (previous != next) {
+        _currentPage = 1;
+        _fetchData();
+      }
+    });
+
+    ref.listen<int>(userInvalidator, (previous, next) {
+      if (previous != next) {
+        _fetchData();
+      }
+    });
+
+    final state = ref.watch(userNotifierProvider);
+
+    // PERBARUI CARA MEMBUAT DATA SOURCE
+    final dataSource = UserDataSource(
+      users: state.users,
+      totalRecords: state.totalRecords,
+      rowsPerPage: _rowsPerPage,
+      currentPage: _currentPage,
+      context: context,
+      ref: ref,
+    );
 
     return Card(
-      child: asyncUsers.when(
-        data: (users) {
-          final filteredUsers = users.where((u) {
-            final query = searchQuery.toLowerCase();
-            return u.name.toLowerCase().contains(query) ||
-                u.username.toLowerCase().contains(query);
-          }).toList();
+      child: PaginatedDataTable2(
+        minWidth: 900,
+        rowsPerPage: _rowsPerPage,
 
-          final sortedUsers = List<AppUser>.from(filteredUsers);
-          sortedUsers.sort((a, b) {
-            int result = 0;
-            switch (_sortColumnIndex) {
-              case 0:
-                result = a.name.compareTo(b.name);
-                break;
-              case 1:
-                result = a.username.compareTo(b.username);
-                break;
-              case 2:
-                result = (a.role?.name ?? '').compareTo(b.role?.name ?? '');
-                break;
-              case 4:
-                result = a.createdAt.compareTo(b.createdAt);
-                break;
-              case 5:
-                result = a.updatedAt.compareTo(b.updatedAt);
-                break;
-            }
-            return _sortAscending ? result : -result;
-          });
+        // PERMINTAAN ANDA
+        availableRowsPerPage: const [25, 50, 100],
 
-          return PaginatedDataTable2(
-            minWidth: 900,
-            rowsPerPage: rowsPerPage,
-            availableRowsPerPage: const [10, 25, 50, 100],
-            onRowsPerPageChanged: (value) =>
-                ref.read(userRowsPerPageProvider.notifier).state = value!,
-            sortColumnIndex: _sortColumnIndex,
-            sortAscending: _sortAscending,
-            columns: _createColumns(),
-            source: _UserDataDataSource(sortedUsers, context, ref, authToken),
-          );
+        onRowsPerPageChanged: (value) {
+          if (value != null) {
+            setState(() {
+              _rowsPerPage = value;
+              _currentPage = 1;
+            });
+            _fetchData();
+          }
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text('Error: $e')),
+        sortColumnIndex: _getSortColumnIndex(),
+        sortAscending: _sortAscending,
+
+        // HAPUS BARIS INI KARENA INI YANG MENYEBABKAN ERROR
+        // total: state.totalRecords,
+        initialFirstRowIndex: (_currentPage - 1) * _rowsPerPage,
+        onPageChanged: (pageIndex) {
+          int newPage = (pageIndex / _rowsPerPage).floor() + 1;
+          if (newPage != _currentPage) {
+            setState(() {
+              _currentPage = newPage;
+            });
+            _fetchData();
+          }
+        },
+        empty: state.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : (state.error != null
+                  ? Center(child: Text('Error: ${state.error}'))
+                  : const Center(child: Text('Tidak ada data'))),
+        columns: _createColumns(),
+        source: dataSource,
       ),
     );
+  }
+
+  // ... (Sisa file _createColumns dan _onSort tidak berubah) ...
+
+  int _getSortColumnIndex() {
+    switch (_sortBy) {
+      case 'name':
+        return 0;
+      case 'username':
+        return 1;
+      case 'role':
+        return 2;
+      case 'created_at':
+        return 4;
+      case 'updated_at':
+        return 5;
+      default:
+        return 0;
+    }
   }
 
   List<DataColumn2> _createColumns() {
@@ -94,7 +142,7 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
         size: ColumnSize.S,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Paraf'), size: ColumnSize.S),
+      const DataColumn2(label: Text('Paraf'), size: ColumnSize.S, onSort: null),
       DataColumn2(
         label: const Text('Tanggal Input'),
         size: ColumnSize.M,
@@ -105,85 +153,39 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
         size: ColumnSize.M,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Option'), size: ColumnSize.S),
+      const DataColumn2(
+        label: Text('Option'),
+        size: ColumnSize.S,
+        onSort: null,
+      ),
     ];
   }
 
   void _onSort(int columnIndex, bool ascending) {
+    String newSortBy;
+    switch (columnIndex) {
+      case 0:
+        newSortBy = 'name';
+        break;
+      case 1:
+        newSortBy = 'username';
+        break;
+      case 2:
+        newSortBy = 'role';
+        break;
+      case 4:
+        newSortBy = 'created_at';
+        break;
+      case 5:
+        newSortBy = 'updated_at';
+        break;
+      default:
+        return;
+    }
     setState(() {
-      _sortColumnIndex = columnIndex;
+      _sortBy = newSortBy;
       _sortAscending = ascending;
     });
+    _fetchData();
   }
-}
-
-class _UserDataDataSource extends DataTableSource {
-  final List<AppUser> users;
-  final BuildContext context;
-  final WidgetRef ref;
-  final String? authToken;
-
-  _UserDataDataSource(this.users, this.context, this.ref, this.authToken);
-
-  @override
-  DataRow? getRow(int index) {
-    final user = users[index];
-    final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
-    return DataRow(
-      cells: [
-        DataCell(SelectableText(user.name)),
-        DataCell(SelectableText(user.username)),
-        DataCell(Text(user.role?.name ?? 'N/A')),
-        DataCell(
-          (user.signature != null && authToken != null)
-              ? Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2.0),
-                  child: Image.network(
-                    // --- PERUBAHAN DI SINI ---
-                    '${ApiClient.baseUrl}/api/admin/users/${user.id}/paraf?v=${user.updatedAt.millisecondsSinceEpoch}',
-                    headers: {'Authorization': 'Bearer $authToken'},
-                    fit: BoxFit.contain,
-                    loadingBuilder: (context, child, progress) =>
-                        progress == null
-                        ? child
-                        : const Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error, color: Colors.orange),
-                  ),
-                )
-              : const Icon(
-                  Icons.cancel,
-                  color: Colors.red,
-                  semanticLabel: 'Tidak Ada',
-                ),
-        ),
-        DataCell(SelectableText(dateFormat.format(user.createdAt.toLocal()))),
-        DataCell(SelectableText(dateFormat.format(user.updatedAt.toLocal()))),
-        DataCell(
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.orange),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (_) => EditUserDialog(user: user),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  @override
-  bool get isRowCountApproximate => false;
-  @override
-  int get rowCount => users.length;
-  @override
-  int get selectedRowCount => 0;
 }

@@ -31,8 +31,10 @@ class UserManagementScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (value) =>
-                      ref.read(userSearchQueryProvider.notifier).state = value,
+                  // --- PERUBAHAN DI SINI ---
+                  onChanged: (value) => ref
+                      .read(userNotifierProvider.notifier)
+                      .onSearchChanged(value),
                 ),
               ),
             ],

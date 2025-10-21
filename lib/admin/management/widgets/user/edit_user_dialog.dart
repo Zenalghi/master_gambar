@@ -107,7 +107,7 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
             backgroundColor: Colors.green,
           ),
         );
-        ref.invalidate(userListProvider);
+        ref.read(userInvalidator.notifier).state++;
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
@@ -148,7 +148,7 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
             backgroundColor: Colors.green,
           ),
         );
-        ref.invalidate(userListProvider);
+        ref.read(userInvalidator.notifier).state++;
         Navigator.of(context).pop();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
