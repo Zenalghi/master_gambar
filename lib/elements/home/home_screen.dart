@@ -48,7 +48,8 @@ class HomeScreen extends ConsumerWidget {
               if (pageState.pageIndex == 1 && index == 0) {
                 // Jalankan semua logika reset yang Anda berikan
                 ref.read(isProcessingProvider.notifier).state = false;
-                ref.read(pemeriksaIdProvider.notifier).state = null;
+                // ref.read(pemeriksaIdProvider.notifier).state = null;
+                
                 ref.read(jumlahGambarProvider.notifier).state = 1;
                 ref.invalidate(gambarUtamaSelectionProvider);
                 ref.read(showGambarOptionalProvider.notifier).state = false;

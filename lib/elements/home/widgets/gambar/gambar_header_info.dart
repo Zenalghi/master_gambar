@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
 import 'package:master_gambar/elements/home/providers/input_gambar_providers.dart';
 import '../../../../app/core/notifiers/refresh_notifier.dart';
+import '../../../../data/models/option_item.dart';
 
 class GambarHeaderInfo extends ConsumerWidget {
   final Transaksi transaksi;
@@ -14,7 +15,7 @@ class GambarHeaderInfo extends ConsumerWidget {
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
     ref.read(deskripsiOptionalProvider.notifier).state = '';
     // 1. Reset semua state pilihan di form
-    ref.read(pemeriksaIdProvider.notifier).state = null;
+    // ref.read(pemeriksaIdProvider.notifier).state = null;
     ref.read(jumlahGambarProvider.notifier).state = 1;
     // invalidate akan mereset StateNotifier ke state awalnya
     ref.invalidate(gambarUtamaSelectionProvider);
@@ -160,20 +161,29 @@ class GambarHeaderInfo extends ConsumerWidget {
 }
 
 Widget _buildPemeriksaDropdown(WidgetRef ref) {
-  final pemeriksaOptions = ref.watch(pemeriksaOptionsProvider);
+  final pemeriksaOptionsAsync = ref.watch(pemeriksaOptionsProvider);
   final selectedId = ref.watch(pemeriksaIdProvider);
 
-  return pemeriksaOptions.when(
+  ref.listen<AsyncValue<List<OptionItem>>>(pemeriksaOptionsProvider, (
+    previous,
+    next,
+  ) {
+    if (next is AsyncData && !(previous is AsyncData)) {
+      final options = next.value;
+      if (options!.isNotEmpty && ref.read(pemeriksaIdProvider) == null) {
+        ref.read(pemeriksaIdProvider.notifier).state = options.first.id as int?;
+      }
+    }
+  });
+
+  return pemeriksaOptionsAsync.when(
     data: (items) => DropdownButtonFormField<int>(
-      initialValue: selectedId,
-      hint: const Text('Pemeriksa'),
+      value: selectedId,
+      hint: const Text('Pilih Pemeriksa'),
       decoration: const InputDecoration(
         labelText: 'Pemeriksa',
         border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 8,
-        ), // Atur padding
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
       items: items
           .map(
@@ -184,9 +194,12 @@ Widget _buildPemeriksaDropdown(WidgetRef ref) {
       onChanged: (value) {
         ref.read(pemeriksaIdProvider.notifier).state = value;
       },
+      validator: (value) => value == null ? 'Wajib dipilih' : null,
     ),
     loading: () => const Center(child: CircularProgressIndicator()),
-    error: (err, stack) =>
-        const Tooltip(message: 'Error', child: Icon(Icons.error)),
+    error: (err, stack) => const Tooltip(
+      message: 'Error memuat pemeriksa',
+      child: Icon(Icons.error),
+    ),
   );
 }
