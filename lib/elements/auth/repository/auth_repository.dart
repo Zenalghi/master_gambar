@@ -68,7 +68,7 @@ class AuthRepository {
     ref.invalidate(jenisPengajuanOptionsProvider);
 
     // 6. Reset semua state form Input Gambar
-    ref.read(pemeriksaIdProvider.notifier).state = null;
+    // ref.read(pemeriksaIdProvider.notifier).state = null;
     ref.read(showGambarOptionalProvider.notifier).state = false;
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
     ref.invalidate(gambarOptionalSelectionProvider);

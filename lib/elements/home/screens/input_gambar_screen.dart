@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:master_gambar/data/models/transaksi.dart';
-import 'package:master_gambar/elements/home/providers/input_gambar_providers.dart';
-import 'package:master_gambar/elements/home/providers/page_state_provider.dart';
-import 'package:master_gambar/elements/home/repository/proses_transaksi_repository.dart';
-import 'package:master_gambar/elements/home/screens/pdf_viewer_screen.dart';
-import 'package:master_gambar/elements/home/widgets/gambar/gambar_header_info.dart';
-import 'package:master_gambar/elements/home/widgets/gambar/gambar_main_form.dart';
 
+import '../../../admin/master/widgets/pdf_viewer_dialog.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
+import '../../../data/models/transaksi.dart';
+import '../providers/input_gambar_providers.dart';
+import '../providers/page_state_provider.dart';
+import '../repository/proses_transaksi_repository.dart';
+import '../widgets/gambar/gambar_header_info.dart';
+import '../widgets/gambar/gambar_main_form.dart';
 import '../widgets/transaksi_history_datasource.dart';
 
 class InputGambarScreen extends ConsumerWidget {
@@ -217,7 +217,7 @@ class InputGambarScreen extends ConsumerWidget {
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
     ref.read(deskripsiOptionalProvider.notifier).state = '';
     // 1. Reset semua state pilihan di form
-    ref.read(pemeriksaIdProvider.notifier).state = null;
+    // ref.read(pemeriksaIdProvider.notifier).state = null;
     ref.read(jumlahGambarProvider.notifier).state = 1;
     // invalidate akan mereset StateNotifier ke state awalnya
     ref.invalidate(gambarUtamaSelectionProvider);
