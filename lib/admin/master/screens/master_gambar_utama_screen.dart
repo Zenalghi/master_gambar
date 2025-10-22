@@ -1,12 +1,11 @@
-import 'dart:io';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
-import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
-import 'package:pdfx/pdfx.dart';
+// import 'package:pdfx/pdfx.dart';
+import '../providers/master_data_providers.dart';
+import '../repository/master_data_repository.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
+import '../widgets/dependent_optional_form_card.dart';
 import '../widgets/pilih_file_pdf_card.dart';
 import '../widgets/pilih_varian_body_card.dart';
 
@@ -21,12 +20,10 @@ class _MasterGambarUtamaScreenState
     extends ConsumerState<MasterGambarUtamaScreen> {
   bool _isLoading = false;
   final _deskripsiController = TextEditingController();
-  PdfController? _pdfController;
 
   @override
   void dispose() {
     _deskripsiController.dispose();
-    _pdfController?.dispose();
     super.dispose();
   }
 
@@ -44,10 +41,6 @@ class _MasterGambarUtamaScreenState
     ref.read(mguShowDependentOptionalProvider.notifier).state = false;
     ref.read(mguDependentFileProvider.notifier).state = null;
     _deskripsiController.clear();
-    setState(() {
-      _pdfController?.dispose();
-      _pdfController = null;
-    });
   }
 
   void _resetAndRefresh() {
@@ -59,24 +52,6 @@ class _MasterGambarUtamaScreenState
     ref.invalidate(varianBodyOptionsFamilyProvider);
     ref.invalidate(gambarOptionalFilterProvider);
     ref.read(refreshNotifierProvider.notifier).refresh();
-  }
-
-  Future<void> _pickDependentFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
-
-    if (result != null && result.files.single.path != null) {
-      final file = File(result.files.single.path!);
-      ref.read(mguDependentFileProvider.notifier).state = file;
-      setState(() {
-        _pdfController?.dispose();
-        _pdfController = PdfController(
-          document: PdfDocument.openFile(file.path),
-        );
-      });
-    }
   }
 
   Future<void> _submit() async {
@@ -165,7 +140,6 @@ class _MasterGambarUtamaScreenState
   @override
   Widget build(BuildContext context) {
     final showDependent = ref.watch(mguShowDependentOptionalProvider);
-    final dependentFile = ref.watch(mguDependentFileProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
@@ -193,7 +167,7 @@ class _MasterGambarUtamaScreenState
           // const SizedBox(height: 16),
           const Divider(),
 
-          // --- UI BARU UNTUK GAMBAR OPTIONAL DEPENDEN ---
+          // --- GAMBAR OPTIONAL DEPENDEN ---
           CheckboxListTile(
             title: const Text("Tambahkan Gambar Optional Paket"),
             value: showDependent,
@@ -204,76 +178,8 @@ class _MasterGambarUtamaScreenState
             contentPadding: EdgeInsets.zero,
           ),
           if (showDependent)
-            Card(
-              margin: const EdgeInsets.only(top: 8),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SizedBox(
-                  height: 320,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              controller: _deskripsiController,
-                              decoration: const InputDecoration(
-                                labelText: 'Deskripsi Optional Paket',
-                              ),
-                              textCapitalization: TextCapitalization.characters,
-                            ),
-                            const Spacer(),
-                            ElevatedButton.icon(
-                              icon: const Icon(Icons.picture_as_pdf),
-                              label: Text(
-                                dependentFile == null
-                                    ? 'Pilih Gambar Optional Paket'
-                                    : 'Ganti Gambar',
-                              ),
-                              onPressed: _pickDependentFile,
-                              style: ElevatedButton.styleFrom(
-                                minimumSize: const Size(double.infinity, 44),
-                              ),
-                            ),
-                            if (dependentFile != null)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
-                                child: Text(
-                                  'File: ${dependentFile.path.split(Platform.pathSeparator).last}',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Card(
-                          elevation: 2,
-                          clipBehavior: Clip.antiAlias,
-                          child: Container(
-                            color: Colors.grey.shade100,
-                            child: _pdfController != null
-                                ? PdfView(
-                                    key: ValueKey(dependentFile!.path),
-                                    controller: _pdfController!,
-                                  )
-                                : const Center(
-                                    child: Icon(
-                                      Icons.picture_as_pdf_outlined,
-                                      size: 40,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            DependentOptionalFormCard(
+              deskripsiController: _deskripsiController, // Kirim controller
             ),
 
           // const SizedBox(height: 16),
