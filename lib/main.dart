@@ -12,6 +12,7 @@ void main() async {
     await windowManager.ensureInitialized();
 
     WindowOptions windowOptions = const WindowOptions(
+      size: Size(1280, 750),
       center: true,
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
@@ -19,10 +20,10 @@ void main() async {
     );
 
     windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.setMinimumSize(const Size(1280, 750));
       await windowManager.maximize();
       await windowManager.show();
       await windowManager.focus();
-      await windowManager.setMinimumSize(const Size(1280, 750));
     });
   }
 
