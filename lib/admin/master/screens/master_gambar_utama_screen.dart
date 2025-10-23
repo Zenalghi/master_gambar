@@ -138,7 +138,7 @@ class _MasterGambarUtamaScreenState
 
   @override
   Widget build(BuildContext context) {
-    final showDependent = ref.watch(mguShowDependentOptionalProvider);
+    ref.watch(mguShowDependentOptionalProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
