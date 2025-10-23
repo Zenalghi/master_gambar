@@ -32,7 +32,7 @@ class _MasterGambarUtamaScreenState
     // ref.read(mguSelectedMerkIdProvider.notifier).state = null;
     // ref.read(mguSelectedTypeChassisIdProvider.notifier).state = null;
     // ref.read(mguSelectedJenisKendaraanIdProvider.notifier).state = null;
-    // ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
+    ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
     ref.read(mguGambarUtamaFileProvider.notifier).state = null;
     ref.read(mguGambarTeruraiFileProvider.notifier).state = null;
     ref.read(mguGambarKontruksiFileProvider.notifier).state = null;
@@ -165,22 +165,69 @@ class _MasterGambarUtamaScreenState
           const PilihVarianBodyCard(),
           // const SizedBox(height: 16),
           const Divider(),
+          Consumer(
+            builder: (context, ref, child) {
+              final hasExistingPaket = ref.watch(
+                hasExistingPaketOptionalProvider,
+              );
+              final showDependentCheckbox = ref.watch(
+                mguShowDependentOptionalProvider,
+              );
 
-          // --- GAMBAR OPTIONAL DEPENDEN ---
-          CheckboxListTile(
-            title: const Text("Tambahkan Gambar Optional Paket"),
-            value: showDependent,
-            onChanged: (value) =>
-                ref.read(mguShowDependentOptionalProvider.notifier).state =
-                    value!,
-            controlAffinity: ListTileControlAffinity.leading,
-            contentPadding: EdgeInsets.zero,
+              return hasExistingPaket.when(
+                data: (exists) {
+                  if (exists) {
+                    // Jika sudah ada, tampilkan pesan peringatan
+                    return const ListTile(
+                      leading: Icon(
+                        Icons.warning_amber_rounded,
+                        color: Colors.orange,
+                      ),
+                      title: Text(
+                        'Gambar Optional Paket sudah ada untuk Varian Body ini.',
+                        style: TextStyle(fontStyle: FontStyle.italic),
+                      ),
+                      subtitle: Text(
+                        'Hapus data lama di tabel Gambar Optional jika ingin mengganti.',
+                      ),
+                    );
+                  } else {
+                    // Jika belum ada, tampilkan Checkbox dan Form (jika dicentang)
+                    return Column(
+                      children: [
+                        CheckboxListTile(
+                          title: const Text("Tambahkan Gambar Optional Paket"),
+                          value: showDependentCheckbox,
+                          onChanged: (value) =>
+                              ref
+                                      .read(
+                                        mguShowDependentOptionalProvider
+                                            .notifier,
+                                      )
+                                      .state =
+                                  value!,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        if (showDependentCheckbox)
+                          DependentOptionalFormCard(
+                            deskripsiController: _deskripsiController,
+                          ),
+                      ],
+                    );
+                  }
+                },
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (err, stack) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: Text('Error memeriksa data: $err'),
+                ),
+              );
+            },
           ),
-          if (showDependent)
-            DependentOptionalFormCard(
-              deskripsiController: _deskripsiController, // Kirim controller
-            ),
-
           // const SizedBox(height: 16),
           const Divider(),
 

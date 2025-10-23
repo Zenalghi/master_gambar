@@ -554,4 +554,17 @@ class MasterDataRepository {
         );
     return response.data;
   }
+
+  Future<bool> checkPaketOptionalExists(int varianBodyId) async {
+    try {
+      final response = await _ref
+          .read(apiClientProvider)
+          .dio
+          .get('/admin/options/check-paket-optional/$varianBodyId');
+      return response.data['exists'] as bool;
+    } catch (e) {
+      // Jika error (misal Varian Body tidak ditemukan), anggap tidak ada
+      return false;
+    }
+  }
 }

@@ -176,3 +176,18 @@ final mguDependentFileProvider = StateProvider<File?>((ref) => null);
 final imageStatusFilterProvider = StateProvider<Map<String, String>>((ref) {
   return {'search': '', 'sortBy': 'updated_at', 'sortDirection': 'desc'};
 });
+
+// Provider ini akan melakukan pengecekan ke backend saat Varian Body dipilih
+final hasExistingPaketOptionalProvider = FutureProvider<bool>((ref) async {
+  final selectedVarianBodyId = ref.watch(mguSelectedVarianBodyIdProvider);
+
+  // Jika belum ada Varian Body dipilih, anggap tidak ada
+  if (selectedVarianBodyId == null) {
+    return false;
+  }
+
+  // Panggil repository untuk mengecek
+  return ref
+      .watch(masterDataRepositoryProvider)
+      .checkPaketOptionalExists(selectedVarianBodyId);
+});
