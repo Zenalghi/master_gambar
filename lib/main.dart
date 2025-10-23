@@ -19,10 +19,10 @@ void main() async {
     );
 
     windowManager.waitUntilReadyToShow(windowOptions, () async {
-      await windowManager.setMinimumSize(const Size(1280, 750));
+      await windowManager.maximize();
       await windowManager.show();
       await windowManager.focus();
-      await windowManager.maximize();
+      await windowManager.setMinimumSize(const Size(1280, 750));
     });
   }
 
