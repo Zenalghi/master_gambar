@@ -17,5 +17,6 @@ Master_Gambar aims to simplify the image management process across various indus
 1. Clone the repository or download the source files.
 2. Install Flutter and set up your environment as per the Flutter documentation: [Flutter Installation Guide](https://flutter.dev/docs/get-started/install).
 3. Run the following command in your terminal to install dependencies:
+
    ```bash
    flutter pub get
