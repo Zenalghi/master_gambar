@@ -13,6 +13,7 @@ class LoginScreen extends ConsumerWidget {
     final usernameController = TextEditingController();
     final passwordController = TextEditingController();
     final authState = ref.watch(authNotifierProvider);
+    final versionAsync = ref.watch(packageInfoProvider);
 
     ref.listen<AsyncValue<void>>(authNotifierProvider, (previous, next) {
       if (next is AsyncError) {
@@ -42,7 +43,11 @@ class LoginScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('Login', textAlign: TextAlign.center, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Login',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 32.0),
                   Card(
                     child: Padding(
@@ -52,7 +57,9 @@ class LoginScreen extends ConsumerWidget {
                         children: [
                           TextFormField(
                             controller: usernameController,
-                            decoration: const InputDecoration(labelText: 'Username'),
+                            decoration: const InputDecoration(
+                              labelText: 'Username',
+                            ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Username tidak boleh kosong';
@@ -64,7 +71,9 @@ class LoginScreen extends ConsumerWidget {
                           TextFormField(
                             controller: passwordController,
                             obscureText: true,
-                            decoration: const InputDecoration(labelText: 'Password'),
+                            decoration: const InputDecoration(
+                              labelText: 'Password',
+                            ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Password tidak boleh kosong';
@@ -79,7 +88,9 @@ class LoginScreen extends ConsumerWidget {
                                   onPressed: () {
                                     if (formKey.currentState!.validate()) {
                                       // Kirim 'ref' ke dalam fungsi login
-                                      ref.read(authNotifierProvider.notifier).login(
+                                      ref
+                                          .read(authNotifierProvider.notifier)
+                                          .login(
                                             usernameController.text,
                                             passwordController.text,
                                             ref, // Teruskan ref ke notifier
@@ -91,6 +102,21 @@ class LoginScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
+                  ),
+                  SizedBox(height: 24.0),
+                  versionAsync.when(
+                    data: (packageInfo) {
+                      // packageInfo.version -> "1.0.0"
+                      // packageInfo.buildNumber -> "1" (dari +1)
+                      return Text(
+                        'Versi ${packageInfo.version} (${packageInfo.buildNumber})',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      );
+                    },
+                    // Tampilkan text kosong saat memuat atau error
+                    loading: () => const SizedBox.shrink(),
+                    error: (err, stack) => const SizedBox.shrink(),
                   ),
                 ],
               ),

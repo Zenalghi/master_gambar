@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../../app/core/providers.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import '../repository/auth_repository.dart';
@@ -8,6 +9,11 @@ final authNotifierProvider =
     StateNotifierProvider<AuthNotifier, AsyncValue<void>>((ref) {
       return AuthNotifier(ref.watch(authRepositoryProvider));
     });
+
+// Provider untuk mengambil info paket (termasuk versi)
+final packageInfoProvider = FutureProvider<PackageInfo>((ref) {
+  return PackageInfo.fromPlatform();
+});
 
 class AuthNotifier extends StateNotifier<AsyncValue<void>> {
   final AuthRepository _authRepository;
