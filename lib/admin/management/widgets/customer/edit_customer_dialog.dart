@@ -74,7 +74,6 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
           pj: _pjController.text,
         );
 
-        // Perbarui state lokal dengan data teks yang baru
         setState(() {
           _currentCustomer = updatedCustomer;
         });
@@ -84,7 +83,6 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
             customerId: _currentCustomer.id,
             signatureFile: _signatureFile!,
           );
-          // Perbarui lagi state dengan data gambar yang baru & bersihkan file lokal
           setState(() {
             _currentCustomer = customerWithNewSignature;
             _signatureFile = null;
@@ -97,10 +95,7 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
             backgroundColor: Colors.green,
           ),
         );
-        ref
-            .read(customerInvalidator.notifier)
-            .state++; // Jangan tutup dialog agar perubahan terlihat
-        // if (mounted) Navigator.of(context).pop();
+        ref.read(customerInvalidator.notifier).state++;
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
@@ -114,7 +109,6 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
   }
 
   Future<void> _submitDelete() async {
-    // Tampilkan dialog konfirmasi
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -164,129 +158,126 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    // --- PERBAIKAN: Tambahkan parameter unik ke URL ---
     final imageUrl =
         (_authToken != null && _currentCustomer.signaturePj != null)
-        // Tambahkan timestamp sebagai 'cache buster'
         ? '${ApiClient.baseUrl}/api/admin/customers/${_currentCustomer.id}/paraf?v=${DateTime.now().millisecondsSinceEpoch}'
         : null;
     return AlertDialog(
       title: Text('Edit Customer: ${_currentCustomer.namaPt}'),
+
+      // --- PERUBAHAN DI SINI ---
       content: SizedBox(
         width: 500,
+        // Hapus 'height: 225'
         child: Form(
           key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: _namaPtController,
-                  decoration: const InputDecoration(labelText: 'Nama Customer'),
-                  validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
+          // Hapus 'SingleChildScrollView'
+          child: Column(
+            mainAxisSize:
+                MainAxisSize.min, // Biarkan Column yang mengatur tinggi
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _namaPtController,
+                decoration: const InputDecoration(labelText: 'Nama Customer'),
+                validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _pjController,
+                decoration: const InputDecoration(
+                  labelText: 'Penanggung Jawab',
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _pjController,
-                  decoration: const InputDecoration(
-                    labelText: 'Penanggung Jawab',
-                  ),
-                  validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
-                ),
-                const SizedBox(height: 16),
-                const Text('Paraf', style: TextStyle(fontSize: 12)),
-                const SizedBox(height: 4),
-                Row(
-                  // Menggunakan Row biasa karena DropTarget tidak dibutuhkan di sini
-                  children: [
-                    DropTarget(
-                      onDragDone: (details) {
-                        if (details.files.isNotEmpty) {
-                          setState(() {
-                            _signatureFile = File(details.files.first.path);
-                          });
-                        }
-                      },
-                      onDragEntered: (details) =>
-                          setState(() => _isDragging = true),
-                      onDragExited: (details) =>
-                          setState(() => _isDragging = false),
-                      child: Container(
-                        width: 100,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: _isDragging
-                                ? Theme.of(context).primaryColor
-                                : Colors.grey,
-                            width: _isDragging ? 3 : 1,
-                          ),
-                          borderRadius: BorderRadius.circular(4),
+                validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
+              ),
+              const SizedBox(height: 16),
+              const Text('Paraf', style: TextStyle(fontSize: 12)),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  DropTarget(
+                    onDragDone: (details) {
+                      if (details.files.isNotEmpty) {
+                        setState(() {
+                          _signatureFile = File(details.files.first.path);
+                        });
+                      }
+                    },
+                    onDragEntered: (details) =>
+                        setState(() => _isDragging = true),
+                    onDragExited: (details) =>
+                        setState(() => _isDragging = false),
+                    child: Container(
+                      width: 100,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: _isDragging
+                              ? Theme.of(context).primaryColor
+                              : Colors.grey,
+                          width: _isDragging ? 3 : 1,
                         ),
-                        child: _signatureFile != null
-                            ? Image.file(_signatureFile!, fit: BoxFit.contain)
-                            : (imageUrl != null
-                                  ? Image.network(
-                                      imageUrl,
-                                      // --- PERBAIKAN: Gunakan ValueKey dengan data yang berubah ---
-                                      key: ValueKey(
-                                        _currentCustomer.signaturePj,
-                                      ),
-                                      fit: BoxFit.contain,
-                                      headers: {
-                                        'Authorization': 'Bearer $_authToken',
-                                      },
-                                      loadingBuilder: (context, child, progress) {
-                                        return progress == null
-                                            ? child
-                                            : const Center(
-                                                child:
-                                                    CircularProgressIndicator(),
-                                              );
-                                      },
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                            return const Icon(
-                                              Icons.error_outline,
-                                              color: Colors.red,
-                                            );
-                                          },
-                                    )
-                                  : const Center(
-                                      child: Text(
-                                        'PNG',
-                                        style: TextStyle(color: Colors.grey),
-                                      ),
-                                    )),
+                        borderRadius: BorderRadius.circular(4),
                       ),
+                      child: _signatureFile != null
+                          ? Image.file(_signatureFile!, fit: BoxFit.contain)
+                          : (imageUrl != null
+                                ? Image.network(
+                                    imageUrl,
+                                    key: ValueKey(_currentCustomer.signaturePj),
+                                    fit: BoxFit.contain,
+                                    headers: {
+                                      'Authorization': 'Bearer $_authToken',
+                                    },
+                                    loadingBuilder: (context, child, progress) {
+                                      return progress == null
+                                          ? child
+                                          : const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Icon(
+                                        Icons.error_outline,
+                                        color: Colors.red,
+                                      );
+                                    },
+                                  )
+                                : const Center(
+                                    child: Text(
+                                      'PNG',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  )),
                     ),
-                    const SizedBox(width: 8),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.upload_file),
-                      label: const Text('Ganti Gambar'),
-                      onPressed: _pickImage,
-                    ),
-                  ],
-                ),
-                const Text(
-                  'Saran lebar gambar ± 500px',
-                  style: TextStyle(fontSize: 10, color: Colors.grey),
-                ),
-              ],
-            ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.upload_file),
+                    label: const Text('Ganti Gambar'),
+                    onPressed: _pickImage,
+                  ),
+                ],
+              ),
+              const Text(
+                'Saran lebar gambar ± 500px',
+                style: TextStyle(fontSize: 10, color: Colors.grey),
+              ),
+            ],
           ),
         ),
       ),
+      // --- AKHIR PERUBAHAN ---
       actions: [
+        if (_isLoading) const CircularProgressIndicator(),
         TextButton(
           onPressed: _isLoading ? null : _submitDelete,
           child: const Text('Hapus'),
           style: TextButton.styleFrom(foregroundColor: Colors.red),
         ),
-        SizedBox(width: 150),
+        SizedBox(width: 200),
         if (_isLoading) const CircularProgressIndicator(),
-        const Spacer(),
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
           child: const Text('Tutup'),
