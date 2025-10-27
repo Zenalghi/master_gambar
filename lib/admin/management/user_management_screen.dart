@@ -20,6 +20,7 @@ class UserManagementScreen extends ConsumerWidget {
                 'Manajemen User',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
+              const Spacer(),
               SizedBox(
                 width: 250,
                 child: TextField(
@@ -31,11 +32,18 @@ class UserManagementScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  // --- PERUBAHAN DI SINI ---
                   onChanged: (value) => ref
                       .read(userNotifierProvider.notifier)
                       .onSearchChanged(value),
                 ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Muat Ulang Data',
+                onPressed: () {
+                  ref.read(userInvalidator.notifier).state++;
+                },
               ),
             ],
           ),
