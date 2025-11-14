@@ -6,14 +6,28 @@ import '../../elements/auth/repository/auth_repository.dart';
 import '../../data/providers/api_client.dart'; // Import class ApiClient
 import '../../elements/auth/auth_service.dart';
 
+final baseUrlProvider = Provider<String>((ref) {
+  // Nilai ini adalah fallback jika override gagal,
+  // atau Anda bisa melempar error.
+  throw UnimplementedError('baseUrlProvider tidak di-override');
+});
+
 // Provider untuk instance ApiClient
 final apiClientProvider = Provider<ApiClient>((ref) {
-  return ApiClient();
+  // 1. Baca baseUrl dari provider baru
+  final baseUrl = ref.watch(baseUrlProvider);
+
+  // 2. Kirim baseUrl ke constructor ApiClient
+  return ApiClient(baseUrl);
 });
 
 // Provider untuk AuthRepository (tidak berubah)
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthRepository();
+  // 1. Ambil instance ApiClient dari provider-nya
+  final apiClient = ref.watch(apiClientProvider);
+
+  // 2. Kirimkan instance tersebut ke constructor AuthRepository
+  return AuthRepository(apiClient);
 });
 
 // StateProvider untuk role pengguna (tidak berubah)

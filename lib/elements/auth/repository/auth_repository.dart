@@ -9,8 +9,10 @@ import '../../../data/providers/api_client.dart';
 import '../../../app/core/providers.dart';
 
 class AuthRepository {
-  final ApiClient _apiClient = ApiClient();
-
+  // final ApiClient _apiClient = ApiClient();
+  final ApiClient _apiClient;
+  AuthRepository(this._apiClient);
+  
   Future<void> login(String username, String password, WidgetRef ref) async {
     try {
       final response = await _apiClient.dio.post(

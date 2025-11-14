@@ -8,11 +8,10 @@ class ApiClient {
 
   final Dio dio;
 
-  ApiClient()
+  ApiClient(String baseUrl) 
     : dio = Dio(
         BaseOptions(
-          // 2. Gunakan variabel di atas untuk membangun URL API untuk Dio
-          baseUrl: '$baseUrl/api',
+          baseUrl: baseUrl,
           connectTimeout: const Duration(seconds: 15),
           receiveTimeout: const Duration(seconds: 15),
           headers: {
