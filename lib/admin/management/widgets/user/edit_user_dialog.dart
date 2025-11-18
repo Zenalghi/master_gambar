@@ -24,6 +24,7 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
   late final TextEditingController _usernameController;
   final _passwordController = TextEditingController();
   final _passwordConfirmationController = TextEditingController();
+  late final TextEditingController _hintController;
   int? _selectedRoleId;
   File? _signatureFile;
   bool _isLoading = false;
@@ -37,6 +38,7 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
     _currentUser = widget.user;
     _nameController = TextEditingController(text: _currentUser.name);
     _usernameController = TextEditingController(text: _currentUser.username);
+    _hintController = TextEditingController(text: _currentUser.hint);
     _selectedRoleId = _currentUser.role?.id;
     _loadToken();
   }
@@ -52,6 +54,7 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
     _usernameController.dispose();
     _passwordController.dispose();
     _passwordConfirmationController.dispose();
+    _hintController.dispose();
     super.dispose();
   }
 
@@ -87,6 +90,7 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
           password: _passwordController.text.isNotEmpty
               ? _passwordController.text
               : null,
+          hint: _hintController.text.isNotEmpty ? _hintController.text : null,
         );
         setState(() => _currentUser = updatedUser);
 

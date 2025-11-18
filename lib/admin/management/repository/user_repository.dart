@@ -45,6 +45,7 @@ class UserRepository {
     required String username,
     required String password,
     required int roleId,
+    String? hint,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
@@ -57,6 +58,7 @@ class UserRepository {
             'password': password,
             'password_confirmation': password,
             'role_id': roleId,
+            'hint': hint,
           },
         );
     return AppUser.fromJson(response.data);
@@ -69,8 +71,14 @@ class UserRepository {
     required String username,
     required int roleId,
     String? password,
+    String? hint,
   }) async {
-    final data = {'name': name, 'username': username, 'role_id': roleId};
+    final data = {
+      'name': name,
+      'username': username,
+      'role_id': roleId,
+      'hint': hint,
+    };
 
     if (password != null && password.isNotEmpty) {
       data['password'] = password;

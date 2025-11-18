@@ -116,10 +116,12 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
         return 1;
       case 'role':
         return 2;
+      case 'hint':
+        return 3; // <-- TAMBAHKAN INI
       case 'created_at':
-        return 4;
+        return 5; // <-- Ubah jadi 5
       case 'updated_at':
-        return 5;
+        return 6; // <-- Ubah jadi 6
       default:
         return 0;
     }
@@ -140,6 +142,11 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
       DataColumn2(
         label: const Text('Role'),
         size: ColumnSize.S,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Hint'),
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       const DataColumn2(label: Text('Paraf'), size: ColumnSize.S, onSort: null),
@@ -173,12 +180,15 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
       case 2:
         newSortBy = 'role';
         break;
-      case 4:
-        newSortBy = 'created_at';
-        break;
+      case 3:
+        newSortBy = 'hint';
+        break; // <-- TAMBAHKAN INI
       case 5:
+        newSortBy = 'created_at';
+        break; // <-- Ubah jadi 5
+      case 6:
         newSortBy = 'updated_at';
-        break;
+        break; // <-- Ubah jadi 6
       default:
         return;
     }

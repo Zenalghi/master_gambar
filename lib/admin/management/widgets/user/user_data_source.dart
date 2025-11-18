@@ -41,6 +41,7 @@ class UserDataSource extends DataTableSource {
         DataCell(SelectableText(user.name)),
         DataCell(SelectableText(user.username)),
         DataCell(Text(user.role?.name ?? 'N/A')),
+        DataCell(SelectableText(user.hint ?? '')),
         DataCell(
           (user.signature != null &&
                   user.signature!.isNotEmpty &&

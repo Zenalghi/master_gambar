@@ -18,6 +18,7 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _passwordConfirmationController = TextEditingController();
+  final _hintController = TextEditingController();
   int? _selectedRoleId;
   File? _signatureFile;
   bool _isLoading = false;
@@ -29,6 +30,7 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
     _usernameController.dispose();
     _passwordController.dispose();
     _passwordConfirmationController.dispose();
+    _hintController.dispose();
     super.dispose();
   }
 
@@ -60,6 +62,7 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
           username: _usernameController.text,
           password: _passwordController.text,
           roleId: _selectedRoleId!,
+          hint: _hintController.text.isNotEmpty ? _hintController.text : null,
         );
 
         if (_signatureFile != null) {
@@ -80,6 +83,7 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
         _usernameController.clear();
         _passwordController.clear();
         _passwordConfirmationController.clear();
+        _hintController.clear();
         setState(() {
           _signatureFile = null;
           _selectedRoleId = null;
@@ -187,6 +191,15 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
                         }
                         return null;
                       },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // --- TAMBAHKAN FIELD HINT DI SINI ---
+                  Expanded(
+                    child: TextFormField(
+                      controller: _hintController,
+                      decoration: const InputDecoration(labelText: 'Hint'),
+                      // Tidak perlu validator karena nullable
                     ),
                   ),
                   const SizedBox(width: 16),

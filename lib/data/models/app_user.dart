@@ -17,6 +17,7 @@ class AppUser {
   final String username;
   final Role? role;
   final String? signature;
+  final String? hint;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -26,6 +27,7 @@ class AppUser {
     required this.username,
     this.role,
     this.signature,
+    this.hint,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -37,6 +39,7 @@ class AppUser {
       username: json['username'],
       role: json['role'] != null ? Role.fromJson(json['role']) : null,
       signature: json['signature'],
+      hint: json['hint'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );
