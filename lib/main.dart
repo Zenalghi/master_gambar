@@ -44,7 +44,7 @@ void main() async {
     );
 
     windowManager.waitUntilReadyToShow(windowOptions, () async {
-      await windowManager.setMinimumSize(const Size(1280, 750));
+      await windowManager.setMinimumSize(const Size(1280, 820));
       await windowManager.maximize();
       await windowManager.show();
       await windowManager.focus();
