@@ -22,7 +22,7 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
   int? _selectedRoleId;
   File? _signatureFile;
   bool _isLoading = false;
-  bool _isDragging = false; // State untuk feedback visual
+  bool _isDragging = false;
 
   @override
   void dispose() {
@@ -62,7 +62,7 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
           username: _usernameController.text,
           password: _passwordController.text,
           roleId: _selectedRoleId!,
-          hint: _hintController.text.isNotEmpty ? _hintController.text : null,
+          hint: _hintController.text,
         );
 
         if (_signatureFile != null) {
@@ -109,160 +109,204 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
           key: _formKey,
           child: Column(
             children: [
+              // BAGIAN UTAMA: KIRI (INPUTS) vs KANAN (GAMBAR)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // --- SISI KIRI: INPUT FIELDS (FLEX 7) ---
                   Expanded(
-                    child: TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(labelText: 'Nama'),
-                      validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _usernameController,
-                      decoration: const InputDecoration(labelText: 'Username'),
-                      validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: roleOptions.when(
-                      data: (roles) => DropdownButtonFormField<int>(
-                        value: _selectedRoleId,
-                        items: roles
-                            .map(
-                              (role) => DropdownMenuItem<int>(
-                                value: role.id as int,
-                                child: Text(role.name),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) =>
-                            setState(() => _selectedRoleId = value),
-                        decoration: const InputDecoration(labelText: 'Role'),
-                        validator: (v) => v == null ? 'Wajib diisi' : null,
-                      ),
-                      loading: () =>
-                          const Center(child: CircularProgressIndicator()),
-                      error: (e, st) => const Text('Gagal memuat role'),
-                    ),
-                  ),
-
-                  // --- PERBAIKAN VALIDATOR PASSWORD ---
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _passwordController,
-                      decoration: const InputDecoration(labelText: 'Password'),
-                      obscureText: true,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Password wajib diisi';
-                        }
-                        if (value.length < 8) {
-                          return 'Minimal 8 karakter';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _passwordConfirmationController,
-                      decoration: const InputDecoration(
-                        labelText: 'Konfirmasi Password',
-                      ),
-                      obscureText: true,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Wajib diisi';
-                        }
-                        if (value != _passwordController.text) {
-                          return 'Password tidak cocok';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  // --- TAMBAHKAN FIELD HINT DI SINI ---
-                  Expanded(
-                    child: TextFormField(
-                      controller: _hintController,
-                      decoration: const InputDecoration(labelText: 'Hint'),
-                      // Tidak perlu validator karena nullable
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
+                    flex: 10,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Paraf', style: TextStyle(fontSize: 12)),
-                        const SizedBox(height: 4),
+                        // ROW 1: Nama, Username, Role
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            DropTarget(
-                              onDragDone: (details) {
-                                if (details.files.isNotEmpty) {
-                                  setState(() {
-                                    _signatureFile = File(
-                                      details.files.first.path,
-                                    );
-                                  });
-                                }
-                              },
-                              onDragEntered: (details) =>
-                                  setState(() => _isDragging = true),
-                              onDragExited: (details) =>
-                                  setState(() => _isDragging = false),
-                              child: Container(
-                                width: 100,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: _isDragging
-                                        ? Theme.of(context).primaryColor
-                                        : Colors.grey,
-                                    width: _isDragging ? 3 : 1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(4),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _nameController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Nama',
                                 ),
-                                child: _signatureFile != null
-                                    ? Image.file(
-                                        _signatureFile!,
-                                        fit: BoxFit.contain,
-                                      )
-                                    : const Center(child: Text('PNG')),
+                                validator: (v) =>
+                                    v!.isEmpty ? 'Wajib diisi' : null,
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            ElevatedButton.icon(
-                              icon: const Icon(Icons.upload_file),
-                              label: const Text('Pilih Gambar'),
-                              onPressed: _pickImage,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _usernameController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Username',
+                                ),
+                                validator: (v) =>
+                                    v!.isEmpty ? 'Wajib diisi' : null,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: roleOptions.when(
+                                data: (roles) => DropdownButtonFormField<int>(
+                                  value: _selectedRoleId,
+                                  items: roles
+                                      .map(
+                                        (role) => DropdownMenuItem<int>(
+                                          value: role.id as int,
+                                          child: Text(role.name),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (value) =>
+                                      setState(() => _selectedRoleId = value),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Role',
+                                  ),
+                                  validator: (v) =>
+                                      v == null ? 'Wajib diisi' : null,
+                                ),
+                                loading: () => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                                error: (e, st) =>
+                                    const Text('Gagal memuat role'),
+                              ),
                             ),
                           ],
                         ),
-                        const Text(
-                          'Saran lebar gambar ± 500px',
-                          style: TextStyle(fontSize: 10, color: Colors.grey),
+                        const SizedBox(height: 16),
+
+                        // ROW 2: Password, Konfirm Password, Hint
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _passwordController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Password',
+                                ),
+                                obscureText: true,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Wajib diisi';
+                                  }
+                                  if (value.length < 8) {
+                                    return 'Min 8 karakter';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _passwordConfirmationController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Konfirm Password',
+                                ),
+                                obscureText: true,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Wajib diisi';
+                                  }
+                                  if (value != _passwordController.text) {
+                                    return 'Tidak cocok';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _hintController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Hint (Opsional)',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 16),
+
+                  // --- SISI KANAN: GAMBAR PARAF (FLEX 2) ---
+                  Expanded(
+                    flex: 1,
+                    child: Column(
+                      children: [
+                        // const Text(
+                        //   'Paraf',
+                        //   style: TextStyle(
+                        //     fontSize: 12,
+                        //     fontWeight: FontWeight.bold,
+                        //   ),
+                        // ),
+                        const SizedBox(height: 8),
+                        DropTarget(
+                          onDragDone: (details) {
+                            if (details.files.isNotEmpty) {
+                              setState(() {
+                                _signatureFile = File(details.files.first.path);
+                              });
+                            }
+                          },
+                          onDragEntered: (details) =>
+                              setState(() => _isDragging = true),
+                          onDragExited: (details) =>
+                              setState(() => _isDragging = false),
+                          child: Container(
+                            height: 80, // Tinggi kotak preview
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: _isDragging
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.grey,
+                                width: _isDragging ? 3 : 1,
+                              ),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: _signatureFile != null
+                                ? Image.file(
+                                    _signatureFile!,
+                                    fit: BoxFit.contain,
+                                  )
+                                : const Center(
+                                    child: Text(
+                                      'Paraf Preview',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            icon: const Icon(Icons.upload_file, size: 16),
+                            label: const Text('Pilih Gambar'),
+                            onPressed: _pickImage,
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+
+              const SizedBox(height: 24),
+
+              // TOMBOL SUBMIT (FULL WIDTH DI BAWAH)
               SizedBox(
                 width: double.infinity,
                 child: _isLoading

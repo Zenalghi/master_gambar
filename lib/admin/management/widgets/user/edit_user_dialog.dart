@@ -90,7 +90,7 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
           password: _passwordController.text.isNotEmpty
               ? _passwordController.text
               : null,
-          hint: _hintController.text.isNotEmpty ? _hintController.text : null,
+          hint: _hintController.text,
         );
         setState(() => _currentUser = updatedUser);
 
@@ -176,6 +176,7 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
       title: Text('Edit User: ${_currentUser.name}'),
       content: SizedBox(
         width: 500,
+        height: 600,
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -227,7 +228,13 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
                     return null;
                   },
                 ),
-
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _hintController,
+                  decoration: const InputDecoration(
+                    labelText: 'Hint (Opsional)',
+                  ),
+                ),
                 const SizedBox(height: 16),
                 roleOptions.when(
                   data: (roles) => DropdownButtonFormField<int>(
