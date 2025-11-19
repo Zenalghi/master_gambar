@@ -4,14 +4,26 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:dropdown_search/dropdown_search.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
+import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
+import 'package:master_gambar/data/models/option_item.dart';
 import 'package:pdfx/pdfx.dart';
 
 class AddGambarKelistrikanForm extends ConsumerStatefulWidget {
-  // Callback untuk mengirim data yang siap di-upload ke parent widget
-  final Function(String typeChassisId, String deskripsi, File file) onUpload;
+  // Parameter opsional untuk "Copy Paste" data dari halaman lain
+  final OptionItem? initialTypeEngine;
+  final OptionItem? initialMerk;
+  final OptionItem? initialTypeChassis;
 
-  const AddGambarKelistrikanForm({super.key, required this.onUpload});
+  const AddGambarKelistrikanForm({
+    super.key,
+    this.initialTypeEngine,
+    this.initialMerk,
+    this.initialTypeChassis,
+  });
 
   @override
   ConsumerState<AddGambarKelistrikanForm> createState() =>
@@ -23,14 +35,28 @@ class _AddGambarKelistrikanFormState
   final _formKey = GlobalKey<FormState>();
   final _deskripsiController = TextEditingController();
 
-  // State untuk melacak ID yang dipilih di dropdown
-  String? _selectedTypeEngineId;
-  String? _selectedMerkId;
-  String? _selectedTypeChassisId;
+  // State dropdown
+  int? _selectedTypeEngineId;
+  int? _selectedMerkId;
+  int? _selectedTypeChassisId;
 
-  // State untuk file PDF yang dipilih
   File? _selectedFile;
   PdfController? _pdfController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Isi data awal jika ada (dari fitur copy-paste)
+    if (widget.initialTypeEngine != null) {
+      _selectedTypeEngineId = widget.initialTypeEngine!.id as int;
+    }
+    if (widget.initialMerk != null) {
+      _selectedMerkId = widget.initialMerk!.id as int;
+    }
+    if (widget.initialTypeChassis != null) {
+      _selectedTypeChassisId = widget.initialTypeChassis!.id as int;
+    }
+  }
 
   @override
   void dispose() {
@@ -56,21 +82,71 @@ class _AddGambarKelistrikanFormState
     }
   }
 
+  void _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedFile == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Harap pilih file PDF')));
+      return;
+    }
+
+    try {
+      await ref
+          .read(masterDataRepositoryProvider)
+          .addGambarKelistrikan(
+            typeEngineId: _selectedTypeEngineId.toString(),
+            merkId: _selectedMerkId.toString(),
+            typeChassisId: _selectedTypeChassisId.toString(),
+            deskripsi: _deskripsiController.text,
+            gambarKelistrikanFile: _selectedFile!,
+          );
+
+      // Reset form setelah sukses
+      setState(() {
+        // Kita reset semua kecuali jika form dibuka dalam mode "Copy Paste"
+        // Tapi untuk amannya reset saja agar user bisa input baru
+        _selectedTypeEngineId = null;
+        _selectedMerkId = null;
+        _selectedTypeChassisId = null;
+        _selectedFile = null;
+        _pdfController?.dispose();
+        _pdfController = null;
+        _deskripsiController.clear();
+      });
+
+      // Refresh tabel list
+      ref
+          .read(gambarKelistrikanFilterProvider.notifier)
+          .update((state) => Map.from(state));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gambar Kelistrikan berhasil di-upload!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.response?.data['message'] ?? e.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final typeEngineOptions = ref.watch(typeEngineListProvider);
-    final merkOptions = ref.watch(
-      merkOptionsFamilyProvider(_selectedTypeEngineId),
-    );
-    final typeChassisOptions = ref.watch(
-      typeChassisOptionsFamilyProvider(_selectedMerkId),
-    );
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SizedBox(
-          height: 450, // Memberikan tinggi tetap untuk area form dan preview
+          height: 550,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -83,98 +159,40 @@ class _AddGambarKelistrikanFormState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Dropdown Type Engine
-                        typeEngineOptions.when(
-                          data: (options) => DropdownButtonFormField<String>(
-                            value: _selectedTypeEngineId,
-                            decoration: const InputDecoration(
-                              labelText: 'Type Engine',
-                            ),
-                            items: options
-                                .map(
-                                  (opt) => DropdownMenuItem(
-                                    value: opt.id,
-                                    child: Text(opt.name),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) => setState(() {
-                              _selectedTypeEngineId = value;
-                              _selectedMerkId = null;
-                              _selectedTypeChassisId = null;
-                            }),
-                            validator: (v) =>
-                                v == null ? 'Wajib dipilih' : null,
-                          ),
-                          loading: () =>
-                              const Center(child: CircularProgressIndicator()),
-
-                          error: (e, st) => const Text('Error'),
+                        // 1. Type Engine
+                        _buildSearchableDropdown(
+                          label: 'Type Engine',
+                          provider: mdTypeEngineOptionsProvider,
+                          // Jika ada initial value, gunakan. Jika tidak, null.
+                          initialItem: widget.initialTypeEngine,
+                          onChanged: (val) => _selectedTypeEngineId = val?.id,
                         ),
                         const SizedBox(height: 16),
 
-                        // Dropdown Merk
-                        merkOptions.when(
-                          data: (options) => DropdownButtonFormField<String>(
-                            value: _selectedMerkId,
-                            decoration: const InputDecoration(
-                              labelText: 'Merk',
-                            ),
-                            items: options
-                                .map(
-                                  (opt) => DropdownMenuItem(
-                                    value: opt.id as String,
-                                    child: Text(opt.name),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) => setState(() {
-                              _selectedMerkId = value;
-                              _selectedTypeChassisId = null;
-                            }),
-                            validator: (v) =>
-                                v == null ? 'Wajib dipilih' : null,
-                          ),
-                          loading: () =>
-                              const Center(child: CircularProgressIndicator()),
-
-                          error: (e, st) => const Text('Error'),
+                        // 2. Merk
+                        _buildSearchableDropdown(
+                          label: 'Merk',
+                          provider: mdMerkOptionsProvider,
+                          initialItem: widget.initialMerk,
+                          onChanged: (val) => _selectedMerkId = val?.id,
                         ),
                         const SizedBox(height: 16),
 
-                        // Dropdown Type Chassis
-                        typeChassisOptions.when(
-                          data: (options) => DropdownButtonFormField<String>(
-                            value: _selectedTypeChassisId,
-                            decoration: const InputDecoration(
-                              labelText: 'Type Chassis',
-                            ),
-                            items: options
-                                .map(
-                                  (opt) => DropdownMenuItem(
-                                    value: opt.id as String,
-                                    child: Text(opt.name),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) => setState(() {
-                              _selectedTypeChassisId = value;
-                            }),
-                            validator: (v) =>
-                                v == null ? 'Wajib dipilih' : null,
-                          ),
-                          loading: () =>
-                              const Center(child: CircularProgressIndicator()),
-
-                          error: (e, st) => const Text('Error'),
+                        // 3. Type Chassis
+                        _buildSearchableDropdown(
+                          label: 'Type Chassis',
+                          provider: mdTypeChassisOptionsProvider,
+                          initialItem: widget.initialTypeChassis,
+                          onChanged: (val) => _selectedTypeChassisId = val?.id,
                         ),
                         const SizedBox(height: 16),
 
-                        // Input Deskripsi
+                        // 4. Deskripsi
                         TextFormField(
                           controller: _deskripsiController,
                           decoration: const InputDecoration(
                             labelText: 'Deskripsi',
+                            border: OutlineInputBorder(),
                           ),
                           textCapitalization: TextCapitalization.characters,
                           validator: (v) =>
@@ -182,6 +200,7 @@ class _AddGambarKelistrikanFormState
                         ),
                         const SizedBox(height: 24),
 
+                        // 5. Tombol File & Upload
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -192,8 +211,8 @@ class _AddGambarKelistrikanFormState
                                     icon: const Icon(Icons.picture_as_pdf),
                                     label: Text(
                                       _selectedFile == null
-                                          ? 'Pilih Gambar'
-                                          : 'Ganti Gambar',
+                                          ? 'Pilih PDF'
+                                          : 'Ganti PDF',
                                     ),
                                     onPressed: _pickFile,
                                     style: ElevatedButton.styleFrom(
@@ -208,18 +227,11 @@ class _AddGambarKelistrikanFormState
                                   Expanded(
                                     child: ElevatedButton.icon(
                                       icon: const Icon(Icons.upload_file),
-                                      label: const Text('Upload Gambar'),
-                                      onPressed: () {
-                                        if (_formKey.currentState!.validate()) {
-                                          widget.onUpload(
-                                            _selectedTypeChassisId!,
-                                            _deskripsiController.text,
-                                            _selectedFile!,
-                                          );
-                                        }
-                                      },
+                                      label: const Text('Upload'),
+                                      onPressed: _submit,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.green,
+                                        foregroundColor: Colors.white,
                                         padding: const EdgeInsets.symmetric(
                                           vertical: 16,
                                         ),
@@ -247,6 +259,7 @@ class _AddGambarKelistrikanFormState
                 ),
               ),
               const SizedBox(width: 16),
+
               // --- KOLOM KANAN: PREVIEW PDF ---
               Expanded(
                 flex: 3,
@@ -274,6 +287,38 @@ class _AddGambarKelistrikanFormState
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSearchableDropdown({
+    required String label,
+    required FutureProviderFamily<List<OptionItem>, String> provider,
+    required Function(OptionItem?) onChanged,
+    OptionItem? initialItem,
+  }) {
+    return DropdownSearch<OptionItem>(
+      items: (String filter, _) => ref.read(provider(filter).future),
+      itemAsString: (OptionItem item) => item.name,
+      compareFn: (item1, item2) => item1.id == item2.id,
+      selectedItem: initialItem, // Set nilai awal (penting untuk copy-paste)
+      onChanged: onChanged,
+      decoratorProps: DropDownDecoratorProps(
+        decoration: InputDecoration(
+          labelText: label,
+          isDense: true,
+          border: const OutlineInputBorder(),
+        ),
+      ),
+      popupProps: const PopupProps.menu(
+        showSearchBox: true,
+        searchFieldProps: TextFieldProps(
+          decoration: InputDecoration(
+            hintText: "Cari...",
+            prefixIcon: Icon(Icons.search),
+          ),
+        ),
+      ),
+      validator: (item) => item == null ? 'Wajib dipilih' : null,
     );
   }
 }

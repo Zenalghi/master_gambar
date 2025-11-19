@@ -3,8 +3,10 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/app/core/providers.dart';
+import '../../../data/models/option_item.dart';
 import '../../../data/models/paginated_response.dart';
 import '../models/image_status.dart';
+import '../models/master_data.dart';
 import '../models/type_engine.dart';
 import '../models/merk.dart';
 import '../models/type_chassis.dart';
@@ -465,14 +467,19 @@ class MasterDataRepository {
   }
 
   Future<void> addGambarKelistrikan({
-    required String typeChassisId,
+    required String typeEngineId, // Parameter Baru
+    required String merkId, // Parameter Baru
+    required String typeChassisId, // Parameter Baru
     required String deskripsi,
     required File gambarKelistrikanFile,
   }) async {
     final fileName = gambarKelistrikanFile.path
         .split(Platform.pathSeparator)
         .last;
+
     final formData = FormData.fromMap({
+      'a_type_engine_id': typeEngineId,
+      'b_merk_id': merkId,
       'c_type_chassis_id': typeChassisId,
       'deskripsi': deskripsi,
       'gambar_kelistrikan': await MultipartFile.fromFile(
@@ -480,6 +487,7 @@ class MasterDataRepository {
         filename: fileName,
       ),
     });
+
     await _ref
         .read(apiClientProvider)
         .dio
@@ -575,5 +583,117 @@ class MasterDataRepository {
       // Jika error (misal Varian Body tidak ditemukan), anggap tidak ada
       return false;
     }
+  }
+
+  // == MASTER DATA (TABEL UTAMA) ==
+  Future<PaginatedResponse<MasterData>> getMasterDataPaginated({
+    int page = 1,
+    int perPage = 25,
+    String sortBy = 'id',
+    String sortDirection = 'asc',
+    String search = '',
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          '/admin/master-data',
+          queryParameters: {
+            'page': page,
+            'perPage': perPage,
+            'sortBy': sortBy,
+            'sortDirection': sortDirection,
+            'search': search,
+          },
+        );
+    return PaginatedResponse.fromJson(response.data, MasterData.fromJson);
+  }
+
+  Future<MasterData> addMasterData({
+    required String typeEngineId,
+    required String merkId,
+    required String typeChassisId,
+    required String jenisKendaraanId,
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .post(
+          '/admin/master-data',
+          data: {
+            'a_type_engine_id': typeEngineId,
+            'b_merk_id': merkId,
+            'c_type_chassis_id': typeChassisId,
+            'd_jenis_kendaraan_id': jenisKendaraanId,
+          },
+        );
+    return MasterData.fromJson(response.data);
+  }
+
+  Future<MasterData> updateMasterData({
+    required int id,
+    required String typeEngineId,
+    required String merkId,
+    required String typeChassisId,
+    required String jenisKendaraanId,
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .put(
+          '/admin/master-data/$id',
+          data: {
+            'a_type_engine_id': typeEngineId,
+            'b_merk_id': merkId,
+            'c_type_chassis_id': typeChassisId,
+            'd_jenis_kendaraan_id': jenisKendaraanId,
+          },
+        );
+    return MasterData.fromJson(response.data);
+  }
+
+  Future<void> deleteMasterData({required int id}) async {
+    await _ref.read(apiClientProvider).dio.delete('/admin/master-data/$id');
+  }
+
+  // == DROPDOWN OPTIONS INDEPENDEN (SEARCHABLE) ==
+  Future<List<OptionItem>> getTypeEngineOptions(String search) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/options/type-engines', queryParameters: {'search': search});
+    return (response.data as List)
+        .map((e) => OptionItem.fromJson(e, nameKey: 'name'))
+        .toList();
+  }
+
+  Future<List<OptionItem>> getMerkOptions(String search) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/options/merks', queryParameters: {'search': search});
+    return (response.data as List)
+        .map((e) => OptionItem.fromJson(e, nameKey: 'name'))
+        .toList();
+  }
+
+  Future<List<OptionItem>> getTypeChassisOptions(String search) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/options/type-chassis', queryParameters: {'search': search});
+    return (response.data as List)
+        .map((e) => OptionItem.fromJson(e, nameKey: 'name'))
+        .toList();
+  }
+
+  Future<List<OptionItem>> getJenisKendaraanOptions(String search) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/options/jenis-kendaraan', queryParameters: {'search': search});
+    return (response.data as List)
+        .map((e) => OptionItem.fromJson(e, nameKey: 'name'))
+        .toList();
   }
 }

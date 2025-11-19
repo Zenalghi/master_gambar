@@ -191,3 +191,35 @@ final hasExistingPaketOptionalProvider = FutureProvider<bool>((ref) async {
       .watch(masterDataRepositoryProvider)
       .checkPaketOptionalExists(selectedVarianBodyId);
 });
+
+// == PROVIDER UNTUK MASTER DATA SCREEN ==
+final masterDataFilterProvider = StateProvider<Map<String, String>>(
+  (ref) => {'search': '', 'sortBy': 'id', 'sortDirection': 'desc'},
+);
+final masterDataRowsPerPageProvider = StateProvider<int>((ref) => 25);
+
+// Provider untuk Dropdown Searchable (Family agar bisa kirim query search)
+final mdTypeEngineOptionsProvider =
+    FutureProvider.family<List<OptionItem>, String>((ref, search) async {
+      return ref
+          .read(masterDataRepositoryProvider)
+          .getTypeEngineOptions(search);
+    });
+final mdMerkOptionsProvider = FutureProvider.family<List<OptionItem>, String>((
+  ref,
+  search,
+) async {
+  return ref.read(masterDataRepositoryProvider).getMerkOptions(search);
+});
+final mdTypeChassisOptionsProvider =
+    FutureProvider.family<List<OptionItem>, String>((ref, search) async {
+      return ref
+          .read(masterDataRepositoryProvider)
+          .getTypeChassisOptions(search);
+    });
+final mdJenisKendaraanOptionsProvider =
+    FutureProvider.family<List<OptionItem>, String>((ref, search) async {
+      return ref
+          .read(masterDataRepositoryProvider)
+          .getJenisKendaraanOptions(search);
+    });
