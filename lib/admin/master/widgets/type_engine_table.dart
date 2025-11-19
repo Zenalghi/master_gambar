@@ -1,3 +1,5 @@
+// File: lib/admin/master/widgets/type_engine_table.dart
+
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,9 +17,8 @@ class TypeEngineTable extends ConsumerStatefulWidget {
 }
 
 class _TypeEngineTableState extends ConsumerState<TypeEngineTable> {
-  // --- PERUBAHAN 2: Tambahkan state untuk sorting ---
-  int _sortColumnIndex = 0; // Default sort berdasarkan kolom ID (index 0)
-  bool _sortAscending = true; // Default sort A-Z (ascending)
+  int _sortColumnIndex = 0; // Default sort: ID
+  bool _sortAscending = true; // Default: A-Z (asc)
 
   @override
   Widget build(BuildContext context) {
@@ -26,59 +27,46 @@ class _TypeEngineTableState extends ConsumerState<TypeEngineTable> {
 
     return asyncData.when(
       data: (data) {
+        // --- Logika Filter Client-Side ---
         final filteredData = data.where((item) {
           final query = searchQuery.toLowerCase();
           return item.name.toLowerCase().contains(query) ||
-              item.id.toLowerCase().contains(query);
+              item.id.toString().toLowerCase().contains(
+                query,
+              ) || // <-- Ubah ke toString()
+              item.createdAt.toString().toLowerCase().contains(query) ||
+              item.updatedAt.toString().toLowerCase().contains(query);
         }).toList();
 
-        // --- PERUBAHAN 3: Tambahkan logika sorting ---
+        // --- Logika Sorting Client-Side ---
         final sortedData = List<TypeEngine>.from(filteredData);
         sortedData.sort((a, b) {
           int result = 0;
           switch (_sortColumnIndex) {
-            case 0: // ID
+            case 0:
               result = a.id.compareTo(b.id);
               break;
-            case 1: // Type Engine
+            case 1:
               result = a.name.compareTo(b.name);
               break;
-            case 2: // Dibuat Pada
+            case 2:
               result = a.createdAt.compareTo(b.createdAt);
               break;
-            case 3: // Diupdate Pada
+            case 3:
               result = a.updatedAt.compareTo(b.updatedAt);
               break;
           }
           return _sortAscending ? result : -result;
         });
-        // ---------------------------------------------
+        // ---------------------------------
 
         return PaginatedDataTable2(
-          // --- PERUBAHAN 4: Hubungkan state sort ke tabel ---
           sortColumnIndex: _sortColumnIndex,
           sortAscending: _sortAscending,
-          columns: [
-            DataColumn2(label: Text('ID'), fixedWidth: 80, onSort: _onSort),
-            DataColumn2(
-              label: Text('Type Engine'),
-              size: ColumnSize.L,
-              onSort: _onSort,
-            ),
-            DataColumn2(
-              label: Text('Created At'),
-              size: ColumnSize.M,
-              onSort: _onSort,
-            ),
-            DataColumn2(
-              label: Text('Updated At'),
-              size: ColumnSize.M,
-              onSort: _onSort,
-            ),
-            DataColumn2(label: Text('Options'), fixedWidth: 120),
-          ],
-          // Gunakan data yang sudah difilter DAN diurutkan
+          columns: _createColumns(),
           source: _TypeEngineDataSource(sortedData, context, ref),
+          // loading:  Center(child: CircularProgressIndicator()),
+          empty: const Center(child: Text('Tidak ada data ditemukan')),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -86,34 +74,58 @@ class _TypeEngineTableState extends ConsumerState<TypeEngineTable> {
     );
   }
 
-  // --- PERUBAHAN 5: Method untuk menangani event sort ---
+  // Method untuk menangani event klik sort
   void _onSort(int columnIndex, bool ascending) {
     setState(() {
       _sortColumnIndex = columnIndex;
       _sortAscending = ascending;
     });
   }
+
+  // Method untuk membuat header kolom
+  List<DataColumn2> _createColumns() {
+    return [
+      DataColumn2(label: const Text('ID'), fixedWidth: 80, onSort: _onSort),
+      DataColumn2(
+        label: const Text('Type Engine'),
+        size: ColumnSize.L,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Dibuat Pada'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Diupdate Pada'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
+      const DataColumn2(label: Text('Options'), fixedWidth: 120),
+    ];
+  }
 }
 
+// --- DATA SOURCE ---
 class _TypeEngineDataSource extends DataTableSource {
   final List<TypeEngine> data;
   final BuildContext context;
   final WidgetRef ref;
+  final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
+
   _TypeEngineDataSource(this.data, this.context, this.ref);
 
   @override
   DataRow? getRow(int index) {
+    if (index >= data.length) return null;
     final item = data[index];
-    // Buat formatter tanggal
-    final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
     return DataRow(
       cells: [
-        DataCell(Text(item.id)),
-        DataCell(Text(item.name)),
-        // --- TAMBAHKAN CELL BARU ---
-        DataCell(Text(dateFormat.format(item.createdAt.toLocal()))),
-        DataCell(Text(dateFormat.format(item.updatedAt.toLocal()))),
+        DataCell(SelectableText(item.id.toString())), // <-- Ubah ke toString()
+        DataCell(SelectableText(item.name)),
+        DataCell(SelectableText(dateFormat.format(item.createdAt.toLocal()))),
+        DataCell(SelectableText(dateFormat.format(item.updatedAt.toLocal()))),
         DataCell(
           Row(
             children: [
@@ -153,7 +165,10 @@ class _TypeEngineDataSource extends DataTableSource {
               try {
                 await ref
                     .read(masterDataRepositoryProvider)
-                    .updateTypeEngine(id: item.id, typeEngine: controller.text);
+                    .updateTypeEngine(
+                      id: item.id,
+                      typeEngine: controller.text,
+                    ); // <-- ID sudah int
                 ref.invalidate(typeEngineListProvider);
                 Navigator.of(context).pop();
               } on DioException catch (e) {
@@ -189,7 +204,7 @@ class _TypeEngineDataSource extends DataTableSource {
               try {
                 await ref
                     .read(masterDataRepositoryProvider)
-                    .deleteTypeEngine(id: item.id);
+                    .deleteTypeEngine(id: item.id); // <-- ID sudah int
                 ref.invalidate(typeEngineListProvider);
                 Navigator.of(context).pop();
               } on DioException catch (e) {

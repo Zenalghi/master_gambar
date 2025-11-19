@@ -42,18 +42,18 @@ class MasterDataRepository {
   }
 
   Future<TypeEngine> updateTypeEngine({
-    required String id,
+    required int id,
     required String typeEngine,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .put('/type-engines/$id', data: {'type_engine': typeEngine});
+        .put('/admin/type-engines/$id', data: {'type_engine': typeEngine});
     return TypeEngine.fromJson(response.data);
   }
 
-  Future<void> deleteTypeEngine({required String id}) async {
-    await _ref.read(apiClientProvider).dio.delete('/type-engines/$id');
+  Future<void> deleteTypeEngine({required int id}) async {
+    await _ref.read(apiClientProvider).dio.delete('/admin/type-engines/$id');
   }
 
   Future<PaginatedResponse<Merk>> getMerksPaginated({
@@ -67,7 +67,7 @@ class MasterDataRepository {
         .read(apiClientProvider)
         .dio
         .get(
-          '/merks', // Endpoint tidak berubah
+          '/admin/merks',
           queryParameters: {
             'page': page,
             'perPage': perPage,
@@ -79,30 +79,30 @@ class MasterDataRepository {
     return PaginatedResponse.fromJson(response.data, Merk.fromJson);
   }
 
-  Future<Merk> addMerk({
-    required String typeEngineId,
+  Future<Merk> addMerk({required String merk}) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/merks', data: {'merk': merk});
+    return Merk.fromJson(response.data);
+  }
+
+  Future<Merk> updateMerk({
+    required int id, // <-- BERUBAH: int
     required String merk,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .post('/merks', data: {'type_engine_id': typeEngineId, 'merk': merk});
+        .put('/admin/merks/$id', data: {'merk': merk});
     return Merk.fromJson(response.data);
   }
 
-  Future<Merk> updateMerk({required String id, required String merk}) async {
-    final response = await _ref
-        .read(apiClientProvider)
-        .dio
-        .put('/merks/$id', data: {'merk': merk});
-    return Merk.fromJson(response.data);
+  Future<void> deleteMerk({required int id}) async {
+    await _ref.read(apiClientProvider).dio.delete('/admin/merks/$id');
   }
 
-  Future<void> deleteMerk({required String id}) async {
-    await _ref.read(apiClientProvider).dio.delete('/merks/$id');
-  }
-
-  // --- TAMBAHKAN FUNGSI UNTUK TYPE CHASSIS ---
+  // == TYPE CHASSIS (PAGINATED & INDEPENDEN) ==
   Future<PaginatedResponse<TypeChassis>> getTypeChassisPaginated({
     int page = 1,
     int perPage = 25,
@@ -114,7 +114,7 @@ class MasterDataRepository {
         .read(apiClientProvider)
         .dio
         .get(
-          '/type-chassis', // Endpoint tidak berubah
+          '/admin/type-chassis',
           queryParameters: {
             'page': page,
             'perPage': perPage,
@@ -127,34 +127,39 @@ class MasterDataRepository {
   }
 
   Future<TypeChassis> addTypeChassis({
-    required String merkId,
+    // required String merkId, <-- DIHAPUS
     required String typeChassis,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
         .post(
-          '/type-chassis',
-          data: {'merk_id': merkId, 'type_chassis': typeChassis},
+          '/admin/type-chassis',
+          data: {
+            // 'merk_id': merkId, <-- DIHAPUS
+            'type_chassis': typeChassis,
+          },
         );
     return TypeChassis.fromJson(response.data);
   }
 
   Future<TypeChassis> updateTypeChassis({
-    required String id,
+    required int id, // <-- BERUBAH: int
     required String typeChassis,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .put('/type-chassis/$id', data: {'type_chassis': typeChassis});
+        .put('/admin/type-chassis/$id', data: {'type_chassis': typeChassis});
     return TypeChassis.fromJson(response.data);
   }
 
-  Future<void> deleteTypeChassis({required String id}) async {
-    await _ref.read(apiClientProvider).dio.delete('/type-chassis/$id');
+  Future<void> deleteTypeChassis({required int id}) async {
+    // <-- BERUBAH: int
+    await _ref.read(apiClientProvider).dio.delete('/admin/type-chassis/$id');
   }
 
+  // == JENIS KENDARAAN (PAGINATED & INDEPENDEN) ==
   Future<PaginatedResponse<JenisKendaraan>> getJenisKendaraanListPaginated({
     int page = 1,
     int perPage = 25,
@@ -166,7 +171,7 @@ class MasterDataRepository {
         .read(apiClientProvider)
         .dio
         .get(
-          '/jenis-kendaraan', // Endpoint tidak berubah
+          '/admin/jenis-kendaraan',
           queryParameters: {
             'page': page,
             'perPage': perPage,
@@ -179,16 +184,16 @@ class MasterDataRepository {
   }
 
   Future<JenisKendaraan> addJenisKendaraan({
-    required String typeChassisId,
+    // required String typeChassisId, <-- DIHAPUS
     required String jenisKendaraan,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
         .post(
-          '/jenis-kendaraan',
+          '/admin/jenis-kendaraan',
           data: {
-            'type_chassis_id': typeChassisId,
+            // 'type_chassis_id': typeChassisId, <-- DIHAPUS
             'jenis_kendaraan': jenisKendaraan,
           },
         );
@@ -196,18 +201,22 @@ class MasterDataRepository {
   }
 
   Future<JenisKendaraan> updateJenisKendaraan({
-    required String id,
+    required int id, // <-- BERUBAH: int
     required String jenisKendaraan,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .put('/jenis-kendaraan/$id', data: {'jenis_kendaraan': jenisKendaraan});
+        .put(
+          '/admin/jenis-kendaraan/$id',
+          data: {'jenis_kendaraan': jenisKendaraan},
+        );
     return JenisKendaraan.fromJson(response.data);
   }
 
-  Future<void> deleteJenisKendaraan({required String id}) async {
-    await _ref.read(apiClientProvider).dio.delete('/jenis-kendaraan/$id');
+  Future<void> deleteJenisKendaraan({required int id}) async {
+    // <-- BERUBAH: int
+    await _ref.read(apiClientProvider).dio.delete('/admin/jenis-kendaraan/$id');
   }
 
   // --- TAMBAHKAN FUNGSI UNTUK VARIAN BODY ---

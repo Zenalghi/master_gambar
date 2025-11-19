@@ -36,18 +36,8 @@ class JenisKendaraanDataSource extends AsyncDataTableSource {
           return DataRow(
             key: ValueKey(item.id),
             cells: [
-              DataCell(SelectableText(item.id)),
+              DataCell(SelectableText(item.id.toString())),
               DataCell(SelectableText(item.name)),
-              DataCell(
-                SelectableText(
-                  '${item.typeChassis.name} (${item.typeChassis.id})',
-                ),
-              ),
-              DataCell(
-                SelectableText(
-                  '${item.typeChassis.merk.name} (${item.typeChassis.merk.id})',
-                ),
-              ),
               DataCell(
                 SelectableText(dateFormat.format(item.createdAt.toLocal())),
               ),
@@ -104,14 +94,16 @@ class JenisKendaraanDataSource extends AsyncDataTableSource {
                       jenisKendaraan: controller.text,
                     );
                 refreshDatasource();
-                Navigator.of(context).pop();
+                if (context.mounted) Navigator.of(context).pop();
               } on DioException catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error: ${e.response?.data['message']}'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: ${e.response?.data['message']}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               }
             },
             child: const Text('Update'),
@@ -140,15 +132,20 @@ class JenisKendaraanDataSource extends AsyncDataTableSource {
                     .read(masterDataRepositoryProvider)
                     .deleteJenisKendaraan(id: item.id);
                 refreshDatasource();
-                Navigator.of(context).pop();
+                if (context.mounted) Navigator.of(context).pop();
               } on DioException catch (e) {
                 final errorMessages = e.response?.data['errors'];
                 final message = errorMessages != null
                     ? errorMessages['general'][0]
                     : 'Terjadi kesalahan.';
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(message), backgroundColor: Colors.red),
-                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               }
             },
             child: const Text('Hapus'),

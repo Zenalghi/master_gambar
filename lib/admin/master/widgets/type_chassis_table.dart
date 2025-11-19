@@ -47,9 +47,9 @@ class _TypeChassisTableState extends ConsumerState<TypeChassisTable> {
       final Map<int, String> columnMapping = {
         0: 'id',
         1: 'type_chassis',
-        2: 'merk',
-        3: 'created_at',
-        4: 'updated_at',
+        // Index 2 dihapus
+        2: 'created_at', // Geser index
+        3: 'updated_at', // Geser index
       };
       return {
         ...state,
@@ -61,25 +61,21 @@ class _TypeChassisTableState extends ConsumerState<TypeChassisTable> {
 
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('ID'), fixedWidth: 100, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 80, onSort: _onSort),
       DataColumn2(
         label: const Text('Type Chassis'),
+        size: ColumnSize.L,
+        onSort: _onSort,
+      ),
+      // DataColumn2(label: const Text('Merk (Induk)'), ...), <-- HAPUS INI
+      DataColumn2(
+        label: const Text('Dibuat Pada'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Merk (Induk)'),
+        label: const Text('Diupdate Pada'),
         size: ColumnSize.M,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Created At'),
-        size: ColumnSize.S,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Updated At'),
-        size: ColumnSize.S,
         onSort: _onSort,
       ),
       const DataColumn2(label: Text('Options'), fixedWidth: 120),

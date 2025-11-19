@@ -1,73 +1,18 @@
+// File: lib/admin/master/screens/master_merk_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:dio/dio.dart';
-import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../widgets/merk_table.dart';
 
-class MasterMerkScreen extends ConsumerStatefulWidget {
+class MasterMerkScreen extends ConsumerWidget {
   const MasterMerkScreen({super.key});
-  @override
-  ConsumerState<MasterMerkScreen> createState() => _MasterMerkScreenState();
-}
-
-class _MasterMerkScreenState extends ConsumerState<MasterMerkScreen> {
-  final _merkController = TextEditingController();
-  String? _selectedTypeEngineId;
 
   @override
-  void dispose() {
-    _merkController.dispose();
-    super.dispose();
-  }
-
-  void _resetAndRefresh() {
-    setState(() {
-      _selectedTypeEngineId = null;
-      _merkController.clear();
-    });
-    ref.invalidate(typeEngineListProvider);
-    ref.invalidate(merkOptionsFamilyProvider);
-    ref.invalidate(typeChassisOptionsFamilyProvider);
-    ref.invalidate(jenisKendaraanOptionsFamilyProvider);
-    ref.invalidate(varianBodyOptionsFamilyProvider);
-    ref.invalidate(gambarOptionalFilterProvider);
-    ref.read(refreshNotifierProvider.notifier).refresh();
-  }
-
-  void _submit() async {
-    if (_selectedTypeEngineId == null || _merkController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Harap lengkapi semua field.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-    try {
-      await ref
-          .read(masterDataRepositoryProvider)
-          .addMerk(
-            typeEngineId: _selectedTypeEngineId!,
-            merk: _merkController.text,
-          );
-      _merkController.clear();
-      ref.read(merkFilterProvider.notifier).update((state) => Map.from(state));
-    } on DioException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.response?.data['message']}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final typeEngineOptions = ref.watch(typeEngineListProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = TextEditingController();
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -81,7 +26,6 @@ class _MasterMerkScreenState extends ConsumerState<MasterMerkScreen> {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
-
               SizedBox(
                 width: 250,
                 child: TextField(
@@ -93,25 +37,18 @@ class _MasterMerkScreenState extends ConsumerState<MasterMerkScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (value) {
-                    ref
-                        .read(merkFilterProvider.notifier)
-                        .update((state) => {...state, 'search': value});
-                  },
+                  onChanged: (value) => ref
+                      .read(merkFilterProvider.notifier)
+                      .update((state) => {...state, 'search': value}),
                 ),
               ),
-
               const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data',
-                onPressed: () {
-                  _resetAndRefresh();
-                  ref
-                      .read(merkFilterProvider.notifier)
-                      .update((state) => Map.from(state));
-                  ref.invalidate(typeEngineListProvider);
-                },
+                onPressed: () => ref
+                    .read(merkFilterProvider.notifier)
+                    .update((state) => Map.from(state)),
               ),
             ],
           ),
@@ -121,36 +58,14 @@ class _MasterMerkScreenState extends ConsumerState<MasterMerkScreen> {
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
-                  Expanded(
-                    child: typeEngineOptions.when(
-                      data: (options) => DropdownButtonFormField<String>(
-                        value: _selectedTypeEngineId,
-                        decoration: const InputDecoration(
-                          labelText: 'Pilih Type Engine (Induk)',
-                        ),
-                        items: options
-                            .map(
-                              (opt) => DropdownMenuItem(
-                                value: opt.id,
-                                child: Text(opt.name),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) =>
-                            setState(() => _selectedTypeEngineId = value),
-                      ),
-                      loading: () =>
-                          const Center(child: CircularProgressIndicator()),
-                      error: (e, st) => const Text('Error memuat Type Engine'),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
+                  // --- HAPUS DROPDOWN TYPE ENGINE ---
                   Expanded(
                     child: TextFormField(
-                      controller: _merkController,
+                      controller: controller,
                       textCapitalization: TextCapitalization.characters,
                       decoration: const InputDecoration(
                         labelText: 'Nama Merk Baru',
+                        hintText: 'Contoh: HINO',
                       ),
                     ),
                   ),
@@ -164,7 +79,28 @@ class _MasterMerkScreenState extends ConsumerState<MasterMerkScreen> {
                         horizontal: 24,
                       ),
                     ),
-                    onPressed: _submit,
+                    onPressed: () async {
+                      if (controller.text.isEmpty) return;
+                      try {
+                        await ref
+                            .read(masterDataRepositoryProvider)
+                            .addMerk(merk: controller.text); // Cuma kirim nama
+                        controller.clear();
+                        // Refresh tabel
+                        ref
+                            .read(merkFilterProvider.notifier)
+                            .update((state) => Map.from(state));
+                      } on DioException catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Error: ${e.response?.data['message']}',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
                   ),
                 ],
               ),

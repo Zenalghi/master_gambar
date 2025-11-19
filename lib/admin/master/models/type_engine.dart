@@ -1,6 +1,7 @@
-// Model spesifik untuk Type Engine yang menyertakan timestamps
+// File: lib/admin/master/models/type_engine.dart
+
 class TypeEngine {
-  final String id;
+  final int id; // <-- BERUBAH dari String ke int
   final String name;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -14,8 +15,8 @@ class TypeEngine {
 
   factory TypeEngine.fromJson(Map<String, dynamic> json) {
     return TypeEngine(
-      id: json['id'],
-      name: json['type_engine'], // Sesuaikan dengan key dari backend
+      id: json['id'] as int, // <-- Pastikan di-parse sebagai int
+      name: json['type_engine'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );

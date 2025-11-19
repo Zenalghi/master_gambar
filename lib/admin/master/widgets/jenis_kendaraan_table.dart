@@ -45,21 +45,18 @@ class _JenisKendaraanTableState extends ConsumerState<JenisKendaraanTable> {
 
   // --- PERUBAHAN 4: Ganti logika _createColumns dan tambahkan _onSort ---
   void _onSort(int columnIndex, bool ascending) {
-    // Update state lokal untuk UI
     setState(() {
       _sortColumnIndex = columnIndex;
       _sortAscending = ascending;
     });
 
-    // Update provider untuk dikirim ke server
     ref.read(jenisKendaraanFilterProvider.notifier).update((state) {
       final Map<int, String> columnMapping = {
         0: 'id',
         1: 'jenis_kendaraan',
-        2: 'type_chassis',
-        3: 'merk',
-        4: 'created_at',
-        5: 'updated_at',
+        // Index 2 & 3 dihapus
+        2: 'created_at', // Geser index
+        3: 'updated_at', // Geser index
       };
       return {
         ...state,
@@ -71,30 +68,21 @@ class _JenisKendaraanTableState extends ConsumerState<JenisKendaraanTable> {
 
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('ID'), fixedWidth: 120, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 80, onSort: _onSort),
       DataColumn2(
         label: const Text('Jenis Kendaraan'),
-        size: ColumnSize.S,
+        size: ColumnSize.L,
         onSort: _onSort,
       ),
+      // Hapus Merk dan Type Chassis
       DataColumn2(
-        label: const Text('Type Chassis (Induk)'),
+        label: const Text('Dibuat Pada'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Merk (Induk)'),
+        label: const Text('Diupdate Pada'),
         size: ColumnSize.M,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Created At'),
-        size: ColumnSize.S,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Updated At'),
-        size: ColumnSize.S,
         onSort: _onSort,
       ),
       const DataColumn2(label: Text('Options'), fixedWidth: 120),

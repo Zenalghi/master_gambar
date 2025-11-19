@@ -1,26 +1,23 @@
-import 'package:master_gambar/admin/master/models/type_engine.dart';
+// File: lib/admin/master/models/merk.dart
 
-// Model untuk data Merk, termasuk relasi ke TypeEngine
 class Merk {
-  final String id;
+  final int id; // <-- BERUBAH: int
   final String name;
-  final TypeEngine typeEngine; // Data induk
+  // final TypeEngine typeEngine; <-- DIHAPUS (Independen)
   final DateTime createdAt;
   final DateTime updatedAt;
 
   Merk({
     required this.id,
     required this.name,
-    required this.typeEngine,
     required this.createdAt,
     required this.updatedAt,
   });
 
   factory Merk.fromJson(Map<String, dynamic> json) {
     return Merk(
-      id: json['id'],
-      name: json['merk'], // key dari backend
-      typeEngine: TypeEngine.fromJson(json['type_engine']),
+      id: json['id'] as int, // Parse as int
+      name: json['merk'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );

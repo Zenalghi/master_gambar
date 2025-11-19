@@ -1,26 +1,23 @@
-import 'package:master_gambar/admin/master/models/type_chassis.dart';
+// File: lib/admin/master/models/jenis_kendaraan.dart
 
-// Model untuk data Jenis Kendaraan
 class JenisKendaraan {
-  final String id;
+  final int id; // <-- BERUBAH: int
   final String name;
-  final TypeChassis typeChassis; // Data induk
+  // final TypeChassis typeChassis; <-- DIHAPUS (Independen)
   final DateTime createdAt;
   final DateTime updatedAt;
 
   JenisKendaraan({
     required this.id,
     required this.name,
-    required this.typeChassis,
     required this.createdAt,
     required this.updatedAt,
   });
 
   factory JenisKendaraan.fromJson(Map<String, dynamic> json) {
     return JenisKendaraan(
-      id: json['id'],
-      name: json['jenis_kendaraan'], // key dari backend
-      typeChassis: TypeChassis.fromJson(json['type_chassis']),
+      id: json['id'] as int, // Parse as int
+      name: json['jenis_kendaraan'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );

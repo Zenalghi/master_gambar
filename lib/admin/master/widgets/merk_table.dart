@@ -45,14 +45,13 @@ class _MerkTableState extends ConsumerState<MerkTable> {
       _sortAscending = ascending;
     });
 
-    // Update provider filter untuk dikirim ke server
     ref.read(merkFilterProvider.notifier).update((state) {
       final Map<int, String> columnMapping = {
         0: 'id',
         1: 'merk',
-        2: 'type_engine',
-        3: 'created_at',
-        4: 'updated_at',
+        // Index 2 dihapus (Type Engine)
+        2: 'created_at', // Geser index
+        3: 'updated_at', // Geser index
       };
       return {
         ...state,
@@ -71,17 +70,12 @@ class _MerkTableState extends ConsumerState<MerkTable> {
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Type Engine (Induk)'),
-        size: ColumnSize.L,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Created At'),
+        label: const Text('Dibuat Pada'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Updated At'),
+        label: const Text('Diupdate Pada'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
