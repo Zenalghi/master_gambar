@@ -24,9 +24,9 @@ class ImageStatusScreen extends ConsumerWidget {
               SizedBox(
                 width: 300,
                 child: TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Search...',
-                    prefixIcon: const Icon(Icons.search),
+                  decoration: const InputDecoration(
+                    labelText: 'Search (Type Engine, Merk, Varian, dll...)',
+                    prefixIcon: Icon(Icons.search),
                   ),
                   onChanged: (value) {
                     ref
@@ -40,6 +40,8 @@ class ImageStatusScreen extends ConsumerWidget {
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Muat Ulang Laporan',
                 onPressed: () {
+                  // Trigger refresh dengan mengupdate state filter (walau nilainya sama)
+                  // Ini akan ditangkap oleh listener di DataSource
                   ref
                       .read(imageStatusFilterProvider.notifier)
                       .update((state) => Map.from(state));

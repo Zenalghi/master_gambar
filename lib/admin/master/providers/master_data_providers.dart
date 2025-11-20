@@ -244,3 +244,8 @@ final initialKelistrikanDataProvider = StateProvider<Map<String, dynamic>?>(
 );
 // Provider untuk mengirim data "Copy" dari tabel ke form
 final masterDataToCopyProvider = StateProvider<MasterData?>((ref) => null);
+
+// Provider untuk menampung data "Copy Paste" ke halaman Gambar Utama
+final initialGambarUtamaDataProvider = StateProvider<Map<String, dynamic>?>(
+  (ref) => null,
+);

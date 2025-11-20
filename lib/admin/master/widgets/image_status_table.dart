@@ -3,8 +3,10 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:master_gambar/admin/master/models/g_gambar_utama.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'image_status_datasource.dart';
+import 'gambar_utama_viewer_dialog.dart'; // Pastikan import file dialog Anda benar
 
 class ImageStatusTable extends ConsumerStatefulWidget {
   const ImageStatusTable({super.key});
@@ -14,13 +16,14 @@ class ImageStatusTable extends ConsumerStatefulWidget {
 }
 
 class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
-  int _sortColumnIndex = 6;
+  int _sortColumnIndex = 7;
   bool _sortAscending = false;
 
   @override
   Widget build(BuildContext context) {
-    // Sesuai preferensi Anda, DataSource dibuat di dalam build
-    final source = ImageStatusDataSource(ref);
+    // Buat instance dari class wrapper di bawah
+    // ref di sini adalah WidgetRef, cocok dengan konstruktor DataSource yang baru kita ubah
+    final dataSource = _ImageStatusDataSourceWithContext(ref, context);
     final rowsPerPage = ref.watch(imageStatusRowsPerPageProvider);
 
     return AsyncPaginatedDataTable2(
@@ -35,7 +38,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       sortColumnIndex: _sortColumnIndex,
       sortAscending: _sortAscending,
       columns: _createColumns(),
-      source: source,
+      source: dataSource,
       empty: const Center(child: Text('Tidak ada data ditemukan')),
     );
   }
@@ -47,8 +50,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       2: 'type_chassis',
       3: 'jenis_kendaraan',
       4: 'varian_body',
-      6: 'updated_at',
-      7: 'deskripsi_optional',
+      7: 'updated_at',
     };
 
     setState(() {
@@ -69,8 +71,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
     return [
       DataColumn2(
         label: const Text('Type Engine'),
-        fixedWidth: 131,
-        // size: ColumnSize.S,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
@@ -94,19 +95,36 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
         onSort: _onSort,
       ),
       const DataColumn2(
-        label: Center(child: Text('Gambar\nUtama')),
-        fixedWidth: 120,
+        label: Center(child: Text('Gbr. Utama')),
+        fixedWidth: 100,
+      ),
+      const DataColumn2(
+        label: Text('Gbr. Optional (Paket)'),
+        size: ColumnSize.L,
       ),
       DataColumn2(
         label: const Text('Updated At'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
-      DataColumn2(
-        label: const Text('Gbr. Optional Paket'),
-        size: ColumnSize.L,
-        onSort: _onSort,
-      ),
+      const DataColumn2(label: Text('Action'), fixedWidth: 80),
     ];
+  }
+}
+
+// --- WRAPPER CLASS UNTUK MENANGANI DIALOG ---
+class _ImageStatusDataSourceWithContext extends ImageStatusDataSource {
+  final BuildContext _context;
+
+  // Constructor menerima WidgetRef dan BuildContext
+  _ImageStatusDataSourceWithContext(super.ref, this._context);
+
+  @override
+  void showPreviewDialog(GGambarUtama gambarUtama) {
+    // Membuka GambarUtamaViewerDialog yang kodenya Anda berikan sebelumnya
+    showDialog(
+      context: _context,
+      builder: (_) => GambarUtamaViewerDialog(gambarUtama: gambarUtama),
+    );
   }
 }
