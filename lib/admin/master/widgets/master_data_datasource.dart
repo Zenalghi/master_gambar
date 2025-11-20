@@ -1,12 +1,14 @@
 // File: lib/admin/master/widgets/master_data_datasource.dart
+
 import 'package:data_table_2/data_table_2.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/models/master_data.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
-import '../../../data/models/option_item.dart';
-import 'edit_master_data_dialog.dart'; // Kita buat setelah ini
+import 'package:master_gambar/data/models/option_item.dart';
+import 'edit_master_data_dialog.dart';
 
 class MasterDataDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;
@@ -40,7 +42,7 @@ class MasterDataDataSource extends AsyncDataTableSource {
               DataCell(SelectableText(item.merk.name)),
               DataCell(SelectableText(item.typeChassis.name)),
               DataCell(SelectableText(item.jenisKendaraan.name)),
-              // Icon Kelistrikan
+              // Kolom Kelistrikan
               DataCell(
                 Center(
                   child: item.kelistrikanId != null
@@ -51,16 +53,27 @@ class MasterDataDataSource extends AsyncDataTableSource {
                             color: Colors.blue,
                           ),
                           tooltip: 'Tambah Gambar Kelistrikan (Auto-fill)',
-                          // --- GANTI KE METHOD NAVIGASI BARU ---
                           onPressed: () => _navigateToKelistrikan(item),
                         ),
                 ),
               ),
               DataCell(
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    // --- TOMBOL COPY (BARU) ---
                     IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.orange),
+                      icon: const Icon(Icons.copy, color: Colors.orange),
+                      tooltip: 'Copy Data ke Form',
+                      onPressed: () {
+                        // Kirim data item ini ke provider agar form di atas menangkapnya
+                        _ref.read(masterDataToCopyProvider.notifier).state =
+                            item;
+                      },
+                    ),
+                    // --------------------------
+                    IconButton(
+                      icon: const Icon(Icons.edit),
                       onPressed: () => showDialog(
                         context: context,
                         builder: (_) => EditMasterDataDialog(masterData: item),
@@ -82,10 +95,7 @@ class MasterDataDataSource extends AsyncDataTableSource {
     }
   }
 
-  // --- METHOD BARU UNTUK COPY DATA & NAVIGASI ---
   void _navigateToKelistrikan(MasterData item) {
-    // 1. Siapkan data yang mau di-copy paste
-    // Kita bungkus dalam OptionItem agar sesuai dengan format dropdown
     final initialData = {
       'typeEngine': OptionItem(
         id: item.typeEngine.id,
@@ -97,21 +107,67 @@ class MasterDataDataSource extends AsyncDataTableSource {
         name: item.typeChassis.name,
       ),
     };
-
-    // 2. Simpan ke provider sementara
     _ref.read(initialKelistrikanDataProvider.notifier).state = initialData;
-
-    // 3. Pindah halaman ke "Gambar Kelistrikan" (Index 10)
-    _ref.read(adminSidebarIndexProvider.notifier).state = 10;
-
-    // (Opsional) Tampilkan snackbar info
+    _ref.read(adminSidebarIndexProvider.notifier).state =
+        10; // Index menu kelistrikan
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Data disalin! Silakan lengkapi form.')),
     );
   }
 
+  // --- IMPLEMENTASI DELETE DIALOG (BARU) ---
   void _showDeleteDialog(MasterData item) {
-    // Implementasi konfirmasi hapus
-    // ...
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content: Text(
+          'Yakin ingin menghapus Master Data ini?\n\nID: ${item.id}\nKombinasi: ${item.typeEngine.name} - ${item.merk.name} - ...',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () async {
+              try {
+                await _ref
+                    .read(masterDataRepositoryProvider)
+                    .deleteMasterData(id: item.id);
+
+                if (context.mounted) {
+                  Navigator.of(context).pop(); // Tutup dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Data berhasil dihapus'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  refreshDatasource(); // Refresh tabel
+                }
+              } on DioException catch (e) {
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  // Menampilkan pesan error dari backend (misal: validasi terpakai di varian body)
+                  final message =
+                      e.response?.data['message'] ??
+                      e.response?.data['errors']?['general']?[0] ??
+                      'Gagal menghapus data';
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
   }
 }

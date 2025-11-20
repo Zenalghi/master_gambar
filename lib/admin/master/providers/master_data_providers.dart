@@ -11,6 +11,7 @@ import 'package:master_gambar/data/providers/api_endpoints.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../models/gambar_optional.dart';
 import '../models/jenis_varian.dart';
+import '../models/master_data.dart';
 
 // == PROVIDER UNTUK MENGAMBIL DATA LIST LENGKAP ==
 final typeEngineListProvider = FutureProvider<List<TypeEngine>>((ref) {
@@ -241,3 +242,5 @@ final adminSidebarIndexProvider = StateProvider<int>((ref) => 0);
 final initialKelistrikanDataProvider = StateProvider<Map<String, dynamic>?>(
   (ref) => null,
 );
+// Provider untuk mengirim data "Copy" dari tabel ke form
+final masterDataToCopyProvider = StateProvider<MasterData?>((ref) => null);
