@@ -71,6 +71,33 @@ class MasterDataRepository {
     await _ref.read(apiClientProvider).dio.delete('/type-engines/$id');
   }
 
+  // --- FITUR RECYCLE BIN TYPE ENGINE ---
+  Future<List<TypeEngine>> getDeletedTypeEngines() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/admin/type-engines/trash');
+    // Karena trash mengembalikan list objek juga, kita parsing manual
+    final List<dynamic> data = response.data;
+    // Perlu sedikit trik karena model TypeEngine mungkin tidak menghandle deletedAt di fromJson standar
+    // Tapi untuk list sederhana ID & Nama, fromJson biasa sudah cukup.
+    return data.map((item) => TypeEngine.fromJson(item)).toList();
+  }
+
+  Future<void> restoreTypeEngine(int id) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/type-engines/$id/restore');
+  }
+
+  Future<void> forceDeleteTypeEngine(int id) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/type-engines/$id/force-delete');
+  }
+
   // == MERK (PAGINATED) ==
   Future<PaginatedResponse<Merk>> getMerksPaginated({
     int page = 1,

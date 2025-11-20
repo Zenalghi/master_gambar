@@ -1,0 +1,146 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
+import 'package:intl/intl.dart';
+import 'package:master_gambar/admin/master/models/type_engine.dart';
+import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
+import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
+
+class TypeEngineRecycleBin extends ConsumerStatefulWidget {
+  const TypeEngineRecycleBin({super.key});
+
+  @override
+  ConsumerState<TypeEngineRecycleBin> createState() =>
+      _TypeEngineRecycleBinState();
+}
+
+class _TypeEngineRecycleBinState extends ConsumerState<TypeEngineRecycleBin> {
+  bool _isLoading = true;
+  List<TypeEngine> _deletedItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTrash();
+  }
+
+  Future<void> _fetchTrash() async {
+    try {
+      final data = await ref
+          .read(masterDataRepositoryProvider)
+          .getDeletedTypeEngines();
+      if (mounted) {
+        setState(() {
+          _deletedItems = data;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        // Error handling sederhana
+      }
+    }
+  }
+
+  Future<void> _restore(int id) async {
+    try {
+      await ref.read(masterDataRepositoryProvider).restoreTypeEngine(id);
+      await _fetchTrash(); // Refresh list sampah
+      ref.invalidate(typeEngineListProvider); // Refresh tabel utama di belakang
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Data berhasil dipulihkan'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Handle error
+    }
+  }
+
+  Future<void> _forceDelete(int id) async {
+    try {
+      await ref.read(masterDataRepositoryProvider).forceDeleteTypeEngine(id);
+      await _fetchTrash();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Data dihapus permanen'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        final message =
+            e.response?.data['errors']?['general']?[0] ??
+            'Gagal menghapus data';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Recycle Bin - Type Engine'),
+      content: SizedBox(
+        width: 600,
+        height: 400,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _deletedItems.isEmpty
+            ? const Center(child: Text('Sampah kosong'))
+            : ListView.separated(
+                itemCount: _deletedItems.length,
+                separatorBuilder: (_, __) => const Divider(),
+                itemBuilder: (context, index) {
+                  final item = _deletedItems[index];
+                  // Model TypeEngine mungkin belum punya field deletedAt,
+                  // tapi updated_at biasanya menjadi waktu delete saat soft delete terjadi
+                  // atau Anda bisa update model nanti.
+                  final dateStr = DateFormat(
+                    'dd/MM/yyyy HH:mm',
+                  ).format(item.updatedAt.toLocal());
+
+                  return ListTile(
+                    title: Text(item.name),
+                    subtitle: Text(
+                      'Dihapus: $dateStr',
+                    ), // Asumsi updatedAt terupdate saat delete
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.restore, color: Colors.green),
+                          tooltip: 'Pulihkan',
+                          onPressed: () => _restore(item.id),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.delete_forever,
+                            color: Colors.red,
+                          ),
+                          tooltip: 'Hapus Permanen',
+                          onPressed: () => _forceDelete(item.id),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Tutup'),
+        ),
+      ],
+    );
+  }
+}
