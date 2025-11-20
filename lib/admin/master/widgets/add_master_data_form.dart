@@ -100,13 +100,13 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
               ),
               const SizedBox(width: 16),
               Padding(
-                padding: const EdgeInsets.only(top: 8.0),
+                padding: const EdgeInsets.only(),
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.add),
                   label: const Text('Tambah'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                      vertical: 20,
+                      vertical: 17,
                       horizontal: 24,
                     ),
                   ),
