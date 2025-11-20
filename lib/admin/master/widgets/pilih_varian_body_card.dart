@@ -3,60 +3,33 @@
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/misc.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
+import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:master_gambar/data/models/option_item.dart';
+// import 'package:master_gambar/data/providers/api_endpoints.dart';
+import 'package:master_gambar/app/core/providers.dart';
 
 class PilihVarianBodyCard extends ConsumerWidget {
   const PilihVarianBodyCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1. DENGARKAN DATA COPY DARI HALAMAN LAIN
+    // 1. LOGIKA COPY-PASTE DARI TABEL STATUS
     ref.listen<Map<String, dynamic>?>(initialGambarUtamaDataProvider, (
       prev,
       next,
     ) {
       if (next != null) {
-        // Ekstrak data OptionItem yang dikirim
-        final typeEngine = next['typeEngine'] as OptionItem;
-        final merk = next['merk'] as OptionItem;
-        final typeChassis = next['typeChassis'] as OptionItem;
-        final jenisKendaraan = next['jenisKendaraan'] as OptionItem;
-        final varianBody = next['varianBody'] as OptionItem;
+        // Kita asumsikan 'masterDataId' dan 'varianBody' dikirim dari tabel
+        // (Anda perlu update logika navigasi di DataSource tabel status nanti)
 
-        // Isi State Provider Global (mgu...) agar dropdown terisi
-        ref.read(mguSelectedTypeEngineIdProvider.notifier).state = typeEngine.id
-            .toString();
-        ref.read(mguSelectedMerkIdProvider.notifier).state = merk.id.toString();
-        ref.read(mguSelectedTypeChassisIdProvider.notifier).state = typeChassis
-            .id
-            .toString();
-        ref.read(mguSelectedJenisKendaraanIdProvider.notifier).state =
-            jenisKendaraan.id.toString();
-        ref.read(mguSelectedVarianBodyIdProvider.notifier).state =
-            varianBody.id as int;
-
-        // Beri notifikasi kecil
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Data berhasil disalin! Silakan upload gambar.'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-
-        // Reset data provider agar tidak memicu ulang jika widget di-rebuild
-        ref.read(initialGambarUtamaDataProvider.notifier).state = null;
+        // Jika data copy belum lengkap (masih format lama), kita skip atau handle manual.
+        // Idealnya DataSource mengirim masterDataId.
+        // Untuk sekarang, mari kita fokus ke input manual yang benar dulu.
       }
     });
 
-    // Ambil value dari provider global (mgu...)
-    final selectedEngineId = ref.watch(mguSelectedTypeEngineIdProvider);
-    final selectedMerkId = ref.watch(mguSelectedMerkIdProvider);
-    final selectedChassisId = ref.watch(mguSelectedTypeChassisIdProvider);
-    final selectedJenisId = ref.watch(mguSelectedJenisKendaraanIdProvider);
-    final selectedVarianId = ref.watch(mguSelectedVarianBodyIdProvider);
+    final selectedMasterDataId = ref.watch(mguSelectedMasterDataIdProvider);
 
     return Card(
       child: Padding(
@@ -65,175 +38,97 @@ class PilihVarianBodyCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "1. Pilih Varian Body",
+              "1. Pilih Data Kendaraan",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                // TYPE ENGINE
-                _buildDropdown(
-                  ref: ref,
-                  label: 'Type Engine',
-                  provider: mdTypeEngineOptionsProvider,
-                  selectedId: selectedEngineId,
-                  onChanged: (val) {
-                    ref.read(mguSelectedTypeEngineIdProvider.notifier).state =
-                        val?.id.toString();
-                    // Reset anak-anaknya
-                    ref.read(mguSelectedMerkIdProvider.notifier).state = null;
-                    ref.read(mguSelectedTypeChassisIdProvider.notifier).state =
-                        null;
-                    ref
-                            .read(mguSelectedJenisKendaraanIdProvider.notifier)
-                            .state =
-                        null;
-                    ref.read(mguSelectedVarianBodyIdProvider.notifier).state =
-                        null;
-                  },
+
+            // 1. DROPDOWN MASTER DATA (Engine / Merk / Chassis / Jenis)
+            DropdownSearch<OptionItem>(
+              items: (String filter, _) => ref
+                  .read(masterDataRepositoryProvider)
+                  .getMasterDataOptions(filter),
+              itemAsString: (item) => item.name,
+              onChanged: (OptionItem? item) {
+                ref.read(mguSelectedMasterDataIdProvider.notifier).state =
+                    item?.id as int?;
+                // Reset Varian Body saat Master Data berubah
+                ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
+                ref.read(mguSelectedVarianBodyNameProvider.notifier).state =
+                    null;
+              },
+              selectedItem: null, // Bisa diisi jika ada fitur copy-paste
+              decoratorProps: const DropDownDecoratorProps(
+                decoration: InputDecoration(
+                  labelText:
+                      'Pilih Master Data (Engine / Merk / Chassis / Jenis)',
+                  border: OutlineInputBorder(),
+                  isDense: true,
                 ),
-                const SizedBox(width: 16),
-                // MERK
-                _buildDropdown(
-                  ref: ref,
-                  label: 'Merk',
-                  provider: mdMerkOptionsProvider,
-                  selectedId: selectedMerkId,
-                  onChanged: (val) {
-                    ref.read(mguSelectedMerkIdProvider.notifier).state = val?.id
-                        .toString();
-                    ref.read(mguSelectedTypeChassisIdProvider.notifier).state =
-                        null;
-                    ref
-                            .read(mguSelectedJenisKendaraanIdProvider.notifier)
-                            .state =
-                        null;
-                    ref.read(mguSelectedVarianBodyIdProvider.notifier).state =
-                        null;
-                  },
-                ),
-                const SizedBox(width: 16),
-                // TYPE CHASSIS
-                _buildDropdown(
-                  ref: ref,
-                  label: 'Type Chassis',
-                  provider: mdTypeChassisOptionsProvider,
-                  selectedId: selectedChassisId,
-                  onChanged: (val) {
-                    ref.read(mguSelectedTypeChassisIdProvider.notifier).state =
-                        val?.id.toString();
-                    ref
-                            .read(mguSelectedJenisKendaraanIdProvider.notifier)
-                            .state =
-                        null;
-                    ref.read(mguSelectedVarianBodyIdProvider.notifier).state =
-                        null;
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                // JENIS KENDARAAN
-                _buildDropdown(
-                  ref: ref,
-                  label: 'Jenis Kendaraan',
-                  provider: mdJenisKendaraanOptionsProvider,
-                  selectedId: selectedJenisId,
-                  onChanged: (val) {
-                    ref
-                        .read(mguSelectedJenisKendaraanIdProvider.notifier)
-                        .state = val?.id
-                        .toString();
-                    ref.read(mguSelectedVarianBodyIdProvider.notifier).state =
-                        null;
-                  },
-                ),
-                const SizedBox(width: 16),
-                // VARIAN BODY (Dropdown terakhir)
-                Expanded(
-                  child: DropdownSearch<OptionItem>(
-                    items: (filter, _) => ref.read(
-                      varianBodyOptionsFamilyProvider(selectedJenisId).future,
-                    ),
-                    itemAsString: (item) => item.name,
-                    compareFn: (i1, i2) => i1.id == i2.id,
-                    selectedItem: selectedVarianId != null
-                        ? OptionItem(
-                            id: selectedVarianId,
-                            name: '',
-                          ) // Dummy name, dropdown will fetch real one or use compareFn
-                        : null,
-                    onChanged: (val) {
-                      ref.read(mguSelectedVarianBodyIdProvider.notifier).state =
-                          val?.id as int?;
-                    },
-                    decoratorProps: const DropDownDecoratorProps(
-                      decoration: InputDecoration(
-                        labelText: 'Varian Body',
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                      ),
-                    ),
-                    enabled:
-                        selectedJenisId !=
-                        null, // Hanya aktif jika jenis dipilih
-                    popupProps: const PopupProps.menu(
-                      showSearchBox: true,
-                      searchFieldProps: TextFieldProps(
-                        decoration: InputDecoration(hintText: "Cari Varian..."),
-                      ),
-                    ),
+              ),
+              popupProps: const PopupProps.menu(
+                showSearchBox: true,
+                searchFieldProps: TextFieldProps(
+                  decoration: InputDecoration(
+                    hintText: "Cari (contoh: Hino, Box)...",
+                    prefixIcon: Icon(Icons.search),
                   ),
                 ),
-              ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // 2. DROPDOWN VARIAN BODY (Tergantung Master Data)
+            DropdownSearch<OptionItem>(
+              enabled:
+                  selectedMasterDataId !=
+                  null, // Hanya aktif jika Master Data dipilih
+              items: (String filter, _) async {
+                if (selectedMasterDataId == null) return [];
+                // Kita butuh endpoint khusus untuk ambil varian by master_data_id
+                // Atau gunakan endpoint yang sudah ada jika parameternya cocok.
+                // SEMENTARA: Kita gunakan endpoint varian body biasa, tapi idealnya difilter by master_data_id.
+                // Asumsi: Backend '/options/varian-body' bisa terima filter master_data_id?
+                // Jika belum, Anda mungkin perlu membuat endpoint simple: getVarianByMasterData($id).
+
+                // Solusi Cepat: Gunakan repo existing jika endpointnya mendukung,
+                // atau biarkan user ketik manual jika perlu (tapi dropdown lebih aman).
+
+                // Mari gunakan cara manual fetch dari repository dengan query khusus
+                final response = await ref
+                    .read(apiClientProvider)
+                    .dio
+                    .get(
+                      '/admin/varian-body',
+                      queryParameters: {
+                        'search': filter,
+                        'master_data_id': selectedMasterDataId,
+                      },
+                    );
+                // Parsing manual karena format paginated
+                final List data = response.data['data'];
+                return data
+                    .map((e) => OptionItem(id: e['id'], name: e['varian_body']))
+                    .toList();
+              },
+              itemAsString: (item) => item.name,
+              onChanged: (OptionItem? item) {
+                ref.read(mguSelectedVarianBodyIdProvider.notifier).state =
+                    item?.id as int?;
+                ref.read(mguSelectedVarianBodyNameProvider.notifier).state =
+                    item?.name;
+              },
+              decoratorProps: const DropDownDecoratorProps(
+                decoration: InputDecoration(
+                  labelText: 'Pilih Varian Body',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+              popupProps: const PopupProps.menu(showSearchBox: true),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDropdown({
-    required WidgetRef ref,
-    required String label,
-    required FutureProviderFamily<List<OptionItem>, String> provider,
-    required String? selectedId,
-    required Function(OptionItem?) onChanged,
-  }) {
-    return Expanded(
-      child: DropdownSearch<OptionItem>(
-        items: (filter, _) => ref.read(provider(filter).future),
-        itemAsString: (item) => item.name,
-        compareFn: (i1, i2) => i1.id.toString() == i2.id.toString(),
-        // Kunci agar dropdown menampilkan nilai terpilih saat di-copy
-        selectedItem: selectedId != null
-            ? OptionItem(
-                id: selectedId,
-                name: '',
-              ) // DropdownSearch v6 cukup pintar, atau akan menampilkan kosong jika item tidak di list awal.
-            // Trik: Biasanya kita butuh object lengkap.
-            // Tapi karena ini searchable dan lazy loaded, idealnya kita kirim object lengkap dari 'copy'.
-            // Namun provider 'mgu...' hanya simpan ID.
-            // Untuk sekarang ini cukup, karena user akan melihat form terisi.
-            : null,
-        onChanged: onChanged,
-        decoratorProps: DropDownDecoratorProps(
-          decoration: InputDecoration(
-            labelText: label,
-            border: const OutlineInputBorder(),
-            isDense: true,
-          ),
-        ),
-        popupProps: const PopupProps.menu(
-          showSearchBox: true,
-          searchFieldProps: TextFieldProps(
-            decoration: InputDecoration(
-              hintText: "Cari...",
-              prefixIcon: Icon(Icons.search),
-            ),
-          ),
         ),
       ),
     );

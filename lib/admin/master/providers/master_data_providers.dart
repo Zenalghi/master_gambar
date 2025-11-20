@@ -249,3 +249,9 @@ final masterDataToCopyProvider = StateProvider<MasterData?>((ref) => null);
 final initialGambarUtamaDataProvider = StateProvider<Map<String, dynamic>?>(
   (ref) => null,
 );
+
+// State untuk menyimpan ID Master Data yang dipilih di form Gambar Utama
+final mguSelectedMasterDataIdProvider = StateProvider<int?>((ref) => null);
+
+// State untuk menyimpan Nama Varian Body (jika input manual atau dari dropdown)
+final mguSelectedVarianBodyNameProvider = StateProvider<String?>((ref) => null);
