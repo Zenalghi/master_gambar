@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
-import '../../../app/core/notifiers/refresh_notifier.dart';
+import 'package:master_gambar/data/models/option_item.dart';
 import '../widgets/add_gambar_kelistrikan_form.dart';
 import '../widgets/gambar_kelistrikan_table.dart';
 
@@ -20,36 +20,30 @@ class MasterGambarKelistrikanScreen extends ConsumerStatefulWidget {
 
 class _MasterGambarKelistrikanScreenState
     extends ConsumerState<MasterGambarKelistrikanScreen> {
-  // State untuk melacak proses upload
   bool _isUploading = false;
-  void _resetAndRefresh() {
-    ref.invalidate(typeEngineListProvider);
-    ref.invalidate(merkOptionsFamilyProvider);
-    ref.invalidate(typeChassisOptionsFamilyProvider);
-    ref.invalidate(jenisKendaraanOptionsFamilyProvider);
-    ref.invalidate(varianBodyOptionsFamilyProvider);
-    ref.invalidate(gambarOptionalFilterProvider);
-    ref
-        .read(gambarKelistrikanFilterProvider.notifier)
-        .update((state) => Map.from(state));
-    ref.read(refreshNotifierProvider.notifier).refresh();
-  }
 
-  // Method ini akan dipanggil oleh widget form saat tombol upload ditekan
-  void _handleUpload(String typeChassisId, String deskripsi, File file) async {
+  void _handleUpload(
+    String typeEngineId,
+    String merkId,
+    String typeChassisId,
+    String deskripsi,
+    File file,
+  ) async {
     setState(() => _isUploading = true);
     try {
       await ref
           .read(masterDataRepositoryProvider)
           .addGambarKelistrikan(
+            typeEngineId: typeEngineId,
+            merkId: merkId,
             typeChassisId: typeChassisId,
             deskripsi: deskripsi,
             gambarKelistrikanFile: file,
           );
 
-      // Refresh tabel data dan provider dropdown (untuk mereset form)
       ref.invalidate(gambarKelistrikanFilterProvider);
-      ref.invalidate(typeEngineListProvider);
+      // Reset data copy-paste setelah sukses agar form kembali bersih
+      ref.read(initialKelistrikanDataProvider.notifier).state = null;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -73,12 +67,17 @@ class _MasterGambarKelistrikanScreenState
 
   @override
   Widget build(BuildContext context) {
+    // 1. Cek apakah ada data "lemparan" dari Master Data
+    final initialData = ref.watch(initialKelistrikanDataProvider);
+
+    // Jika ada data lemparan, form harus terbuka otomatis
+    final bool shouldExpand = initialData != null;
+
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: Judul, Search, dan Reload
           Row(
             children: [
               const Text(
@@ -89,42 +88,55 @@ class _MasterGambarKelistrikanScreenState
               SizedBox(
                 width: 250,
                 child: TextField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Search...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    prefixIcon: Icon(Icons.search),
                   ),
-                  onChanged: (value) {
-                    ref
-                        .read(gambarKelistrikanFilterProvider.notifier)
-                        .update((state) => {...state, 'search': value});
-                  },
+                  onChanged: (value) => ref
+                      .read(gambarKelistrikanFilterProvider.notifier)
+                      .update((state) => {...state, 'search': value}),
                 ),
               ),
               const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data',
-                onPressed: () =>
-                    _resetAndRefresh(), // Panggil method reset dan refresh
+                onPressed: () {
+                  ref
+                      .read(gambarKelistrikanFilterProvider.notifier)
+                      .update((state) => Map.from(state));
+                  // Reset data copy-paste saat refresh manual
+                  ref.read(initialKelistrikanDataProvider.notifier).state =
+                      null;
+                },
               ),
             ],
           ),
           const SizedBox(height: 16),
 
-          // Form untuk menambah data (dibungkus ExpansionTile)
           ExpansionTile(
             title: const Text('Tambah Gambar Kelistrikan Baru'),
-            initiallyExpanded: true, // Biarkan form terbuka saat pertama kali
-            children: [AddGambarKelistrikanForm(onUpload: _handleUpload)],
+            // Buka otomatis jika ada data lemparan
+            initiallyExpanded: shouldExpand,
+            children: [
+              if (_isUploading)
+                const Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else
+                // 2. Teruskan data ke Form
+                AddGambarKelistrikanForm(
+                  onUpload: _handleUpload,
+                  initialTypeEngine: initialData?['typeEngine'] as OptionItem?,
+                  initialMerk: initialData?['merk'] as OptionItem?,
+                  initialTypeChassis:
+                      initialData?['typeChassis'] as OptionItem?,
+                ),
+            ],
           ),
 
           const SizedBox(height: 16),
-          // const Divider(),
-
-          // Tabel untuk menampilkan data
           const Expanded(child: GambarKelistrikanTable()),
         ],
       ),

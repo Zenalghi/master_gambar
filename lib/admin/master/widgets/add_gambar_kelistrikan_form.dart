@@ -22,7 +22,7 @@ class AddGambarKelistrikanForm extends ConsumerStatefulWidget {
     super.key,
     this.initialTypeEngine,
     this.initialMerk,
-    this.initialTypeChassis,
+    this.initialTypeChassis, required void Function(String typeEngineId, String merkId, String typeChassisId, String deskripsi, File file) onUpload,
   });
 
   @override

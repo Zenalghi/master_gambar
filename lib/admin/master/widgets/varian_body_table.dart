@@ -1,3 +1,5 @@
+// File: lib/admin/master/widgets/varian_body_table.dart
+
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +19,7 @@ class _VarianBodyTableState extends ConsumerState<VarianBodyTable> {
 
   @override
   Widget build(BuildContext context) {
+    // Buat DataSource di dalam build agar mendapatkan ref yang benar
     final dataSource = VarianBodyDataSource(ref, context);
     final rowsPerPage = ref.watch(varianBodyRowsPerPageProvider);
 
@@ -43,16 +46,18 @@ class _VarianBodyTableState extends ConsumerState<VarianBodyTable> {
       _sortAscending = ascending;
     });
 
+    // Mapping index kolom ke nama field yang dimengerti Backend
+    final Map<int, String> columnMapping = {
+      0: 'type_engine',
+      1: 'merk',
+      2: 'type_chassis',
+      3: 'jenis_kendaraan',
+      4: 'varian_body',
+      5: 'created_at',
+      6: 'updated_at',
+    };
+
     ref.read(varianBodyFilterProvider.notifier).update((state) {
-      final Map<int, String> columnMapping = {
-        0: 'id',
-        1: 'varian_body',
-        2: 'jenis_kendaraan',
-        3: 'type_chassis',
-        4: 'merk',
-        5: 'created_at',
-        6: 'updated_at',
-      };
       return {
         ...state,
         'sortBy': columnMapping[columnIndex] ?? 'updated_at',
@@ -63,35 +68,39 @@ class _VarianBodyTableState extends ConsumerState<VarianBodyTable> {
 
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('ID'), fixedWidth: 60, onSort: _onSort),
+      DataColumn2(
+        label: const Text('Type Engine'),
+        size: ColumnSize.S,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Merk'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Type Chassis'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Jenis Kendaraan'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
       DataColumn2(
         label: const Text('Varian Body'),
-        size: ColumnSize.S,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Jenis Kendaraan (Induk)'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Type Chassis (Induk)'),
-        size: ColumnSize.L,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Merk (Induk)'),
+        label: const Text('Dibuat Pada'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Created At'),
-        size: ColumnSize.S,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Updated At'),
-        size: ColumnSize.S,
+        label: const Text('Diupdate Pada'),
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       const DataColumn2(label: Text('Options'), fixedWidth: 120),

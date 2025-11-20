@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/models/master_data.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
+import '../../../data/models/option_item.dart';
 import 'edit_master_data_dialog.dart'; // Kita buat setelah ini
-import 'add_gambar_kelistrikan_dialog.dart'; // Dialog khusus kelistrikan
 
 class MasterDataDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;
@@ -50,8 +50,9 @@ class MasterDataDataSource extends AsyncDataTableSource {
                             Icons.add_circle_outline,
                             color: Colors.blue,
                           ),
-                          tooltip: 'Tambah Gambar Kelistrikan',
-                          onPressed: () => _showAddKelistrikanDialog(item),
+                          tooltip: 'Tambah Gambar Kelistrikan (Auto-fill)',
+                          // --- GANTI KE METHOD NAVIGASI BARU ---
+                          onPressed: () => _navigateToKelistrikan(item),
                         ),
                 ),
               ),
@@ -81,9 +82,32 @@ class MasterDataDataSource extends AsyncDataTableSource {
     }
   }
 
-  void _showAddKelistrikanDialog(MasterData item) {
-    // Implementasi dialog tambah kelistrikan (mengirim 3 ID: Engine, Merk, Chassis)
-    // ...
+  // --- METHOD BARU UNTUK COPY DATA & NAVIGASI ---
+  void _navigateToKelistrikan(MasterData item) {
+    // 1. Siapkan data yang mau di-copy paste
+    // Kita bungkus dalam OptionItem agar sesuai dengan format dropdown
+    final initialData = {
+      'typeEngine': OptionItem(
+        id: item.typeEngine.id,
+        name: item.typeEngine.name,
+      ),
+      'merk': OptionItem(id: item.merk.id, name: item.merk.name),
+      'typeChassis': OptionItem(
+        id: item.typeChassis.id,
+        name: item.typeChassis.name,
+      ),
+    };
+
+    // 2. Simpan ke provider sementara
+    _ref.read(initialKelistrikanDataProvider.notifier).state = initialData;
+
+    // 3. Pindah halaman ke "Gambar Kelistrikan" (Index 10)
+    _ref.read(adminSidebarIndexProvider.notifier).state = 10;
+
+    // (Opsional) Tampilkan snackbar info
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Data disalin! Silakan lengkapi form.')),
+    );
   }
 
   void _showDeleteDialog(MasterData item) {

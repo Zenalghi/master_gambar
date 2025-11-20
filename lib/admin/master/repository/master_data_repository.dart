@@ -22,8 +22,21 @@ final masterDataRepositoryProvider = Provider(
 );
 
 class MasterDataRepository {
-  final Ref _ref;
+  final Ref _ref; // Ini adalah _ref yang digunakan di seluruh class
   MasterDataRepository(this._ref);
+
+  // --- METODE BARU YANG ANDA BUTUHKAN ---
+  // Method ini harus berada DI DALAM kurung kurawal class MasterDataRepository
+  Future<List<OptionItem>> getMasterDataOptions(String search) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/options/master-data', queryParameters: {'search': search});
+
+    // Backend mengirim list, kita mapping ke OptionItem
+    final List<dynamic> data = response.data;
+    return data.map((e) => OptionItem.fromJson(e, nameKey: 'name')).toList();
+  }
 
   // == TYPE ENGINE ==
   Future<List<TypeEngine>> getTypeEngines() async {
@@ -50,14 +63,15 @@ class MasterDataRepository {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .put('/admin/type-engines/$id', data: {'type_engine': typeEngine});
+        .put('/type-engines/$id', data: {'type_engine': typeEngine});
     return TypeEngine.fromJson(response.data);
   }
 
   Future<void> deleteTypeEngine({required int id}) async {
-    await _ref.read(apiClientProvider).dio.delete('/admin/type-engines/$id');
+    await _ref.read(apiClientProvider).dio.delete('/type-engines/$id');
   }
 
+  // == MERK (PAGINATED) ==
   Future<PaginatedResponse<Merk>> getMerksPaginated({
     int page = 1,
     int perPage = 25,
@@ -69,7 +83,7 @@ class MasterDataRepository {
         .read(apiClientProvider)
         .dio
         .get(
-          '/admin/merks',
+          '/merks',
           queryParameters: {
             'page': page,
             'perPage': perPage,
@@ -81,30 +95,37 @@ class MasterDataRepository {
     return PaginatedResponse.fromJson(response.data, Merk.fromJson);
   }
 
-  Future<Merk> addMerk({required String merk}) async {
-    final response = await _ref
-        .read(apiClientProvider)
-        .dio
-        .post('/admin/merks', data: {'merk': merk});
-    return Merk.fromJson(response.data);
+  Future<List<Merk>> getMerks() async {
+    // Method lama untuk dropdown biasa (jika masih dipakai)
+    final response = await _ref.read(apiClientProvider).dio.get('/merks');
+    final List<dynamic> data = response.data;
+    return data.map((item) => Merk.fromJson(item)).toList();
   }
 
-  Future<Merk> updateMerk({
-    required int id, // <-- BERUBAH: int
+  Future<Merk> addMerk({
+    // typeEngineId dihapus karena independen
     required String merk,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .put('/admin/merks/$id', data: {'merk': merk});
+        .post('/merks', data: {'merk': merk});
+    return Merk.fromJson(response.data);
+  }
+
+  Future<Merk> updateMerk({required int id, required String merk}) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .put('/merks/$id', data: {'merk': merk});
     return Merk.fromJson(response.data);
   }
 
   Future<void> deleteMerk({required int id}) async {
-    await _ref.read(apiClientProvider).dio.delete('/admin/merks/$id');
+    await _ref.read(apiClientProvider).dio.delete('/merks/$id');
   }
 
-  // == TYPE CHASSIS (PAGINATED & INDEPENDEN) ==
+  // == TYPE CHASSIS (PAGINATED) ==
   Future<PaginatedResponse<TypeChassis>> getTypeChassisPaginated({
     int page = 1,
     int perPage = 25,
@@ -116,7 +137,7 @@ class MasterDataRepository {
         .read(apiClientProvider)
         .dio
         .get(
-          '/admin/type-chassis',
+          '/type-chassis',
           queryParameters: {
             'page': page,
             'perPage': perPage,
@@ -128,40 +149,43 @@ class MasterDataRepository {
     return PaginatedResponse.fromJson(response.data, TypeChassis.fromJson);
   }
 
+  Future<List<TypeChassis>> getTypeChassis() async {
+    // Method lama (jika masih dipakai)
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/type-chassis');
+    final List<dynamic> data = response.data;
+    return data.map((item) => TypeChassis.fromJson(item)).toList();
+  }
+
   Future<TypeChassis> addTypeChassis({
-    // required String merkId, <-- DIHAPUS
+    // merkId dihapus karena independen
     required String typeChassis,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .post(
-          '/admin/type-chassis',
-          data: {
-            // 'merk_id': merkId, <-- DIHAPUS
-            'type_chassis': typeChassis,
-          },
-        );
+        .post('/type-chassis', data: {'type_chassis': typeChassis});
     return TypeChassis.fromJson(response.data);
   }
 
   Future<TypeChassis> updateTypeChassis({
-    required int id, // <-- BERUBAH: int
+    required int id,
     required String typeChassis,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .put('/admin/type-chassis/$id', data: {'type_chassis': typeChassis});
+        .put('/type-chassis/$id', data: {'type_chassis': typeChassis});
     return TypeChassis.fromJson(response.data);
   }
 
   Future<void> deleteTypeChassis({required int id}) async {
-    // <-- BERUBAH: int
-    await _ref.read(apiClientProvider).dio.delete('/admin/type-chassis/$id');
+    await _ref.read(apiClientProvider).dio.delete('/type-chassis/$id');
   }
 
-  // == JENIS KENDARAAN (PAGINATED & INDEPENDEN) ==
+  // == JENIS KENDARAAN (PAGINATED) ==
   Future<PaginatedResponse<JenisKendaraan>> getJenisKendaraanListPaginated({
     int page = 1,
     int perPage = 25,
@@ -173,7 +197,7 @@ class MasterDataRepository {
         .read(apiClientProvider)
         .dio
         .get(
-          '/admin/jenis-kendaraan',
+          '/jenis-kendaraan',
           queryParameters: {
             'page': page,
             'perPage': perPage,
@@ -185,43 +209,43 @@ class MasterDataRepository {
     return PaginatedResponse.fromJson(response.data, JenisKendaraan.fromJson);
   }
 
+  Future<List<JenisKendaraan>> getJenisKendaraanList() async {
+    // Method lama
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/jenis-kendaraan');
+    final List<dynamic> data = response.data;
+    return data.map((item) => JenisKendaraan.fromJson(item)).toList();
+  }
+
   Future<JenisKendaraan> addJenisKendaraan({
-    // required String typeChassisId, <-- DIHAPUS
+    // typeChassisId dihapus karena independen
     required String jenisKendaraan,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .post(
-          '/admin/jenis-kendaraan',
-          data: {
-            // 'type_chassis_id': typeChassisId, <-- DIHAPUS
-            'jenis_kendaraan': jenisKendaraan,
-          },
-        );
+        .post('/jenis-kendaraan', data: {'jenis_kendaraan': jenisKendaraan});
     return JenisKendaraan.fromJson(response.data);
   }
 
   Future<JenisKendaraan> updateJenisKendaraan({
-    required int id, // <-- BERUBAH: int
+    required int id,
     required String jenisKendaraan,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .put(
-          '/admin/jenis-kendaraan/$id',
-          data: {'jenis_kendaraan': jenisKendaraan},
-        );
+        .put('/jenis-kendaraan/$id', data: {'jenis_kendaraan': jenisKendaraan});
     return JenisKendaraan.fromJson(response.data);
   }
 
   Future<void> deleteJenisKendaraan({required int id}) async {
-    // <-- BERUBAH: int
-    await _ref.read(apiClientProvider).dio.delete('/admin/jenis-kendaraan/$id');
+    await _ref.read(apiClientProvider).dio.delete('/jenis-kendaraan/$id');
   }
 
-  // --- TAMBAHKAN FUNGSI UNTUK VARIAN BODY ---
+  // == VARIAN BODY (PAGINATED) ==
   Future<PaginatedResponse<VarianBody>> getVarianBodyListPaginated({
     int page = 1,
     int perPage = 25,
@@ -233,7 +257,7 @@ class MasterDataRepository {
         .read(apiClientProvider)
         .dio
         .get(
-          '/varian-body', // The endpoint remains the same
+          '/varian-body', // Pastikan endpoint ini benar di api.php (biasanya resource 'varian-body')
           queryParameters: {
             'page': page,
             'perPage': perPage,
@@ -245,26 +269,38 @@ class MasterDataRepository {
     return PaginatedResponse.fromJson(response.data, VarianBody.fromJson);
   }
 
+  Future<List<VarianBody>> getVarianBodyList() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          '/varian-body',
+        ); // Endpoint index biasa (jika controller support all)
+    // Jika controller sudah diubah ke paginate, method ini akan error karena struktur JSON beda.
+    // Sebaiknya hapus atau sesuaikan jika controller hanya return paginate.
+    // Untuk keamanan, saya komen dulu.
+    final List<dynamic> data = response.data; //ku unkomen
+    return data.map((item) => VarianBody.fromJson(item)).toList();
+    // return [];
+  }
+
   Future<VarianBody> addVarianBody({
-    required String jenisKendaraanId,
+    required int masterDataId, // <-- Pakai masterDataId
     required String varianBody,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
         .post(
-          '/varian-body',
-          data: {
-            'jenis_kendaraan_id': jenisKendaraanId,
-            'varian_body': varianBody,
-          },
+          '/varian-body', // Endpoint resource
+          data: {'master_data_id': masterDataId, 'varian_body': varianBody},
         );
     return VarianBody.fromJson(response.data);
   }
 
   Future<VarianBody> updateVarianBody({
     required int id,
-    required String jenisKendaraanId,
+    required int masterDataId,
     required String varianBody,
   }) async {
     final response = await _ref
@@ -272,10 +308,7 @@ class MasterDataRepository {
         .dio
         .put(
           '/varian-body/$id',
-          data: {
-            'jenis_kendaraan_id': jenisKendaraanId,
-            'varian_body': varianBody,
-          },
+          data: {'master_data_id': masterDataId, 'varian_body': varianBody},
         );
     return VarianBody.fromJson(response.data);
   }
@@ -318,14 +351,50 @@ class MasterDataRepository {
   }
 
   // == MASTER GAMBAR UTAMA ==
-  Future<GGambarUtama> uploadGambarUtama({
-    required int varianBodyId,
+  Future<void> uploadGambarUtama({
+    required int
+    masterDataId, // <-- Ubah dari varianBodyId (sesuai controller baru)
+    required String varianBodyName, // <-- Nama varian body
     required File gambarUtama,
     required File gambarTerurai,
     required File gambarKontruksi,
   }) async {
     final formData = FormData.fromMap({
-      'e_varian_body_id': varianBodyId,
+      'master_data_id': masterDataId,
+      'varian_body': varianBodyName,
+      'gambar_utama': await MultipartFile.fromFile(
+        gambarUtama.path,
+        filename: gambarUtama.path.split(Platform.pathSeparator).last,
+      ),
+      'gambar_terurai': await MultipartFile.fromFile(
+        gambarTerurai.path,
+        filename: gambarTerurai.path.split(Platform.pathSeparator).last,
+      ),
+      'gambar_kontruksi': await MultipartFile.fromFile(
+        gambarKontruksi.path,
+        filename: gambarKontruksi.path.split(Platform.pathSeparator).last,
+      ),
+    });
+
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/gambar-master/utama', data: formData);
+  }
+
+  // Untuk Gambar Utama, kita butuh return objeknya untuk dapat ID-nya (dipakai di UI)
+  // Jadi sebaiknya uploadGambarUtama di atas return GGambarUtama, bukan void.
+  // Mari kita perbaiki sekalian:
+  Future<GGambarUtama> uploadGambarUtamaWithResult({
+    required int masterDataId,
+    required String varianBodyName,
+    required File gambarUtama,
+    required File gambarTerurai,
+    required File gambarKontruksi,
+  }) async {
+    final formData = FormData.fromMap({
+      'master_data_id': masterDataId,
+      'varian_body': varianBodyName,
       'gambar_utama': await MultipartFile.fromFile(
         gambarUtama.path,
         filename: gambarUtama.path.split(Platform.pathSeparator).last,
@@ -345,11 +414,10 @@ class MasterDataRepository {
         .dio
         .post('/admin/gambar-master/utama', data: formData);
 
-    // Parse dan kembalikan objek GGambarUtama
     return GGambarUtama.fromJson(response.data);
   }
 
-  // --- TAMBAHKAN FUNGSI UNTUK GAMBAR OPTIONAL ---
+  // == GAMBAR OPTIONAL ==
   Future<PaginatedResponse<GambarOptional>> getGambarOptionalListPaginated({
     int page = 1,
     int perPage = 25,
@@ -373,16 +441,23 @@ class MasterDataRepository {
     return PaginatedResponse.fromJson(response.data, GambarOptional.fromJson);
   }
 
+  // Method lama (hapus jika tidak dipakai)
+  Future<List<GambarOptional>> getGambarOptionalList() async {
+    // ... (sama seperti varian body, kemungkinan error jika controller pagination)
+    return [];
+  }
+
   Future<void> addGambarOptional({
-    required String deskripsi,
-    required File gambarOptionalFile,
+    // Parameter disesuaikan dengan controller H_GambarOptionalController
     String tipe = 'independen',
-    int? varianBodyId,
-    int? gambarUtamaId,
+    String deskripsi = '',
+    required File gambarOptionalFile,
+    int? varianBodyId, // e_varian_body_id (untuk independen)
+    int? gambarUtamaId, // g_gambar_utama_id (untuk paket)
   }) async {
     final fileName = gambarOptionalFile.path.split(Platform.pathSeparator).last;
 
-    // 1. Mulai dengan map yang berisi data umum
+    // Bangun map data
     final Map<String, dynamic> dataMap = {
       'tipe': tipe,
       'deskripsi': deskripsi,
@@ -429,12 +504,22 @@ class MasterDataRepository {
         .read(apiClientProvider)
         .dio
         .get(
-          '/admin/gambar-optional/$id/pdf', // Panggil endpoint baru
-          options: Options(
-            responseType: ResponseType.bytes,
-          ), // Wajib untuk menerima file
+          '/admin/gambar-optional/$id/pdf',
+          options: Options(responseType: ResponseType.bytes),
         );
     return response.data;
+  }
+
+  Future<bool> checkPaketOptionalExists(int varianBodyId) async {
+    try {
+      final response = await _ref
+          .read(apiClientProvider)
+          .dio
+          .get('/options/check-paket-optional/$varianBodyId');
+      return response.data['exists'] as bool;
+    } catch (e) {
+      return false;
+    }
   }
 
   //tambahkan fungsi untuk gambar kelistrikan berdasarkan id type chassis
@@ -467,9 +552,9 @@ class MasterDataRepository {
   }
 
   Future<void> addGambarKelistrikan({
-    required String typeEngineId, // Parameter Baru
-    required String merkId, // Parameter Baru
-    required String typeChassisId, // Parameter Baru
+    required String typeEngineId,
+    required String merkId,
+    required String typeChassisId,
     required String deskripsi,
     required File gambarKelistrikanFile,
   }) async {
@@ -494,6 +579,24 @@ class MasterDataRepository {
         .post('/admin/gambar-kelistrikan', data: formData);
   }
 
+  Future<Uint8List> getGambarKelistrikanPdf(int id) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          '/admin/gambar-kelistrikan/$id/pdf',
+          options: Options(responseType: ResponseType.bytes),
+        );
+    return response.data;
+  }
+
+  Future<void> deleteGambarKelistrikan({required int id}) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/gambar-kelistrikan/$id');
+  }
+
   Future<GambarKelistrikan> updateGambarKelistrikan({
     required int id,
     required String deskripsi,
@@ -505,26 +608,7 @@ class MasterDataRepository {
     return GambarKelistrikan.fromJson(response.data);
   }
 
-  Future<void> deleteGambarKelistrikan({required int id}) async {
-    await _ref
-        .read(apiClientProvider)
-        .dio
-        .delete('/admin/gambar-kelistrikan/$id');
-  }
-
-  Future<Uint8List> getGambarKelistrikanPdf(int id) async {
-    final response = await _ref
-        .read(apiClientProvider)
-        .dio
-        .get(
-          '/admin/gambar-kelistrikan/$id/pdf',
-          options: Options(
-            responseType: ResponseType.bytes,
-          ), // Crucial for getting file data
-        );
-    return response.data;
-  }
-
+  // == IMAGE STATUS (LAPORAN) ==
   Future<PaginatedResponse<ImageStatus>> getImageStatus({
     int page = 1,
     int perPage = 25,
@@ -548,12 +632,12 @@ class MasterDataRepository {
     return PaginatedResponse.fromJson(response.data, ImageStatus.fromJson);
   }
 
+  // == GAMBAR UTAMA PREVIEW (PATHS & VIEW) ==
   Future<Map<String, String>> getGambarUtamaPaths(int gambarUtamaId) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
         .get('/admin/gambar-utama/$gambarUtamaId/paths');
-    // Ubah tipe data agar sesuai dengan Dart
     return Map<String, String>.from(response.data);
   }
 
@@ -564,25 +648,10 @@ class MasterDataRepository {
         .dio
         .get(
           '/admin/master-gambar/view',
-          queryParameters: {'path': path}, // Kirim path sebagai query parameter
-          options: Options(
-            responseType: ResponseType.bytes,
-          ), // Wajib untuk file
+          queryParameters: {'path': path},
+          options: Options(responseType: ResponseType.bytes),
         );
     return response.data;
-  }
-
-  Future<bool> checkPaketOptionalExists(int varianBodyId) async {
-    try {
-      final response = await _ref
-          .read(apiClientProvider)
-          .dio
-          .get('/admin/options/check-paket-optional/$varianBodyId');
-      return response.data['exists'] as bool;
-    } catch (e) {
-      // Jika error (misal Varian Body tidak ditemukan), anggap tidak ada
-      return false;
-    }
   }
 
   // == MASTER DATA (TABEL UTAMA) ==

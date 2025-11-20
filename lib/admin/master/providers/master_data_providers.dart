@@ -223,3 +223,21 @@ final mdJenisKendaraanOptionsProvider =
           .read(masterDataRepositoryProvider)
           .getJenisKendaraanOptions(search);
     });
+
+// Provider untuk Dropdown Master Data (Searchable)
+// Menggunakan .family agar kita bisa mengirim text pencarian saat user mengetik
+final masterDataOptionsProvider = FutureProvider.family<List<OptionItem>, String>((
+  ref,
+  search,
+) async {
+  // Tidak perlu refreshNotifier di sini karena dropdown_search punya mekanisme refresh sendiri
+  return ref.read(masterDataRepositoryProvider).getMasterDataOptions(search);
+});
+
+// 1. Provider untuk mengontrol Index Sidebar (Navigasi)
+final adminSidebarIndexProvider = StateProvider<int>((ref) => 0);
+
+// 2. Provider untuk menampung data "Copy Paste" sementara
+final initialKelistrikanDataProvider = StateProvider<Map<String, dynamic>?>(
+  (ref) => null,
+);
