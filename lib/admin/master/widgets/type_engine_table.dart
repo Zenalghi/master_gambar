@@ -1,12 +1,12 @@
 // File: lib/admin/master/widgets/type_engine_table.dart
 
-import 'package:data_table_2/data_table_2.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import 'package:master_gambar/admin/master/models/type_engine.dart';
-import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:dio/dio.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
+import 'package:data_table_2/data_table_2.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/type_engine.dart';
+import '../providers/master_data_providers.dart';
 import '../repository/master_data_repository.dart';
 
 class TypeEngineTable extends ConsumerStatefulWidget {
@@ -207,6 +207,12 @@ class _TypeEngineDataSource extends DataTableSource {
                     .deleteTypeEngine(id: item.id); // <-- ID sudah int
                 ref.invalidate(typeEngineListProvider);
                 Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Data berhasil dihapus'),
+                    backgroundColor: Colors.green[400],
+                  ),
+                );
               } on DioException catch (e) {
                 final errorMessages = e.response?.data['errors'];
                 final message = errorMessages != null

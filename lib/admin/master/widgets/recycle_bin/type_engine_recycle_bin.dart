@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
-import 'package:master_gambar/admin/master/models/type_engine.dart';
-import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
+import '../../models/type_engine.dart';
+import '../../providers/master_data_providers.dart';
+import '../../repository/master_data_repository.dart';
 
 class TypeEngineRecycleBin extends ConsumerStatefulWidget {
   const TypeEngineRecycleBin({super.key});
@@ -90,8 +90,8 @@ class _TypeEngineRecycleBinState extends ConsumerState<TypeEngineRecycleBin> {
     return AlertDialog(
       title: const Text('Recycle Bin - Type Engine'),
       content: SizedBox(
-        width: 600,
-        height: 400,
+        width: 550,
+        height: 650,
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _deletedItems.isEmpty

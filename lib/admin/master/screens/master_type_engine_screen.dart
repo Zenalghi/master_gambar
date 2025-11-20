@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
+import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../widgets/type_engine_table.dart';
-// Import widget recycle bin baru
+import '../providers/master_data_providers.dart';
+import '../repository/master_data_repository.dart';
 import '../widgets/recycle_bin/type_engine_recycle_bin.dart';
 
 class MasterTypeEngineScreen extends ConsumerStatefulWidget {
@@ -96,7 +95,6 @@ class _MasterTypeEngineScreenState
                 tooltip: 'Refresh Data',
                 onPressed: () => ref.invalidate(typeEngineListProvider),
               ),
-              // --- TOMBOL RECYCLE BIN BARU ---
               const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.orange),
@@ -108,7 +106,6 @@ class _MasterTypeEngineScreenState
                   );
                 },
               ),
-              // -------------------------------
             ],
           ),
           const SizedBox(height: 16),
