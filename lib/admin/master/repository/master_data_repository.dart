@@ -316,6 +316,30 @@ class MasterDataRepository {
     await _ref.read(apiClientProvider).dio.delete('/jenis-kendaraan/$id');
   }
 
+  // == JENIS KENDARAAN RECYCLE BIN ==
+  Future<List<JenisKendaraan>> getDeletedJenisKendaraan() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/admin/jenis-kendaraan/trash');
+    final List<dynamic> data = response.data;
+    return data.map((item) => JenisKendaraan.fromJson(item)).toList();
+  }
+
+  Future<void> restoreJenisKendaraan(int id) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/jenis-kendaraan/$id/restore');
+  }
+
+  Future<void> forceDeleteJenisKendaraan(int id) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/jenis-kendaraan/$id/force-delete');
+  }
+
   // == VARIAN BODY (PAGINATED) ==
   Future<PaginatedResponse<VarianBody>> getVarianBodyListPaginated({
     int page = 1,

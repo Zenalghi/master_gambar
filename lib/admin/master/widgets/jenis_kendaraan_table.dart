@@ -3,7 +3,7 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
+import '../providers/master_data_providers.dart';
 import 'jenis_kendaraan_datasource.dart';
 
 class JenisKendaraanTable extends ConsumerStatefulWidget {

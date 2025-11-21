@@ -1,11 +1,11 @@
-import 'package:data_table_2/data_table_2.dart';
-import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:data_table_2/data_table_2.dart';
+import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
-import 'package:master_gambar/admin/master/models/jenis_kendaraan.dart';
-import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
+import '../models/jenis_kendaraan.dart';
+import '../providers/master_data_providers.dart';
+import '../repository/master_data_repository.dart';
 
 class JenisKendaraanDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;
