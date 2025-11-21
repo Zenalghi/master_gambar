@@ -160,9 +160,9 @@ class MasterDataDataSource extends AsyncDataTableSource {
                 if (context.mounted) {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Data berhasil dihapus'),
-                      backgroundColor: Colors.green,
+                    SnackBar(
+                      content: const Text('Data berhasil dihapus'),
+                      backgroundColor: Colors.orange[400],
                     ),
                   );
                 }

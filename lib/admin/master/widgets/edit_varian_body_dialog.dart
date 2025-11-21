@@ -73,12 +73,23 @@ class _EditVarianBodyDialogState extends ConsumerState<EditVarianBodyDialog> {
         );
       }
     } on DioException catch (e) {
+      // Error dari Server / Jaringan
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.response?.data['message'] ?? e.message}'),
+            content: Text(
+              'Server Error: ${e.response?.data['message'] ?? e.message}',
+            ),
             backgroundColor: Colors.red,
           ),
+        );
+      }
+    } catch (e) {
+      // --- PENANGKAPAN ERROR LAINNYA (Misal: Parsing JSON) ---
+      // Ini akan memberi tahu Anda jika Flutter gagal membaca respons dari server
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('App Error: $e'), backgroundColor: Colors.red),
         );
       }
     }

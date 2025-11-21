@@ -129,12 +129,12 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
           );
 
       // Reset form visual
-      setState(() {
-        _selectedTypeEngine = null;
-        _selectedMerk = null;
-        _selectedTypeChassis = null;
-        _selectedJenisKendaraan = null;
-      });
+      // setState(() {
+      //   _selectedTypeEngine = null;
+      //   _selectedMerk = null;
+      //   _selectedTypeChassis = null;
+      //   _selectedJenisKendaraan = null;
+      // });
 
       // Refresh tabel
       ref

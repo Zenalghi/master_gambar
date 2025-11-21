@@ -132,12 +132,21 @@ class JenisKendaraanDataSource extends AsyncDataTableSource {
                     .read(masterDataRepositoryProvider)
                     .deleteJenisKendaraan(id: item.id);
                 refreshDatasource();
-                if (context.mounted) Navigator.of(context).pop();
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Jenis Kendaraan berhasil dihapus'),
+                      backgroundColor: Colors.orange[400],
+                    ),
+                  );
+                }
               } on DioException catch (e) {
                 final errorMessages = e.response?.data['errors'];
                 final message = errorMessages != null
                     ? errorMessages['general'][0]
-                    : 'Terjadi kesalahan.';
+                    : 'Terjadi kesalahan: ${e.response?.data['message']}';
+
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
