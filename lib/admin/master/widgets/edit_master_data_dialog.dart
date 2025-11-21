@@ -23,40 +23,29 @@ class EditMasterDataDialog extends ConsumerStatefulWidget {
 class _EditMasterDataDialogState extends ConsumerState<EditMasterDataDialog> {
   final _formKey = GlobalKey<FormState>();
 
-  late int _selectedTypeEngineId;
-  late int _selectedMerkId;
-  late int _selectedTypeChassisId;
-  late int _selectedJenisKendaraanId;
-
-  // Untuk pre-fill dropdown, kita butuh object OptionItem
-  late OptionItem _initialEngine;
-  late OptionItem _initialMerk;
-  late OptionItem _initialChassis;
-  late OptionItem _initialJenis;
+  // Gunakan OptionItem seperti di Add Form
+  OptionItem? _selectedTypeEngine;
+  OptionItem? _selectedMerk;
+  OptionItem? _selectedTypeChassis;
+  OptionItem? _selectedJenisKendaraan;
 
   @override
   void initState() {
     super.initState();
-    // Inisialisasi ID
-    _selectedTypeEngineId = widget.masterData.typeEngine.id;
-    _selectedMerkId = widget.masterData.merk.id;
-    _selectedTypeChassisId = widget.masterData.typeChassis.id;
-    _selectedJenisKendaraanId = widget.masterData.jenisKendaraan.id;
-
-    // Inisialisasi Object untuk Dropdown (Tampilan Awal)
-    _initialEngine = OptionItem(
+    // Inisialisasi state dengan data yang ada
+    _selectedTypeEngine = OptionItem(
       id: widget.masterData.typeEngine.id,
       name: widget.masterData.typeEngine.name,
     );
-    _initialMerk = OptionItem(
+    _selectedMerk = OptionItem(
       id: widget.masterData.merk.id,
       name: widget.masterData.merk.name,
     );
-    _initialChassis = OptionItem(
+    _selectedTypeChassis = OptionItem(
       id: widget.masterData.typeChassis.id,
       name: widget.masterData.typeChassis.name,
     );
-    _initialJenis = OptionItem(
+    _selectedJenisKendaraan = OptionItem(
       id: widget.masterData.jenisKendaraan.id,
       name: widget.masterData.jenisKendaraan.name,
     );
@@ -70,10 +59,11 @@ class _EditMasterDataDialogState extends ConsumerState<EditMasterDataDialog> {
           .read(masterDataRepositoryProvider)
           .updateMasterData(
             id: widget.masterData.id,
-            typeEngineId: _selectedTypeEngineId,
-            merkId: _selectedMerkId,
-            typeChassisId: _selectedTypeChassisId,
-            jenisKendaraanId: _selectedJenisKendaraanId,
+            // Pastikan kirim ID sebagai INT, sama seperti di Add Form
+            typeEngineId: _selectedTypeEngine!.id as int,
+            merkId: _selectedMerk!.id as int,
+            typeChassisId: _selectedTypeChassis!.id as int,
+            jenisKendaraanId: _selectedJenisKendaraan!.id as int,
           );
 
       // Refresh tabel di parent
@@ -117,29 +107,29 @@ class _EditMasterDataDialogState extends ConsumerState<EditMasterDataDialog> {
                 _buildSearchableDropdown(
                   label: 'Type Engine',
                   provider: mdTypeEngineOptionsProvider,
-                  initialItem: _initialEngine,
-                  onChanged: (val) => _selectedTypeEngineId = val!.id,
+                  selectedItem: _selectedTypeEngine,
+                  onChanged: (val) => _selectedTypeEngine = val,
                 ),
                 const SizedBox(height: 16),
                 _buildSearchableDropdown(
                   label: 'Merk',
                   provider: mdMerkOptionsProvider,
-                  initialItem: _initialMerk,
-                  onChanged: (val) => _selectedMerkId = val!.id,
+                  selectedItem: _selectedMerk,
+                  onChanged: (val) => _selectedMerk = val,
                 ),
                 const SizedBox(height: 16),
                 _buildSearchableDropdown(
                   label: 'Type Chassis',
                   provider: mdTypeChassisOptionsProvider,
-                  initialItem: _initialChassis,
-                  onChanged: (val) => _selectedTypeChassisId = val!.id,
+                  selectedItem: _selectedTypeChassis,
+                  onChanged: (val) => _selectedTypeChassis = val,
                 ),
                 const SizedBox(height: 16),
                 _buildSearchableDropdown(
                   label: 'Jenis Kendaraan',
                   provider: mdJenisKendaraanOptionsProvider,
-                  initialItem: _initialJenis,
-                  onChanged: (val) => _selectedJenisKendaraanId = val!.id,
+                  selectedItem: _selectedJenisKendaraan,
+                  onChanged: (val) => _selectedJenisKendaraan = val,
                 ),
               ],
             ),
@@ -159,18 +149,18 @@ class _EditMasterDataDialogState extends ConsumerState<EditMasterDataDialog> {
     );
   }
 
+  // Helper yang sama persis dengan AddForm
   Widget _buildSearchableDropdown({
     required String label,
     required FutureProviderFamily<List<OptionItem>, String> provider,
-    required OptionItem initialItem,
+    required OptionItem? selectedItem,
     required Function(OptionItem?) onChanged,
   }) {
     return DropdownSearch<OptionItem>(
-      // V6 Syntax
       items: (String filter, _) => ref.read(provider(filter).future),
       itemAsString: (OptionItem item) => item.name,
       compareFn: (item1, item2) => item1.id == item2.id,
-      selectedItem: initialItem, // Set nilai awal untuk edit
+      selectedItem: selectedItem,
       onChanged: onChanged,
       decoratorProps: DropDownDecoratorProps(
         decoration: InputDecoration(
