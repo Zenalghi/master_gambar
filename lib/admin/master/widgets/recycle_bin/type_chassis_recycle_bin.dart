@@ -1,23 +1,24 @@
-// File: lib/admin/master/widgets/recycle_bin/merk_recycle_bin.dart
+// File: lib/admin/master/widgets/recycle_bin/type_chassis_recycle_bin.dart
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
-import '../../models/merk.dart';
+import 'package:intl/intl.dart';
+import '../../models/type_chassis.dart';
 import '../../providers/master_data_providers.dart';
 import '../../repository/master_data_repository.dart';
 
-class MerkRecycleBin extends ConsumerStatefulWidget {
-  const MerkRecycleBin({super.key});
+class TypeChassisRecycleBin extends ConsumerStatefulWidget {
+  const TypeChassisRecycleBin({super.key});
 
   @override
-  ConsumerState<MerkRecycleBin> createState() => _MerkRecycleBinState();
+  ConsumerState<TypeChassisRecycleBin> createState() =>
+      _TypeChassisRecycleBinState();
 }
 
-class _MerkRecycleBinState extends ConsumerState<MerkRecycleBin> {
+class _TypeChassisRecycleBinState extends ConsumerState<TypeChassisRecycleBin> {
   bool _isLoading = true;
-  List<Merk> _deletedItems = [];
+  List<TypeChassis> _deletedItems = [];
 
   @override
   void initState() {
@@ -29,7 +30,7 @@ class _MerkRecycleBinState extends ConsumerState<MerkRecycleBin> {
     try {
       final data = await ref
           .read(masterDataRepositoryProvider)
-          .getDeletedMerks();
+          .getDeletedTypeChassis();
       if (mounted) {
         setState(() {
           _deletedItems = data;
@@ -43,15 +44,15 @@ class _MerkRecycleBinState extends ConsumerState<MerkRecycleBin> {
 
   Future<void> _restore(int id) async {
     try {
-      await ref.read(masterDataRepositoryProvider).restoreMerk(id);
+      await ref.read(masterDataRepositoryProvider).restoreTypeChassis(id);
       await _fetchTrash(); // Refresh list sampah
       ref.invalidate(
-        merkFilterProvider,
+        typeChassisFilterProvider,
       ); // Refresh tabel utama di layar belakang
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Merk berhasil dipulihkan'),
+            content: Text('Type Chassis berhasil dipulihkan'),
             backgroundColor: Colors.green,
           ),
         );
@@ -70,12 +71,12 @@ class _MerkRecycleBinState extends ConsumerState<MerkRecycleBin> {
 
   Future<void> _forceDelete(int id) async {
     try {
-      await ref.read(masterDataRepositoryProvider).forceDeleteMerk(id);
+      await ref.read(masterDataRepositoryProvider).forceDeleteTypeChassis(id);
       await _fetchTrash();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Merk dihapus permanen'),
+            content: Text('Type Chassis dihapus permanen'),
             backgroundColor: Colors.red,
           ),
         );
@@ -96,7 +97,7 @@ class _MerkRecycleBinState extends ConsumerState<MerkRecycleBin> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Recycle Bin - Merk'),
+      title: const Text('Recycle Bin - Type Chassis'),
       content: SizedBox(
         width: 600,
         height: 400,

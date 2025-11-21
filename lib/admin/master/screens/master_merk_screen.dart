@@ -1,12 +1,12 @@
 // File: lib/admin/master/screens/master_merk_screen.dart
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
+import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../widgets/merk_table.dart';
-import '../widgets/recycle_bin/merk_recycle_bin.dart'; // <-- Import widget baru
+import '../providers/master_data_providers.dart';
+import '../repository/master_data_repository.dart';
+import '../widgets/recycle_bin/merk_recycle_bin.dart';
 
 class MasterMerkScreen extends ConsumerStatefulWidget {
   const MasterMerkScreen({super.key});
@@ -20,6 +20,10 @@ class _MasterMerkScreenState extends ConsumerState<MasterMerkScreen> {
 
   @override
   void dispose() {
+    //buat pas buka halaman ini jadi 'search': ''
+    ref
+        .read(merkFilterProvider.notifier)
+        .update((state) => {...state, 'search': ''});
     _merkController.dispose();
     super.dispose();
   }
@@ -100,6 +104,9 @@ class _MasterMerkScreenState extends ConsumerState<MasterMerkScreen> {
                   ref
                       .read(merkFilterProvider.notifier)
                       .update((state) => Map.from(state));
+                  ref
+                      .read(merkFilterProvider.notifier)
+                      .update((state) => {...state, 'search': ''});
                 },
               ),
               const SizedBox(width: 8),

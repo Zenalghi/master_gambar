@@ -3,9 +3,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:master_gambar/admin/master/models/type_chassis.dart';
-import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
+import '../models/type_chassis.dart';
+import '../providers/master_data_providers.dart';
+import '../repository/master_data_repository.dart';
 
 class TypeChassisDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;
@@ -133,12 +133,21 @@ class TypeChassisDataSource extends AsyncDataTableSource {
                     .read(masterDataRepositoryProvider)
                     .deleteTypeChassis(id: item.id);
                 refreshDatasource();
-                if (context.mounted) Navigator.of(context).pop();
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Type Chassis berhasil dihapus'),
+                      backgroundColor: Colors.orange[400],
+                    ),
+                  );
+                }
               } on DioException catch (e) {
                 final errorMessages = e.response?.data['errors'];
                 final message = errorMessages != null
                     ? errorMessages['general'][0]
-                    : 'Terjadi kesalahan.';
+                    : 'Terjadi kesalahan: ${e.response?.data['message']}';
+
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

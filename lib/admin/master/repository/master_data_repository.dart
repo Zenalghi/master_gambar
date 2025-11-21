@@ -232,6 +232,30 @@ class MasterDataRepository {
     await _ref.read(apiClientProvider).dio.delete('/type-chassis/$id');
   }
 
+  // == TYPE CHASSIS RECYCLE BIN ==
+  Future<List<TypeChassis>> getDeletedTypeChassis() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/admin/type-chassis/trash');
+    final List<dynamic> data = response.data;
+    return data.map((item) => TypeChassis.fromJson(item)).toList();
+  }
+
+  Future<void> restoreTypeChassis(int id) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/type-chassis/$id/restore');
+  }
+
+  Future<void> forceDeleteTypeChassis(int id) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/type-chassis/$id/force-delete');
+  }
+
   // == JENIS KENDARAAN (PAGINATED) ==
   Future<PaginatedResponse<JenisKendaraan>> getJenisKendaraanListPaginated({
     int page = 1,
