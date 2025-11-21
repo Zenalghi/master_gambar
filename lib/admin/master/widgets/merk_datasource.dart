@@ -135,7 +135,15 @@ class MerkDataSource extends AsyncDataTableSource {
                     .read(masterDataRepositoryProvider)
                     .deleteMerk(id: item.id);
                 refreshDatasource();
-                if (context.mounted) Navigator.of(context).pop();
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Merk berhasil dihapus'),
+                      backgroundColor: Colors.orange[400],
+                    ),
+                  );
+                }
               } on DioException catch (e) {
                 final errorMessages = e.response?.data['errors'];
                 final message = errorMessages != null

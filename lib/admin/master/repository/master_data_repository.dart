@@ -152,6 +152,26 @@ class MasterDataRepository {
     await _ref.read(apiClientProvider).dio.delete('/merks/$id');
   }
 
+  Future<List<Merk>> getDeletedMerks() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/admin/merks/trash');
+    final List<dynamic> data = response.data;
+    return data.map((item) => Merk.fromJson(item)).toList();
+  }
+
+  Future<void> restoreMerk(int id) async {
+    await _ref.read(apiClientProvider).dio.post('/admin/merks/$id/restore');
+  }
+
+  Future<void> forceDeleteMerk(int id) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/merks/$id/force-delete');
+  }
+
   // == TYPE CHASSIS (PAGINATED) ==
   Future<PaginatedResponse<TypeChassis>> getTypeChassisPaginated({
     int page = 1,
