@@ -110,7 +110,7 @@ class _MerkRecycleBinState extends ConsumerState<MerkRecycleBin> {
                 itemBuilder: (context, index) {
                   final item = _deletedItems[index];
                   final dateStr = DateFormat(
-                    'dd/MM/yyyy HH:mm',
+                    'dd/MM/yyyy HH:mm:ss',
                   ).format(item.updatedAt.toLocal());
 
                   return ListTile(

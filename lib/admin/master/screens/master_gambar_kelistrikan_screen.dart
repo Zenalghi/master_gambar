@@ -67,10 +67,10 @@ class _MasterGambarKelistrikanScreenState
 
   @override
   Widget build(BuildContext context) {
-    // 1. Cek apakah ada data "lemparan" dari Master Data
+    // Tonton provider data lemparan
     final initialData = ref.watch(initialKelistrikanDataProvider);
 
-    // Jika ada data lemparan, form harus terbuka otomatis
+    // Jika ada data, form harus auto-expand
     final bool shouldExpand = initialData != null;
 
     return Padding(
@@ -128,6 +128,7 @@ class _MasterGambarKelistrikanScreenState
                 // 2. Teruskan data ke Form
                 AddGambarKelistrikanForm(
                   onUpload: _handleUpload,
+                  // Teruskan data awal ke form
                   initialTypeEngine: initialData?['typeEngine'] as OptionItem?,
                   initialMerk: initialData?['merk'] as OptionItem?,
                   initialTypeChassis:

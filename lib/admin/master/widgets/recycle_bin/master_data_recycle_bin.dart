@@ -1,22 +1,24 @@
+// File: lib/admin/master/widgets/recycle_bin/merk_recycle_bin.dart
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
-import '../../models/type_engine.dart';
+import 'package:dio/dio.dart';
+import '../../models/master_data.dart';
 import '../../providers/master_data_providers.dart';
 import '../../repository/master_data_repository.dart';
 
-class TypeEngineRecycleBin extends ConsumerStatefulWidget {
-  const TypeEngineRecycleBin({super.key});
+class MasterDataRecycleBin extends ConsumerStatefulWidget {
+  const MasterDataRecycleBin({super.key});
 
   @override
-  ConsumerState<TypeEngineRecycleBin> createState() =>
-      _TypeEngineRecycleBinState();
+  ConsumerState<MasterDataRecycleBin> createState() =>
+      _MasterDataRecycleBinState();
 }
 
-class _TypeEngineRecycleBinState extends ConsumerState<TypeEngineRecycleBin> {
+class _MasterDataRecycleBinState extends ConsumerState<MasterDataRecycleBin> {
   bool _isLoading = true;
-  List<TypeEngine> _deletedItems = [];
+  List<MasterData> _deletedItems = [];
 
   @override
   void initState() {
@@ -28,7 +30,7 @@ class _TypeEngineRecycleBinState extends ConsumerState<TypeEngineRecycleBin> {
     try {
       final data = await ref
           .read(masterDataRepositoryProvider)
-          .getDeletedTypeEngines();
+          .getDeletedMasterData();
       if (mounted) {
         setState(() {
           _deletedItems = data;
@@ -36,45 +38,52 @@ class _TypeEngineRecycleBinState extends ConsumerState<TypeEngineRecycleBin> {
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        // Error handling sederhana
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _restore(int id) async {
     try {
-      await ref.read(masterDataRepositoryProvider).restoreTypeEngine(id);
+      await ref.read(masterDataRepositoryProvider).restoreMasterData(id);
       await _fetchTrash(); // Refresh list sampah
-      ref.invalidate(typeEngineListProvider); // Refresh tabel utama di belakang
+      ref.invalidate(
+        masterDataFilterProvider,
+      ); // Refresh tabel utama di layar belakang
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Data berhasil dipulihkan'),
+            content: Text('Master Data berhasil dipulihkan'),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
-      // Handle error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gagal memulihkan data'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
   Future<void> _forceDelete(int id) async {
     try {
-      await ref.read(masterDataRepositoryProvider).forceDeleteTypeEngine(id);
+      await ref.read(masterDataRepositoryProvider).forceDeleteMasterData(id);
       await _fetchTrash();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Data dihapus permanen'),
+            content: Text('Master Data dihapus permanen'),
             backgroundColor: Colors.red,
           ),
         );
       }
     } on DioException catch (e) {
       if (mounted) {
+        // Menangkap pesan error validasi dari backend (misal: masih dipakai di Master Data)
         final message =
             e.response?.data['errors']?['general']?[0] ??
             'Gagal menghapus data';
@@ -88,7 +97,7 @@ class _TypeEngineRecycleBinState extends ConsumerState<TypeEngineRecycleBin> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Recycle Bin - Type Engine'),
+      title: const Text('Recycle Bin - Master Data'),
       content: SizedBox(
         width: 600,
         height: 400,
@@ -101,18 +110,13 @@ class _TypeEngineRecycleBinState extends ConsumerState<TypeEngineRecycleBin> {
                 separatorBuilder: (_, __) => const Divider(),
                 itemBuilder: (context, index) {
                   final item = _deletedItems[index];
-                  // Model TypeEngine mungkin belum punya field deletedAt,
-                  // tapi updated_at biasanya menjadi waktu delete saat soft delete terjadi
-                  // atau Anda bisa update model nanti.
                   final dateStr = DateFormat(
                     'dd/MM/yyyy HH:mm:ss',
                   ).format(item.updatedAt.toLocal());
 
                   return ListTile(
-                    title: Text(item.name),
-                    subtitle: Text(
-                      'Dihapus: $dateStr',
-                    ), // Asumsi updatedAt terupdate saat delete
+                    title: Text(item.id.toString()),
+                    subtitle: Text('Dihapus (terakhir update): $dateStr'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

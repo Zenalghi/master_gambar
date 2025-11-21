@@ -774,10 +774,10 @@ class MasterDataRepository {
   }
 
   Future<MasterData> addMasterData({
-    required String typeEngineId,
-    required String merkId,
-    required String typeChassisId,
-    required String jenisKendaraanId,
+    required int typeEngineId, // <-- GANTI KE INT
+    required int merkId, // <-- GANTI KE INT
+    required int typeChassisId, // <-- GANTI KE INT
+    required int jenisKendaraanId, // <-- GANTI KE INT
   }) async {
     final response = await _ref
         .read(apiClientProvider)
@@ -796,10 +796,10 @@ class MasterDataRepository {
 
   Future<MasterData> updateMasterData({
     required int id,
-    required String typeEngineId,
-    required String merkId,
-    required String typeChassisId,
-    required String jenisKendaraanId,
+    required int typeEngineId, // <-- GANTI KE INT
+    required int merkId, // <-- GANTI KE INT
+    required int typeChassisId, // <-- GANTI KE INT
+    required int jenisKendaraanId, // <-- GANTI KE INT
   }) async {
     final response = await _ref
         .read(apiClientProvider)
@@ -814,6 +814,31 @@ class MasterDataRepository {
           },
         );
     return MasterData.fromJson(response.data);
+  }
+
+  // --- RECYCLE BIN MASTER DATA ---
+  Future<List<MasterData>> getDeletedMasterData() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/admin/master-data/trash');
+    return (response.data as List)
+        .map((item) => MasterData.fromJson(item))
+        .toList();
+  }
+
+  Future<void> restoreMasterData(int id) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/master-data/$id/restore');
+  }
+
+  Future<void> forceDeleteMasterData(int id) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/master-data/$id/force-delete');
   }
 
   Future<void> deleteMasterData({required int id}) async {

@@ -11,6 +11,8 @@ class MasterData {
   final TypeChassis typeChassis;
   final JenisKendaraan jenisKendaraan;
   final int? kelistrikanId; // ID gambar kelistrikan (jika ada)
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   MasterData({
     required this.id,
@@ -19,6 +21,8 @@ class MasterData {
     required this.typeChassis,
     required this.jenisKendaraan,
     this.kelistrikanId,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   factory MasterData.fromJson(Map<String, dynamic> json) {
@@ -29,6 +33,8 @@ class MasterData {
       typeChassis: TypeChassis.fromJson(json['type_chassis']),
       jenisKendaraan: JenisKendaraan.fromJson(json['jenis_kendaraan']),
       kelistrikanId: json['kelistrikan_id'],
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
     );
   }
 }

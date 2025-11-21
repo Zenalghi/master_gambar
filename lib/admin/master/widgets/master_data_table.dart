@@ -1,4 +1,5 @@
 // File: lib/admin/master/widgets/master_data_table.dart
+
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,11 +14,12 @@ class MasterDataTable extends ConsumerStatefulWidget {
 }
 
 class _MasterDataTableState extends ConsumerState<MasterDataTable> {
-  int _sortColumnIndex = 0;
-  bool _sortAscending = true;
+  int _sortColumnIndex = 6;
+  bool _sortAscending = false;
 
   @override
   Widget build(BuildContext context) {
+    // Buat DataSource di dalam build agar mendapatkan ref yang benar
     final dataSource = MasterDataDataSource(ref, context);
     final rowsPerPage = ref.watch(masterDataRowsPerPageProvider);
 
@@ -40,12 +42,18 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
       _sortColumnIndex = columnIndex;
       _sortAscending = ascending;
     });
+
+    // Mapping kolom sesuai backend
     final Map<int, String> columnMapping = {
-      0: 'type_engine',
-      1: 'merk',
-      2: 'type_chassis',
-      3: 'jenis_kendaraan',
+      0: 'id',
+      1: 'type_engine',
+      2: 'merk',
+      3: 'type_chassis',
+      4: 'jenis_kendaraan',
+      5: 'created_at',
+      6: 'updated_at',
     };
+
     ref
         .read(masterDataFilterProvider.notifier)
         .update(
@@ -59,14 +67,18 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
 
   List<DataColumn2> _createColumns() {
     return [
+      // 1. ID
+      DataColumn2(label: const Text('ID'), fixedWidth: 60, onSort: _onSort),
+
+      // Kolom Data
       DataColumn2(
-        label: const Text('Type Engine'),
-        size: ColumnSize.M,
+        label: const Text('Type\nEngine'),
+        fixedWidth: 122,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Merk'),
-        size: ColumnSize.M,
+        size: ColumnSize.S,
         onSort: _onSort,
       ),
       DataColumn2(
@@ -76,14 +88,30 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
       ),
       DataColumn2(
         label: const Text('Jenis Kendaraan'),
-        size: ColumnSize.L,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
+
+      // 2. Tanggal Dibuat
+      DataColumn2(
+        label: const Text('Dibuat pada'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
+
+      // 3. Tanggal Diupdate
+      DataColumn2(
+        label: const Text('Diupdate pada'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
+
+      // Kelistrikan & Options
       const DataColumn2(
         label: Center(child: Text('Kelistrikan')),
-        fixedWidth: 100,
+        fixedWidth: 140,
       ),
-      const DataColumn2(label: Text('Options'), fixedWidth: 120),
+      const DataColumn2(label: Text('Options'), fixedWidth: 200),
     ];
   }
 }

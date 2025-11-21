@@ -70,10 +70,10 @@ class _EditMasterDataDialogState extends ConsumerState<EditMasterDataDialog> {
           .read(masterDataRepositoryProvider)
           .updateMasterData(
             id: widget.masterData.id,
-            typeEngineId: _selectedTypeEngineId.toString(),
-            merkId: _selectedMerkId.toString(),
-            typeChassisId: _selectedTypeChassisId.toString(),
-            jenisKendaraanId: _selectedJenisKendaraanId.toString(),
+            typeEngineId: _selectedTypeEngineId,
+            merkId: _selectedMerkId,
+            typeChassisId: _selectedTypeChassisId,
+            jenisKendaraanId: _selectedJenisKendaraanId,
           );
 
       // Refresh tabel di parent

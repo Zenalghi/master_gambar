@@ -235,16 +235,6 @@ final masterDataOptionsProvider = FutureProvider.family<List<OptionItem>, String
   return ref.read(masterDataRepositoryProvider).getMasterDataOptions(search);
 });
 
-// 1. Provider untuk mengontrol Index Sidebar (Navigasi)
-final adminSidebarIndexProvider = StateProvider<int>((ref) => 0);
-
-// 2. Provider untuk menampung data "Copy Paste" sementara
-final initialKelistrikanDataProvider = StateProvider<Map<String, dynamic>?>(
-  (ref) => null,
-);
-// Provider untuk mengirim data "Copy" dari tabel ke form
-final masterDataToCopyProvider = StateProvider<MasterData?>((ref) => null);
-
 // Provider untuk menampung data "Copy Paste" ke halaman Gambar Utama
 final initialGambarUtamaDataProvider = StateProvider<Map<String, dynamic>?>(
   (ref) => null,
@@ -255,3 +245,14 @@ final mguSelectedMasterDataIdProvider = StateProvider<int?>((ref) => null);
 
 // State untuk menyimpan Nama Varian Body (jika input manual atau dari dropdown)
 final mguSelectedVarianBodyNameProvider = StateProvider<String?>((ref) => null);
+
+// 1. Provider untuk Copy data dari Tabel ke Form Add Master Data
+final masterDataToCopyProvider = StateProvider<MasterData?>((ref) => null);
+
+// 2. Provider untuk Auto-Fill Form Kelistrikan (saat navigasi dari Master Data)
+final initialKelistrikanDataProvider = StateProvider<Map<String, dynamic>?>(
+  (ref) => null,
+);
+
+// 3. Provider untuk mengontrol Tab Sidebar (Navigasi)
+final adminSidebarIndexProvider = StateProvider<int>((ref) => 0);

@@ -1,11 +1,9 @@
-// File: lib/admin/master/widgets/add_master_data_form.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/misc.dart';
-import 'package:master_gambar/admin/master/models/master_data.dart'; // Import Model
+import 'package:master_gambar/admin/master/models/master_data.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:master_gambar/data/models/option_item.dart';
@@ -20,7 +18,7 @@ class AddMasterDataForm extends ConsumerStatefulWidget {
 class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
   final _formKey = GlobalKey<FormState>();
 
-  // Kita simpan OptionItem lengkap agar nama bisa tampil di dropdown saat di-copy
+  // Gunakan OptionItem lengkap agar dropdown terisi nama
   OptionItem? _selectedTypeEngine;
   OptionItem? _selectedMerk;
   OptionItem? _selectedTypeChassis;
@@ -28,11 +26,10 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. DENGARKAN PERUBAHAN DARI TOMBOL COPY
-    ref.listen<MasterData?>(masterDataToCopyProvider, (previous, next) {
+    // --- LISTENER UNTUK COPY DATA ---
+    ref.listen<MasterData?>(masterDataToCopyProvider, (prev, next) {
       if (next != null) {
         setState(() {
-          // Isi form dengan data yang dicopy
           _selectedTypeEngine = OptionItem(
             id: next.typeEngine.id,
             name: next.typeEngine.name,
@@ -50,15 +47,11 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'Data disalin ke form. Silakan ubah salah satu field.',
-            ),
+            content: Text('Data disalin! Silakan ubah field yang diperlukan.'),
             backgroundColor: Colors.blue,
-            duration: Duration(seconds: 1),
           ),
         );
-
-        // Reset provider agar bisa dicopy ulang jika perlu
+        // Reset provider agar tidak trigger ulang
         ref.read(masterDataToCopyProvider.notifier).state = null;
       }
     });
@@ -106,7 +99,7 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
                   label: const Text('Tambah'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                      vertical: 17,
+                      vertical: 20,
                       horizontal: 24,
                     ),
                   ),
@@ -120,6 +113,8 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
     );
   }
 
+  // ... (method _submit dan _buildSearchableDropdown sama seperti sebelumnya,
+  // pastikan mengirim ID sebagai int: typeEngineId: _selectedTypeEngine!.id as int)
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -127,13 +122,13 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
       await ref
           .read(masterDataRepositoryProvider)
           .addMasterData(
-            typeEngineId: _selectedTypeEngine!.id.toString(),
-            merkId: _selectedMerk!.id.toString(),
-            typeChassisId: _selectedTypeChassis!.id.toString(),
-            jenisKendaraanId: _selectedJenisKendaraan!.id.toString(),
+            typeEngineId: _selectedTypeEngine!.id as int,
+            merkId: _selectedMerk!.id as int,
+            typeChassisId: _selectedTypeChassis!.id as int,
+            jenisKendaraanId: _selectedJenisKendaraan!.id as int,
           );
 
-      // Reset form
+      // Reset form visual
       setState(() {
         _selectedTypeEngine = null;
         _selectedMerk = null;
@@ -141,6 +136,7 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
         _selectedJenisKendaraan = null;
       });
 
+      // Refresh tabel
       ref
           .read(masterDataFilterProvider.notifier)
           .update((state) => Map.from(state));
@@ -148,7 +144,7 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Master Data berhasil ditambahkan!'),
+            content: Text('Data berhasil ditambahkan!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -168,15 +164,15 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
   Widget _buildSearchableDropdown({
     required String label,
     required FutureProviderFamily<List<OptionItem>, String> provider,
-    required Function(OptionItem?) onChanged,
     required OptionItem? selectedItem,
+    required Function(OptionItem?) onChanged,
   }) {
     return Expanded(
       child: DropdownSearch<OptionItem>(
         items: (String filter, _) => ref.read(provider(filter).future),
         itemAsString: (OptionItem item) => item.name,
         compareFn: (item1, item2) => item1.id == item2.id,
-        selectedItem: selectedItem, // Gunakan object lengkap
+        selectedItem: selectedItem, // <-- Gunakan state lokal
         onChanged: onChanged,
         decoratorProps: DropDownDecoratorProps(
           decoration: InputDecoration(

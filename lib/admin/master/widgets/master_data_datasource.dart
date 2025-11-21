@@ -4,6 +4,7 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart'; // Import intl
 import 'package:master_gambar/admin/master/models/master_data.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
@@ -13,6 +14,9 @@ import 'edit_master_data_dialog.dart';
 class MasterDataDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;
   final BuildContext context;
+  final DateFormat dateFormat = DateFormat(
+    'yyyy-MM-dd HH:mm',
+  ); // Formatter tanggal
 
   MasterDataDataSource(this._ref, this.context) {
     _ref.listen(masterDataFilterProvider, (_, __) => refreshDatasource());
@@ -38,10 +42,23 @@ class MasterDataDataSource extends AsyncDataTableSource {
           return DataRow(
             key: ValueKey(item.id),
             cells: [
+              // --- 1. KOLOM ID ---
+              DataCell(SelectableText(item.id.toString())),
+
+              // Kolom Data
               DataCell(SelectableText(item.typeEngine.name)),
               DataCell(SelectableText(item.merk.name)),
               DataCell(SelectableText(item.typeChassis.name)),
               DataCell(SelectableText(item.jenisKendaraan.name)),
+
+              // --- 2. KOLOM CREATED AT ---
+              DataCell(
+                SelectableText(dateFormat.format(item.createdAt.toLocal())),
+              ), // Asumsi model punya createdAt
+              // --- 3. KOLOM UPDATED AT ---
+              DataCell(
+                SelectableText(dateFormat.format(item.updatedAt.toLocal())),
+              ), // Asumsi model punya updatedAt
               // Kolom Kelistrikan
               DataCell(
                 Center(
@@ -57,21 +74,20 @@ class MasterDataDataSource extends AsyncDataTableSource {
                         ),
                 ),
               ),
+
+              // Kolom Options
               DataCell(
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // --- TOMBOL COPY (BARU) ---
                     IconButton(
                       icon: const Icon(Icons.copy, color: Colors.orange),
                       tooltip: 'Copy Data ke Form',
                       onPressed: () {
-                        // Kirim data item ini ke provider agar form di atas menangkapnya
                         _ref.read(masterDataToCopyProvider.notifier).state =
                             item;
                       },
                     ),
-                    // --------------------------
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () => showDialog(
@@ -108,21 +124,23 @@ class MasterDataDataSource extends AsyncDataTableSource {
       ),
     };
     _ref.read(initialKelistrikanDataProvider.notifier).state = initialData;
-    _ref.read(adminSidebarIndexProvider.notifier).state =
-        10; // Index menu kelistrikan
+    _ref.read(adminSidebarIndexProvider.notifier).state = 10;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Data disalin! Silakan lengkapi form.')),
+      const SnackBar(
+        content: Text('Data disalin! Silakan lengkapi form kelistrikan.'),
+      ),
     );
   }
 
-  // --- IMPLEMENTASI DELETE DIALOG (BARU) ---
   void _showDeleteDialog(MasterData item) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Konfirmasi Hapus'),
         content: Text(
-          'Yakin ingin menghapus Master Data ini?\n\nID: ${item.id}\nKombinasi: ${item.typeEngine.name} - ${item.merk.name} - ...',
+          'Yakin ingin menghapus Master Data ini?\n\n'
+          'ID: ${item.id}\n'
+          'Kombinasi: ${item.typeEngine.name} - ${item.merk.name} - ...',
         ),
         actions: [
           TextButton(
@@ -137,24 +155,26 @@ class MasterDataDataSource extends AsyncDataTableSource {
                     .read(masterDataRepositoryProvider)
                     .deleteMasterData(id: item.id);
 
+                refreshDatasource();
+
                 if (context.mounted) {
-                  Navigator.of(context).pop(); // Tutup dialog
+                  Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Data berhasil dihapus'),
                       backgroundColor: Colors.green,
                     ),
                   );
-                  refreshDatasource(); // Refresh tabel
                 }
               } on DioException catch (e) {
                 if (context.mounted) {
                   Navigator.of(context).pop();
-                  // Menampilkan pesan error dari backend (misal: validasi terpakai di varian body)
+
                   final message =
                       e.response?.data['message'] ??
                       e.response?.data['errors']?['general']?[0] ??
                       'Gagal menghapus data';
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(message),
