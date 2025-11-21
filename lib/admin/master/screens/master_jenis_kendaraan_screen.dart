@@ -19,13 +19,15 @@ class _MasterJenisKendaraanScreenState
     extends ConsumerState<MasterJenisKendaraanScreen> {
   final _jenisKendaraanController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  @override
+  void initState() {
+    super.initState();
+    // --- RESET SEARCH & FILTER JENIS KENDARAAN ---
+    Future.microtask(() => ref.invalidate(jenisKendaraanFilterProvider));
+  }
 
   @override
   void dispose() {
-    //buat pas buka halaman ini jadi 'search': ''
-    ref
-        .read(jenisKendaraanFilterProvider.notifier)
-        .update((state) => {...state, 'search': ''});
     _jenisKendaraanController.dispose();
     super.dispose();
   }

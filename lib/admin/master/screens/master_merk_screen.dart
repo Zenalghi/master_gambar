@@ -19,11 +19,15 @@ class _MasterMerkScreenState extends ConsumerState<MasterMerkScreen> {
   final _formKey = GlobalKey<FormState>(); // Kunci Form untuk validasi visual
 
   @override
+  void initState() {
+    super.initState();
+    // --- RESET SEARCH & FILTER MERK ---
+    // Ini akan mereset 'search' jadi kosong dan sort kembali ke default
+    Future.microtask(() => ref.invalidate(merkFilterProvider));
+  }
+
+  @override
   void dispose() {
-    //buat pas buka halaman ini jadi 'search': ''
-    ref
-        .read(merkFilterProvider.notifier)
-        .update((state) => {...state, 'search': ''});
     _merkController.dispose();
     super.dispose();
   }

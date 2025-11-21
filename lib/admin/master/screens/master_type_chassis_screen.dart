@@ -21,11 +21,14 @@ class _MasterTypeChassisScreenState
   final _formKey = GlobalKey<FormState>();
 
   @override
+  void initState() {
+    super.initState();
+    // --- RESET SEARCH & FILTER TYPE CHASSIS ---
+    Future.microtask(() => ref.invalidate(typeChassisFilterProvider));
+  }
+
+  @override
   void dispose() {
-    //buat pas buka halaman ini jadi 'search': ''
-    ref
-        .read(typeChassisFilterProvider.notifier)
-        .update((state) => {...state, 'search': ''});
     _chassisController.dispose();
     super.dispose();
   }

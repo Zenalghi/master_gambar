@@ -18,6 +18,11 @@ class _MasterTypeEngineScreenState
     extends ConsumerState<MasterTypeEngineScreen> {
   final _controller = TextEditingController();
   final _formKey = GlobalKey<FormState>(); // Kunci Validasi
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => ref.invalidate(typeEngineSearchQueryProvider));
+  }
 
   @override
   void dispose() {
