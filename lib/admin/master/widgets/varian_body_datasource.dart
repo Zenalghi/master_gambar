@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:master_gambar/admin/master/models/varian_body.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
+
+import 'edit_varian_body_dialog.dart';
 // Pastikan Anda punya dialog edit (jika belum, bisa dibuat nanti)
 // import 'edit_varian_body_dialog.dart';
 
@@ -36,17 +38,19 @@ class VarianBodyDataSource extends AsyncDataTableSource {
       return AsyncRowsResponse(
         response.total,
         response.data.map((item) {
-          // Akses data induk melalui masterData
           final md = item.masterData;
 
           return DataRow(
             key: ValueKey(item.id),
             cells: [
+              // --- TAMBAHKAN CELL ID DI SINI ---
+              DataCell(SelectableText(item.id.toString())),
+              // ---------------------------------
               DataCell(SelectableText(md.typeEngine.name)),
               DataCell(SelectableText(md.merk.name)),
               DataCell(SelectableText(md.typeChassis.name)),
               DataCell(SelectableText(md.jenisKendaraan.name)),
-              DataCell(SelectableText(item.name)), // Nama Varian Body
+              DataCell(SelectableText(item.name)),
               DataCell(
                 SelectableText(dateFormat.format(item.createdAt.toLocal())),
               ),
@@ -59,7 +63,12 @@ class VarianBodyDataSource extends AsyncDataTableSource {
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () {
-                        // _showEditDialog(item); // Uncomment jika dialog edit sudah ada
+                        // --- PANGGIL DIALOG EDIT ---
+                        showDialog(
+                          context: context,
+                          builder: (_) =>
+                              EditVarianBodyDialog(varianBody: item),
+                        );
                       },
                     ),
                     IconButton(

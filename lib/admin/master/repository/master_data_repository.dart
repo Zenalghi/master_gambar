@@ -412,6 +412,30 @@ class MasterDataRepository {
     await _ref.read(apiClientProvider).dio.delete('/varian-body/$id');
   }
 
+  // == VARIAN BODY RECYCLE BIN ==
+  Future<List<VarianBody>> getDeletedVarianBodies() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/admin/varian-body/trash');
+    final List<dynamic> data = response.data;
+    return data.map((item) => VarianBody.fromJson(item)).toList();
+  }
+
+  Future<void> restoreVarianBody(int id) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/varian-body/$id/restore');
+  }
+
+  Future<void> forceDeleteVarianBody(int id) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/varian-body/$id/force-delete');
+  }
+
   // == JENIS VARIAN ==
   Future<List<JenisVarian>> getJenisVarianList() async {
     final response = await _ref

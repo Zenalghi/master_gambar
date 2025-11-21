@@ -46,15 +46,15 @@ class _VarianBodyTableState extends ConsumerState<VarianBodyTable> {
       _sortAscending = ascending;
     });
 
-    // Mapping index kolom ke nama field yang dimengerti Backend
     final Map<int, String> columnMapping = {
-      0: 'type_engine',
-      1: 'merk',
-      2: 'type_chassis',
-      3: 'jenis_kendaraan',
-      4: 'varian_body',
-      5: 'created_at',
-      6: 'updated_at',
+      0: 'id',
+      1: 'type_engine',
+      2: 'merk',
+      3: 'type_chassis',
+      4: 'jenis_kendaraan',
+      5: 'varian_body',
+      6: 'created_at',
+      7: 'updated_at',
     };
 
     ref.read(varianBodyFilterProvider.notifier).update((state) {
@@ -68,9 +68,10 @@ class _VarianBodyTableState extends ConsumerState<VarianBodyTable> {
 
   List<DataColumn2> _createColumns() {
     return [
+      DataColumn2(label: const Text('ID'), fixedWidth: 70, onSort: _onSort),
       DataColumn2(
         label: const Text('Type Engine'),
-        size: ColumnSize.S,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
@@ -80,17 +81,17 @@ class _VarianBodyTableState extends ConsumerState<VarianBodyTable> {
       ),
       DataColumn2(
         label: const Text('Type Chassis'),
-        size: ColumnSize.M,
+        size: ColumnSize.L,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Jenis Kendaraan'),
-        size: ColumnSize.M,
+        size: ColumnSize.L,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Varian Body'),
-        size: ColumnSize.M,
+        size: ColumnSize.L,
         onSort: _onSort,
       ),
       DataColumn2(

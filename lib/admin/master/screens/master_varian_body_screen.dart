@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
+import '../widgets/recycle_bin/varian_body_recycle_bin.dart';
 import '../widgets/varian_body_table.dart';
 import '../widgets/add_varian_body_form.dart'; // <-- Import widget baru
 
@@ -40,10 +41,19 @@ class MasterVarianBodyScreen extends ConsumerWidget {
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data',
                 onPressed: () {
-                  // Refresh tabel dan dropdown master data
-                  ref
-                      .read(varianBodyFilterProvider.notifier)
-                      .update((state) => Map.from(state));
+                  ref.invalidate(varianBodyFilterProvider);
+                  ref.invalidate(masterDataOptionsProvider);
+                },
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.orange),
+                tooltip: 'Recycle Bin (Data Dihapus)',
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) => const VarianBodyRecycleBin(),
+                  );
                 },
               ),
             ],

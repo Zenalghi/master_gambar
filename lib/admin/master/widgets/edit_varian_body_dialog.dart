@@ -1,26 +1,44 @@
-// File: lib/admin/master/widgets/add_varian_body_form.dart
+// File: lib/admin/master/widgets/edit_varian_body_dialog.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:dio/dio.dart';
+import 'package:master_gambar/admin/master/models/varian_body.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 
-class AddVarianBodyForm extends ConsumerStatefulWidget {
-  const AddVarianBodyForm({super.key});
+class EditVarianBodyDialog extends ConsumerStatefulWidget {
+  final VarianBody varianBody;
+
+  const EditVarianBodyDialog({super.key, required this.varianBody});
 
   @override
-  ConsumerState<AddVarianBodyForm> createState() => _AddVarianBodyFormState();
+  ConsumerState<EditVarianBodyDialog> createState() =>
+      _EditVarianBodyDialogState();
 }
 
-class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
+class _EditVarianBodyDialogState extends ConsumerState<EditVarianBodyDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _varianController = TextEditingController();
+  late TextEditingController _varianController;
 
-  // Kita hanya butuh 1 ID ini untuk menghubungkan Varian Body ke Master Data
   int? _selectedMasterDataId;
+  late OptionItem _initialMasterData;
+
+  @override
+  void initState() {
+    super.initState();
+    _varianController = TextEditingController(text: widget.varianBody.name);
+    _selectedMasterDataId = widget.varianBody.masterData.id;
+
+    // Siapkan object untuk initial value dropdown
+    // Kita format namanya agar terlihat jelas di dropdown (seperti format pencarian)
+    final md = widget.varianBody.masterData;
+    final name =
+        '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.name} / ${md.jenisKendaraan.name}';
+    _initialMasterData = OptionItem(id: md.id, name: name);
+  }
 
   @override
   void dispose() {
@@ -34,26 +52,22 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
     try {
       await ref
           .read(masterDataRepositoryProvider)
-          .addVarianBody(
+          .updateVarianBody(
+            id: widget.varianBody.id,
             masterDataId: _selectedMasterDataId!,
             varianBody: _varianController.text,
           );
 
-      // Reset form
-      _varianController.clear();
-      setState(() {
-        _selectedMasterDataId = null;
-      });
-
-      // Refresh tabel varian body
+      // Refresh tabel di parent
       ref
           .read(varianBodyFilterProvider.notifier)
           .update((state) => Map.from(state));
 
       if (mounted) {
+        Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Varian Body berhasil ditambahkan!'),
+            content: Text('Varian Body berhasil diupdate!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -72,98 +86,75 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+    return AlertDialog(
+      title: Text('Edit Varian Body #${widget.varianBody.id}'),
+      content: SizedBox(
+        width: 500,
         child: Form(
           key: _formKey,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. Dropdown Pencarian Master Data
-              Expanded(
-                flex: 3,
-                child: DropdownSearch<OptionItem>(
-                  // Fungsi ini akan dipanggil saat user mengetik
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 1. Dropdown Master Data
+                DropdownSearch<OptionItem>(
                   items: (String filter, _) =>
                       ref.read(masterDataOptionsProvider(filter).future),
                   itemAsString: (OptionItem item) => item.name,
-                  // --- PERBAIKAN UTAMA DI SINI: Tambahkan compareFn ---
                   compareFn: (item1, item2) => item1.id == item2.id,
-                  // --------------------------------------------------
+                  selectedItem: _initialMasterData,
                   onChanged: (OptionItem? item) {
                     setState(() {
                       _selectedMasterDataId = item?.id as int?;
                     });
                   },
-                  selectedItem:
-                      null, // Kita biarkan null agar kosong setelah reset
                   decoratorProps: const DropDownDecoratorProps(
                     decoration: InputDecoration(
-                      labelText:
-                          'Pilih Master Data (Engine / Merk / Chassis / Jenis)',
-                      hintText: 'Ketik untuk mencari...',
-                      isDense: true,
+                      labelText: 'Master Data Induk',
                       border: OutlineInputBorder(),
+                      isDense: true,
                     ),
                   ),
                   popupProps: const PopupProps.menu(
                     showSearchBox: true,
                     searchFieldProps: TextFieldProps(
                       decoration: InputDecoration(
-                        hintText: "Cari (contoh: Hino, Box, dll)...",
+                        hintText: "Cari Master Data...",
                         prefixIcon: Icon(Icons.search),
                       ),
                     ),
-                    menuProps: MenuProps(
-                      borderRadius: BorderRadius.all(Radius.circular(8)),
-                    ),
                   ),
-                  validator: (item) =>
-                      item == null && _selectedMasterDataId == null
-                      ? 'Wajib dipilih'
-                      : null,
+                  validator: (item) => item == null ? 'Wajib dipilih' : null,
                 ),
-              ),
 
-              const SizedBox(width: 16),
+                const SizedBox(height: 16),
 
-              // 2. Input Nama Varian Body
-              Expanded(
-                flex: 2,
-                child: TextFormField(
+                // 2. Input Nama Varian
+                TextFormField(
                   controller: _varianController,
                   textCapitalization: TextCapitalization.characters,
                   decoration: const InputDecoration(
-                    labelText: 'Nama Varian Body Baru',
+                    labelText: 'Nama Varian Body',
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) =>
                       (value == null || value.isEmpty) ? 'Wajib diisi' : null,
                 ),
-              ),
-
-              const SizedBox(width: 16),
-
-              // 3. Tombol Tambah
-              Padding(
-                padding: const EdgeInsets.only(top: 4.0),
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text('Tambah'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 18,
-                      horizontal: 24,
-                    ),
-                  ),
-                  onPressed: _submit,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Batal'),
+        ),
+        ElevatedButton(
+          onPressed: _submit,
+          child: const Text('Simpan Perubahan'),
+        ),
+      ],
     );
   }
 }
