@@ -69,22 +69,22 @@ class _GambarKelistrikanTableState
     return [
       DataColumn2(
         label: const Text('Type Engine'),
-        size: ColumnSize.M,
+        size: ColumnSize.S,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Merk'),
-        size: ColumnSize.M,
+        size: ColumnSize.S,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Type Chassis'),
-        size: ColumnSize.L,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Deskripsi'),
-        size: ColumnSize.L,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
@@ -97,7 +97,7 @@ class _GambarKelistrikanTableState
         size: ColumnSize.M,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Options'), fixedWidth: 120),
+      const DataColumn2(label: Text('Options'), fixedWidth: 180),
     ];
   }
 }
