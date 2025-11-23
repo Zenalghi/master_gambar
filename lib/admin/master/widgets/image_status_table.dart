@@ -16,13 +16,23 @@ class ImageStatusTable extends ConsumerStatefulWidget {
 }
 
 class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
-  int _sortColumnIndex = 7; // Default sort: Updated At (index ke-7 sekarang)
+  int _sortColumnIndex = 0;
   bool _sortAscending = false;
+  late final _ImageStatusDataSourceWithContext _dataSource;
+
+  @override
+  void initState() {
+    super.initState();
+    // 2. Inisialisasi HANYA SEKALI saat widget pertama dibuat
+    _dataSource = _ImageStatusDataSourceWithContext(ref, context);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final dataSource = _ImageStatusDataSourceWithContext(ref, context);
     final rowsPerPage = ref.watch(imageStatusRowsPerPageProvider);
+    ref.listen(imageStatusFilterProvider, (_, __) {
+      _dataSource.refreshDatasource();
+    });
 
     return AsyncPaginatedDataTable2(
       loading: const Center(child: CircularProgressIndicator()),
@@ -36,7 +46,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       sortColumnIndex: _sortColumnIndex,
       sortAscending: _sortAscending,
       columns: _createColumns(),
-      source: dataSource,
+      source: _dataSource,
       empty: const Center(child: Text('Tidak ada data ditemukan')),
     );
   }
@@ -111,7 +121,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       // 7. Gbr Utama (Action Column)
       const DataColumn2(
         label: Center(child: Text('Gbr\nUtama', textAlign: TextAlign.center)),
-        fixedWidth: 120,
+        fixedWidth: 200,
       ),
 
       // 8. Updated At
@@ -124,7 +134,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       // 9. Gbr. Optional Paket
       DataColumn2(
         label: const Text('Gbr. Optional\nPaket'),
-        size: ColumnSize.M,
+        size: ColumnSize.M, 
         onSort: _onSort,
       ),
     ];

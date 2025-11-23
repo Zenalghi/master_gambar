@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:master_gambar/data/models/option_item.dart';
-import 'package:master_gambar/data/providers/api_endpoints.dart';
+// import 'package:master_gambar/data/providers/api_endpoints.dart';
 import 'package:master_gambar/app/core/providers.dart';
 
 class PilihVarianBodyCard extends ConsumerWidget {
