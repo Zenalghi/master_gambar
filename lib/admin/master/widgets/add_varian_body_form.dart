@@ -40,10 +40,10 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
           );
 
       // Reset form
-      _varianController.clear();
-      setState(() {
-        _selectedMasterDataId = null;
-      });
+      // _varianController.clear();
+      // setState(() {
+      //   _selectedMasterDataId = null;
+      // });
 
       // Refresh tabel varian body
       ref

@@ -1,6 +1,7 @@
 // File: lib/admin/master/widgets/varian_body_datasource.dart
 
 import 'package:data_table_2/data_table_2.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -107,17 +108,30 @@ class VarianBodyDataSource extends AsyncDataTableSource {
                     .read(masterDataRepositoryProvider)
                     .deleteVarianBody(id: item.id);
                 refreshDatasource(); // Refresh tabel setelah hapus
-                if (context.mounted) Navigator.of(context).pop();
-              } catch (e) {
-                // Error handling global biasanya sudah ada di repository atau dio interceptor
                 if (context.mounted) {
+                  Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Gagal menghapus data'),
+                    SnackBar(
+                      content: const Text('Data berhasil dihapus'),
+                      backgroundColor: Colors.orange[400],
+                    ),
+                  );
+                }
+              } on DioException catch (e) {
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+
+                  final message =
+                      e.response?.data['message'] ??
+                      e.response?.data['errors']?['general']?[0] ??
+                      'Gagal menghapus data';
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
                       backgroundColor: Colors.red,
                     ),
                   );
-                  Navigator.of(context).pop();
                 }
               }
             },
