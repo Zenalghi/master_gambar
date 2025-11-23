@@ -76,7 +76,7 @@ class _VarianBodyRecycleBinState extends ConsumerState<VarianBodyRecycleBin> {
       if (mounted) {
         final message =
             e.response?.data['errors']?['general']?[0] ??
-            'Gagal menghapus data';
+            'Gagal menghapus data $e';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message), backgroundColor: Colors.red),
         );
