@@ -5,16 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:master_gambar/admin/master/models/g_gambar_utama.dart';
+import 'package:master_gambar/admin/master/models/image_status.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:master_gambar/data/models/option_item.dart';
-// Import dialogs (pastikan pathnya benar)
-// import 'gambar_utama_viewer_dialog.dart';
 
-// Hapus provider global jika ada, kita akan instansiasi di UI
+// Hapus provider global karena diinstansiasi di UI
+// final imageStatusSourceProvider ...
 
 class ImageStatusDataSource extends AsyncDataTableSource {
-  // UBAH TIPE MENJADI WidgetRef AGAR COCOK DENGAN UI
   final WidgetRef _ref;
   final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
@@ -41,44 +40,77 @@ class ImageStatusDataSource extends AsyncDataTableSource {
         response.data.map((item) {
           final vb = item.varianBody;
           final masterData = vb.masterData;
-
-          // Logic deskripsi optional
           final optionalDesc = item.deskripsiOptional ?? 'N/A';
+          final bool hasImage = item.gambarUtama != null;
 
           return DataRow(
             key: ValueKey(vb.id),
             cells: [
+              // 1. ID Varian Body
+              DataCell(SelectableText(vb.id.toString())),
+
+              // 2. Type Engine
               DataCell(SelectableText(masterData.typeEngine.name)),
+
+              // 3. Merk
               DataCell(SelectableText(masterData.merk.name)),
+
+              // 4. Type Chassis
               DataCell(SelectableText(masterData.typeChassis.name)),
+
+              // 5. Jenis Kendaraan
               DataCell(SelectableText(masterData.jenisKendaraan.name)),
+
+              // 6. Varian Body
               DataCell(SelectableText(vb.name)),
 
-              // KOLOM GBR. UTAMA (VIEW BUTTON)
+              // 7. Gbr Utama (Action Column)
               DataCell(
                 Center(
-                  child: item.gambarUtama != null
-                      ? IconButton(
-                          icon: Icon(
-                            Icons.visibility,
-                            color: Colors.blue.shade700,
-                          ),
-                          tooltip: 'Lihat Gambar Utama',
-                          // Panggil method yang akan di-override di file Table
-                          onPressed: () => showPreviewDialog(item.gambarUtama!),
+                  child: hasImage
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Tombol PREVIEW (Mata)
+                            IconButton(
+                              icon: Icon(
+                                Icons.visibility,
+                                color: Colors.blue.shade700,
+                              ),
+                              tooltip: 'Preview Semua Gambar',
+                              onPressed: () =>
+                                  showPreviewDialog(item.gambarUtama!),
+                            ),
+                            // Tombol EDIT (Pensil)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.edit,
+                                color: Colors.orange,
+                              ),
+                              tooltip: 'Edit / Ganti Gambar',
+                              onPressed: () => _navigateToEdit(item),
+                            ),
+                          ],
                         )
-                      : const Icon(Icons.cancel, color: Colors.red),
+                      : ElevatedButton.icon(
+                          // Tombol ADD (Upload)
+                          onPressed: () => _navigateToAdd(item),
+                          icon: const Icon(Icons.upload_file, size: 16),
+                          label: const Text('Upload'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green, // Tombol hijau
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            textStyle: const TextStyle(fontSize: 12),
+                          ),
+                        ),
                 ),
               ),
 
-              DataCell(
-                optionalDesc != 'N/A'
-                    ? SelectableText(optionalDesc)
-                    : const Center(
-                        child: Icon(Icons.cancel, color: Colors.red),
-                      ),
-              ),
-
+              // 8. Updated At
               DataCell(
                 SelectableText(
                   item.gambarUtamaUpdatedAt != null
@@ -87,17 +119,11 @@ class ImageStatusDataSource extends AsyncDataTableSource {
                 ),
               ),
 
+              // 9. Gbr Optional (Deskripsi)
               DataCell(
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.copy_all, color: Colors.orange),
-                      tooltip: 'Copy Data & Kelola Gambar',
-                      onPressed: () => _navigateToManageGambar(item),
-                    ),
-                  ],
-                ),
+                optionalDesc != 'N/A'
+                    ? SelectableText(optionalDesc)
+                    : const Center(child: Text('-')), // Tanda strip jika kosong
               ),
             ],
           );
@@ -109,16 +135,15 @@ class ImageStatusDataSource extends AsyncDataTableSource {
     }
   }
 
-  // Method ini akan di-override oleh class turunan di file Table
-  // agar bisa mengakses Context untuk ShowDialog
-  void showPreviewDialog(GGambarUtama gambarUtama) {
-    // Default implementation (kosong), akan ditimpa
-  }
+  // Method untuk di-override di Table Widget
+  void showPreviewDialog(GGambarUtama gambarUtama) {}
 
-  void _navigateToManageGambar(dynamic item) {
+  // --- LOGIKA TOMBOL ADD (UPLOAD BARU) ---
+  void _navigateToAdd(ImageStatus item) {
     final vb = item.varianBody;
     final md = vb.masterData;
 
+    // 1. Set Data untuk Dropdown
     final initialData = {
       'typeEngine': OptionItem(id: md.typeEngine.id, name: md.typeEngine.name),
       'merk': OptionItem(id: md.merk.id, name: md.merk.name),
@@ -132,8 +157,40 @@ class ImageStatusDataSource extends AsyncDataTableSource {
       ),
       'varianBody': OptionItem(id: vb.id, name: vb.name),
     };
-
     _ref.read(initialGambarUtamaDataProvider.notifier).state = initialData;
+
+    // 2. Pastikan Mode Edit MATI
+    _ref.read(mguEditingGambarProvider.notifier).state = null;
+
+    // 3. Navigasi
+    _ref.read(adminSidebarIndexProvider.notifier).state = 8;
+  }
+
+  // --- LOGIKA TOMBOL EDIT ---
+  void _navigateToEdit(ImageStatus item) {
+    // 1. Set Data untuk Dropdown (sama seperti add)
+    final vb = item.varianBody;
+    final md = vb.masterData;
+    final initialData = {
+      'typeEngine': OptionItem(id: md.typeEngine.id, name: md.typeEngine.name),
+      'merk': OptionItem(id: md.merk.id, name: md.merk.name),
+      'typeChassis': OptionItem(
+        id: md.typeChassis.id,
+        name: md.typeChassis.name,
+      ),
+      'jenisKendaraan': OptionItem(
+        id: md.jenisKendaraan.id,
+        name: md.jenisKendaraan.name,
+      ),
+      'varianBody': OptionItem(id: vb.id, name: vb.name),
+    };
+    _ref.read(initialGambarUtamaDataProvider.notifier).state = initialData;
+
+    // 2. Set Mode Edit AKTIF & Isi Datanya
+    // Screen target akan membaca ini dan mengisi form file
+    _ref.read(mguEditingGambarProvider.notifier).state = item.gambarUtama;
+
+    // 3. Navigasi
     _ref.read(adminSidebarIndexProvider.notifier).state = 8;
   }
 }

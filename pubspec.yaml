@@ -49,6 +49,7 @@ dependencies:
   package_info_plus: ^9.0.0
   path: ^1.9.1
   dropdown_search: ^6.0.2
+  path_provider: ^2.1.5
   
 dev_dependencies:
   flutter_test:

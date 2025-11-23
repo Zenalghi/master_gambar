@@ -12,6 +12,7 @@ import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../models/gambar_optional.dart';
 import '../models/jenis_varian.dart';
 import '../models/master_data.dart';
+import '../models/g_gambar_utama.dart';
 
 // == PROVIDER UNTUK MENGAMBIL DATA LIST LENGKAP ==
 final typeEngineListProvider = FutureProvider<List<TypeEngine>>((ref) {
@@ -240,6 +241,8 @@ final masterDataOptionsProvider = FutureProvider.family<List<OptionItem>, String
 final initialGambarUtamaDataProvider = StateProvider<Map<String, dynamic>?>(
   (ref) => null,
 );
+
+final mguEditingGambarProvider = StateProvider<GGambarUtama?>((ref) => null);
 
 // State untuk menyimpan ID Master Data yang dipilih di form Gambar Utama
 final mguSelectedMasterDataIdProvider = StateProvider<int?>((ref) => null);

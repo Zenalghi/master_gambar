@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/models/g_gambar_utama.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'image_status_datasource.dart';
-import 'gambar_utama_viewer_dialog.dart'; // Pastikan import file dialog Anda benar
+import 'gambar_utama_viewer_dialog.dart';
 
 class ImageStatusTable extends ConsumerStatefulWidget {
   const ImageStatusTable({super.key});
@@ -16,13 +16,11 @@ class ImageStatusTable extends ConsumerStatefulWidget {
 }
 
 class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
-  int _sortColumnIndex = 7;
+  int _sortColumnIndex = 7; // Default sort: Updated At (index ke-7 sekarang)
   bool _sortAscending = false;
 
   @override
   Widget build(BuildContext context) {
-    // Buat instance dari class wrapper di bawah
-    // ref di sini adalah WidgetRef, cocok dengan konstruktor DataSource yang baru kita ubah
     final dataSource = _ImageStatusDataSourceWithContext(ref, context);
     final rowsPerPage = ref.watch(imageStatusRowsPerPageProvider);
 
@@ -44,13 +42,16 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
   }
 
   void _onSort(int columnIndex, bool ascending) {
+    // Mapping index kolom UI ke field database
     final Map<int, String> columnMapping = {
-      0: 'type_engine',
-      1: 'merk',
-      2: 'type_chassis',
-      3: 'jenis_kendaraan',
-      4: 'varian_body',
-      7: 'updated_at',
+      0: 'id', // ID Varian Body
+      1: 'type_engine',
+      2: 'merk',
+      3: 'type_chassis',
+      4: 'jenis_kendaraan',
+      5: 'varian_body',
+      7: 'updated_at', // Kolom Updated At Gambar Utama
+      8: 'deskripsi_optional', // Kolom Gbr Optional
     };
 
     setState(() {
@@ -69,59 +70,74 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
 
   List<DataColumn2> _createColumns() {
     return [
+      // 1. ID Varian Body
+      DataColumn2(label: const Text('ID'), fixedWidth: 60, onSort: _onSort),
+
+      // 2. Type Engine
       DataColumn2(
-        label: const Text('Type Engine'),
-        size: ColumnSize.M,
+        label: const Text('Type\nEngine'),
+        fixedWidth: 122,
         onSort: _onSort,
       ),
+
+      // 3. Merk
       DataColumn2(
         label: const Text('Merk'),
+        size: ColumnSize.S,
+        onSort: _onSort,
+      ),
+
+      // 4. Type Chassis
+      DataColumn2(
+        label: const Text('Type Chassis'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
-      DataColumn2(
-        label: const Text('Type Chassis'),
-        size: ColumnSize.L,
-        onSort: _onSort,
-      ),
+
+      // 5. Jenis Kendaraan
       DataColumn2(
         label: const Text('Jenis Kendaraan'),
-        size: ColumnSize.L,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
+
+      // 6. Varian Body
       DataColumn2(
         label: const Text('Varian Body'),
-        size: ColumnSize.L,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
+
+      // 7. Gbr Utama (Action Column)
       const DataColumn2(
-        label: Center(child: Text('Gbr. Utama')),
-        fixedWidth: 100,
+        label: Center(child: Text('Gbr\nUtama', textAlign: TextAlign.center)),
+        fixedWidth: 120,
       ),
-      const DataColumn2(
-        label: Text('Gbr. Optional (Paket)'),
-        size: ColumnSize.L,
-      ),
+
+      // 8. Updated At
       DataColumn2(
         label: const Text('Updated At'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Action'), fixedWidth: 80),
+
+      // 9. Gbr. Optional Paket
+      DataColumn2(
+        label: const Text('Gbr. Optional\nPaket'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
     ];
   }
 }
 
-// --- WRAPPER CLASS UNTUK MENANGANI DIALOG ---
+// Wrapper untuk dialog preview
 class _ImageStatusDataSourceWithContext extends ImageStatusDataSource {
   final BuildContext _context;
-
-  // Constructor menerima WidgetRef dan BuildContext
   _ImageStatusDataSourceWithContext(super.ref, this._context);
 
   @override
   void showPreviewDialog(GGambarUtama gambarUtama) {
-    // Membuka GambarUtamaViewerDialog yang kodenya Anda berikan sebelumnya
     showDialog(
       context: _context,
       builder: (_) => GambarUtamaViewerDialog(gambarUtama: gambarUtama),
