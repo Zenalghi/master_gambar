@@ -1,4 +1,7 @@
+//lib\admin\master\widgets\jenis_varian_table.dart
+
 import 'package:data_table_2/data_table_2.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -159,11 +162,29 @@ class _JenisVarianDataSource extends DataTableSource {
           ),
           ElevatedButton(
             onPressed: () async {
-              await ref
-                  .read(masterDataRepositoryProvider)
-                  .updateJenisVarian(id: item.id, namaJudul: controller.text);
-              ref.invalidate(jenisVarianListProvider);
-              Navigator.of(context).pop();
+              try {
+                await ref
+                    .read(masterDataRepositoryProvider)
+                    .updateJenisVarian(
+                      id: item.id,
+                      namaJudul: controller.text,
+                    ); // <-- ID sudah int
+                ref.invalidate(jenisVarianListProvider);
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Data berhasil diupdate'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } on DioException catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: ${e.response?.data['message']}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
             },
             child: const Text('Update'),
           ),
@@ -173,7 +194,47 @@ class _JenisVarianDataSource extends DataTableSource {
   }
 
   void _showDeleteDialog(JenisVarian item) {
-    // ... (logika hapus sama seperti Type Engine)
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content: Text('Anda yakin ingin menghapus "${item.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () async {
+              try {
+                await ref
+                    .read(masterDataRepositoryProvider)
+                    .deleteJenisVarian(id: item.id); // <-- GANTI DENGAN INI
+
+                ref.invalidate(jenisVarianListProvider);
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Data berhasil dihapus'),
+                    backgroundColor: Colors.redAccent[400],
+                  ),
+                );
+              } on DioException catch (e) {
+                final errorMessages = e.response?.data['errors'];
+                final message = errorMessages != null
+                    ? errorMessages['general'][0]
+                    : 'Terjadi kesalahan. $e';
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(message), backgroundColor: Colors.red),
+                );
+              }
+            },
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

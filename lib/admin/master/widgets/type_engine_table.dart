@@ -171,6 +171,12 @@ class _TypeEngineDataSource extends DataTableSource {
                     ); // <-- ID sudah int
                 ref.invalidate(typeEngineListProvider);
                 Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Data berhasil diupdate'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
               } on DioException catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

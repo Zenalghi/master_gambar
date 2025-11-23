@@ -80,6 +80,7 @@ final jenisVarianOptionsProvider = FutureProvider<List<OptionItem>>((
       .map((item) => OptionItem.fromJson(item, nameKey: 'name'))
       .toList();
 });
+
 // Provider .family untuk dropdown Jenis Kendaraan yang bergantung pada Type Chassis
 final jenisKendaraanOptionsFamilyProvider =
     FutureProvider.family<List<OptionItem>, String?>((
