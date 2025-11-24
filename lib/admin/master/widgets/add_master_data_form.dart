@@ -146,6 +146,8 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
           const SnackBar(
             content: Text('Data berhasil ditambahkan!'),
             backgroundColor: Colors.green,
+            //durasi 1 detik
+            duration: Duration(seconds: 1),
           ),
         );
       }
@@ -155,6 +157,7 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
           SnackBar(
             content: Text('Error: ${e.response?.data['message'] ?? e.message}'),
             backgroundColor: Colors.red,
+            duration: Duration(seconds: 1),
           ),
         );
       }

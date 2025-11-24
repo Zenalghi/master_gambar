@@ -123,9 +123,7 @@ class ImageStatusDataSource extends AsyncDataTableSource {
               DataCell(
                 optionalDesc != 'N/A'
                     ? SelectableText(optionalDesc)
-                    : const Center(
-                        child: Text('Belum ada'),
-                      ), // Tanda strip jika kosong
+                    : Text('Belum ada'),
               ),
             ],
           );
@@ -139,32 +137,34 @@ class ImageStatusDataSource extends AsyncDataTableSource {
 
   // Method untuk di-override di Table Widget
   void showPreviewDialog(GGambarUtama gambarUtama) {}
-
+  
   // --- LOGIKA TOMBOL ADD (UPLOAD BARU) ---
   void _navigateToAdd(ImageStatus item) {
     final vb = item.varianBody;
     final md = vb.masterData;
 
-    // 1. Set Data untuk Dropdown
+    // 1. Konstruksi Nama Master Data (Gabungan) agar sesuai tampilan Dropdown
+    final masterDataName =
+        '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.name} / ${md.jenisKendaraan.name}';
+
+    // 2. Siapkan Data Paket
     final initialData = {
-      'typeEngine': OptionItem(id: md.typeEngine.id, name: md.typeEngine.name),
-      'merk': OptionItem(id: md.merk.id, name: md.merk.name),
-      'typeChassis': OptionItem(
-        id: md.typeChassis.id,
-        name: md.typeChassis.name,
-      ),
-      'jenisKendaraan': OptionItem(
-        id: md.jenisKendaraan.id,
-        name: md.jenisKendaraan.name,
-      ),
+      // Kita butuh satu OptionItem Master Data yang utuh
+      'masterData': OptionItem(id: md.id, name: masterDataName),
+      // Dan satu OptionItem Varian Body
       'varianBody': OptionItem(id: vb.id, name: vb.name),
     };
+
+    // 3. Kirim ke Provider
     _ref.read(initialGambarUtamaDataProvider.notifier).state = initialData;
 
-    // 2. Pastikan Mode Edit MATI
+    // 4. Pastikan Mode Edit MATI & Reset File
     _ref.read(mguEditingGambarProvider.notifier).state = null;
+    _ref.read(mguGambarUtamaFileProvider.notifier).state = null;
+    _ref.read(mguGambarTeruraiFileProvider.notifier).state = null;
+    _ref.read(mguGambarKontruksiFileProvider.notifier).state = null;
 
-    // 3. Navigasi
+    // 5. Navigasi ke Tab Gambar Utama
     _ref.read(adminSidebarIndexProvider.notifier).state = 8;
   }
 
