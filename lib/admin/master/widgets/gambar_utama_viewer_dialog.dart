@@ -21,32 +21,66 @@ class GambarUtamaViewerDialog extends ConsumerStatefulWidget {
 class _GambarUtamaViewerDialogState
     extends ConsumerState<GambarUtamaViewerDialog>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-  // State untuk menyimpan path PDF
+  // Controller dibuat nullable karena menunggu data dulu
+  TabController? _tabController;
+
   Map<String, String>? _paths;
   bool _isLoadingPaths = true;
+
+  // List dinamis untuk Tab dan View
+  List<Tab> _tabs = [];
+  List<Widget> _views = [];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    // Jangan inisialisasi TabController di sini
     _fetchPaths();
   }
 
-  // Method untuk mengambil path dari 3 file
   Future<void> _fetchPaths() async {
     try {
       final paths = await ref
           .read(masterDataRepositoryProvider)
           .getGambarUtamaPaths(widget.gambarUtama.id);
-      setState(() {
-        _paths = paths;
-        _isLoadingPaths = false;
-      });
-    } catch (e) {
-      // Handle error jika gagal mengambil path
-      setState(() => _isLoadingPaths = false);
+
+      // --- LOGIKA DINAMIS MEMBANGUN TAB ---
+
+      // 1. Siapkan List Dasar (3 Tab Wajib)
+      List<Tab> tempTabs = [
+        const Tab(text: 'Gambar Utama'),
+        const Tab(text: 'Gambar Terurai'),
+        const Tab(text: 'Gambar Kontruksi'),
+      ];
+
+      List<Widget> tempViews = [
+        _PdfLazyViewer(path: paths['utama']),
+        _PdfLazyViewer(path: paths['terurai']),
+        _PdfLazyViewer(path: paths['kontruksi']),
+      ];
+
+      // 2. Cek apakah Backend mengirim key 'paket'
+      if (paths.containsKey('paket') && paths['paket'] != null) {
+        tempTabs.add(const Tab(text: 'Gambar Paket'));
+        tempViews.add(_PdfLazyViewer(path: paths['paket']));
+      }
+
+      // 3. Update State & Inisialisasi Controller
       if (mounted) {
+        setState(() {
+          _paths = paths;
+          _tabs = tempTabs;
+          _views = tempViews;
+
+          // Inisialisasi controller sesuai panjang list yang dinamis (3 atau 4)
+          _tabController = TabController(length: _tabs.length, vsync: this);
+
+          _isLoadingPaths = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingPaths = false);
         Navigator.of(context).pop();
         ScaffoldMessenger.of(
           context,
@@ -57,7 +91,7 @@ class _GambarUtamaViewerDialogState
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController?.dispose(); // Tambahkan ? karena nullable
     super.dispose();
   }
 
@@ -73,27 +107,28 @@ class _GambarUtamaViewerDialogState
       content: SizedBox(
         width: MediaQuery.of(context).size.width * 0.8,
         height: MediaQuery.of(context).size.height * 0.8,
-        child: _isLoadingPaths
+
+        // Tampilkan loading jika controller belum siap
+        child: _isLoadingPaths || _tabController == null
             ? const Center(child: CircularProgressIndicator())
             : Column(
                 children: [
+                  // TabBar menggunakan list dinamis _tabs
                   TabBar(
                     controller: _tabController,
-                    tabs: const [
-                      Tab(text: 'Gambar Utama'),
-                      Tab(text: 'Gambar Terurai'),
-                      Tab(text: 'Gambar Kontruksi'),
-                    ],
+                    tabs: _tabs,
+                    isScrollable:
+                        true, // Opsional: agar tab muat jika layar sempit
+                    labelColor:
+                        Colors.blue, // Styling tambahan agar terlihat aktif
+                    unselectedLabelColor: Colors.grey,
                   ),
+                  const SizedBox(height: 8),
                   Expanded(
+                    // TabBarView menggunakan list dinamis _views
                     child: TabBarView(
                       controller: _tabController,
-                      children: [
-                        // Gunakan widget helper untuk setiap tab
-                        _PdfLazyViewer(path: _paths?['utama']),
-                        _PdfLazyViewer(path: _paths?['terurai']),
-                        _PdfLazyViewer(path: _paths?['kontruksi']),
-                      ],
+                      children: _views,
                     ),
                   ),
                 ],
