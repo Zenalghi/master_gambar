@@ -9,7 +9,7 @@ import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/data/providers/api_endpoints.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
-import '../models/gambar_optional.dart';
+// import '../models/gambar_optional.dart';
 import '../models/jenis_varian.dart';
 import '../models/master_data.dart';
 import '../models/g_gambar_utama.dart';
@@ -177,7 +177,7 @@ final mguDependentFileProvider = StateProvider<File?>((ref) => null);
 
 // --- TAMBAHKAN PROVIDER BARU UNTUK TABEL STATUS GAMBAR ---
 final imageStatusFilterProvider = StateProvider<Map<String, String>>((ref) {
-  return {'search': '', 'sortBy': 'updated_at', 'sortDirection': 'desc'};
+  return {'search': '', 'sortBy': 'id', 'sortDirection': 'desc'};
 });
 
 // Provider ini akan melakukan pengecekan ke backend saat Varian Body dipilih

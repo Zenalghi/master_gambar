@@ -1,15 +1,28 @@
-// File: lib/admin/master/screens/image_status_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import '../widgets/image_status_table.dart';
 
-class ImageStatusScreen extends ConsumerWidget {
+// 1. Ubah menjadi ConsumerStatefulWidget
+class ImageStatusScreen extends ConsumerStatefulWidget {
   const ImageStatusScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ImageStatusScreen> createState() => _ImageStatusScreenState();
+}
+
+class _ImageStatusScreenState extends ConsumerState<ImageStatusScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // 2. Reset filter & paksa refresh saat halaman dibuka
+    Future.microtask(() {
+      ref.invalidate(imageStatusFilterProvider);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -29,6 +42,7 @@ class ImageStatusScreen extends ConsumerWidget {
                     prefixIcon: Icon(Icons.search),
                   ),
                   onChanged: (value) {
+                    // Update search state
                     ref
                         .read(imageStatusFilterProvider.notifier)
                         .update((state) => {...state, 'search': value});
@@ -40,16 +54,14 @@ class ImageStatusScreen extends ConsumerWidget {
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Muat Ulang Laporan',
                 onPressed: () {
-                  // Trigger refresh dengan mengupdate state filter (walau nilainya sama)
-                  // Ini akan ditangkap oleh listener di DataSource
-                  ref
-                      .read(imageStatusFilterProvider.notifier)
-                      .update((state) => Map.from(state));
+                  // Trigger refresh manual
+                  ref.invalidate(imageStatusFilterProvider);
                 },
               ),
             ],
           ),
           const SizedBox(height: 16),
+          // Widget Tabel
           const Expanded(child: ImageStatusTable()),
         ],
       ),

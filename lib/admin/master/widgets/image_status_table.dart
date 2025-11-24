@@ -16,6 +16,7 @@ class ImageStatusTable extends ConsumerStatefulWidget {
 }
 
 class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
+  // Sesuaikan default UI dengan Provider (ID Descending)
   int _sortColumnIndex = 0;
   bool _sortAscending = false;
   late final _ImageStatusDataSourceWithContext _dataSource;
@@ -23,13 +24,17 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
   @override
   void initState() {
     super.initState();
-    // 2. Inisialisasi HANYA SEKALI saat widget pertama dibuat
     _dataSource = _ImageStatusDataSourceWithContext(ref, context);
+
+    // TRICK: Pancing datasource untuk refresh setelah widget selesai dibangun
+    Future.microtask(() => _dataSource.refreshDatasource());
   }
 
   @override
   Widget build(BuildContext context) {
     final rowsPerPage = ref.watch(imageStatusRowsPerPageProvider);
+
+    // PERBAIKAN: Pindahkan listen ke sini (di dalam build)
     ref.listen(imageStatusFilterProvider, (_, __) {
       _dataSource.refreshDatasource();
     });
@@ -52,16 +57,15 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
   }
 
   void _onSort(int columnIndex, bool ascending) {
-    // Mapping index kolom UI ke field database
     final Map<int, String> columnMapping = {
-      0: 'id', // ID Varian Body
+      0: 'id',
       1: 'type_engine',
       2: 'merk',
       3: 'type_chassis',
       4: 'jenis_kendaraan',
       5: 'varian_body',
-      7: 'updated_at', // Kolom Updated At Gambar Utama
-      8: 'deskripsi_optional', // Kolom Gbr Optional
+      7: 'updated_at',
+      8: 'deskripsi_optional',
     };
 
     setState(() {
@@ -72,7 +76,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
     ref.read(imageStatusFilterProvider.notifier).update((state) {
       return {
         ...state,
-        'sortBy': columnMapping[columnIndex] ?? 'updated_at',
+        'sortBy': columnMapping[columnIndex] ?? 'id',
         'sortDirection': ascending ? 'asc' : 'desc',
       };
     });
@@ -134,7 +138,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       // 9. Gbr. Optional Paket
       DataColumn2(
         label: const Text('Gbr. Optional\nPaket'),
-        size: ColumnSize.M, 
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
     ];

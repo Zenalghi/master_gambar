@@ -16,10 +16,10 @@ import 'package:master_gambar/data/models/option_item.dart';
 class ImageStatusDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;
   final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
-
-  ImageStatusDataSource(this._ref) {
-    _ref.listen(imageStatusFilterProvider, (_, __) => refreshDatasource());
-  }
+  ImageStatusDataSource(this._ref);
+  // ImageStatusDataSource(this._ref) {
+  //   _ref.listen(imageStatusFilterProvider, (_, __) => refreshDatasource());
+  // }
 
   @override
   Future<AsyncRowsResponse> getRows(int startIndex, int count) async {
@@ -115,7 +115,7 @@ class ImageStatusDataSource extends AsyncDataTableSource {
                 SelectableText(
                   item.gambarUtamaUpdatedAt != null
                       ? dateFormat.format(item.gambarUtamaUpdatedAt!.toLocal())
-                      : '-',
+                      : 'Belum ada',
                 ),
               ),
 
@@ -123,7 +123,9 @@ class ImageStatusDataSource extends AsyncDataTableSource {
               DataCell(
                 optionalDesc != 'N/A'
                     ? SelectableText(optionalDesc)
-                    : const Center(child: Text('-')), // Tanda strip jika kosong
+                    : const Center(
+                        child: Text('Belum ada'),
+                      ), // Tanda strip jika kosong
               ),
             ],
           );
