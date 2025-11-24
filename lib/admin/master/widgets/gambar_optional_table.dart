@@ -73,33 +73,29 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
     return [
       DataColumn2(
         label: const Text('Type\nEngine'),
-        fixedWidth: 122,
+        fixedWidth: 95,
         onSort: _onSort,
       ),
+      DataColumn2(label: const Text('Merk'), fixedWidth: 136, onSort: _onSort),
       DataColumn2(
-        label: const Text('Merk'),
+        label: const Text('Type\nChassis'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Type Chassis'),
-        size: ColumnSize.L,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Jenis Kendaraan'),
-        size: ColumnSize.L,
+        label: const Text('Jenis\nKendaraan'),
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Varian Body'),
-        size: ColumnSize.L,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(label: const Text('Tipe'), fixedWidth: 144, onSort: _onSort),
       DataColumn2(
         label: const Text('Deskripsi'),
-        size: ColumnSize.L,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(

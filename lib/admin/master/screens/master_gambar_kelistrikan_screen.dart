@@ -43,7 +43,7 @@ class _MasterGambarKelistrikanScreenState
 
       ref.invalidate(gambarKelistrikanFilterProvider);
       // Reset data copy-paste setelah sukses agar form kembali bersih
-      ref.read(initialKelistrikanDataProvider.notifier).state = null;
+      // ref.read(initialKelistrikanDataProvider.notifier).state = null;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

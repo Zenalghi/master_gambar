@@ -42,19 +42,13 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
           final md = vb?.masterData;
 
           return DataRow(
-            key: ValueKey(item.id),
+            // key: ValueKey(item.id),
             cells: [
               DataCell(SelectableText(md?.typeEngine.name ?? '')),
               DataCell(SelectableText(md?.merk.name ?? '')),
               DataCell(SelectableText(md?.typeChassis.name ?? '')),
-
-              // Tampilkan Nama + (ID) sesuai permintaan
-              DataCell(
-                SelectableText(
-                  '${md?.jenisKendaraan.name ?? ''} (${md?.jenisKendaraan.id ?? ''})',
-                ),
-              ),
-              DataCell(SelectableText('${vb?.name ?? ''} (${vb?.id ?? ''})')),
+              DataCell(SelectableText(md?.jenisKendaraan.name ?? '')),
+              DataCell(SelectableText(vb?.name ?? '')),
 
               // Kolom Tipe
               DataCell(

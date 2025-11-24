@@ -192,9 +192,9 @@ class _MasterGambarUtamaScreenState
   }
 
   void _resetForm() {
-    ref.read(mguSelectedMasterDataIdProvider.notifier).state = null;
-    ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
-    ref.read(mguSelectedVarianBodyNameProvider.notifier).state = null;
+    // ref.read(mguSelectedMasterDataIdProvider.notifier).state = null;
+    // ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
+    // ref.read(mguSelectedVarianBodyNameProvider.notifier).state = null;
 
     ref.read(mguGambarUtamaFileProvider.notifier).state = null;
     ref.read(mguGambarTeruraiFileProvider.notifier).state = null;
@@ -209,6 +209,9 @@ class _MasterGambarUtamaScreenState
   }
 
   void _resetAndRefresh() {
+    ref.read(mguSelectedMasterDataIdProvider.notifier).state = null;
+    ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
+    ref.read(mguSelectedVarianBodyNameProvider.notifier).state = null;
     _resetForm();
     ref.read(refreshNotifierProvider.notifier).refresh();
   }

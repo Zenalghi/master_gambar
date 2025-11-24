@@ -43,17 +43,9 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
             key: ValueKey(item.id),
             cells: [
               // Akses langsung dari properti model yang baru
-              DataCell(
-                SelectableText(
-                  '${item.typeEngine.name} (${item.typeEngine.id})',
-                ),
-              ),
-              DataCell(SelectableText('${item.merk.name} (${item.merk.id})')),
-              DataCell(
-                SelectableText(
-                  '${item.typeChassis.name} (${item.typeChassis.id})',
-                ),
-              ),
+              DataCell(SelectableText(item.typeEngine.name)),
+              DataCell(SelectableText(item.merk.name)),
+              DataCell(SelectableText(item.typeChassis.name)),
               DataCell(SelectableText(item.deskripsi)),
               DataCell(
                 SelectableText(dateFormat.format(item.createdAt.toLocal())),

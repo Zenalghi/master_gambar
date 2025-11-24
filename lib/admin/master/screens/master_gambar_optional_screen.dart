@@ -9,8 +9,8 @@ import 'package:master_gambar/admin/master/providers/master_data_providers.dart'
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:pdfx/pdfx.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
-import '../widgets/pilih_varian_body_card.dart'; // Widget seleksi yang sama
-import '../widgets/gambar_optional_table.dart'; // Tabel list gambar
+import '../widgets/pilih_varian_body_card.dart';
+import '../widgets/gambar_optional_table.dart';
 
 class MasterGambarOptionalScreen extends ConsumerStatefulWidget {
   const MasterGambarOptionalScreen({super.key});
@@ -25,6 +25,8 @@ class _MasterGambarOptionalScreenState
   bool _isLoading = false;
   final _deskripsiController = TextEditingController();
   File? _selectedFile;
+
+  // Kita gunakan Controller yang bisa didispose/recreate manual
   PdfController? _pdfController;
 
   @override
@@ -35,10 +37,10 @@ class _MasterGambarOptionalScreenState
   }
 
   void _resetForm() {
-    // Reset provider seleksi (mgu...) agar form kembali bersih
-    ref.read(mguSelectedMasterDataIdProvider.notifier).state = null;
-    ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
-    ref.read(mguSelectedVarianBodyNameProvider.notifier).state = null;
+    // Reset provider seleksi
+    // ref.read(mguSelectedMasterDataIdProvider.notifier).state = null;
+    // ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
+    // ref.read(mguSelectedVarianBodyNameProvider.notifier).state = null;
 
     // Reset state lokal
     _deskripsiController.clear();
@@ -50,12 +52,13 @@ class _MasterGambarOptionalScreenState
   }
 
   void _resetAndRefresh() {
+    ref.read(mguSelectedMasterDataIdProvider.notifier).state = null;
+    ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
+    ref.read(mguSelectedVarianBodyNameProvider.notifier).state = null;
     _resetForm();
-    // Refresh tabel data
     ref
         .read(gambarOptionalFilterProvider.notifier)
         .update((state) => Map.from(state));
-    // Refresh dropdown jika perlu
     ref.read(refreshNotifierProvider.notifier).refresh();
   }
 
@@ -78,10 +81,8 @@ class _MasterGambarOptionalScreenState
   }
 
   Future<void> _submit() async {
-    // Ambil ID Varian Body dari provider global (hasil pilihan di card)
     final selectedVarianBodyId = ref.read(mguSelectedVarianBodyIdProvider);
 
-    // Validasi Form
     if (selectedVarianBodyId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -109,10 +110,10 @@ class _MasterGambarOptionalScreenState
       await ref
           .read(masterDataRepositoryProvider)
           .addGambarOptional(
-            varianBodyId: selectedVarianBodyId, // ID untuk relasi independen
+            varianBodyId: selectedVarianBodyId,
             deskripsi: _deskripsiController.text,
             gambarOptionalFile: _selectedFile!,
-            tipe: 'independen', // Pastikan tipe independen
+            tipe: 'independen',
           );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -123,7 +124,6 @@ class _MasterGambarOptionalScreenState
       );
 
       _resetForm();
-      // Refresh tabel list di bawah
       ref
           .read(gambarOptionalFilterProvider.notifier)
           .update((state) => Map.from(state));
@@ -176,115 +176,131 @@ class _MasterGambarOptionalScreenState
           ),
           const SizedBox(height: 16),
 
-          // AREA SCROLLABLE (FORM + TABEL)
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  // 1. CARD PILIH VARIAN BODY (Reuse Widget)
-                  const PilihVarianBodyCard(),
-
-                  const SizedBox(height: 16),
-
-                  // 2. CARD INPUT GAMBAR OPTIONAL
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: SizedBox(
-                        height: 350,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+          // --- AREA UTAMA (ROW BESAR) ---
+          // Menggunakan Expanded agar tabel di bawahnya tetap terlihat jika scroll
+          // atau kita batasi tingginya agar rapi.
+          ExpansionTile(
+            title: const Text('Tambah Gambar Optional Baru'),
+            children: [
+              SizedBox(
+                height: 580, // Tinggi area Input + Preview
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // === KOLOM KIRI: SEMUA FORM INPUT ===
+                    Expanded(
+                      flex: 2,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            // Kolom Kiri: Form Input
-                            Expanded(
-                              flex: 2,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  TextFormField(
-                                    controller: _deskripsiController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Deskripsi Gambar Optional',
-                                      border: OutlineInputBorder(),
-                                    ),
-                                    textCapitalization:
-                                        TextCapitalization.characters,
-                                  ),
-                                  const SizedBox(height: 24),
-                                  ElevatedButton.icon(
-                                    icon: const Icon(Icons.picture_as_pdf),
-                                    label: Text(
-                                      _selectedFile == null
-                                          ? 'Pilih File PDF'
-                                          : 'Ganti File',
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 18,
+                            // 1. CARD PILIH KENDARAAN
+                            const PilihVarianBodyCard(),
+
+                            const SizedBox(height: 16),
+
+                            // 2. CARD INPUT DESKRIPSI & FILE
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    const Text(
+                                      "2. Detail Gambar",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
                                       ),
                                     ),
-                                    onPressed: _pickFile,
-                                  ),
-                                  if (_selectedFile != null)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 8.0),
-                                      child: Text(
-                                        'File: ${_selectedFile!.path.split(Platform.pathSeparator).last}',
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodySmall,
-                                        textAlign: TextAlign.center,
-                                        overflow: TextOverflow.ellipsis,
+                                    const SizedBox(height: 16),
+
+                                    // Input Deskripsi
+                                    TextFormField(
+                                      controller: _deskripsiController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Deskripsi Gambar Optional',
+                                        border: OutlineInputBorder(),
+                                        prefixIcon: Icon(Icons.description),
                                       ),
+                                      textCapitalization:
+                                          TextCapitalization.characters,
                                     ),
-                                  const Spacer(),
-                                  // TOMBOL UPLOAD
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: _isLoading
-                                        ? const Center(
-                                            child: CircularProgressIndicator(),
-                                          )
-                                        : ElevatedButton.icon(
-                                            icon: const Icon(Icons.upload),
-                                            label: const Text(
-                                              'Upload Gambar Optional',
+                                    const SizedBox(height: 16),
+
+                                    // Tombol Pilih File
+                                    ElevatedButton.icon(
+                                      icon: const Icon(Icons.picture_as_pdf),
+                                      label: Text(
+                                        _selectedFile == null
+                                            ? 'Pilih File PDF'
+                                            : 'Ganti File',
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 18,
+                                        ),
+                                      ),
+                                      onPressed: _pickFile,
+                                    ),
+
+                                    if (_selectedFile != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          top: 8.0,
+                                        ),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[100],
+                                            borderRadius: BorderRadius.circular(
+                                              4,
                                             ),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.green,
-                                              foregroundColor: Colors.white,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    vertical: 16,
-                                                  ),
+                                            border: Border.all(
+                                              color: Colors.grey[300]!,
                                             ),
-                                            onPressed: _submit,
                                           ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            // Kolom Kanan: Preview PDF
-                            Expanded(
-                              flex: 3,
-                              child: Card(
-                                elevation: 2,
-                                clipBehavior: Clip.antiAlias,
-                                child: Container(
-                                  color: Colors.grey.shade100,
-                                  child: _pdfController != null
-                                      ? PdfView(
-                                          key: ValueKey(_selectedFile!.path),
-                                          controller: _pdfController!,
-                                        )
-                                      : const Center(
-                                          child: Icon(
-                                            Icons.picture_as_pdf_outlined,
-                                            size: 40,
-                                            color: Colors.grey,
+                                          child: Text(
+                                            'File terpilih: ${_selectedFile!.path.split(Platform.pathSeparator).last}',
+                                            style: TextStyle(
+                                              color: Colors.blue[800],
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
+                                      ),
+                                    const Divider(),
+                                    // const SizedBox(height: 100),
+
+                                    // TOMBOL UPLOAD
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: _isLoading
+                                          ? const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            )
+                                          : ElevatedButton.icon(
+                                              icon: const Icon(Icons.upload),
+                                              label: const Text(
+                                                'Upload Gambar Optional',
+                                              ),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.green,
+                                                foregroundColor: Colors.white,
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 16,
+                                                    ),
+                                                elevation: 2,
+                                              ),
+                                              onPressed: _submit,
+                                            ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -292,20 +308,56 @@ class _MasterGambarOptionalScreenState
                         ),
                       ),
                     ),
-                  ),
 
-                  const SizedBox(height: 24),
-                  const Divider(),
-                  const SizedBox(height: 8),
+                    const SizedBox(width: 16),
 
-                  // 3. TABEL DAFTAR GAMBAR OPTIONAL
-                  const SizedBox(
-                    height: 600, // Tinggi tetap untuk tabel
-                    child: GambarOptionalTable(),
-                  ),
-                ],
+                    // === KOLOM KANAN: PREVIEW PDF FULL HEIGHT ===
+                    Expanded(
+                      flex: 3,
+                      child: Card(
+                        elevation: 2,
+                        clipBehavior: Clip.antiAlias,
+                        child: Container(
+                          color: Colors.grey.shade100,
+                          child: _pdfController != null
+                              ? PdfView(
+                                  key: ValueKey(_selectedFile!.path),
+                                  controller: _pdfController!,
+                                )
+                              : const Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.picture_as_pdf_outlined,
+                                        size: 60,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        "Preview PDF akan muncul di sini",
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 8),
+
+          // TABEL DAFTAR GAMBAR OPTIONAL
+          const Expanded(
+            // Mengisi sisa ruang ke bawah
+            child: GambarOptionalTable(),
           ),
         ],
       ),
