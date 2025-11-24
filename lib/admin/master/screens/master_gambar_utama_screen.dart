@@ -1,14 +1,11 @@
-// File: lib/admin/master/screens/master_gambar_utama_screen.dart
-
 import 'dart:io';
-// import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:master_gambar/admin/master/models/g_gambar_utama.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
-import 'package:path_provider/path_provider.dart'; // Perlu tambah package ini di pubspec.yaml jika belum ada
+import 'package:path_provider/path_provider.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../widgets/pilih_file_pdf_card.dart';
 import '../widgets/pilih_varian_body_card.dart';
@@ -27,24 +24,112 @@ class _MasterGambarUtamaScreenState
   final _deskripsiController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // Cek apakah ada data edit saat pertama kali masuk (antisipasi navigasi cepat)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final editingData = ref.read(mguEditingGambarProvider);
+      if (editingData != null) {
+        _loadExistingData(editingData);
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _deskripsiController.dispose();
     super.dispose();
   }
 
+  // --- LOGIKA MEMUAT DATA LAMA (PREVIEW & RE-UPLOAD) ---
+  Future<void> _loadExistingData(GGambarUtama gambarUtama) async {
+    setState(() => _isLoading = true);
+
+    try {
+      final repo = ref.read(masterDataRepositoryProvider);
+
+      // 1. Dapatkan Path dari Server
+      final paths = await repo.getGambarUtamaPaths(gambarUtama.id);
+
+      // 2. Helper: Download PDF ke Temp agar dianggap sebagai "File yang dipilih"
+      Future<File> downloadToTemp(String path, String filename) async {
+        final bytes = await repo.getPdfFromPath(path);
+        final tempDir = await getTemporaryDirectory();
+        final file = File('${tempDir.path}/$filename');
+        await file.writeAsBytes(bytes);
+        return file;
+      }
+
+      // 3. Download 3 Gambar Utama secara paralel
+      final results = await Future.wait([
+        downloadToTemp(paths['utama']!, 'existing_utama.pdf'),
+        downloadToTemp(paths['terurai']!, 'existing_terurai.pdf'),
+        downloadToTemp(paths['kontruksi']!, 'existing_kontruksi.pdf'),
+      ]);
+
+      // 4. Isi Provider File (Otomatis akan mentrigger Preview di Card)
+      ref.read(mguGambarUtamaFileProvider.notifier).state = results[0];
+      ref.read(mguGambarTeruraiFileProvider.notifier).state = results[1];
+      ref.read(mguGambarKontruksiFileProvider.notifier).state = results[2];
+
+      // 5. Cek Gambar Paket Optional
+      // Logic: Filter list gambarOptionals, cari yang tipe == 'paket'
+      final paketOptional = gambarUtama.gambarOptionals
+          .where((g) => g.tipe == 'paket')
+          .firstOrNull;
+
+      if (paketOptional != null) {
+        // A. Centang Checkbox
+        ref.read(mguShowDependentOptionalProvider.notifier).state = true;
+
+        // B. Isi Deskripsi
+        _deskripsiController.text = paketOptional.deskripsi;
+
+        // C. Download & Isi File Optional
+        // Kita gunakan repo.getPdfFromPath dengan path dari model (atau via ID jika ada endpoint khusus)
+        // Asumsi: path di model valid untuk endpoint viewPdf
+        final optBytes = await repo.getPdfFromPath(paketOptional.path);
+        final tempDir = await getTemporaryDirectory();
+        final optFile = File('${tempDir.path}/existing_paket.pdf');
+        await optFile.writeAsBytes(optBytes);
+
+        ref.read(mguDependentFileProvider.notifier).state = optFile;
+      } else {
+        // Reset jika tidak ada paket
+        ref.read(mguShowDependentOptionalProvider.notifier).state = false;
+        ref.read(mguDependentFileProvider.notifier).state = null;
+        _deskripsiController.clear();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Data lama berhasil dimuat. Silakan review/ganti.'),
+          backgroundColor: Colors.blue,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal memuat gambar lama: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // DENGARKAN PROVIDER EDIT
+    // Listener untuk perubahan mode edit realtime
     ref.listen<GGambarUtama?>(mguEditingGambarProvider, (prev, next) {
       if (next != null) {
-        // Jika ada data edit masuk, jalankan proses loading data
         _loadExistingData(next);
       }
     });
 
     final showDependent = ref.watch(mguShowDependentOptionalProvider);
-    // Cek apakah sedang mode edit untuk mengubah teks tombol/judul jika perlu
-    final isEditing = ref.watch(mguEditingGambarProvider) != null;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
@@ -53,31 +138,31 @@ class _MasterGambarUtamaScreenState
         children: [
           Row(
             children: [
-              Text(
-                isEditing ? 'Edit Gambar Utama' : 'Manajemen Gambar Utama',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+              // JUDUL TETAP SAMA (Sesuai request)
+              const Text(
+                'Manajemen Gambar Utama',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.refresh),
-                tooltip: 'Reset & Refresh',
+                tooltip: 'Reset Form',
                 onPressed: _resetAndRefresh,
               ),
             ],
           ),
 
-          // Tampilkan loading overlay jika sedang mengambil file dari server
           if (_isLoading)
             const Padding(
-              padding: EdgeInsets.all(20.0),
+              padding: EdgeInsets.all(32.0),
               child: Center(child: CircularProgressIndicator()),
             )
           else ...[
             const SizedBox(height: 16),
+
+            // Card Dropdown akan otomatis terisi karena mendengarkan initialGambarUtamaDataProvider
             const PilihVarianBodyCard(),
+
             const Divider(height: 32),
 
             CheckboxListTile(
@@ -96,98 +181,15 @@ class _MasterGambarUtamaScreenState
               ),
 
             const Divider(height: 32),
+
+            // Card File PDF akan otomatis menampilkan preview file lama
+            // karena provider file sudah diisi di _loadExistingData
             PilihFilePdfCard(onSubmit: _submit, isLoading: _isLoading),
           ],
         ],
       ),
     );
   }
-
-  // --- LOGIKA BARU UNTUK MEMUAT DATA EDIT ---
-  Future<void> _loadExistingData(GGambarUtama gambarUtama) async {
-    setState(() => _isLoading = true);
-
-    try {
-      final repo = ref.read(masterDataRepositoryProvider);
-
-      // 1. Ambil Path dari Server
-      final paths = await repo.getGambarUtamaPaths(gambarUtama.id);
-
-      // 2. Fungsi helper untuk download dan konversi ke File
-      Future<File> downloadToTemp(String path, String filename) async {
-        final bytes = await repo.getPdfFromPath(path);
-        final tempDir = await getTemporaryDirectory();
-        final file = File('${tempDir.path}/$filename');
-        await file.writeAsBytes(bytes);
-        return file;
-      }
-
-      // 3. Download 3 Gambar Utama secara paralel
-      final results = await Future.wait([
-        downloadToTemp(paths['utama']!, 'utama_existing.pdf'),
-        downloadToTemp(paths['terurai']!, 'terurai_existing.pdf'),
-        downloadToTemp(paths['kontruksi']!, 'kontruksi_existing.pdf'),
-      ]);
-
-      // 4. Isi Provider File
-      ref.read(mguGambarUtamaFileProvider.notifier).state = results[0];
-      ref.read(mguGambarTeruraiFileProvider.notifier).state = results[1];
-      ref.read(mguGambarKontruksiFileProvider.notifier).state = results[2];
-
-      // 5. Handle Gambar Optional Paket (jika ada)
-      // Kita cari yang tipe 'paket' dari list gambarOptionals di model
-      final paketOptional = gambarUtama.gambarOptionals
-          .where((g) => g.tipe == 'paket')
-          .firstOrNull;
-
-      if (paketOptional != null) {
-        // Aktifkan checkbox
-        ref.read(mguShowDependentOptionalProvider.notifier).state = true;
-        // Isi deskripsi
-        _deskripsiController.text = paketOptional.deskripsi;
-
-        // Download file optional
-        // Kita butuh pathnya. Karena model GambarOptional sudah punya path, kita bisa pakai itu.
-        // Tapi hati-hati, path di model mungkin relative. Kita coba gunakan repo getPdfFromPath
-        // dengan asumsi logic backend viewPdf bisa handle path yang ada di model.
-        // Atau gunakan endpoint khusus jika ada.
-        // SEMENTARA: Kita coba download menggunakan path dari model via viewPdf
-
-        // NOTE: getPdfFromPath di repo menggunakan endpoint '/admin/master-gambar/view'
-        // yang menerima parameter 'path'. Ini cocok.
-
-        final optBytes = await repo.getPdfFromPath(paketOptional.path);
-        final tempDir = await getTemporaryDirectory();
-        final optFile = File('${tempDir.path}/optional_paket_existing.pdf');
-        await optFile.writeAsBytes(optBytes);
-
-        ref.read(mguDependentFileProvider.notifier).state = optFile;
-      } else {
-        ref.read(mguShowDependentOptionalProvider.notifier).state = false;
-        ref.read(mguDependentFileProvider.notifier).state = null;
-        _deskripsiController.clear();
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Data gambar berhasil dimuat. Silakan edit.'),
-          backgroundColor: Colors.blue,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal memuat gambar: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      // Jika gagal, mungkin reset mode edit agar tidak stuck
-      // ref.read(mguEditingGambarProvider.notifier).state = null;
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-  // ------------------------------------------
 
   void _resetForm() {
     ref.read(mguSelectedMasterDataIdProvider.notifier).state = null;
@@ -200,9 +202,8 @@ class _MasterGambarUtamaScreenState
 
     ref.read(mguShowDependentOptionalProvider.notifier).state = false;
     ref.read(mguDependentFileProvider.notifier).state = null;
-
-    // Reset mode edit juga
-    ref.read(mguEditingGambarProvider.notifier).state = null;
+    ref.read(mguEditingGambarProvider.notifier).state =
+        null; // Keluar mode edit
 
     _deskripsiController.clear();
   }
@@ -223,7 +224,6 @@ class _MasterGambarUtamaScreenState
     final showDependent = ref.read(mguShowDependentOptionalProvider);
     final dependentFile = ref.read(mguDependentFileProvider);
 
-    // Validasi dasar
     if (selectedMasterDataId == null ||
         selectedVarianBodyName == null ||
         gambarUtamaFile == null ||
@@ -231,23 +231,18 @@ class _MasterGambarUtamaScreenState
         gambarKontruksiFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Harap lengkapi Master Data, Varian Body, dan 3 file PDF.',
-          ),
+          content: Text('Data belum lengkap (Master Data / File Utama).'),
           backgroundColor: Colors.orange,
         ),
       );
       return;
     }
 
-    // Validasi dependen
     if (showDependent &&
         (_deskripsiController.text.isEmpty || dependentFile == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Harap isi deskripsi dan pilih file untuk Gambar Optional Paket.',
-          ),
+          content: Text('Data Optional Paket belum lengkap.'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -256,8 +251,7 @@ class _MasterGambarUtamaScreenState
 
     setState(() => _isLoading = true);
     try {
-      // --- LANGKAH 1: UPLOAD GAMBAR UTAMA ---
-      // Kita gunakan method yang mengembalikan objek GGambarUtama agar dapat ID-nya
+      // 1. Upload (Akan menimpa file lama di server karena nama file di backend distandarisasi)
       final gambarUtama = await ref
           .read(masterDataRepositoryProvider)
           .uploadGambarUtamaWithResult(
@@ -268,7 +262,7 @@ class _MasterGambarUtamaScreenState
             gambarKontruksi: gambarKontruksiFile,
           );
 
-      // --- LANGKAH 2: UPLOAD GAMBAR OPTIONAL PAKET (JIKA ADA) ---
+      // 2. Handle Optional Paket
       if (showDependent) {
         await ref
             .read(masterDataRepositoryProvider)
@@ -282,12 +276,11 @@ class _MasterGambarUtamaScreenState
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Gambar berhasil disimpan!'),
+          content: Text('Gambar berhasil disimpan/diupdate!'),
           backgroundColor: Colors.green,
         ),
       );
 
-      // Setelah sukses, reset form (keluar dari mode edit)
       _resetForm();
     } on DioException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

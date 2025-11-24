@@ -137,7 +137,7 @@ class ImageStatusDataSource extends AsyncDataTableSource {
 
   // Method untuk di-override di Table Widget
   void showPreviewDialog(GGambarUtama gambarUtama) {}
-  
+
   // --- LOGIKA TOMBOL ADD (UPLOAD BARU) ---
   void _navigateToAdd(ImageStatus item) {
     final vb = item.varianBody;
@@ -168,31 +168,29 @@ class ImageStatusDataSource extends AsyncDataTableSource {
     _ref.read(adminSidebarIndexProvider.notifier).state = 8;
   }
 
-  // --- LOGIKA TOMBOL EDIT ---
+  // --- LOGIKA TOMBOL EDIT (PERBAIKAN) ---
   void _navigateToEdit(ImageStatus item) {
-    // 1. Set Data untuk Dropdown (sama seperti add)
     final vb = item.varianBody;
     final md = vb.masterData;
+
+    // 1. Konstruksi Nama Master Data (Gabungan) agar Dropdown otomatis terisi
+    final masterDataName =
+        '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.name} / ${md.jenisKendaraan.name}';
+
+    // 2. Siapkan Data untuk Dropdown (SAMA SEPERTI ADD)
     final initialData = {
-      'typeEngine': OptionItem(id: md.typeEngine.id, name: md.typeEngine.name),
-      'merk': OptionItem(id: md.merk.id, name: md.merk.name),
-      'typeChassis': OptionItem(
-        id: md.typeChassis.id,
-        name: md.typeChassis.name,
-      ),
-      'jenisKendaraan': OptionItem(
-        id: md.jenisKendaraan.id,
-        name: md.jenisKendaraan.name,
-      ),
+      'masterData': OptionItem(id: md.id, name: masterDataName),
       'varianBody': OptionItem(id: vb.id, name: vb.name),
     };
+
+    // Update Provider Dropdown (Ini yang membuat Form terisi teksnya)
     _ref.read(initialGambarUtamaDataProvider.notifier).state = initialData;
 
-    // 2. Set Mode Edit AKTIF & Isi Datanya
-    // Screen target akan membaca ini dan mengisi form file
+    // 3. Set Mode Edit AKTIF & Kirim Objek Gambar Utama
+    // Screen target akan merespon ini dengan mendownload file-file lama
     _ref.read(mguEditingGambarProvider.notifier).state = item.gambarUtama;
 
-    // 3. Navigasi
+    // 4. Navigasi ke Tab Gambar Utama
     _ref.read(adminSidebarIndexProvider.notifier).state = 8;
   }
 }

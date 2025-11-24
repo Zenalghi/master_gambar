@@ -21,8 +21,6 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
   @override
   void initState() {
     super.initState();
-    // --- PERBAIKAN UTAMA: CEK DATA SAAT WIDGET DIBUAT ---
-    // Kita gunakan addPostFrameCallback agar aman mengakses ref/state setelah build pertama
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final pendingData = ref.read(initialGambarUtamaDataProvider);
       if (pendingData != null) {
@@ -79,18 +77,21 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
             ),
             const SizedBox(height: 16),
 
-            // 1. DROPDOWN MASTER DATA
             DropdownSearch<OptionItem>(
+              // --- FIX UTAMA: KEY UNTUK MEMAKSA REBUILD ---
+              // Saat _selectedMasterData berubah (misal dari null ke object),
+              // key akan berubah, memaksa widget dibuat ulang dengan nilai baru.
+              key: ValueKey(_selectedMasterData?.id ?? 'master_empty'),
+
               items: (String filter, _) => ref
                   .read(masterDataRepositoryProvider)
                   .getMasterDataOptions(filter),
               itemAsString: (item) => item.name,
               compareFn: (item1, item2) => item1.id == item2.id,
-              selectedItem: _selectedMasterData, // State Lokal
+              selectedItem: _selectedMasterData,
               onChanged: (OptionItem? item) {
                 setState(() {
                   _selectedMasterData = item;
-                  // Jika user ubah manual induknya, reset anaknya
                   if (item?.id != globalSelectedMasterId) {
                     _selectedVarianBody = null;
                   }
@@ -99,7 +100,6 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
                 ref.read(mguSelectedMasterDataIdProvider.notifier).state =
                     item?.id as int?;
 
-                // Reset Varian Body global jika induk berubah manual
                 if (item?.id != globalSelectedMasterId) {
                   ref.read(mguSelectedVarianBodyIdProvider.notifier).state =
                       null;
@@ -128,8 +128,10 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
 
             const SizedBox(height: 16),
 
-            // 2. DROPDOWN VARIAN BODY
             DropdownSearch<OptionItem>(
+              // --- FIX UTAMA: KEY UNTUK MEMAKSA REBUILD ---
+              key: ValueKey(_selectedVarianBody?.id ?? 'varian_empty'),
+
               enabled: globalSelectedMasterId != null,
               items: (String filter, _) async {
                 if (globalSelectedMasterId == null) return [];
@@ -150,7 +152,7 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
               },
               itemAsString: (item) => item.name,
               compareFn: (item1, item2) => item1.id == item2.id,
-              selectedItem: _selectedVarianBody, // State Lokal
+              selectedItem: _selectedVarianBody,
               onChanged: (OptionItem? item) {
                 setState(() {
                   _selectedVarianBody = item;

@@ -8,8 +8,6 @@ import 'package:pdfx/pdfx.dart';
 import '../providers/master_data_providers.dart';
 
 class DependentOptionalFormCard extends ConsumerStatefulWidget {
-  // Kita tambahkan controller deskripsi sebagai parameter agar state-nya
-  // tetap dikelola oleh parent (MasterGambarUtamaScreen)
   final TextEditingController deskripsiController;
 
   const DependentOptionalFormCard({
@@ -24,14 +22,7 @@ class DependentOptionalFormCard extends ConsumerStatefulWidget {
 
 class _DependentOptionalFormCardState
     extends ConsumerState<DependentOptionalFormCard> {
-  PdfController? _pdfController;
-
-  @override
-  void dispose() {
-    _pdfController?.dispose();
-    super.dispose();
-  }
-
+  // Logic pick file tetap sama
   Future<void> _pickDependentFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -40,21 +31,14 @@ class _DependentOptionalFormCardState
 
     if (result != null && result.files.single.path != null) {
       final file = File(result.files.single.path!);
-      // Update provider file
+      // Update provider, nanti UI akan bereaksi otomatis
       ref.read(mguDependentFileProvider.notifier).state = file;
-      // Update state lokal untuk preview
-      setState(() {
-        _pdfController?.dispose();
-        _pdfController = PdfController(
-          document: PdfDocument.openFile(file.path),
-        );
-      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Tonton provider untuk file yang dipilih
+    // 1. Tonton Provider
     final dependentFile = ref.watch(mguDependentFileProvider);
 
     return Card(
@@ -62,27 +46,25 @@ class _DependentOptionalFormCardState
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SizedBox(
-          height: 320, // Sesuaikan tinggi jika perlu
+          height: 320,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Kolom Kiri: Input Deskripsi & Tombol Pilih File
+              // Kolom Kiri: Input
               Expanded(
                 child: Column(
                   children: [
                     TextFormField(
-                      controller: widget
-                          .deskripsiController, // Gunakan controller dari parent
+                      controller: widget.deskripsiController,
                       decoration: const InputDecoration(
                         labelText: 'Deskripsi Optional Paket',
                       ),
                       textCapitalization: TextCapitalization.characters,
-                      // Tambahkan validator jika perlu
                       validator: (value) => (value == null || value.isEmpty)
                           ? 'Wajib diisi jika checkbox aktif'
                           : null,
                     ),
-                    const Spacer(), // Dorong tombol ke bawah
+                    const Spacer(),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.picture_as_pdf),
                       label: Text(
@@ -95,7 +77,6 @@ class _DependentOptionalFormCardState
                         minimumSize: const Size(double.infinity, 44),
                       ),
                     ),
-                    // Tampilkan nama file jika sudah dipilih
                     if (dependentFile != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0),
@@ -109,19 +90,18 @@ class _DependentOptionalFormCardState
                 ),
               ),
               const SizedBox(width: 16),
-              // Kolom Kanan: Preview PDF
+
+              // Kolom Kanan: Preview PDF (REAKTIF)
               Expanded(
                 child: Card(
                   elevation: 2,
                   clipBehavior: Clip.antiAlias,
                   child: Container(
                     color: Colors.grey.shade100,
-                    child: _pdfController != null
-                        ? PdfView(
-                            // Beri key agar preview update saat file diganti
-                            key: ValueKey(dependentFile!.path),
-                            controller: _pdfController!,
-                          )
+                    // 2. Gunakan Widget Previewer Khusus
+                    // Jika file ada (baik dari pick maupun dari load existing), widget ini akan muncul
+                    child: dependentFile != null
+                        ? _PdfPreviewer(file: dependentFile)
                         : const Center(
                             child: Icon(
                               Icons.picture_as_pdf_outlined,
@@ -137,5 +117,50 @@ class _DependentOptionalFormCardState
         ),
       ),
     );
+  }
+}
+
+// --- WIDGET PREVIEWER REAKTIF ---
+class _PdfPreviewer extends StatefulWidget {
+  final File file;
+  const _PdfPreviewer({required this.file});
+
+  @override
+  State<_PdfPreviewer> createState() => _PdfPreviewerState();
+}
+
+class _PdfPreviewerState extends State<_PdfPreviewer> {
+  late PdfController _pdfController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pdfController = PdfController(
+      document: PdfDocument.openFile(widget.file.path),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _PdfPreviewer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Jika file berubah, reset controller
+    if (widget.file.path != oldWidget.file.path) {
+      _pdfController.dispose();
+      _pdfController = PdfController(
+        document: PdfDocument.openFile(widget.file.path),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _pdfController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Beri Key unik agar flutter tahu harus render ulang jika path berubah
+    return PdfView(key: ValueKey(widget.file.path), controller: _pdfController);
   }
 }
