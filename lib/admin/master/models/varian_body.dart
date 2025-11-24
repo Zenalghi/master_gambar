@@ -1,4 +1,4 @@
-// File: lib/admin/master/models/varian_body.dart
+// lib/admin/master/models/varian_body.dart
 
 import 'master_data.dart';
 

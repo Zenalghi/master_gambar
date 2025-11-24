@@ -1,4 +1,4 @@
-// File: lib/admin/master/models/merk.dart
+// lib/admin/master/models/merk.dart
 
 class Merk {
   final int id; // <-- BERUBAH: int

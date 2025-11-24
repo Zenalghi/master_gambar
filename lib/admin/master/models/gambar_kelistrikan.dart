@@ -1,4 +1,4 @@
-// File: lib/admin/master/models/gambar_kelistrikan.dart
+// lib/admin/master/models/gambar_kelistrikan.dart
 
 import 'package:master_gambar/admin/master/models/merk.dart';
 import 'package:master_gambar/admin/master/models/type_chassis.dart';

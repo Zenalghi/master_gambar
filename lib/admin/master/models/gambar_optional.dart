@@ -1,4 +1,4 @@
-// File: lib/admin/master/models/gambar_optional.dart
+// lib/admin/master/models/gambar_optional.dart
 
 import 'package:master_gambar/admin/master/models/varian_body.dart';
 

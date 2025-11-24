@@ -1,4 +1,4 @@
-// File: lib/admin/master/models/type_chassis.dart
+// lib/admin/master/models/type_chassis.dart
 
 class TypeChassis {
   final int id; // <-- BERUBAH: int

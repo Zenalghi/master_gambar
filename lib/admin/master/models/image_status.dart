@@ -1,4 +1,4 @@
-// File: lib/admin/master/models/image_status.dart
+// lib/admin/master/models/image_status.dart
 
 import 'package:master_gambar/admin/master/models/g_gambar_utama.dart';
 import 'package:master_gambar/admin/master/models/varian_body.dart';

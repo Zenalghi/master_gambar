@@ -1,3 +1,4 @@
+//lib\admin\master\models\jenis_varian.dart
 class JenisVarian {
   final int id;
   final String name;

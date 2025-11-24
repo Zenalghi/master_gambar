@@ -1,3 +1,4 @@
+//lib\admin\screens\configuration_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/management/widgets/configuration_sidebar.dart';

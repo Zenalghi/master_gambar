@@ -1,4 +1,4 @@
-// File: lib/admin/master/models/jenis_kendaraan.dart
+// lib/admin/master/models/jenis_kendaraan.dart
 
 class JenisKendaraan {
   final int id; // <-- BERUBAH: int
