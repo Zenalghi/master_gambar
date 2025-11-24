@@ -775,6 +775,13 @@ class MasterDataRepository {
     return response.data;
   }
 
+  Future<void> deleteGambarUtama(int id) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/gambar-master/utama/$id');
+  }
+
   // == MASTER DATA (TABEL UTAMA) ==
   Future<PaginatedResponse<MasterData>> getMasterDataPaginated({
     int page = 1,

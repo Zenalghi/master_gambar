@@ -90,6 +90,12 @@ class ImageStatusDataSource extends AsyncDataTableSource {
                               tooltip: 'Edit / Ganti Gambar',
                               onPressed: () => _navigateToEdit(item),
                             ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              tooltip: 'Hapus Gambar Utama',
+                              onPressed: () =>
+                                  confirmDeleteDialog(item.gambarUtama!),
+                            ),
                           ],
                         )
                       : ElevatedButton.icon(
@@ -193,4 +199,6 @@ class ImageStatusDataSource extends AsyncDataTableSource {
     // 4. Navigasi ke Tab Gambar Utama
     _ref.read(adminSidebarIndexProvider.notifier).state = 8;
   }
+
+  void confirmDeleteDialog(GGambarUtama gambarUtama) {}
 }

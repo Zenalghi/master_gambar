@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/models/g_gambar_utama.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
+import '../repository/master_data_repository.dart';
 import 'image_status_datasource.dart';
 import 'gambar_utama_viewer_dialog.dart';
 
@@ -145,16 +146,73 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
   }
 }
 
-// Wrapper untuk dialog preview
 class _ImageStatusDataSourceWithContext extends ImageStatusDataSource {
   final BuildContext _context;
-  _ImageStatusDataSourceWithContext(super.ref, this._context);
+  // 1. Tambahkan properti ref di sini agar bisa diakses
+  final WidgetRef ref;
+
+  // 2. Update constructor untuk mengisi ref lokal dan meneruskannya ke super
+  _ImageStatusDataSourceWithContext(this.ref, this._context) : super(ref);
 
   @override
   void showPreviewDialog(GGambarUtama gambarUtama) {
     showDialog(
       context: _context,
       builder: (_) => GambarUtamaViewerDialog(gambarUtama: gambarUtama),
+    );
+  }
+
+  @override
+  void confirmDeleteDialog(GGambarUtama gambarUtama) {
+    showDialog(
+      context: _context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content: const Text(
+          'Apakah Anda yakin ingin menghapus Gambar Utama ini?\n'
+          'File PDF (Utama, Terurai, Kontruksi) dan Paket Optional akan dihapus permanen dari storage.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () async {
+              Navigator.of(context).pop(); // Tutup Dialog Konfirmasi
+              try {
+                // 3. Sekarang 'ref' sudah dikenali
+                await ref
+                    .read(masterDataRepositoryProvider)
+                    .deleteGambarUtama(gambarUtama.id);
+
+                // Refresh Tabel
+                refreshDatasource();
+
+                if (_context.mounted) {
+                  ScaffoldMessenger.of(_context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Gambar Utama berhasil dihapus.'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (_context.mounted) {
+                  ScaffoldMessenger.of(_context).showSnackBar(
+                    SnackBar(
+                      content: Text('Gagal menghapus: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Hapus Permanen'),
+          ),
+        ],
+      ),
     );
   }
 }
