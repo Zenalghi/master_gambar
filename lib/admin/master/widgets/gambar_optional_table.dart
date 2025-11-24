@@ -72,8 +72,8 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
   List<DataColumn2> _createColumns() {
     return [
       DataColumn2(
-        label: const Text('Type Engine'),
-        size: ColumnSize.M,
+        label: const Text('Type\nEngine'),
+        fixedWidth: 122,
         onSort: _onSort,
       ),
       DataColumn2(
@@ -96,11 +96,7 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
         size: ColumnSize.L,
         onSort: _onSort,
       ),
-      DataColumn2(
-        label: const Text('Tipe'),
-        size: ColumnSize.S,
-        onSort: _onSort,
-      ),
+      DataColumn2(label: const Text('Tipe'), fixedWidth: 144, onSort: _onSort),
       DataColumn2(
         label: const Text('Deskripsi'),
         size: ColumnSize.L,
@@ -116,7 +112,7 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
         size: ColumnSize.M,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Options'), fixedWidth: 120),
+      const DataColumn2(label: Text('Options'), fixedWidth: 149),
     ];
   }
 }

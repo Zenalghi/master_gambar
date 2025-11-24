@@ -70,8 +70,8 @@ class _VarianBodyTableState extends ConsumerState<VarianBodyTable> {
     return [
       DataColumn2(label: const Text('ID'), fixedWidth: 70, onSort: _onSort),
       DataColumn2(
-        label: const Text('Type Engine'),
-        size: ColumnSize.M,
+        label: const Text('Type\nEngine'),
+        fixedWidth: 122,
         onSort: _onSort,
       ),
       DataColumn2(

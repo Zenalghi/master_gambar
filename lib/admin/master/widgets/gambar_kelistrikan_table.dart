@@ -68,8 +68,8 @@ class _GambarKelistrikanTableState
   List<DataColumn2> _createColumns() {
     return [
       DataColumn2(
-        label: const Text('Type Engine'),
-        size: ColumnSize.S,
+        label: const Text('Type\nEngine'),
+        fixedWidth: 122,
         onSort: _onSort,
       ),
       DataColumn2(
