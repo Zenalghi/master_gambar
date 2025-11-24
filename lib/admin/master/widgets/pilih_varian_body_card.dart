@@ -1,3 +1,5 @@
+// File: lib/admin/master/widgets/pilih_varian_body_card.dart
+
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,6 +20,11 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
   OptionItem? _selectedMasterData;
   OptionItem? _selectedVarianBody;
 
+  // --- REVISI: Gunakan Seed Key untuk update paksa ---
+  // Key ini hanya akan berubah jika data diisi dari luar (System/Navigation)
+  // Bukan saat user memilih manual.
+  int _dropdownSeed = 0;
+
   @override
   void initState() {
     super.initState();
@@ -29,7 +36,6 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
     });
   }
 
-  // Helper untuk memproses data (dipakai di initState dan listen)
   void _processInitialData(Map<String, dynamic> data) {
     final masterDataItem = data['masterData'] as OptionItem;
     final varianBodyItem = data['varianBody'] as OptionItem;
@@ -37,9 +43,11 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
     setState(() {
       _selectedMasterData = masterDataItem;
       _selectedVarianBody = varianBodyItem;
+      // Kita ubah key HANYA disini (saat sistem mengisi data)
+      // Agar dropdown ter-reset dan menampilkan teks yang benar
+      _dropdownSeed++;
     });
 
-    // Update Provider Global agar form di bawahnya aktif
     ref.read(mguSelectedMasterDataIdProvider.notifier).state =
         masterDataItem.id as int;
     ref.read(mguSelectedVarianBodyIdProvider.notifier).state =
@@ -47,13 +55,11 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
     ref.read(mguSelectedVarianBodyNameProvider.notifier).state =
         varianBodyItem.name;
 
-    // Kosongkan provider agar tidak trigger berulang kali
     ref.read(initialGambarUtamaDataProvider.notifier).state = null;
   }
 
   @override
   Widget build(BuildContext context) {
-    // 1. TETAP DENGARKAN JIKA ADA PERUBAHAN SAAT HALAMAN SUDAH AKTIF
     ref.listen<Map<String, dynamic>?>(initialGambarUtamaDataProvider, (
       prev,
       next,
@@ -77,11 +83,12 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
             ),
             const SizedBox(height: 16),
 
+            // 1. DROPDOWN MASTER DATA
             DropdownSearch<OptionItem>(
-              // --- FIX UTAMA: KEY UNTUK MEMAKSA REBUILD ---
-              // Saat _selectedMasterData berubah (misal dari null ke object),
-              // key akan berubah, memaksa widget dibuat ulang dengan nilai baru.
-              key: ValueKey(_selectedMasterData?.id ?? 'master_empty'),
+              // --- FIX CRASH: Gunakan Seed Key ---
+              // Key hanya berubah jika _dropdownSeed berubah (via _processInitialData)
+              // Key TIDAK berubah saat user memilih item, jadi tidak crash.
+              key: ValueKey('master_$_dropdownSeed'),
 
               items: (String filter, _) => ref
                   .read(masterDataRepositoryProvider)
@@ -92,9 +99,11 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
               onChanged: (OptionItem? item) {
                 setState(() {
                   _selectedMasterData = item;
+                  // Reset anak jika induk berubah
                   if (item?.id != globalSelectedMasterId) {
                     _selectedVarianBody = null;
                   }
+                  // CATATAN: Jangan ubah _dropdownSeed disini!
                 });
 
                 ref.read(mguSelectedMasterDataIdProvider.notifier).state =
@@ -128,9 +137,10 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
 
             const SizedBox(height: 16),
 
+            // 2. DROPDOWN VARIAN BODY
             DropdownSearch<OptionItem>(
-              // --- FIX UTAMA: KEY UNTUK MEMAKSA REBUILD ---
-              key: ValueKey(_selectedVarianBody?.id ?? 'varian_empty'),
+              // Gunakan Seed Key juga
+              key: ValueKey('varian_$_dropdownSeed'),
 
               enabled: globalSelectedMasterId != null,
               items: (String filter, _) async {
