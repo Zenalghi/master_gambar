@@ -52,11 +52,22 @@ class Transaksi {
 
 // Sub-model untuk data yang bersarang
 class Customer {
-  final int id; // Tambahkan id
+  final int id;
   final String namaPt;
-  Customer({required this.id, required this.namaPt});
-  factory Customer.fromJson(Map<String, dynamic> json) =>
-      Customer(id: json['id'], namaPt: json['nama_pt']);
+  final String pj;
+  final String? signaturePj;
+  Customer({
+    required this.id,
+    required this.namaPt,
+    required this.pj,
+    this.signaturePj,
+  });
+  factory Customer.fromJson(Map<String, dynamic> json) => Customer(
+    id: json['id'],
+    namaPt: json['nama_pt'],
+    pj: json['pj'] ?? '',
+    signaturePj: json['signature_pj'],
+  );
 }
 
 class ATypeEngine {
@@ -93,16 +104,17 @@ class DJenisKendaraan {
 
 class FPengajuan {
   final int id;
-  final String jenisPengajuan; // Ganti dari namaPengajuan
+  final String jenisPengajuan;
   FPengajuan({required this.id, required this.jenisPengajuan});
   factory FPengajuan.fromJson(Map<String, dynamic> json) =>
       FPengajuan(id: json['id'], jenisPengajuan: json['jenis_pengajuan']);
 }
 
 class User {
-  final int id; // Tambahkan id
+  final int id;
   final String name;
-  User({required this.id, required this.name});
+  final String? signature;
+  User({required this.id, required this.name, this.signature});
   factory User.fromJson(Map<String, dynamic> json) =>
-      User(id: json['id'], name: json['name']);
+      User(id: json['id'], name: json['name'], signature: json['signature']);
 }
