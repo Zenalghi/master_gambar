@@ -125,7 +125,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
 
       // 7. Gbr Utama (Action Column)
       const DataColumn2(
-        label: Center(child: Text('Gbr\nUtama', textAlign: TextAlign.center)),
+        label: Center(child: Text('Gambar Utama', textAlign: TextAlign.center)),
         fixedWidth: 200,
       ),
 

@@ -181,6 +181,7 @@ class _MasterGambarOptionalScreenState
           // atau kita batasi tingginya agar rapi.
           ExpansionTile(
             title: const Text('Tambah Gambar Optional Baru'),
+            maintainState: true,
             children: [
               SizedBox(
                 height: 580, // Tinggi area Input + Preview
@@ -189,13 +190,13 @@ class _MasterGambarOptionalScreenState
                   children: [
                     // === KOLOM KIRI: SEMUA FORM INPUT ===
                     Expanded(
-                      flex: 2,
+                      flex: 2, //
                       child: SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             // 1. CARD PILIH KENDARAAN
-                            const PilihVarianBodyCard(),
+                            PilihVarianBodyCard(),
 
                             const SizedBox(height: 16),
 
@@ -313,7 +314,7 @@ class _MasterGambarOptionalScreenState
 
                     // === KOLOM KANAN: PREVIEW PDF FULL HEIGHT ===
                     Expanded(
-                      flex: 3,
+                      flex: 2,
                       child: Card(
                         elevation: 2,
                         clipBehavior: Clip.antiAlias,
@@ -350,9 +351,9 @@ class _MasterGambarOptionalScreenState
             ],
           ),
 
-          const SizedBox(height: 24),
+          // const SizedBox(height: 24),
           const Divider(),
-          const SizedBox(height: 8),
+          // const SizedBox(height: 8),
 
           // TABEL DAFTAR GAMBAR OPTIONAL
           const Expanded(

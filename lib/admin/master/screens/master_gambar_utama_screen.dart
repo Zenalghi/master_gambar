@@ -62,9 +62,9 @@ class _MasterGambarUtamaScreenState
 
       // 3. Download 3 Gambar Utama secara paralel
       final results = await Future.wait([
-        downloadToTemp(paths['utama']!, 'existing_utama.pdf'),
-        downloadToTemp(paths['terurai']!, 'existing_terurai.pdf'),
-        downloadToTemp(paths['kontruksi']!, 'existing_kontruksi.pdf'),
+        downloadToTemp(paths['utama']!, 'gambar_utama.pdf'),
+        downloadToTemp(paths['terurai']!, 'gambar_terurai.pdf'),
+        downloadToTemp(paths['kontruksi']!, 'gambar_kontruksi.pdf'),
       ]);
 
       // 4. Isi Provider File (Otomatis akan mentrigger Preview di Card)
@@ -90,7 +90,7 @@ class _MasterGambarUtamaScreenState
         // Asumsi: path di model valid untuk endpoint viewPdf
         final optBytes = await repo.getPdfFromPath(paketOptional.path);
         final tempDir = await getTemporaryDirectory();
-        final optFile = File('${tempDir.path}/existing_paket.pdf');
+        final optFile = File('${tempDir.path}/gambar_paket.pdf');
         await optFile.writeAsBytes(optBytes);
 
         ref.read(mguDependentFileProvider.notifier).state = optFile;

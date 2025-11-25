@@ -16,14 +16,15 @@ class PilihVarianBodyCard extends ConsumerStatefulWidget {
       _PilihVarianBodyCardState();
 }
 
-class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
+class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard>
+    with AutomaticKeepAliveClientMixin {
   OptionItem? _selectedMasterData;
   OptionItem? _selectedVarianBody;
-
-  // --- REVISI: Gunakan Seed Key untuk update paksa ---
-  // Key ini hanya akan berubah jika data diisi dari luar (System/Navigation)
-  // Bukan saat user memilih manual.
   int _dropdownSeed = 0;
+
+  // 2. Override wantKeepAlive menjadi true
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -43,8 +44,6 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
     setState(() {
       _selectedMasterData = masterDataItem;
       _selectedVarianBody = varianBodyItem;
-      // Kita ubah key HANYA disini (saat sistem mengisi data)
-      // Agar dropdown ter-reset dan menampilkan teks yang benar
       _dropdownSeed++;
     });
 
@@ -60,6 +59,9 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
 
   @override
   Widget build(BuildContext context) {
+    // 3. Wajib panggil super.build(context) di awal
+    super.build(context);
+
     ref.listen<Map<String, dynamic>?>(initialGambarUtamaDataProvider, (
       prev,
       next,
@@ -85,11 +87,7 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
 
             // 1. DROPDOWN MASTER DATA
             DropdownSearch<OptionItem>(
-              // --- FIX CRASH: Gunakan Seed Key ---
-              // Key hanya berubah jika _dropdownSeed berubah (via _processInitialData)
-              // Key TIDAK berubah saat user memilih item, jadi tidak crash.
               key: ValueKey('master_$_dropdownSeed'),
-
               items: (String filter, _) => ref
                   .read(masterDataRepositoryProvider)
                   .getMasterDataOptions(filter),
@@ -99,11 +97,9 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
               onChanged: (OptionItem? item) {
                 setState(() {
                   _selectedMasterData = item;
-                  // Reset anak jika induk berubah
                   if (item?.id != globalSelectedMasterId) {
                     _selectedVarianBody = null;
                   }
-                  // CATATAN: Jangan ubah _dropdownSeed disini!
                 });
 
                 ref.read(mguSelectedMasterDataIdProvider.notifier).state =
@@ -139,9 +135,7 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard> {
 
             // 2. DROPDOWN VARIAN BODY
             DropdownSearch<OptionItem>(
-              // Gunakan Seed Key juga
               key: ValueKey('varian_$_dropdownSeed'),
-
               enabled: globalSelectedMasterId != null,
               items: (String filter, _) async {
                 if (globalSelectedMasterId == null) return [];

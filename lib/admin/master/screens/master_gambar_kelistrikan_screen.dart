@@ -116,6 +116,7 @@ class _MasterGambarKelistrikanScreenState
 
           ExpansionTile(
             title: const Text('Tambah Gambar Kelistrikan Baru'),
+            maintainState: true,
             // Buka otomatis jika ada data lemparan
             initiallyExpanded: shouldExpand,
             children: [
@@ -136,8 +137,7 @@ class _MasterGambarKelistrikanScreenState
                 ),
             ],
           ),
-
-          const SizedBox(height: 16),
+          const Divider(),
           const Expanded(child: GambarKelistrikanTable()),
         ],
       ),
