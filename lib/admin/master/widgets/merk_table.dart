@@ -63,7 +63,7 @@ class _MerkTableState extends ConsumerState<MerkTable> {
 
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('ID'), fixedWidth: 70, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 59, onSort: _onSort),
       DataColumn2(
         label: const Text('Merk'),
         size: ColumnSize.L,

@@ -68,7 +68,7 @@ class _JenisKendaraanTableState extends ConsumerState<JenisKendaraanTable> {
 
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('ID'), fixedWidth: 80, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 59, onSort: _onSort),
       DataColumn2(
         label: const Text('Jenis Kendaraan'),
         size: ColumnSize.L,

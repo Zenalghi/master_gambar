@@ -85,7 +85,7 @@ class _TypeEngineTableState extends ConsumerState<TypeEngineTable> {
   // Method untuk membuat header kolom
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('ID'), fixedWidth: 80, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 59, onSort: _onSort),
       DataColumn2(
         label: const Text('Type Engine'),
         size: ColumnSize.L,

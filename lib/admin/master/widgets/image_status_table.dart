@@ -86,7 +86,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
   List<DataColumn2> _createColumns() {
     return [
       // 1. ID Varian Body
-      DataColumn2(label: const Text('ID'), fixedWidth: 60, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 59, onSort: _onSort),
 
       // 2. Type Engine
       DataColumn2(

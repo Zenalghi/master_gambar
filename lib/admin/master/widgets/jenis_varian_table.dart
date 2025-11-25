@@ -82,7 +82,7 @@ class _JenisVarianTableState extends ConsumerState<JenisVarianTable> {
 
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('ID'), fixedWidth: 80, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 59, onSort: _onSort),
       DataColumn2(
         label: const Text('Jenis Varian'),
         size: ColumnSize.L,

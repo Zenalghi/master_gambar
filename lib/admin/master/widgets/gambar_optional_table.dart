@@ -72,10 +72,10 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
 
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('ID'), fixedWidth: 80, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 59, onSort: _onSort),
       DataColumn2(
         label: const Text('Type\nEngine'),
-        fixedWidth: 95,
+        fixedWidth: 121,
         onSort: _onSort,
       ),
       DataColumn2(label: const Text('Merk'), fixedWidth: 136, onSort: _onSort),

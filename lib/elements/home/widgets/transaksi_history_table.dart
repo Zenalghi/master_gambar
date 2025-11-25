@@ -96,7 +96,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
       ),
       DataColumn2(
         label: const Text('Type\nEngine'),
-        size: ColumnSize.S,
+        fixedWidth: 122,
         onSort: _onSort,
       ),
       DataColumn2(

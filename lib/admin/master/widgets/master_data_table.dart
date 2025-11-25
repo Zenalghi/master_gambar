@@ -68,7 +68,7 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
   List<DataColumn2> _createColumns() {
     return [
       // 1. ID
-      DataColumn2(label: const Text('ID'), fixedWidth: 60, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 59, onSort: _onSort),
 
       // Kolom Data
       DataColumn2(

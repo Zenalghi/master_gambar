@@ -287,7 +287,7 @@ class _MasterGambarOptionalScreenState
                                           : ElevatedButton.icon(
                                               icon: const Icon(Icons.upload),
                                               label: const Text(
-                                                'Upload Gambar Optional',
+                                                'Upload Gambar Optional Independen',
                                               ),
                                               style: ElevatedButton.styleFrom(
                                                 backgroundColor: Colors.green,
