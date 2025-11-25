@@ -84,3 +84,24 @@ ThemeData createAppTheme() {
     ),
   );
 }
+
+// === TAMBAHKAN CLASS INI ===
+class AppTextStyles {
+  /// Mengembalikan TextStyle dengan ukuran font dinamis berdasarkan panjang teks
+  static TextStyle dynamicSize(String text, {double defaultSize = 13}) {
+    double fontSize = defaultSize;
+
+    if (text.length > 45) {
+      fontSize = 10; // Jika lebih dari 26 huruf
+    } else if (text.length > 15) {
+      fontSize = 13;
+    }
+    // Jika <= 15, tetap pakai defaultSize (13)
+
+    return TextStyle(
+      fontSize: fontSize,
+      fontFamily: 'Poppins', // Pastikan font tetap sama
+      // Anda bisa tambah properti lain jika mau, misal color: Colors.black87
+    );
+  }
+}

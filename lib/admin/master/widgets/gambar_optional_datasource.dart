@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:master_gambar/admin/master/models/gambar_optional.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
+import '../../../app/theme/app_theme.dart';
 import 'edit_gambar_optional_dialog.dart';
 import 'pdf_viewer_dialog.dart'; // Pastikan file ini sudah ada
 
@@ -47,7 +48,12 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
               DataCell(SelectableText(item.id.toString())),
               DataCell(SelectableText(md?.typeEngine.name ?? '')),
               DataCell(SelectableText(md?.merk.name ?? '')),
-              DataCell(SelectableText(md?.typeChassis.name ?? '')),
+              DataCell(
+                SelectableText(
+                  md?.typeChassis.name ?? '',
+                  style: AppTextStyles.dynamicSize(md?.typeChassis.name ?? ''),
+                ),
+              ),
               DataCell(SelectableText(md?.jenisKendaraan.name ?? '')),
               DataCell(SelectableText(vb?.name ?? '')),
 
@@ -77,7 +83,13 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
                 ),
               ),
 
-              DataCell(SelectableText(item.deskripsi)),
+              DataCell(
+                SelectableText(
+                  item.deskripsi,
+                  // PANGGIL HELPER DARI THEME TADI
+                  style: AppTextStyles.dynamicSize(item.deskripsi),
+                ),
+              ),
               DataCell(
                 SelectableText(dateFormat.format(item.createdAt.toLocal())),
               ),
