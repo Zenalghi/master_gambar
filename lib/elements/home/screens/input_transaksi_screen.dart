@@ -1,23 +1,42 @@
-// File: lib/elements/home/screens/input_transaksi_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/transaksi_providers.dart';
 import '../widgets/advanced_filter_panel.dart';
 import '../widgets/tambah_transaksi_dialog.dart';
-import '../widgets/transaksi_history_datasource.dart';
 import '../widgets/transaksi_history_table.dart';
 
-class InputTransaksiScreen extends ConsumerWidget {
+// Ubah menjadi ConsumerStatefulWidget agar bisa pakai initState
+class InputTransaksiScreen extends ConsumerStatefulWidget {
   const InputTransaksiScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<InputTransaksiScreen> createState() =>
+      _InputTransaksiScreenState();
+}
+
+class _InputTransaksiScreenState extends ConsumerState<InputTransaksiScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // --- RESET FILTER SAAT HALAMAN DIBUKA ---
+    // Ini memastikan saat user kembali ke halaman ini,
+    // pencarian dan filter dari sesi sebelumnya dibersihkan.
+    Future.microtask(() {
+      ref.invalidate(transaksiFilterProvider);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24.0, 1.0, 24.0, 5.0),
       child: Column(
         children: [
+          // 1. Filter Lanjutan
           const AdvancedFilterPanel(),
           const SizedBox(height: 16),
+
+          // 2. Baris Kontrol (Judul, Tombol Tambah, Search, Refresh)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -26,6 +45,8 @@ class InputTransaksiScreen extends ConsumerWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
+
+              // Tombol Tambah Transaksi
               ElevatedButton.icon(
                 icon: const Icon(Icons.add),
                 label: const Text('TAMBAH TRANSAKSI'),
@@ -33,16 +54,18 @@ class InputTransaksiScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
-                  ), // Padding agar tombol lebih besar
+                  ),
                 ),
                 onPressed: () {
                   showDialog(
                     context: context,
-                    // Panggil dialog baru saat tombol ditekan
                     builder: (context) => TambahTransaksiDialog(
                       onTransaksiAdded: () {
-                        // Callback untuk me-refresh tabel
-                        ref.invalidate(transaksiDataSourceProvider);
+                        // Refresh tabel setelah berhasil tambah
+                        // Kita update state provider untuk memicu listener di DataSource
+                        ref
+                            .read(transaksiFilterProvider.notifier)
+                            .update((state) => Map.from(state));
                       },
                     ),
                   );
@@ -50,22 +73,22 @@ class InputTransaksiScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 16),
 
-              // Bagian kanan sekarang berisi Search dan Reload
+              // Search Field & Reload
               Row(
                 children: [
-                  // Search Field Global
                   SizedBox(
-                    width: 250, // Beri lebar agar tidak terlalu besar
+                    width: 250,
                     child: TextField(
                       decoration: InputDecoration(
-                        labelText: 'Search...',
-                        prefixIcon: Icon(Icons.search),
-                        isDense: true, // Membuatnya lebih ringkas
+                        labelText: 'Search Global...',
+                        prefixIcon: const Icon(Icons.search),
+                        isDense: true,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       onChanged: (value) {
+                        // Update provider 'search' saat mengetik
                         ref
                             .read(transaksiFilterProvider.notifier)
                             .update((state) => {...state, 'search': value});
@@ -73,12 +96,15 @@ class InputTransaksiScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  // Tombol Reload
+                  // Tombol Reload Manual
                   IconButton(
                     icon: const Icon(Icons.refresh),
                     tooltip: 'Reload Data',
                     onPressed: () {
-                      ref.invalidate(transaksiDataSourceProvider);
+                      // Paksa refresh dengan mengupdate state map baru
+                      ref
+                          .read(transaksiFilterProvider.notifier)
+                          .update((state) => Map.from(state));
                     },
                   ),
                 ],
@@ -86,7 +112,9 @@ class InputTransaksiScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Expanded(
+
+          // 3. Tabel Histori
+          const Expanded(
             child: Card(
               child: SizedBox(
                 width: double.infinity,

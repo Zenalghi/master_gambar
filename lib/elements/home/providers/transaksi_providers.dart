@@ -12,7 +12,6 @@ import '../repository/options_repository.dart';
 final rowsPerPageProvider = StateProvider<int>((ref) => 25);
 
 // State untuk menyimpan query pencarian global
-final globalSearchQueryProvider = StateProvider<String>((ref) => '');
 
 // Provider ini menyimpan semua state untuk paginasi, filter, dan sort
 final transaksiFilterProvider = StateProvider<Map<String, String?>>((ref) {
@@ -64,9 +63,7 @@ final jenisPengajuanOptionsProvider = FutureProvider<List<OptionItem>>((ref) {
 
 final merkOptionsFamilyProvider =
     FutureProvider.family<List<OptionItem>, String?>((ref, engineId) {
-      ref.watch(
-        refreshNotifierProvider,
-      );
+      ref.watch(refreshNotifierProvider);
       if (engineId == null || engineId.isEmpty) return Future.value([]);
       return ref.watch(optionsRepositoryProvider).getMerks(engineId);
     });
@@ -83,4 +80,11 @@ final jenisKendaraanOptionsFamilyProvider =
       ref.watch(refreshNotifierProvider); // <-- Tambahkan ini
       if (chassisId == null || chassisId.isEmpty) return Future.value([]);
       return ref.watch(optionsRepositoryProvider).getJenisKendaraan(chassisId);
+    });
+
+// Provider untuk dropdown Master Data di Transaksi (Searchable)
+final transaksiMasterDataOptionsProvider =
+    FutureProvider.family<List<OptionItem>, String>((ref, search) async {
+      // Menggunakan repository options
+      return ref.read(optionsRepositoryProvider).getMasterDataOptions(search);
     });

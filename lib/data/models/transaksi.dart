@@ -1,6 +1,9 @@
 // File: lib/data/models/transaksi.dart
 class Transaksi {
   final String id;
+  // --- TAMBAHKAN INI ---
+  final int masterDataId;
+  // --------------------
   final Customer customer;
   final ATypeEngine aTypeEngine;
   final BMerk bMerk;
@@ -13,6 +16,7 @@ class Transaksi {
 
   Transaksi({
     required this.id,
+    required this.masterDataId, // <-- Tambahkan di constructor
     required this.customer,
     required this.aTypeEngine,
     required this.bMerk,
@@ -27,8 +31,14 @@ class Transaksi {
   factory Transaksi.fromJson(Map<String, dynamic> json) {
     return Transaksi(
       id: json['id'],
+      // Pastikan key ini sesuai dengan response JSON dari backend
+      // (biasanya snake_case: master_data_id)
+      masterDataId: json['master_data_id'] as int,
+
       customer: Customer.fromJson(json['customer']),
-      aTypeEngine: ATypeEngine.fromJson(json['a_type_engine']),
+      aTypeEngine: ATypeEngine.fromJson(
+        json['a_type_engine'],
+      ), // Pastikan key sesuai
       bMerk: BMerk.fromJson(json['b_merk']),
       cTypeChassis: CTypeChassis.fromJson(json['c_type_chassis']),
       dJenisKendaraan: DJenisKendaraan.fromJson(json['d_jenis_kendaraan']),

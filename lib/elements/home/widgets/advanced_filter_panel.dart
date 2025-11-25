@@ -18,6 +18,7 @@ class _AdvancedFilterPanelState extends ConsumerState<AdvancedFilterPanel> {
   void initState() {
     super.initState();
     // Inisialisasi semua controller
+
     _controllers = {
       'customer': TextEditingController(),
       'type_engine': TextEditingController(),

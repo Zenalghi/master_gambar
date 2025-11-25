@@ -33,6 +33,38 @@ class OptionsRepository {
       _fetchOptions(ApiEndpoints.jenisKendaraan(chassisId));
   Future<List<OptionItem>> getJenisPengajuan() =>
       _fetchOptions(ApiEndpoints.jenisPengajuan);
+
+  // --- TAMBAHKAN METHOD INI UNTUK CARI MASTER DATA ---
+  Future<List<OptionItem>> getMasterDataOptions(String search) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/options/master-data', queryParameters: {'search': search});
+    final List<dynamic> data = response.data;
+    // Backend mengirim list dengan key 'name' yang sudah diformat (A / B / C / D)
+    return data
+        .map((item) => OptionItem.fromJson(item, nameKey: 'name'))
+        .toList();
+  }
+
+  // --- UPDATE METHOD INI ---
+  Future<void> addTransaksi({
+    required int customerId,
+    required int masterDataId, // <-- Ganti 4 parameter string jadi 1 int
+    required int jenisPengajuanId,
+  }) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post(
+          ApiEndpoints.transaksi,
+          data: {
+            "customer_id": customerId,
+            "master_data_id": masterDataId, // <-- Kirim ID Master Data
+            "f_pengajuan_id": jenisPengajuanId,
+          },
+        );
+  }
 }
 
 final transaksiRepositoryProvider = Provider((ref) => TransaksiRepository(ref));
@@ -47,11 +79,11 @@ class TransaksiRepository {
     String sortBy = 'updated_at',
     String sortDirection = 'desc',
     String search = '',
-    Map<String, String?>?
-    advancedFilters, // <-- Parameter baru untuk filter lanjutan
+    // Tambahkan parameter filter lanjutan
+    Map<String, String?>? advancedFilters,
   }) async {
-    // Mulai dengan parameter dasar
-    final Map<String, dynamic> queryParameters = {
+    // 1. Gabungkan parameter dasar
+    final Map<String, dynamic> queryParams = {
       'page': page,
       'perPage': perPage,
       'sortBy': sortBy,
@@ -59,30 +91,26 @@ class TransaksiRepository {
       'search': search,
     };
 
-    // Gabungkan dengan filter lanjutan jika ada
+    // 2. Masukkan filter lanjutan jika ada (hapus yang null/kosong)
     if (advancedFilters != null) {
-      queryParameters.addAll(advancedFilters);
-      queryParameters.removeWhere((key, value) => value == null);
+      advancedFilters.forEach((key, value) {
+        if (value != null && value.isNotEmpty) {
+          queryParams[key] = value;
+        }
+      });
     }
 
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .get(
-          ApiEndpoints.transaksi,
-          queryParameters:
-              queryParameters, // <-- Gunakan map yang sudah digabung
-        );
+        .get(ApiEndpoints.transaksi, queryParameters: queryParams);
 
     return PaginatedResponse.fromJson(response.data, Transaksi.fromJson);
   }
 
   Future<void> addTransaksi({
     required int customerId,
-    required String typeEngineId,
-    required String merkId,
-    required String typeChassisId,
-    required String jenisKendaraanId,
+    required int masterDataId, // <-- Ganti 4 parameter string jadi 1 int
     required int jenisPengajuanId,
   }) async {
     await _ref
@@ -92,10 +120,7 @@ class TransaksiRepository {
           ApiEndpoints.transaksi,
           data: {
             "customer_id": customerId,
-            "a_type_engine_id": typeEngineId,
-            "b_merk_id": merkId,
-            "c_type_chassis_id": typeChassisId,
-            "d_jenis_kendaraan_id": jenisKendaraanId,
+            "master_data_id": masterDataId, // <-- Kirim ID Master Data
             "f_pengajuan_id": jenisPengajuanId,
           },
         );
@@ -104,7 +129,7 @@ class TransaksiRepository {
   Future<void> updateTransaksi({
     required String transaksiId,
     required int customerId,
-    required String jenisKendaraanId,
+    required int masterDataId, // <-- GANTI 4 parameter string menjadi 1 int ini
     required int jenisPengajuanId,
   }) async {
     await _ref
@@ -114,7 +139,7 @@ class TransaksiRepository {
           '${ApiEndpoints.transaksi}/$transaksiId',
           data: {
             'customer_id': customerId,
-            'd_jenis_kendaraan_id': jenisKendaraanId,
+            'master_data_id': masterDataId, // Kirim ID Master Data
             'f_pengajuan_id': jenisPengajuanId,
           },
         );

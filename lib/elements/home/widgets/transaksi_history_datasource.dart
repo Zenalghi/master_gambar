@@ -5,35 +5,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:master_gambar/app/core/providers.dart';
+import 'package:master_gambar/elements/auth/auth_service.dart'; // Pastikan import ini benar
 import 'package:master_gambar/elements/home/providers/page_state_provider.dart';
 import 'package:master_gambar/elements/home/providers/transaksi_providers.dart';
 import 'package:master_gambar/elements/home/repository/options_repository.dart';
 import '../../../data/models/transaksi.dart';
-
-final transaksiDataSourceProvider =
-    Provider.family<TransaksiDataSource, void Function(Transaksi)>(
-      (ref, onEdit) => TransaksiDataSource(ref, onEdit: onEdit),
-    );
+import 'edit_transaksi_dialog.dart';
 
 class TransaksiDataSource extends AsyncDataTableSource {
-  final Ref _ref;
-  final Function(Transaksi trx) onEdit;
-  final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
+  final WidgetRef _ref;
+  final BuildContext context;
+  final DateFormat dateFormat = DateFormat('yyyy.MM.dd HH:mm');
 
-  TransaksiDataSource(this._ref, {required this.onEdit}) {
-    // Dengarkan perubahan pada filter, lalu refresh tabel
-    _ref.listen(transaksiFilterProvider, (_, __) {
-      refreshDatasource();
-    });
-  }
+  // Constructor sederhana
+  TransaksiDataSource(this._ref, this.context);
 
   @override
   Future<AsyncRowsResponse> getRows(int startIndex, int count) async {
+    // 1. Ambil state filter terbaru
     final filters = _ref.read(transaksiFilterProvider);
     final authService = _ref.read(authServiceProvider);
     final currentUserId = _ref.read(currentUserIdProvider);
 
     try {
+      // 2. Panggil API dengan parameter lengkap
       final response = await _ref
           .read(transaksiRepositoryProvider)
           .getTransaksiHistory(
@@ -42,14 +37,18 @@ class TransaksiDataSource extends AsyncDataTableSource {
             search: filters['search'] as String,
             sortBy: filters['sortBy'] as String,
             sortDirection: filters['sortDirection'] as String,
-            advancedFilters: filters.cast<String, String?>(),
+            // Kirim seluruh map filters sebagai advancedFilters
+            advancedFilters: filters,
           );
 
+      // 3. Mapping data ke DataRow
       return AsyncRowsResponse(
         response.total,
         response.data.map((trx) {
+          // Logika akses edit
           final canEdit =
-              authService.canViewAdminTabs() || trx.user.id == currentUserId;
+              authService.canViewAdminTabs() || (trx.user.id == currentUserId);
+
           return DataRow(
             key: ValueKey(trx.id),
             cells: [
@@ -71,20 +70,19 @@ class TransaksiDataSource extends AsyncDataTableSource {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Tombol Edit
                     IconButton(
                       icon: Icon(
                         Icons.edit,
                         color: canEdit ? Colors.orange.shade700 : Colors.grey,
                       ),
                       tooltip: canEdit ? 'Edit' : 'Anda tidak punya akses',
-                      onPressed: canEdit ? () => onEdit(trx) : null,
+                      onPressed: canEdit ? () => _showEditDialog(trx) : null,
                     ),
+                    // Tombol Open (Pindah Halaman)
                     IconButton(
-                      icon: Icon(
-                        Icons.open_in_new,
-                        color: Colors.blue.shade700,
-                      ),
-                      tooltip: 'Open',
+                      icon: const Icon(Icons.open_in_new, color: Colors.blue),
+                      tooltip: 'Buka Detail / Input Gambar',
                       onPressed: () {
                         _ref.read(pageStateProvider.notifier).state = PageState(
                           pageIndex: 1,
@@ -100,8 +98,15 @@ class TransaksiDataSource extends AsyncDataTableSource {
         }).toList(),
       );
     } catch (e) {
-      // Handle error
+      debugPrint('Error fetching Transaksi: $e');
       return AsyncRowsResponse(0, []);
     }
+  }
+
+  void _showEditDialog(Transaksi trx) {
+    showDialog(
+      context: context,
+      builder: (_) => EditTransaksiDialog(transaksi: trx),
+    );
   }
 }

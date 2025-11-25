@@ -1,41 +1,41 @@
+// File: lib/elements/home/widgets/transaksi_history_table.dart
+
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/elements/home/providers/transaksi_providers.dart';
-import '../../../data/models/transaksi.dart';
 import 'transaksi_history_datasource.dart';
-import 'edit_transaksi_dialog.dart';
 
 class TransaksiHistoryTable extends ConsumerStatefulWidget {
   const TransaksiHistoryTable({super.key});
+
   @override
   ConsumerState<TransaksiHistoryTable> createState() =>
       _TransaksiHistoryTableState();
 }
 
 class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
-  int _sortColumnIndex = 9;
+  late final TransaksiDataSource _dataSource;
+  int _sortColumnIndex = 9; // Default: updated_at
   bool _sortAscending = false;
 
   @override
   void initState() {
     super.initState();
+    // Inisialisasi DataSource sekali saja
+    _dataSource = TransaksiDataSource(ref, context);
   }
 
   @override
   Widget build(BuildContext context) {
-    void showEditDialog(Transaksi transaksi) {
-      showDialog(
-        context: context,
-        builder: (_) => EditTransaksiDialog(transaksi: transaksi),
-      );
-    }
-
-    final source = ref.watch(transaksiDataSourceProvider(showEditDialog));
     final rowsPerPage = ref.watch(rowsPerPageProvider);
 
+    // DENGARKAN PERUBAHAN FILTER
+    ref.listen(transaksiFilterProvider, (_, __) {
+      _dataSource.refreshDatasource();
+    });
+
     return AsyncPaginatedDataTable2(
-      loading: const Center(child: CircularProgressIndicator()),
       columnSpacing: 12,
       horizontalMargin: 12,
       minWidth: 1600,
@@ -49,12 +49,19 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
         }
       },
       columns: _createColumns(),
-      source: source,
+      source: _dataSource,
+      loading: const Center(child: CircularProgressIndicator()),
       empty: const Center(child: Text('Tidak ada data ditemukan')),
     );
   }
 
   void _onSort(int columnIndex, bool ascending) {
+    setState(() {
+      _sortColumnIndex = columnIndex;
+      _sortAscending = ascending;
+    });
+
+    // Mapping index kolom UI ke field database
     final Map<int, String> columnMapping = {
       0: 'id',
       1: 'customer',
@@ -67,11 +74,6 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
       8: 'created_at',
       9: 'updated_at',
     };
-
-    setState(() {
-      _sortColumnIndex = columnIndex;
-      _sortAscending = ascending;
-    });
 
     ref.read(transaksiFilterProvider.notifier).update((state) {
       return {
@@ -95,8 +97,8 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Type\nEngine'),
-        fixedWidth: 122,
+        label: const Text('Type Engine'),
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
@@ -110,12 +112,12 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Jenis\nKendaraan'),
+        label: const Text('Jenis Kendaraan'),
         size: ColumnSize.L,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Jenis\nPengajuan'),
+        label: const Text('Jenis Pengajuan'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
@@ -134,7 +136,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
         size: ColumnSize.M,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Option'), size: ColumnSize.S),
+      const DataColumn2(label: Text('Option'), fixedWidth: 100),
     ];
   }
 }

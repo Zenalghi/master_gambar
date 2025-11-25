@@ -1,9 +1,13 @@
+// File: lib/elements/home/widgets/edit_transaksi_dialog.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dropdown_search/dropdown_search.dart';
+import 'package:dio/dio.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
+import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/elements/home/providers/transaksi_providers.dart';
 import 'package:master_gambar/elements/home/repository/options_repository.dart';
-import 'transaksi_history_datasource.dart';
 
 class EditTransaksiDialog extends ConsumerStatefulWidget {
   final Transaksi transaksi;
@@ -16,26 +20,74 @@ class EditTransaksiDialog extends ConsumerStatefulWidget {
 }
 
 class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
-  // State lokal untuk menyimpan ID yang dipilih di form
+  final _formKey = GlobalKey<FormState>();
+
+  // State lokal
   late int _selectedCustomerId;
-  late String _selectedTypeEngineId;
-  late String _selectedMerkId;
-  late String _selectedTypeChassisId;
-  late String _selectedJenisKendaraanId;
+  late int _selectedMasterDataId;
   late int _selectedJenisPengajuanId;
 
-  final _formKey = GlobalKey<FormState>();
+  // Untuk tampilan awal dropdown Master Data
+  late OptionItem _initialMasterDataOption;
 
   @override
   void initState() {
     super.initState();
-    // Isi state lokal dengan data awal dari transaksi
+    // 1. Isi ID
     _selectedCustomerId = widget.transaksi.customer.id;
-    _selectedTypeEngineId = widget.transaksi.aTypeEngine.id;
-    _selectedMerkId = widget.transaksi.bMerk.id;
-    _selectedTypeChassisId = widget.transaksi.cTypeChassis.id;
-    _selectedJenisKendaraanId = widget.transaksi.dJenisKendaraan.id;
+    _selectedMasterDataId = widget.transaksi.masterDataId;
     _selectedJenisPengajuanId = widget.transaksi.fPengajuan.id;
+
+    // 2. Buat object OptionItem untuk tampilan awal DropdownSearch
+    // Gabungkan nama A/B/C/D yang sudah ada di transaksi
+    final displayName =
+        "${widget.transaksi.aTypeEngine.typeEngine} / "
+        "${widget.transaksi.bMerk.merk} / "
+        "${widget.transaksi.cTypeChassis.typeChassis} / "
+        "${widget.transaksi.dJenisKendaraan.jenisKendaraan}";
+
+    _initialMasterDataOption = OptionItem(
+      id: _selectedMasterDataId,
+      name: displayName,
+    );
+  }
+
+  void _submitUpdate() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        await ref
+            .read(transaksiRepositoryProvider)
+            .updateTransaksi(
+              transaksiId: widget.transaksi.id,
+              customerId: _selectedCustomerId,
+              masterDataId: _selectedMasterDataId, // Kirim ID Master Data
+              jenisPengajuanId: _selectedJenisPengajuanId,
+            );
+
+        if (mounted) Navigator.of(context).pop();
+
+        // Gunakan dataSource provider untuk refresh yang benar
+        // (Pastikan Anda mengimport file datasource jika perlu)
+        // Atau invalidate history provider
+        ref.invalidate(transaksiFilterProvider); // Cara refresh via filter
+        // Atau jika menggunakan DataSource:
+        // ref.read(transaksiDataSourceProvider).refreshDatasource();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Transaksi berhasil diupdate!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal update: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _showDeleteConfirmationDialog() {
@@ -50,16 +102,14 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
           actions: [
             TextButton(
               child: const Text('Batal'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop(); // Tutup dialog konfirmasi
-              },
+              onPressed: () => Navigator.of(dialogContext).pop(),
             ),
             TextButton(
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Ya, Hapus'),
               onPressed: () {
-                Navigator.of(dialogContext).pop(); // Tutup dialog konfirmasi
-                _submitDelete(); // Jalankan fungsi hapus
+                Navigator.of(dialogContext).pop();
+                _submitDelete();
               },
             ),
           ],
@@ -68,18 +118,13 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
     );
   }
 
-  // --- METHOD BARU UNTUK EKSEKUSI HAPUS ---
   void _submitDelete() async {
     try {
       await ref
           .read(transaksiRepositoryProvider)
           .deleteTransaksi(transaksiId: widget.transaksi.id);
-
-      // Tutup dialog edit
       if (mounted) Navigator.of(context).pop();
-      // Refresh tabel
-      ref.invalidate(transaksiDataSourceProvider);
-
+      ref.invalidate(transaksiFilterProvider); // Refresh tabel
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Transaksi berhasil dihapus!'),
@@ -101,24 +146,69 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
     return AlertDialog(
       title: Text('Edit Transaksi: ${widget.transaksi.id}'),
       content: SizedBox(
-        width: 600, // Beri lebar agar nyaman
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
+        width: 500,
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildCustomerDropdown(),
+                // 1. CUSTOMER
+                _buildStandardDropdown(
+                  label: 'Customer',
+                  optionsProvider: customerOptionsProvider,
+                  selectedValue: _selectedCustomerId,
+                  onChanged: (val) => setState(() => _selectedCustomerId = val),
+                ),
+
                 const SizedBox(height: 16),
-                _buildTypeEngineDropdown(),
+
+                // 2. MASTER DATA (DropdownSearch)
+                DropdownSearch<OptionItem>(
+                  items: (String filter, _) => ref.read(
+                    transaksiMasterDataOptionsProvider(filter).future,
+                  ),
+                  itemAsString: (OptionItem item) => item.name,
+                  compareFn: (i1, i2) => i1.id == i2.id, // Penting!
+                  selectedItem: _initialMasterDataOption, // Nilai awal
+                  onChanged: (OptionItem? item) {
+                    if (item != null) {
+                      setState(() => _selectedMasterDataId = item.id as int);
+                    }
+                  },
+                  decoratorProps: const DropDownDecoratorProps(
+                    decoration: InputDecoration(
+                      labelText: 'Kendaraan (Engine / Merk / Chassis / Jenis)',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                  popupProps: const PopupProps.menu(
+                    showSearchBox: true,
+                    searchFieldProps: TextFieldProps(
+                      decoration: InputDecoration(
+                        hintText: "Cari...",
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                    ),
+                  ),
+                  validator: (item) =>
+                      item == null && _selectedMasterDataId == 0
+                      ? 'Wajib dipilih'
+                      : null,
+                ),
+
                 const SizedBox(height: 16),
-                _buildMerkDropdown(),
-                const SizedBox(height: 16),
-                _buildTypeChassisDropdown(),
-                const SizedBox(height: 16),
-                _buildJenisKendaraanDropdown(),
-                const SizedBox(height: 16),
-                _buildJenisPengajuanDropdown(),
+
+                // 3. JENIS PENGAJUAN
+                _buildStandardDropdown(
+                  label: 'Jenis Pengajuan',
+                  optionsProvider: jenisPengajuanOptionsProvider,
+                  selectedValue: _selectedJenisPengajuanId,
+                  onChanged: (val) =>
+                      setState(() => _selectedJenisPengajuanId = val),
+                ),
               ],
             ),
           ),
@@ -132,16 +222,15 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
               onPressed: _showDeleteConfirmationDialog,
               child: const Text('Hapus'),
             ),
-            // Spacer agar tombol lain ke kanan
             const Spacer(),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Batal'),
             ),
-            const SizedBox(width: 20), // Spacer horizontal
+            const SizedBox(width: 16),
             ElevatedButton(
               onPressed: _submitUpdate,
-              child: const Text('Update Transaksi'),
+              child: const Text('Simpan Perubahan'),
             ),
           ],
         ),
@@ -149,192 +238,38 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
     );
   }
 
-  // --- Kumpulan Method untuk Membangun Setiap Dropdown ---
-
-  Widget _buildCustomerDropdown() {
-    final options = ref.watch(customerOptionsProvider);
+  Widget _buildStandardDropdown({
+    required String label,
+    required FutureProvider<List<OptionItem>> optionsProvider,
+    required int selectedValue,
+    required Function(int) onChanged,
+  }) {
+    final options = ref.watch(optionsProvider);
     return options.when(
       data: (items) => DropdownButtonFormField<int>(
-        value: _selectedCustomerId,
+        value: selectedValue,
         items: items
             .map(
-              (item) =>
-                  DropdownMenuItem<int>(value: item.id, child: Text(item.name)),
-            )
-            .toList(),
-        onChanged: (value) => setState(() => _selectedCustomerId = value!),
-        decoration: const InputDecoration(labelText: 'Customer'),
-        validator: (val) => val == null ? 'Wajib diisi' : null,
-      ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Gagal memuat Customer'),
-    );
-  }
-
-  Widget _buildTypeEngineDropdown() {
-    final options = ref.watch(typeEngineOptionsProvider);
-    return options.when(
-      data: (items) => DropdownButtonFormField<String>(
-        value: _selectedTypeEngineId,
-        items: items
-            .map(
-              (item) => DropdownMenuItem<String>(
-                value: item.id,
+              (item) => DropdownMenuItem<int>(
+                value: item.id as int,
                 child: Text(item.name),
               ),
             )
             .toList(),
-        onChanged: (value) => setState(() {
-          _selectedTypeEngineId = value!;
-          // Reset anak-anaknya
-          _selectedMerkId = '';
-          _selectedTypeChassisId = '';
-          _selectedJenisKendaraanId = '';
-        }),
-        decoration: const InputDecoration(labelText: 'Type Engine'),
+        onChanged: (val) {
+          if (val != null) onChanged(val);
+        },
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
         validator: (val) => val == null ? 'Wajib diisi' : null,
       ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Gagal memuat Type Engine'),
-    );
-  }
-
-  Widget _buildMerkDropdown() {
-    // Gunakan provider family dengan state lokal sebagai parameter
-    final options = ref.watch(merkOptionsFamilyProvider(_selectedTypeEngineId));
-    return options.when(
-      data: (items) => DropdownButtonFormField<String>(
-        value: items.any((item) => item.id == _selectedMerkId)
-            ? _selectedMerkId
-            : null,
-        items: items
-            .map(
-              (item) => DropdownMenuItem<String>(
-                value: item.id,
-                child: Text(item.name),
-              ),
-            )
-            .toList(),
-        onChanged: (value) => setState(() {
-          _selectedMerkId = value!;
-          // Reset anak-anaknya
-          _selectedTypeChassisId = '';
-          _selectedJenisKendaraanId = '';
-        }),
-        decoration: const InputDecoration(labelText: 'Merk'),
-        validator: (val) => val == null ? 'Wajib diisi' : null,
+      loading: () => const SizedBox(
+        height: 50,
+        child: Center(child: CircularProgressIndicator()),
       ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Gagal memuat Merk'),
+      error: (err, stack) => Text('Gagal memuat $label'),
     );
-  }
-
-  Widget _buildTypeChassisDropdown() {
-    final options = ref.watch(
-      typeChassisOptionsFamilyProvider(_selectedMerkId),
-    );
-    return options.when(
-      data: (items) => DropdownButtonFormField<String>(
-        value: items.any((item) => item.id == _selectedTypeChassisId)
-            ? _selectedTypeChassisId
-            : null,
-        items: items
-            .map(
-              (item) => DropdownMenuItem<String>(
-                value: item.id,
-                child: Text(item.name),
-              ),
-            )
-            .toList(),
-        onChanged: (value) => setState(() {
-          _selectedTypeChassisId = value!;
-          _selectedJenisKendaraanId = '';
-        }),
-        decoration: const InputDecoration(labelText: 'Type Chassis'),
-        validator: (val) => val == null ? 'Wajib diisi' : null,
-      ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Gagal memuat Type Chassis'),
-    );
-  }
-
-  Widget _buildJenisKendaraanDropdown() {
-    final options = ref.watch(
-      jenisKendaraanOptionsFamilyProvider(_selectedTypeChassisId),
-    );
-    return options.when(
-      data: (items) => DropdownButtonFormField<String>(
-        value: items.any((item) => item.id == _selectedJenisKendaraanId)
-            ? _selectedJenisKendaraanId
-            : null,
-        items: items
-            .map(
-              (item) => DropdownMenuItem<String>(
-                value: item.id,
-                child: Text(item.name),
-              ),
-            )
-            .toList(),
-        onChanged: (value) =>
-            setState(() => _selectedJenisKendaraanId = value!),
-        decoration: const InputDecoration(labelText: 'Jenis Kendaraan'),
-        validator: (val) => val == null ? 'Wajib diisi' : null,
-      ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Gagal memuat Jenis Kendaraan'),
-    );
-  }
-
-  Widget _buildJenisPengajuanDropdown() {
-    final options = ref.watch(jenisPengajuanOptionsProvider);
-    return options.when(
-      data: (items) => DropdownButtonFormField<int>(
-        value: _selectedJenisPengajuanId,
-        items: items
-            .map(
-              (item) =>
-                  DropdownMenuItem<int>(value: item.id, child: Text(item.name)),
-            )
-            .toList(),
-        onChanged: (value) =>
-            setState(() => _selectedJenisPengajuanId = value!),
-        decoration: const InputDecoration(labelText: 'Jenis Pengajuan'),
-        validator: (val) => val == null ? 'Wajib diisi' : null,
-      ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Gagal memuat Jenis Pengajuan'),
-    );
-  }
-
-  void _submitUpdate() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        await ref
-            .read(transaksiRepositoryProvider)
-            .updateTransaksi(
-              transaksiId: widget.transaksi.id,
-              customerId: _selectedCustomerId,
-              jenisKendaraanId: _selectedJenisKendaraanId,
-              jenisPengajuanId: _selectedJenisPengajuanId,
-            );
-
-        if (mounted) Navigator.of(context).pop();
-        ref.invalidate(transaksiDataSourceProvider);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Transaksi berhasil diupdate!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal update: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
   }
 }
