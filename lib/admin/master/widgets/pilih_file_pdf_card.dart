@@ -7,7 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:pdfx/pdfx.dart';
 
-class PilihFilePdfCard extends ConsumerWidget {
+// UBAH JADI STATEFUL WIDGET AGAR BISA SIMPAN STATE VIEW MODE
+class PilihFilePdfCard extends ConsumerStatefulWidget {
   final VoidCallback onSubmit;
   final bool isLoading;
 
@@ -16,6 +17,14 @@ class PilihFilePdfCard extends ConsumerWidget {
     required this.onSubmit,
     required this.isLoading,
   });
+
+  @override
+  ConsumerState<PilihFilePdfCard> createState() => _PilihFilePdfCardState();
+}
+
+class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
+  // State untuk mode tampilan: True = Horizontal (3 Kolom), False = Vertical (List ke bawah)
+  bool _isHorizontalView = true;
 
   Future<File?> _pickPdfFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -29,7 +38,7 @@ class PilihFilePdfCard extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final isVarianBodySelected =
         ref.watch(mguSelectedVarianBodyIdProvider) != null;
 
@@ -51,58 +60,72 @@ class PilihFilePdfCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '2. Pilih File PDF',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: isVarianBodySelected ? null : Colors.grey,
+            // --- HEADER DENGAN TOMBOL TOGGLE ---
+            Row(
+              children: [
+                Text(
+                  '2. Pilih File PDF',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isVarianBodySelected ? null : Colors.grey,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Tombol kecil untuk ganti layout
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isHorizontalView = !_isHorizontalView;
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      // Ganti icon sesuai mode
+                      _isHorizontalView
+                          ? Icons
+                                .view_list // Icon untuk switch ke Vertical
+                          : Icons
+                                .view_column, // Icon untuk switch ke Horizontal
+                      size: 20,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+                if (!isVarianBodySelected) ...[
+                  const SizedBox(width: 8),
+                  const Text(
+                    '(Pilih Varian Body dulu)',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // --- PILIH LAYOUT BERDASARKAN STATE ---
+            if (_isHorizontalView)
+              _buildHorizontalLayout(
+                isVarianBodySelected,
+                gambarUtamaFile,
+                gambarTeruraiFile,
+                gambarKontruksiFile,
+              )
+            else
+              _buildVerticalLayout(
+                isVarianBodySelected,
+                gambarUtamaFile,
+                gambarTeruraiFile,
+                gambarKontruksiFile,
               ),
-            ),
-            const SizedBox(height: 16),
-            _buildFilePicker(
-              label: 'Gambar Utama',
-              file: gambarUtamaFile,
-              onPressed: isVarianBodySelected
-                  ? () async {
-                      final file = await _pickPdfFile();
-                      if (file != null)
-                        ref.read(mguGambarUtamaFileProvider.notifier).state =
-                            file;
-                    }
-                  : null,
-            ),
-            const SizedBox(height: 16),
-            _buildFilePicker(
-              label: 'Gambar Terurai',
-              file: gambarTeruraiFile,
-              onPressed: isVarianBodySelected
-                  ? () async {
-                      final file = await _pickPdfFile();
-                      if (file != null)
-                        ref.read(mguGambarTeruraiFileProvider.notifier).state =
-                            file;
-                    }
-                  : null,
-            ),
-            const SizedBox(height: 16),
-            _buildFilePicker(
-              label: 'Gambar Kontruksi',
-              file: gambarKontruksiFile,
-              onPressed: isVarianBodySelected
-                  ? () async {
-                      final file = await _pickPdfFile();
-                      if (file != null)
-                        ref
-                                .read(mguGambarKontruksiFileProvider.notifier)
-                                .state =
-                            file;
-                    }
-                  : null,
-            ),
+
             const SizedBox(height: 24),
+
+            // Tombol Upload
             SizedBox(
               width: double.infinity,
-              child: isLoading
+              child: widget.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton.icon(
                       icon: const Icon(Icons.upload),
@@ -110,7 +133,7 @@ class PilihFilePdfCard extends ConsumerWidget {
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      onPressed: allFilesSelected ? onSubmit : null,
+                      onPressed: allFilesSelected ? widget.onSubmit : null,
                     ),
             ),
           ],
@@ -119,7 +142,176 @@ class PilihFilePdfCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildFilePicker({
+  // === LAYOUT 1: HORIZONTAL (YANG BARU) ===
+  Widget _buildHorizontalLayout(
+    bool enabled,
+    File? fUtama,
+    File? fTerurai,
+    File? fKontruksi,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: _buildHorizontalItem(
+            label: 'Gambar Utama',
+            file: fUtama,
+            onPressed: enabled
+                ? () async {
+                    final f = await _pickPdfFile();
+                    if (f != null) {
+                      ref.read(mguGambarUtamaFileProvider.notifier).state = f;
+                    }
+                  }
+                : null,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildHorizontalItem(
+            label: 'Gambar Terurai',
+            file: fTerurai,
+            onPressed: enabled
+                ? () async {
+                    final f = await _pickPdfFile();
+                    if (f != null) {
+                      ref.read(mguGambarTeruraiFileProvider.notifier).state = f;
+                    }
+                  }
+                : null,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildHorizontalItem(
+            label: 'Gambar Kontruksi',
+            file: fKontruksi,
+            onPressed: enabled
+                ? () async {
+                    final f = await _pickPdfFile();
+                    if (f != null) {
+                      ref.read(mguGambarKontruksiFileProvider.notifier).state =
+                          f;
+                    }
+                  }
+                : null,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // === LAYOUT 2: VERTICAL (YANG LAMA - DITUMPUK) ===
+  Widget _buildVerticalLayout(
+    bool enabled,
+    File? fUtama,
+    File? fTerurai,
+    File? fKontruksi,
+  ) {
+    return Column(
+      children: [
+        _buildVerticalItem(
+          label: 'Gambar Utama',
+          file: fUtama,
+          onPressed: enabled
+              ? () async {
+                  final f = await _pickPdfFile();
+                  if (f != null) {
+                    ref.read(mguGambarUtamaFileProvider.notifier).state = f;
+                  }
+                }
+              : null,
+        ),
+        const SizedBox(height: 16),
+        _buildVerticalItem(
+          label: 'Gambar Terurai',
+          file: fTerurai,
+          onPressed: enabled
+              ? () async {
+                  final f = await _pickPdfFile();
+                  if (f != null) {
+                    ref.read(mguGambarTeruraiFileProvider.notifier).state = f;
+                  }
+                }
+              : null,
+        ),
+        const SizedBox(height: 16),
+        _buildVerticalItem(
+          label: 'Gambar Kontruksi',
+          file: fKontruksi,
+          onPressed: enabled
+              ? () async {
+                  final f = await _pickPdfFile();
+                  if (f != null) {
+                    ref.read(mguGambarKontruksiFileProvider.notifier).state = f;
+                  }
+                }
+              : null,
+        ),
+      ],
+    );
+  }
+
+  // --- ITEM WIDGET UTK HORIZONTAL (Input ATAS, Preview BAWAH) ---
+  Widget _buildHorizontalItem({
+    required String label,
+    File? file,
+    VoidCallback? onPressed,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            file?.path.split(Platform.pathSeparator).last ??
+                'Belum ada file...',
+            style: TextStyle(
+              color: file != null ? Colors.black : Colors.grey,
+              fontStyle: FontStyle.italic,
+              fontSize: 12,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ElevatedButton.icon(
+          onPressed: onPressed,
+          icon: const Icon(Icons.picture_as_pdf, size: 18),
+          label: Text(label, style: const TextStyle(fontSize: 13)),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          height: 300,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade400),
+            borderRadius: BorderRadius.circular(4),
+            color: Colors.grey.shade200,
+          ),
+          child: file != null
+              ? _PdfPreviewer(file: file)
+              : const Center(
+                  child: Icon(
+                    Icons.picture_as_pdf_outlined,
+                    color: Colors.grey,
+                    size: 32,
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  // --- ITEM WIDGET UTK VERTICAL (Input KIRI, Preview KANAN) ---
+  Widget _buildVerticalItem({
     required String label,
     File? file,
     VoidCallback? onPressed,
@@ -127,7 +319,7 @@ class PilihFilePdfCard extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Kolom untuk Tombol dan Nama File
+        // Kiri: Input
         Expanded(
           flex: 3,
           child: Column(
@@ -160,19 +352,18 @@ class PilihFilePdfCard extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: 16),
-        // Kolom untuk Preview PDF
+        // Kanan: Preview
         Expanded(
           flex: 2,
           child: Container(
-            height: 480, // Beri tinggi tetap untuk area preview
+            height: 480, // Lebih tinggi untuk mode vertical
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey.shade400),
               borderRadius: BorderRadius.circular(4),
               color: Colors.grey.shade200,
             ),
-            // --- INI PERUBAHAN UTAMANYA ---
             child: file != null
-                ? _PdfPreviewer(file: file) // Gunakan widget baru
+                ? _PdfPreviewer(file: file)
                 : const Center(
                     child: Icon(
                       Icons.picture_as_pdf_outlined,
@@ -187,12 +378,10 @@ class PilihFilePdfCard extends ConsumerWidget {
   }
 }
 
-// --- WIDGET BARU UNTUK MENGELOLA STATE PDF CONTROLLER ---
+// --- CLASS PDF PREVIEWER TETAP SAMA ---
 class _PdfPreviewer extends StatefulWidget {
   final File file;
-
   const _PdfPreviewer({required this.file});
-
   @override
   State<_PdfPreviewer> createState() => _PdfPreviewerState();
 }
@@ -203,7 +392,6 @@ class _PdfPreviewerState extends State<_PdfPreviewer> {
   @override
   void initState() {
     super.initState();
-    // Controller dibuat HANYA SEKALI saat widget pertama kali dibuat
     _pdfController = PdfController(
       document: PdfDocument.openFile(widget.file.path),
     );
@@ -212,9 +400,7 @@ class _PdfPreviewerState extends State<_PdfPreviewer> {
   @override
   void didUpdateWidget(covariant _PdfPreviewer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Jika file berubah (misalnya pengguna memilih file lain untuk slot yang sama)
     if (widget.file.path != oldWidget.file.path) {
-      // Buang controller lama dan buat yang baru
       _pdfController.dispose();
       _pdfController = PdfController(
         document: PdfDocument.openFile(widget.file.path),
@@ -224,17 +410,12 @@ class _PdfPreviewerState extends State<_PdfPreviewer> {
 
   @override
   void dispose() {
-    // Pastikan controller dibuang saat widget dihancurkan
     _pdfController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return PdfView(
-      // Beri key unik agar Flutter tahu kapan harus menggambar ulang
-      key: ValueKey(widget.file.path),
-      controller: _pdfController,
-    );
+    return PdfView(key: ValueKey(widget.file.path), controller: _pdfController);
   }
 }
