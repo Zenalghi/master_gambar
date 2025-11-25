@@ -43,6 +43,7 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
             key: ValueKey(item.id),
             cells: [
               // Akses langsung dari properti model yang baru
+              DataCell(SelectableText(item.id.toString())),
               DataCell(SelectableText(item.typeEngine.name)),
               DataCell(SelectableText(item.merk.name)),
               DataCell(SelectableText(item.typeChassis.name)),

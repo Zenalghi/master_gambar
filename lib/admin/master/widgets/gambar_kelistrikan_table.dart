@@ -16,7 +16,7 @@ class GambarKelistrikanTable extends ConsumerStatefulWidget {
 
 class _GambarKelistrikanTableState
     extends ConsumerState<GambarKelistrikanTable> {
-  int _sortColumnIndex = 5; // Default: updated_at
+  int _sortColumnIndex = 6; // Default: updated_at (geser +1 karena ada ID)
   bool _sortAscending = false;
 
   @override
@@ -48,14 +48,15 @@ class _GambarKelistrikanTableState
     });
 
     ref.read(gambarKelistrikanFilterProvider.notifier).update((state) {
-      // Mapping sesuai backend
+      // Mapping index kolom ke nama field di database
       final Map<int, String> columnMapping = {
-        0: 'type_engine',
-        1: 'merk',
-        2: 'type_chassis',
-        3: 'deskripsi',
-        4: 'created_at',
-        5: 'updated_at',
+        0: 'id',
+        1: 'type_engine',
+        2: 'merk',
+        3: 'type_chassis',
+        4: 'deskripsi',
+        5: 'created_at',
+        6: 'updated_at',
       };
       return {
         ...state,
@@ -67,6 +68,7 @@ class _GambarKelistrikanTableState
 
   List<DataColumn2> _createColumns() {
     return [
+      DataColumn2(label: const Text('ID'), fixedWidth: 80, onSort: _onSort),
       DataColumn2(
         label: const Text('Type\nEngine'),
         fixedWidth: 122,

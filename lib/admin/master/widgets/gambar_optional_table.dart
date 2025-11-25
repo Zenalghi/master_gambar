@@ -15,12 +15,12 @@ class GambarOptionalTable extends ConsumerStatefulWidget {
 }
 
 class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
-  int _sortColumnIndex = 8; // Default sort: updated_at
-  bool _sortAscending = false; // Default: desc
+  int _sortColumnIndex = 9; // Default: updated_at (geser +1 karena ada ID)
+  bool _sortAscending = false;
 
   @override
   Widget build(BuildContext context) {
-    // Gunakan WidgetRef yang benar dari context
+    // ... kode build tetap sama
     final dataSource = GambarOptionalDataSource(ref, context);
     final rowsPerPage = ref.watch(gambarOptionalRowsPerPageProvider);
 
@@ -47,17 +47,18 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
       _sortAscending = ascending;
     });
 
-    // Mapping ke nama kolom backend yang benar (sesuai H_GambarOptionalController)
+    // Mapping ke nama kolom backend yang benar (sesuai Controller)
     final Map<int, String> columnMapping = {
-      0: 'type_engine',
-      1: 'merk',
-      2: 'type_chassis',
-      3: 'jenis_kendaraan',
-      4: 'varian_body',
-      5: 'tipe',
-      6: 'deskripsi',
-      7: 'created_at',
-      8: 'updated_at',
+      0: 'id',
+      1: 'type_engine',
+      2: 'merk',
+      3: 'type_chassis',
+      4: 'jenis_kendaraan',
+      5: 'varian_body',
+      6: 'tipe',
+      7: 'deskripsi',
+      8: 'created_at',
+      9: 'updated_at',
     };
 
     ref.read(gambarOptionalFilterProvider.notifier).update((state) {
@@ -71,6 +72,7 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
 
   List<DataColumn2> _createColumns() {
     return [
+      DataColumn2(label: const Text('ID'), fixedWidth: 80, onSort: _onSort),
       DataColumn2(
         label: const Text('Type\nEngine'),
         fixedWidth: 95,
