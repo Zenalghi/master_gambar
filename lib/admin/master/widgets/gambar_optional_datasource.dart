@@ -14,7 +14,7 @@ import 'pdf_viewer_dialog.dart'; // Pastikan file ini sudah ada
 class GambarOptionalDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;
   final BuildContext context;
-  final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
+  final DateFormat dateFormat = DateFormat('yyyy-MM-dd\nHH:mm');
 
   GambarOptionalDataSource(this._ref, this.context) {
     _ref.listen(gambarOptionalFilterProvider, (_, __) => refreshDatasource());
@@ -55,7 +55,7 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
               DataCell(
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
+                    horizontal: 4,
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(

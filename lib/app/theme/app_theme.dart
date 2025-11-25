@@ -66,5 +66,21 @@ ThemeData createAppTheme() {
         ),
       ),
     ),
+
+    dataTableTheme: DataTableThemeData(
+      // 1. columnSpacing: Mengatur jarak antar kolom.
+      // Defaultnya besar (56.0). Ubah ke 10-15 agar "garis batas" lebih rapat ke teks.
+      columnSpacing: 10.0,
+
+      // 2. horizontalMargin: Jarak dari pinggir tabel paling kiri & kanan.
+      horizontalMargin: 10.0,
+
+      // 3. headingRowHeight: Tinggi baris judul (opsional, biar tidak terlalu tinggi)
+      headingRowHeight: 45,
+
+      // 4. dataRowMin/MaxHeight: Tinggi baris data
+      dataRowMinHeight: 40,
+      dataRowMaxHeight: 52,
+    ),
   );
 }
