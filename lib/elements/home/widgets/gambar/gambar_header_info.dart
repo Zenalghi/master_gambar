@@ -31,6 +31,8 @@ class GambarHeaderInfo extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Memuat ulang data pilihan...'),
+        //warna biru
+        backgroundColor: Colors.blue,
         duration: Duration(seconds: 1),
       ),
     );
@@ -179,7 +181,7 @@ Widget _buildPemeriksaDropdown(WidgetRef ref) {
   return pemeriksaOptionsAsync.when(
     data: (items) => DropdownButtonFormField<int>(
       value: selectedId,
-      hint: const Text('Pilih Pemeriksa'),
+      // hint: const Text('Pilih Pemeriksa'),
       decoration: const InputDecoration(
         labelText: 'Pemeriksa',
         border: OutlineInputBorder(),
