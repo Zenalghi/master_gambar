@@ -16,9 +16,9 @@ class ApiEndpoints {
   // Endpoint untuk POST transaksi
   static const String transaksi = '/transaksi';
 
-  static String varianBody(String jenisKendaraanId) =>
-      '/options/varian-body/$jenisKendaraanId';
-
+  // Ubah parameter menjadi masterDataId (bisa int atau String, sesuaikan)
+  static String varianBody(String masterDataId) =>
+      '/options/varian-body/$masterDataId';
   static const String gambarOptionalByVarian =
       '/options/gambar-optional-by-varian';
 }

@@ -144,15 +144,18 @@ final pemeriksaOptionsProvider = FutureProvider<List<OptionItem>>((ref) async {
 });
 
 final varianBodyOptionsFamilyProvider =
-    FutureProvider.family<List<OptionItem>, String>((
+    FutureProvider.family<List<OptionItem>, int>((
+      // <-- Ganti String ke int
       ref,
-      jenisKendaraanId,
+      masterDataId, // <-- Parameter sekarang masterDataId
     ) async {
       ref.watch(refreshNotifierProvider);
+      // Kirim masterDataId ke endpoint
       final response = await ref
           .watch(apiClientProvider)
           .dio
-          .get('/options/varian-body/$jenisKendaraanId');
+          .get(ApiEndpoints.varianBody(masterDataId.toString()));
+
       final List<dynamic> data = response.data;
       return data
           .map((item) => OptionItem.fromJson(item, nameKey: 'varian_body'))

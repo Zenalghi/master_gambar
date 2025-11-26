@@ -8,7 +8,8 @@ class GambarUtamaRow extends ConsumerWidget {
   final Transaksi transaksi;
   final int totalHalaman;
   final VoidCallback onPreviewPressed; // Tipe diubah menjadi VoidCallback
-  final int pageNumber; // Tambahkan ini untuk menampilkan nomor halaman yang benar
+  final int
+  pageNumber; // Tambahkan ini untuk menampilkan nomor halaman yang benar
 
   const GambarUtamaRow({
     super.key,
@@ -25,7 +26,7 @@ class GambarUtamaRow extends ConsumerWidget {
     final selections = ref.watch(gambarUtamaSelectionProvider);
     final selection = selections[index];
     final varianBodyOptions = ref.watch(
-      varianBodyOptionsFamilyProvider(transaksi.dJenisKendaraan.id),
+      varianBodyOptionsFamilyProvider(transaksi.masterDataId),
     );
     final judulOptions = ref.watch(judulGambarOptionsProvider);
     final bool isRowComplete =
@@ -46,9 +47,18 @@ class GambarUtamaRow extends ConsumerWidget {
               value: selection.judulId,
               isDense: true,
               decoration: const InputDecoration(border: OutlineInputBorder()),
-              items: items.map((e) => DropdownMenuItem<int>(value: e.id as int, child: Text(e.name))).toList(),
+              items: items
+                  .map(
+                    (e) => DropdownMenuItem<int>(
+                      value: e.id as int,
+                      child: Text(e.name),
+                    ),
+                  )
+                  .toList(),
               onChanged: (value) {
-                ref.read(gambarUtamaSelectionProvider.notifier).updateSelection(index, judulId: value);
+                ref
+                    .read(gambarUtamaSelectionProvider.notifier)
+                    .updateSelection(index, judulId: value);
               },
             ),
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -63,9 +73,18 @@ class GambarUtamaRow extends ConsumerWidget {
               value: selection.varianBodyId,
               isDense: true,
               decoration: const InputDecoration(border: OutlineInputBorder()),
-              items: items.map((e) => DropdownMenuItem<int>(value: e.id as int, child: Text(e.name))).toList(),
+              items: items
+                  .map(
+                    (e) => DropdownMenuItem<int>(
+                      value: e.id as int,
+                      child: Text(e.name),
+                    ),
+                  )
+                  .toList(),
               onChanged: (value) {
-                ref.read(gambarUtamaSelectionProvider.notifier).updateSelection(index, varianBodyId: value);
+                ref
+                    .read(gambarUtamaSelectionProvider.notifier)
+                    .updateSelection(index, varianBodyId: value);
               },
             ),
             loading: () => const Center(child: CircularProgressIndicator()),

@@ -34,7 +34,7 @@ class GambarSyncedRow extends ConsumerWidget {
 
     final selection = selections[index];
     final varianBodyOptions = ref.watch(
-      varianBodyOptionsFamilyProvider(transaksi.dJenisKendaraan.id),
+      varianBodyOptionsFamilyProvider(transaksi.masterDataId),
     );
     final judulOptions = ref.watch(judulGambarOptionsProvider);
 
