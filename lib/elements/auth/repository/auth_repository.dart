@@ -12,7 +12,7 @@ class AuthRepository {
   // final ApiClient _apiClient = ApiClient();
   final ApiClient _apiClient;
   AuthRepository(this._apiClient);
-  
+
   Future<void> login(String username, String password, WidgetRef ref) async {
     try {
       final response = await _apiClient.dio.post(
@@ -65,7 +65,7 @@ class AuthRepository {
     ref.read(pageStateProvider.notifier).state = PageState(pageIndex: 0);
 
     // 5. Reset semua state form Tambah Transaksi
-    ref.invalidate(customerOptionsProvider);
+    // ref.invalidate(customerOptionsProvider);
     ref.invalidate(typeEngineOptionsProvider);
     ref.invalidate(jenisPengajuanOptionsProvider);
 

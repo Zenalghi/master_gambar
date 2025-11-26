@@ -94,11 +94,39 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // 1. CUSTOMER
-              _buildStandardDropdown(
-                label: 'Customer',
-                optionsProvider: customerOptionsProvider,
-                selectedValue: _selectedCustomerId,
-                onChanged: (val) => setState(() => _selectedCustomerId = val),
+              // 1. CUSTOMER (SEARCHABLE)
+              DropdownSearch<OptionItem>(
+                // Panggil provider family dengan teks filter
+                items: (String filter, _) =>
+                    ref.read(customerOptionsSearchProvider(filter).future),
+                itemAsString: (OptionItem item) => item.name,
+                compareFn: (i1, i2) => i1.id == i2.id,
+                onChanged: (OptionItem? item) {
+                  setState(() => _selectedCustomerId = item?.id as int?);
+                },
+                selectedItem: null,
+                decoratorProps: const DropDownDecoratorProps(
+                  decoration: InputDecoration(
+                    labelText: 'Customer',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                ),
+                popupProps: const PopupProps.menu(
+                  showSearchBox: true,
+                  searchFieldProps: TextFieldProps(
+                    decoration: InputDecoration(
+                      hintText: "Cari Customer...",
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                  ),
+                  menuProps: MenuProps(
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
+                ),
+                validator: (item) => item == null && _selectedCustomerId == null
+                    ? 'Wajib dipilih'
+                    : null,
               ),
 
               const SizedBox(height: 16),

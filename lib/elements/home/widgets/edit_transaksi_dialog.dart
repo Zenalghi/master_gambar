@@ -29,7 +29,7 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
 
   // Untuk tampilan awal dropdown Master Data
   late OptionItem _initialMasterDataOption;
-
+  late OptionItem _initialCustomerOption;
   @override
   void initState() {
     super.initState();
@@ -49,6 +49,10 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
     _initialMasterDataOption = OptionItem(
       id: _selectedMasterDataId,
       name: displayName,
+    );
+    _initialCustomerOption = OptionItem(
+      id: widget.transaksi.customer.id,
+      name: widget.transaksi.customer.namaPt,
     );
   }
 
@@ -155,11 +159,36 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // 1. CUSTOMER
-                _buildStandardDropdown(
-                  label: 'Customer',
-                  optionsProvider: customerOptionsProvider,
-                  selectedValue: _selectedCustomerId,
-                  onChanged: (val) => setState(() => _selectedCustomerId = val),
+                // 1. CUSTOMER (SEARCHABLE)
+                DropdownSearch<OptionItem>(
+                  items: (String filter, _) =>
+                      ref.read(customerOptionsSearchProvider(filter).future),
+                  itemAsString: (OptionItem item) => item.name,
+                  compareFn: (i1, i2) => i1.id == i2.id,
+                  // Gunakan nilai awal agar terisi saat edit
+                  selectedItem: _initialCustomerOption,
+                  onChanged: (OptionItem? item) {
+                    if (item != null) {
+                      setState(() => _selectedCustomerId = item.id as int);
+                    }
+                  },
+                  decoratorProps: const DropDownDecoratorProps(
+                    decoration: InputDecoration(
+                      labelText: 'Customer',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                  popupProps: const PopupProps.menu(
+                    showSearchBox: true,
+                    searchFieldProps: TextFieldProps(
+                      decoration: InputDecoration(
+                        hintText: "Cari Customer...",
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                    ),
+                  ),
+                  validator: (item) => item == null ? 'Wajib dipilih' : null,
                 ),
 
                 const SizedBox(height: 16),

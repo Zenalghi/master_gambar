@@ -41,10 +41,12 @@ final selectedJenisPengajuanProvider = StateProvider<int?>((ref) => null);
 // === BAGIAN 3: PROVIDER UNTUK MENGAMBIL DATA DROPDOWN ===
 
 // Dropdown mandiri (tidak bergantung pada pilihan lain)
-final customerOptionsProvider = FutureProvider<List<OptionItem>>((ref) {
-  ref.watch(refreshNotifierProvider);
-  return ref.watch(optionsRepositoryProvider).getCustomers();
-});
+// Provider Customer yang bisa dicari (Searchable)
+final customerOptionsSearchProvider =
+    FutureProvider.family<List<OptionItem>, String>((ref, search) async {
+      // Panggil repository dengan query pencarian
+      return ref.read(optionsRepositoryProvider).getCustomers(search);
+    });
 final userOptionsProvider = FutureProvider<List<OptionItem>>((ref) {
   ref.watch(refreshNotifierProvider);
   return ref.watch(optionsRepositoryProvider).getUsers();

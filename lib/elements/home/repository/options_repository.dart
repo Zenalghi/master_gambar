@@ -20,8 +20,26 @@ class OptionsRepository {
     return data.map((item) => OptionItem.fromJson(item)).toList();
   }
 
-  Future<List<OptionItem>> getCustomers() =>
-      _fetchOptions(ApiEndpoints.customers);
+  // Ubah agar menerima parameter search
+  Future<List<OptionItem>> getCustomers(String search) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          ApiEndpoints.customers,
+          queryParameters: {'search': search}, // Kirim search ke backend
+        );
+    final List<dynamic> data = response.data;
+
+    // Mapping manual karena nama kolomnya 'nama_pt', bukan 'name'
+    return data
+        .map(
+          (item) =>
+              OptionItem(id: item['id'], name: item['nama_pt'] ?? 'Unknown'),
+        )
+        .toList();
+  }
+
   Future<List<OptionItem>> getUsers() => _fetchOptions(ApiEndpoints.users);
   Future<List<OptionItem>> getTypeEngines() =>
       _fetchOptions(ApiEndpoints.typeEngines);
