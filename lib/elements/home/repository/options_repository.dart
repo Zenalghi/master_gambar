@@ -83,6 +83,32 @@ class OptionsRepository {
           },
         );
   }
+
+  Future<List<OptionItem>> getVarianBodyWithStatus(
+    String search, {
+    int? masterDataId,
+  }) async {
+    final queryParams = <String, dynamic>{'search': search};
+
+    // Tambahkan master_data_id ke query jika tidak null
+    if (masterDataId != null) {
+      queryParams['master_data_id'] = masterDataId.toString();
+    }
+
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          '/options/varian-body-status', // Pastikan route ini ada di backend (_OptionController@getVarianBodyForDropdown)
+          queryParameters: queryParams,
+        );
+
+    final List<dynamic> data = response.data;
+    // Mapping menggunakan OptionItem yang sudah kita update sebelumnya
+    return data
+        .map((item) => OptionItem.fromJson(item, nameKey: 'name'))
+        .toList();
+  }
 }
 
 final transaksiRepositoryProvider = Provider((ref) => TransaksiRepository(ref));

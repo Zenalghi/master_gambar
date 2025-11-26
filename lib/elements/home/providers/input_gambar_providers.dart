@@ -5,6 +5,26 @@ import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/data/providers/api_endpoints.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
+import '../repository/options_repository.dart';
+import 'package:equatable/equatable.dart';
+
+class VarianFilterParams {
+  final String search;
+  final int? masterDataId;
+
+  VarianFilterParams({required this.search, this.masterDataId});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is VarianFilterParams &&
+          runtimeType == other.runtimeType &&
+          search == other.search &&
+          masterDataId == other.masterDataId;
+
+  @override
+  int get hashCode => search.hashCode ^ masterDataId.hashCode;
+}
 
 // Provider untuk melacak status loading/processing
 final isProcessingProvider = StateProvider<bool>((ref) => false);
@@ -270,3 +290,17 @@ final activeDependentOptionalIdsProvider = Provider<List<int>>((ref) {
     error: (_, __) => [],
   );
 });
+// Provider Varian Body Searchable dengan Status
+final varianBodyStatusOptionsProvider =
+    FutureProvider.family<List<OptionItem>, VarianFilterParams>((
+      ref,
+      params,
+    ) async {
+      // Panggil repository dengan kedua parameter
+      return ref
+          .read(optionsRepositoryProvider)
+          .getVarianBodyWithStatus(
+            params.search,
+            masterDataId: params.masterDataId,
+          );
+    });

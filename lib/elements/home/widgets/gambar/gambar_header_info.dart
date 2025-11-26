@@ -11,6 +11,7 @@ class GambarHeaderInfo extends ConsumerWidget {
   const GambarHeaderInfo({super.key, required this.transaksi});
   // --- BUAT METHOD BARU UNTUK LOGIKA REFRESH ---
   void _resetAndRefresh(BuildContext context, WidgetRef ref) {
+    
     ref.read(isProcessingProvider.notifier).state = false;
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
     ref.read(deskripsiOptionalProvider.notifier).state = '';
