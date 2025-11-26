@@ -1,7 +1,7 @@
 // lib/data/models/option_item.dart
 
 class OptionItem {
-  final dynamic id; // ID bisa berupa int atau string
+  final dynamic id;
   final String name;
 
   OptionItem({required this.id, required this.name});
@@ -10,7 +10,6 @@ class OptionItem {
     Map<String, dynamic> json, {
     String nameKey = '',
   }) {
-    // Menyesuaikan dengan nama kolom yang berbeda di tiap response JSON
     String key = nameKey;
     if (key.isEmpty) {
       if (json.containsKey('nama_pt')) {
@@ -25,14 +24,20 @@ class OptionItem {
         key = 'jenis_kendaraan';
       } else if (json.containsKey('jenis_pengajuan')) {
         key = 'jenis_pengajuan';
-      }
-      // --- TAMBAHKAN KONDISI INI ---
-      else if (json.containsKey('deskripsi')) {
+      } else if (json.containsKey('deskripsi')) {
         key = 'deskripsi';
       }
-      // -----------------------------
+      // Fallback jika nama kolomnya 'name' (biasanya dari User)
+      else if (json.containsKey('name')) {
+        key = 'name';
+      }
     }
 
-    return OptionItem(id: json['id'], name: json[key] ?? 'Unknown');
+    // FIX UTAMA DISINI:
+    // Tambahkan .toString() agar Integer (misal: 1500) aman dikonversi jadi String "1500"
+    return OptionItem(
+      id: json['id'],
+      name: (json[key] ?? 'Unknown').toString(),
+    );
   }
 }

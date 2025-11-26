@@ -27,11 +27,6 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
         ],
       ),
       actions: [
-        // const GlobalRefreshButton(),
-
-        // const SizedBox(width: 16),
-
-        // --- TAMPILKAN NAMA PENGGUNA DI SINI ---
         // Cek jika nama tidak null sebelum menampilkannya
         if (userName != null)
           Center(

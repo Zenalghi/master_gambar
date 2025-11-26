@@ -15,14 +15,14 @@ class TransaksiHistoryTable extends ConsumerStatefulWidget {
 }
 
 class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
-  late final TransaksiDataSource _dataSource;
-  int _sortColumnIndex = 9; // Default: updated_at
+  late final TransaksiDataSource _dataSource; // Instance persisten
+  int _sortColumnIndex = 9;
   bool _sortAscending = false;
 
   @override
   void initState() {
     super.initState();
-    // Inisialisasi DataSource sekali saja
+    // 1. Buat DataSource sekali saja di sini
     _dataSource = TransaksiDataSource(ref, context);
   }
 
@@ -30,7 +30,8 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
   Widget build(BuildContext context) {
     final rowsPerPage = ref.watch(rowsPerPageProvider);
 
-    // DENGARKAN PERUBAHAN FILTER
+    // 2. DENGARKAN PERUBAHAN FILTER DI SINI
+    // Ini akan memicu refresh pada DataSource yang sama
     ref.listen(transaksiFilterProvider, (_, __) {
       _dataSource.refreshDatasource();
     });
@@ -49,7 +50,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
         }
       },
       columns: _createColumns(),
-      source: _dataSource,
+      source: _dataSource, // Gunakan instance yang dibuat di initState
       loading: const Center(child: CircularProgressIndicator()),
       empty: const Center(child: Text('Tidak ada data ditemukan')),
     );
@@ -61,7 +62,6 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
       _sortAscending = ascending;
     });
 
-    // Mapping index kolom UI ke field database
     final Map<int, String> columnMapping = {
       0: 'id',
       1: 'customer',

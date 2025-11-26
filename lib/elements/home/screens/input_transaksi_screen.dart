@@ -18,9 +18,7 @@ class _InputTransaksiScreenState extends ConsumerState<InputTransaksiScreen> {
   @override
   void initState() {
     super.initState();
-    // --- RESET FILTER SAAT HALAMAN DIBUKA ---
-    // Ini memastikan saat user kembali ke halaman ini,
-    // pencarian dan filter dari sesi sebelumnya dibersihkan.
+    // Reset filter saat halaman dibuka agar pencarian lama hilang
     Future.microtask(() {
       ref.invalidate(transaksiFilterProvider);
     });
