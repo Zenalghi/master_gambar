@@ -88,7 +88,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
     return [
       DataColumn2(
         label: const Text('ID Transaksi'),
-        size: ColumnSize.L,
+        size: ColumnSize.S,
         onSort: _onSort,
       ),
       DataColumn2(
@@ -98,7 +98,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
       ),
       DataColumn2(
         label: const Text('Type Engine'),
-        size: ColumnSize.M,
+        size: ColumnSize.S,
         onSort: _onSort,
       ),
       DataColumn2(
@@ -113,12 +113,12 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
       ),
       DataColumn2(
         label: const Text('Jenis Kendaraan'),
-        size: ColumnSize.L,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Jenis Pengajuan'),
-        size: ColumnSize.M,
+        label: const Text('Jenis\nPengajuan'),
+        size: ColumnSize.S,
         onSort: _onSort,
       ),
       DataColumn2(
@@ -128,12 +128,12 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
       ),
       DataColumn2(
         label: const Text('Created At'),
-        size: ColumnSize.M,
+        size: ColumnSize.S,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Updated At'),
-        size: ColumnSize.M,
+        size: ColumnSize.S,
         onSort: _onSort,
       ),
       const DataColumn2(label: Text('Option'), fixedWidth: 100),
