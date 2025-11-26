@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:dio/dio.dart';
+// import 'package:dio/dio.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/elements/home/providers/transaksi_providers.dart';
@@ -150,7 +150,7 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
     return AlertDialog(
       title: Text('Edit Transaksi: ${widget.transaksi.id}'),
       content: SizedBox(
-        width: 500,
+        width: 700,
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
