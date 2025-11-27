@@ -36,7 +36,9 @@ class ProsesTransaksiRepository {
               'varian_body_ids': varianBodyIds,
               'judul_gambar_ids': judulGambarIds,
               'h_gambar_optional_ids':
-                  hGambarOptionalIds, // <-- Kirim dengan key yang benar
+                  (hGambarOptionalIds != null && hGambarOptionalIds.isNotEmpty)
+                  ? hGambarOptionalIds
+                  : null, // <-- Kirim dengan key yang benar
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'preview',
               'preview_page': pageNumber,
@@ -56,38 +58,6 @@ class ProsesTransaksiRepository {
       throw Exception('Gagal memuat preview: $message');
     }
   }
-
-  // Future<Map<String, dynamic>> prosesGambar({
-  //   required String transaksiId,
-  //   required int pemeriksaId,
-  //   required List<int> varianBodyIds,
-  //   required List<int> judulGambarIds,
-  //   required List<int>? hGambarOptionalIds, // <-- Terima List<int>?
-  //   int? iGambarKelistrikanId,
-  // }) async {
-  //   try {
-  //     final response = await _ref
-  //         .read(apiClientProvider)
-  //         .dio
-  //         .post(
-  //           '${ApiEndpoints.transaksi}/$transaksiId/proses',
-  //           data: {
-  //             'pemeriksa_id': pemeriksaId,
-  //             'varian_body_ids': varianBodyIds,
-  //             'judul_gambar_ids': judulGambarIds,
-  //             'h_gambar_optional_ids':
-  //                 hGambarOptionalIds, // <-- Kirim dengan key yang benar
-  //             'i_gambar_kelistrikan_id': iGambarKelistrikanId,
-  //             'aksi': 'proses',
-  //           },
-  //         );
-  //     return response.data as Map<String, dynamic>;
-  //   } on DioException catch (e) {
-  //     throw Exception(
-  //       'Gagal memproses gambar: ${e.response?.data['message'] ?? e.message}',
-  //     );
-  //   }
-  // }
 
   Future<void> downloadProcessedPdfsAsZip({
     required String transaksiId,
@@ -123,7 +93,10 @@ class ProsesTransaksiRepository {
               'pemeriksa_id': pemeriksaId,
               'varian_body_ids': varianBodyIds,
               'judul_gambar_ids': judulGambarIds,
-              'h_gambar_optional_ids': hGambarOptionalIds,
+              'h_gambar_optional_ids':
+                  (hGambarOptionalIds != null && hGambarOptionalIds.isNotEmpty)
+                  ? hGambarOptionalIds
+                  : null,
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'proses',
               'deskripsi_optional': deskripsiOptional,

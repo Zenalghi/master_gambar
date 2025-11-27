@@ -60,7 +60,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final showOptional = ref.read(showGambarOptionalProvider);
       final optionalSelections = ref.read(gambarOptionalSelectionProvider);
 
-      // Ambil data kelistrikan (gunakan widget.transaksi)
+      // Kelistrikan
       final kelistrikanItem = await ref.read(
         gambarKelistrikanDataProvider(widget.transaksi.cTypeChassis.id).future,
       );
@@ -68,9 +68,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final deskripsiOptional = ref.read(deskripsiOptionalProvider);
 
       if (pemeriksaId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pilih pemeriksa terlebih dahulu.')),
-        );
+        _showError(context, 'Pilih pemeriksa terlebih dahulu.');
         return;
       }
 
@@ -83,6 +81,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
           .map((s) => s.judulId!)
           .toList();
 
+      // Gabungkan Optional (Paket + Independen)
       final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
       List<int> independentOptionalIds = showOptional
           ? optionalSelections
@@ -96,9 +95,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       ];
 
       if (varianBodyIds.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pilih setidaknya satu varian body.')),
-        );
+        _showError(context, 'Pilih setidaknya satu varian body.');
         return;
       }
 
@@ -129,18 +126,10 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
         );
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error Preview: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (context.mounted)
+        _showError(context, 'Error Preview: ${e.toString()}');
     } finally {
-      if (mounted) {
-        ref.read(isProcessingProvider.notifier).state = false;
-      }
+      if (mounted) ref.read(isProcessingProvider.notifier).state = false;
     }
   }
 
@@ -153,12 +142,17 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final showOptional = ref.read(showGambarOptionalProvider);
       final optionalSelections = ref.read(gambarOptionalSelectionProvider);
 
+      // Kelistrikan
       final kelistrikanItem = await ref.read(
         gambarKelistrikanDataProvider(widget.transaksi.cTypeChassis.id).future,
       );
       final kelistrikanId = kelistrikanItem?.id as int?;
       final deskripsiOptional = ref.read(deskripsiOptionalProvider);
 
+      if (pemeriksaId == null) {
+        _showError(context, 'Pilih pemeriksa terlebih dahulu.');
+        return;
+      }
       final varianBodyIds = selections
           .where((s) => s.varianBodyId != null)
           .map((s) => s.varianBodyId!)
@@ -188,7 +182,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
           .downloadProcessedPdfsAsZip(
             transaksiId: widget.transaksi.id,
             suggestedFileName: suggestedFileName,
-            pemeriksaId: pemeriksaId!,
+            pemeriksaId: pemeriksaId,
             varianBodyIds: varianBodyIds,
             judulGambarIds: judulGambarIds,
             hGambarOptionalIds: allOptionalIds.isNotEmpty
@@ -216,25 +210,19 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             ],
           ),
         );
-
-        // Reset dan kembali
-        // ref.invalidate(transaksiDataSourceProvider);
         ref.read(pageStateProvider.notifier).state = PageState(pageIndex: 0);
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error Proses: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (context.mounted) _showError(context, 'Error Proses: ${e.toString()}');
     } finally {
-      if (mounted) {
-        ref.read(isProcessingProvider.notifier).state = false;
-      }
+      if (mounted) ref.read(isProcessingProvider.notifier).state = false;
     }
+  }
+
+  void _showError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
   }
 
   @override
