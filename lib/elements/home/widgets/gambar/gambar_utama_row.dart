@@ -30,12 +30,22 @@ class GambarUtamaRow extends ConsumerWidget {
     final selection = selections[index];
     final judulOptions = ref.watch(judulGambarOptionsProvider);
 
+    // 1. Siapkan Parameter Default (Search Kosong)
+    final defaultParams = VarianFilterParams(
+      search: '',
+      masterDataId: transaksi.masterDataId,
+    );
+
+    // 2. Watch provider dengan parameter default untuk menangani state Loading saat Refresh
+    final varianBodyOptionsAsync = ref.watch(
+      varianBodyStatusOptionsProvider(defaultParams),
+    );
+
     final bool isRowComplete =
         selection.judulId != null &&
         selection.varianBodyId != null &&
         pemeriksaId != null;
     final isLoading = ref.watch(isProcessingProvider);
-
     return Row(
       children: [
         SizedBox(width: 150, child: Text('Gambar Utama ${index + 1}:')),
@@ -75,80 +85,100 @@ class GambarUtamaRow extends ConsumerWidget {
         ),
 
         const SizedBox(width: 10),
-
-        // 2. Dropdown Varian Body (SEARCHABLE & BERWARNA)
+        // 2. Dropdown Varian Body (DIBUNGKUS .when)
         Expanded(
           flex: 4,
-          child: DropdownSearch<OptionItem>(
-            // Async Items dari Provider baru
-            items: (String filter, _) {
-              final params = VarianFilterParams(
-                search: filter,
-                masterDataId: transaksi.masterDataId, // Ambil ID dari transaksi
-              );
-              return ref.read(varianBodyStatusOptionsProvider(params).future);
-            },
+          child: varianBodyOptionsAsync.when(
+            skipLoadingOnRefresh: false,
+            data: (defaultItems) {
+              // Cari item yang sedang dipilih dari daftar yang baru dimuat agar tampilannya persisten
+              final selectedOption = defaultItems
+                  .where((e) => e.id == selection.varianBodyId)
+                  .firstOrNull;
 
-            // Tampilan Item di Popup
-            itemAsString: (OptionItem item) => item.name,
-            compareFn: (i1, i2) => i1.id == i2.id,
+              return DropdownSearch<OptionItem>(
+                // Async Items (tetap dipanggil saat user mengetik)
+                items: (String filter, _) {
+                  final params = VarianFilterParams(
+                    search: filter,
+                    masterDataId: transaksi.masterDataId,
+                  );
+                  return ref.read(
+                    varianBodyStatusOptionsProvider(params).future,
+                  );
+                },
 
-            // Inisialisasi nilai terpilih (jika ada)
-            // Karena OptionItem butuh object lengkap, idealnya state menyimpan object.
-            // Tapi jika state cuma simpan ID, dropdown akan fetch ulang atau tampil kosong dulu.
-            // Untuk simplifikasi, kita biarkan null saat inisialisasi kecuali kita fetch data awal.
-            // (DropdownSearch v6 cukup pintar menangani ini)
-            onChanged: (OptionItem? item) {
-              ref
-                  .read(gambarUtamaSelectionProvider.notifier)
-                  .updateSelection(index, varianBodyId: item?.id as int?);
-            },
+                itemAsString: (OptionItem item) => item.name,
+                compareFn: (i1, i2) => i1.id == i2.id,
 
-            decoratorProps: const DropDownDecoratorProps(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 0,
+                // Pasang item yang ditemukan (atau null jika tidak ada di list default)
+                selectedItem: selectedOption,
+
+                onChanged: (OptionItem? item) {
+                  ref
+                      .read(gambarUtamaSelectionProvider.notifier)
+                      .updateSelection(index, varianBodyId: item?.id as int?);
+                },
+
+                decoratorProps: const DropDownDecoratorProps(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 0,
+                    ),
+                    hintText: 'Pilih Varian',
+                  ),
                 ),
-                hintText: 'Pilih Varian',
-              ),
-            ),
 
-            popupProps: PopupProps.menu(
-              showSearchBox: true,
-              searchFieldProps: const TextFieldProps(
-                decoration: InputDecoration(
-                  hintText: "Cari Varian...",
-                  prefixIcon: Icon(Icons.search),
-                ),
-              ),
-              // KUSTOMISASI TAMPILAN ITEM
-              itemBuilder: (context, item, isSelected, isDisabled) {
-                final hasGambar = item.hasGambar;
-                return ListTile(
-                  title: Text(
-                    item.name,
-                    style: TextStyle(
-                      // Jika belum ada gambar, warna MERAH
-                      color: hasGambar ? Colors.black : Colors.red,
-                      fontWeight: hasGambar
-                          ? FontWeight.normal
-                          : FontWeight.bold,
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                  searchFieldProps: const TextFieldProps(
+                    decoration: InputDecoration(
+                      hintText: "Cari Varian...",
+                      prefixIcon: Icon(Icons.search),
                     ),
                   ),
-                  trailing: hasGambar
-                      ? const Icon(
-                          Icons.check_circle,
-                          color: Colors.green,
-                          size: 16,
-                        )
-                      : const Text(
-                          "Belum Upload",
-                          style: TextStyle(color: Colors.red, fontSize: 10),
+                  itemBuilder: (context, item, isSelected, isDisabled) {
+                    final hasGambar = item.hasGambar;
+                    return ListTile(
+                      title: Text(
+                        item.name,
+                        style: TextStyle(
+                          color: hasGambar ? Colors.black : Colors.red,
+                          fontWeight: hasGambar
+                              ? FontWeight.normal
+                              : FontWeight.bold,
                         ),
-                );
-              },
+                      ),
+                      trailing: hasGambar
+                          ? const Icon(
+                              Icons.check_circle,
+                              color: Colors.green,
+                              size: 16,
+                            )
+                          : const Text(
+                              "Belum Upload",
+                              style: TextStyle(color: Colors.red, fontSize: 10),
+                            ),
+                    );
+                  },
+                ),
+              );
+            },
+            // TAMPILAN SAAT LOADING (Saat tombol Refresh ditekan)
+            loading: () => const SizedBox(
+              height: 48, // Tinggi standar input field
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (err, stack) => const SizedBox(
+              height: 48,
+              child: Center(
+                child: Text(
+                  'Error Varian',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
             ),
           ),
         ),

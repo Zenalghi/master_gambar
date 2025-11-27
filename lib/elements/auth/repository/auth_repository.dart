@@ -78,5 +78,10 @@ class AuthRepository {
     ref.invalidate(pemeriksaOptionsProvider);
     ref.invalidate(judulGambarOptionsProvider);
     ref.invalidate(gambarOptionalOptionsProvider);
+    ref.invalidate(
+      varianBodyStatusOptionsProvider(
+        VarianFilterParams(search: '', masterDataId: 0),
+      ),
+    );
   }
 }

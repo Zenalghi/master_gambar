@@ -47,6 +47,8 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
 
     // Reset Deskripsi
     ref.read(deskripsiOptionalProvider.notifier).state = '';
+    //varianBodyStatusOptionsProvider
+    ref.invalidate(varianBodyStatusOptionsProvider);
   }
 
   // Method untuk handle preview

@@ -11,7 +11,6 @@ class GambarHeaderInfo extends ConsumerWidget {
   const GambarHeaderInfo({super.key, required this.transaksi});
   // --- BUAT METHOD BARU UNTUK LOGIKA REFRESH ---
   void _resetAndRefresh(BuildContext context, WidgetRef ref) {
-    
     ref.read(isProcessingProvider.notifier).state = false;
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
     ref.read(deskripsiOptionalProvider.notifier).state = '';
@@ -24,7 +23,7 @@ class GambarHeaderInfo extends ConsumerWidget {
     // 2. Tutup dan reset checkbox beserta isinya
     ref.read(showGambarOptionalProvider.notifier).state = false;
     ref.invalidate(gambarOptionalSelectionProvider);
-
+    ref.invalidate(varianBodyStatusOptionsProvider);
     // 3. Bunyikan "lonceng" untuk memicu FutureProvider mengambil data baru
     ref.read(refreshNotifierProvider.notifier).refresh();
 
@@ -181,7 +180,7 @@ Widget _buildPemeriksaDropdown(WidgetRef ref) {
 
   return pemeriksaOptionsAsync.when(
     data: (items) => DropdownButtonFormField<int>(
-      value: selectedId,
+      initialValue: selectedId,
       // hint: const Text('Pilih Pemeriksa'),
       decoration: const InputDecoration(
         labelText: 'Pemeriksa',
