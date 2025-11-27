@@ -166,38 +166,60 @@ Widget _buildPemeriksaDropdown(WidgetRef ref) {
   final pemeriksaOptionsAsync = ref.watch(pemeriksaOptionsProvider);
   final selectedId = ref.watch(pemeriksaIdProvider);
 
+  // 1. Listener untuk menangani perubahan status (misal saat refresh manual)
   ref.listen<AsyncValue<List<OptionItem>>>(pemeriksaOptionsProvider, (
     previous,
     next,
   ) {
     if (next is AsyncData && !(previous is AsyncData)) {
       final options = next.value;
-      if (options!.isNotEmpty && ref.read(pemeriksaIdProvider) == null) {
+      if (options != null &&
+          options.isNotEmpty &&
+          ref.read(pemeriksaIdProvider) == null) {
         ref.read(pemeriksaIdProvider.notifier).state = options.first.id as int?;
       }
     }
   });
 
   return pemeriksaOptionsAsync.when(
-    data: (items) => DropdownButtonFormField<int>(
-      initialValue: selectedId,
-      // hint: const Text('Pilih Pemeriksa'),
-      decoration: const InputDecoration(
-        labelText: 'Pemeriksa',
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      ),
-      items: items
-          .map(
-            (e) =>
-                DropdownMenuItem<int>(value: e.id as int, child: Text(e.name)),
-          )
-          .toList(),
-      onChanged: (value) {
-        ref.read(pemeriksaIdProvider.notifier).state = value;
-      },
-      validator: (value) => value == null ? 'Wajib dipilih' : null,
-    ),
+    data: (items) {
+      // 2. Logic Tambahan: Handle jika data sudah ada di cache (tidak trigger listener)
+      // Jika item ada, tapi selectedId masih null, kita set sekarang.
+      if (items.isNotEmpty && selectedId == null) {
+        Future.microtask(() {
+          // Cek lagi untuk memastikan tidak terjadi loop infinite
+          if (ref.read(pemeriksaIdProvider) == null) {
+            ref.read(pemeriksaIdProvider.notifier).state =
+                items.first.id as int?;
+          }
+        });
+      }
+
+      return DropdownButtonFormField<int>(
+        // 3. PENTING: Ganti 'initialValue' menjadi 'value' agar Widget update saat state berubah
+        value: selectedId,
+
+        // initialValue: selectedId, <-- HAPUS INI
+        hint: const Text('Pemeriksa'),
+        decoration: const InputDecoration(
+          labelText: 'Pemeriksa',
+          border: OutlineInputBorder(),
+          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
+        items: items
+            .map(
+              (e) => DropdownMenuItem<int>(
+                value: e.id as int,
+                child: Text(e.name),
+              ),
+            )
+            .toList(),
+        onChanged: (value) {
+          ref.read(pemeriksaIdProvider.notifier).state = value;
+        },
+        validator: (value) => value == null ? 'Wajib dipilih' : null,
+      );
+    },
     loading: () => const Center(child: CircularProgressIndicator()),
     error: (err, stack) => const Tooltip(
       message: 'Error memuat pemeriksa',
