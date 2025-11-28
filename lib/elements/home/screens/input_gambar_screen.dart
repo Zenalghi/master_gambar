@@ -173,10 +173,17 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
         ...dependentOptionalIds,
         ...independentOptionalIds,
       ];
+      final trx = widget.transaksi;
 
-      final suggestedFileName =
-          '${widget.transaksi.user.name}-${widget.transaksi.customer.namaPt}-${widget.transaksi.cTypeChassis.typeChassis}.zip';
+      String rawFileName =
+          '${trx.user.name} (${trx.fPengajuan.jenisPengajuan}) '
+          '${trx.customer.namaPt}_${trx.bMerk.merk} '
+          '${trx.cTypeChassis.typeChassis} (${trx.dJenisKendaraan.jenisKendaraan}).zip';
 
+      final suggestedFileName = rawFileName.replaceAll(
+        RegExp(r'[\\/:*?"<>|]'),
+        '_',
+      );
       await ref
           .read(prosesTransaksiRepositoryProvider)
           .downloadProcessedPdfsAsZip(
