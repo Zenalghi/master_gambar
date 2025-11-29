@@ -41,7 +41,10 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
     });
 
     return AsyncPaginatedDataTable2(
-      loading: const Center(child: CircularProgressIndicator()),
+      columnSpacing: 10,
+      horizontalMargin: 10,
+      minWidth: 1000,
+      headingRowHeight: 40,
       rowsPerPage: rowsPerPage,
       availableRowsPerPage: const [25, 50, 100],
       onRowsPerPageChanged: (value) {
@@ -53,6 +56,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       sortAscending: _sortAscending,
       columns: _createColumns(),
       source: _dataSource,
+      loading: const Center(child: CircularProgressIndicator()),
       empty: const Center(child: Text('Tidak ada data ditemukan')),
     );
   }
@@ -91,7 +95,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       // 2. Type Engine
       DataColumn2(
         label: const Text('Type\nEngine'),
-        fixedWidth: 122,
+        size: ColumnSize.S,
         onSort: _onSort,
       ),
 
