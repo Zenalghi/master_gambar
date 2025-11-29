@@ -26,6 +26,7 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
     return AsyncPaginatedDataTable2(
       loading: const Center(child: CircularProgressIndicator()),
       rowsPerPage: rowsPerPage,
+      minWidth: 1000,
       availableRowsPerPage: const [25, 50, 100],
       onRowsPerPageChanged: (value) =>
           ref.read(masterDataRowsPerPageProvider.notifier).state = value!,
@@ -68,17 +69,17 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
   List<DataColumn2> _createColumns() {
     return [
       // 1. ID
-      DataColumn2(label: const Text('ID'), fixedWidth: 59, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 58, onSort: _onSort),
 
       // Kolom Data
       DataColumn2(
         label: const Text('Type\nEngine'),
-        fixedWidth: 122,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Merk'),
-        size: ColumnSize.S,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
@@ -109,9 +110,9 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
       // Kelistrikan & Options
       const DataColumn2(
         label: Center(child: Text('Kelistrikan')),
-        fixedWidth: 140,
+        size: ColumnSize.S,
       ),
-      const DataColumn2(label: Text('Options'), fixedWidth: 200),
+      const DataColumn2(label: Text('Options'), fixedWidth: 148),
     ];
   }
 }

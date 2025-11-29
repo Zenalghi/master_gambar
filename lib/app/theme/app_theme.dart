@@ -1,107 +1,124 @@
 //lib\app\theme\app_theme.dart
 import 'package:flutter/material.dart';
 
-// Palet warna dasar agar mudah diubah nanti
 class AppColors {
-  static const Color primary = Color(0xFF0D47A1); // Biru tua
-  static const Color background = Color(0xFFF5F5F5); // Abu-abu muda
+  static const Color primary = Color(0xFF0D47A1);
+  static const Color background = Color(0xFFF5F5F5);
   static const Color card = Colors.white;
   static const Color shadow = Colors.black;
 }
 
-// Fungsi utama untuk membuat ThemeData
 ThemeData createAppTheme() {
   return ThemeData(
-    // Atur skema warna utama
+    // --- PERBAIKAN 3: Visual Density Compact ---
+    // Ini AJAIB. Ini akan membuang padding berlebih di seluruh aplikasi.
+    // Tombol jadi lebih ramping, jarak antar elemen lebih rapat.
+    visualDensity: VisualDensity.compact,
+
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppColors.primary,
       background: AppColors.background,
     ),
-
-    // Atur font default untuk seluruh aplikasi
     fontFamily: 'Poppins',
-
-    // Atur tema untuk Scaffold (latar belakang halaman)
     scaffoldBackgroundColor: AppColors.background,
 
-    // TEMA KARTU (INI KUNCI UNTUK BOX DENGAN SHADOW)
+    // --- PERBAIKAN 4: Perkecil Ukuran Font Default ---
+    // Kita definisikan ulang text theme agar base-nya lebih kecil (12-14px)
+    textTheme: const TextTheme(
+      bodyMedium: TextStyle(fontSize: 13.0), // Default text
+      bodySmall: TextStyle(fontSize: 12.0), // Text kecil
+      titleMedium: TextStyle(
+        fontSize: 15.0,
+        fontWeight: FontWeight.w600,
+      ), // Subjudul
+    ),
+
     cardTheme: CardThemeData(
       color: AppColors.card,
-      elevation: 8.0, // Mengatur seberapa tebal shadow
-      shadowColor: AppColors.shadow.withOpacity(
-        0.9,
-      ), // Warna shadow dengan transparansi
+      elevation: 4.0, // Kurangi shadow sedikit agar tidak terlalu berat
+      shadowColor: AppColors.shadow.withOpacity(0.5),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0), // Membuat sudut melengkung
+        borderRadius: BorderRadius.circular(12.0), // Radius dikurangi sedikit
       ),
+      // Kurangi margin card agar tidak makan tempat
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
     ),
 
-    // TEMA UNTUK KOLOM INPUT (USERNAME & PASSWORD)
     inputDecorationTheme: InputDecorationTheme(
+      isDense: true, // PENTING: Memadatkan tinggi kolom input
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        borderSide: BorderSide.none, // Hilangkan border, kita andalkan shadow
+        borderRadius: BorderRadius.circular(
+          8.0,
+        ), // Radius lebih kotak dikit hemat tempat
+        borderSide: BorderSide.none,
       ),
       filled: true,
-      fillColor: AppColors.background, // Sedikit abu-abu agar kontras
+      fillColor:
+          Colors.white, // Ubah ke putih biar bersih, atau tetap background
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16.0,
-        vertical: 14.0,
+        horizontal: 12.0, // Kurangi padding kiri kanan
+        vertical: 10.0, // Kurangi padding atas bawah (sebelumnya 14)
       ),
     ),
 
-    // TEMA UNTUK TOMBOL
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.white, // Warna teks tombol
-        backgroundColor: AppColors.primary, // Warna latar tombol
-        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
-        ),
+        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primary,
+        // Kurangi padding tombol
+        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         textStyle: const TextStyle(
-          fontSize: 16,
+          fontSize: 14, // Kecilkan font tombol (sebelumnya 16)
           fontWeight: FontWeight.bold,
           fontFamily: 'Poppins',
         ),
       ),
     ),
 
+    // --- PERBAIKAN 5: Tabel Lebih Padat ---
     dataTableTheme: DataTableThemeData(
-      // 1. columnSpacing: Mengatur jarak antar kolom.
-      // Defaultnya besar (56.0). Ubah ke 10-15 agar "garis batas" lebih rapat ke teks.
-      columnSpacing: 10.0,
+      // 1. Jarak antar kolom sangat dekat (default 56, kita buat 0 atau kecil)
+      // Kita buat 0 agar garis vertikal nanti terlihat menyatu
+      columnSpacing: 0,
 
-      // 2. horizontalMargin: Jarak dari pinggir tabel paling kiri & kanan.
-      horizontalMargin: 10.0,
+      // 2. Jarak dari pinggir tabel (kiri/kanan)
+      horizontalMargin: 8,
 
-      // 3. headingRowHeight: Tinggi baris judul (opsional, biar tidak terlalu tinggi)
-      headingRowHeight: 45,
+      // 3. Tinggi Header (Pendek)
+      headingRowHeight: 35,
 
-      // 4. dataRowMin/MaxHeight: Tinggi baris data
-      dataRowMinHeight: 40,
-      dataRowMaxHeight: 52,
+      // 4. Tinggi Baris Data (Pendek & Tetap)
+      dataRowMinHeight: 30,
+      dataRowMaxHeight: 30, // Memaksa tinggi baris fix 30px (mirip Excel)
+      // 5. Garis Horizontal
+      dividerThickness: 1, // Garis pemisah antar baris terlihat jelas
+      // 6. Style Teks (Lebih Kecil)
+      headingTextStyle: const TextStyle(
+        fontWeight: FontWeight.bold,
+        color: Colors.black,
+        fontSize: 12, // Font header kecil
+      ),
+      dataTextStyle: const TextStyle(
+        color: Colors.black87,
+        fontSize: 11, // Font data kecil (mirip Excel 11pt)
+      ),
     ),
   );
 }
 
-// === TAMBAHKAN CLASS INI ===
+// Class AppTextStyles tetap bisa dipakai, tapi dengan base size lebih kecil
 class AppTextStyles {
-  /// Mengembalikan TextStyle dengan ukuran font dinamis berdasarkan panjang teks
-  static TextStyle dynamicSize(String text, {double defaultSize = 13}) {
+  static TextStyle dynamicSize(String text, {double defaultSize = 12}) {
+    // Default turun ke 12
     double fontSize = defaultSize;
 
     if (text.length > 45) {
-      fontSize = 10; // Jika lebih dari 26 huruf
+      fontSize = 10;
     } else if (text.length > 15) {
-      fontSize = 13;
+      fontSize = 11; // Sedikit lebih kecil
     }
-    // Jika <= 15, tetap pakai defaultSize (13)
 
-    return TextStyle(
-      fontSize: fontSize,
-      fontFamily: 'Poppins', // Pastikan font tetap sama
-      // Anda bisa tambah properti lain jika mau, misal color: Colors.black87
-    );
+    return TextStyle(fontSize: fontSize, fontFamily: 'Poppins');
   }
 }

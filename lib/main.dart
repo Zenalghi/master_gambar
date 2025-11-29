@@ -36,7 +36,7 @@ void main() async {
     await windowManager.ensureInitialized();
 
     WindowOptions windowOptions = const WindowOptions(
-      size: Size(1280, 750),
+      size: Size(1024, 700),
       center: true,
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
@@ -44,7 +44,7 @@ void main() async {
     );
 
     windowManager.waitUntilReadyToShow(windowOptions, () async {
-      await windowManager.setMinimumSize(const Size(1280, 820));
+      await windowManager.setMinimumSize(const Size(1024, 600));
       await windowManager.maximize();
       await windowManager.show();
       await windowManager.focus();
@@ -72,6 +72,15 @@ class MyApp extends StatelessWidget {
       title: 'Master Gambar App',
       theme: createAppTheme(),
       debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        final mediaQueryData = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQueryData.copyWith(
+            textScaler: const TextScaler.linear(0.90),
+          ),
+          child: child!,
+        );
+      },
       home: const AuthWrapper(),
     );
   }

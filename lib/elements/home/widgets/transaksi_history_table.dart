@@ -35,17 +35,17 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
 
     return AsyncPaginatedDataTable2(
       // --- PERBAIKAN 1: KURANGI JARAK ANTAR KOLOM ---
-      columnSpacing: 10,
+      columnSpacing: 3,
       horizontalMargin: 10,
-
+      // border: TableBorder.all(color: Colors.grey.shade300),
       // --- PERBAIKAN 2: MIN WIDTH DIKECILKAN ---
       // Dulu 1600, sekarang 1000. Ini membuat tabel mencoba "memadatkan diri"
       // agar pas di layar 1366px. Jika layar > 1000, dia akan full width tanpa scroll.
-      minWidth: 1000,
+      minWidth: 900,
 
       // Opsi agar header tidak terlalu tinggi
-      headingRowHeight: 40,
-
+      headingRowHeight: 35,
+      dataRowHeight: 30,
       sortColumnIndex: _sortColumnIndex,
       sortAscending: _sortAscending,
       rowsPerPage: rowsPerPage,

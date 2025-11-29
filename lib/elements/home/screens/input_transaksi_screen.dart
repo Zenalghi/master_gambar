@@ -27,12 +27,12 @@ class _InputTransaksiScreenState extends ConsumerState<InputTransaksiScreen> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24.0, 1.0, 24.0, 5.0),
+      padding: const EdgeInsets.fromLTRB(6.0, 0, 6.0, 0),
       child: Column(
         children: [
           // 1. Filter Lanjutan
           const AdvancedFilterPanel(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
 
           // 2. Baris Kontrol (Judul, Tombol Tambah, Search, Refresh)
           Row(
