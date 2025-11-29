@@ -7,8 +7,7 @@ import 'package:master_gambar/admin/management/providers/customer_providers.dart
 import 'package:master_gambar/admin/management/repository/customer_repository.dart';
 import 'package:master_gambar/data/models/customer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../../../data/providers/api_client.dart';
+import '../../../../app/core/providers.dart';
 
 class EditCustomerDialog extends ConsumerStatefulWidget {
   final Customer customer;
@@ -158,9 +157,10 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final baseUrl = ref.read(apiClientProvider).dio.options.baseUrl;
     final imageUrl =
         (_authToken != null && _currentCustomer.signaturePj != null)
-        ? '${ApiClient.baseUrl}/api/admin/customers/${_currentCustomer.id}/paraf?v=${DateTime.now().millisecondsSinceEpoch}'
+        ? '$baseUrl/admin/customers/${_currentCustomer.id}/paraf?v=${_currentCustomer.updatedAt.millisecondsSinceEpoch}'
         : null;
     return AlertDialog(
       title: Text('Edit Customer: ${_currentCustomer.namaPt}'),

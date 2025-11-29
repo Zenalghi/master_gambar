@@ -7,8 +7,7 @@ import 'package:master_gambar/admin/management/providers/user_providers.dart';
 import 'package:master_gambar/admin/management/repository/user_repository.dart';
 import 'package:master_gambar/data/models/app_user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../../../data/providers/api_client.dart';
+import '../../../../app/core/providers.dart';
 
 class EditUserDialog extends ConsumerStatefulWidget {
   final AppUser user;
@@ -167,9 +166,10 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
   @override
   Widget build(BuildContext context) {
     final roleOptions = ref.watch(roleOptionsProvider);
+    final baseUrl = ref.read(apiClientProvider).dio.options.baseUrl;
+
     final imageUrl = (_authToken != null && _currentUser.signature != null)
-        // URL ini sekarang akan memanggil route yang benar
-        ? '${ApiClient.baseUrl}/api/admin/users/${_currentUser.id}/paraf?v=${DateTime.now().millisecondsSinceEpoch}'
+        ? '$baseUrl/admin/users/${_currentUser.id}/paraf?v=${DateTime.now().millisecondsSinceEpoch}'
         : null;
 
     return AlertDialog(

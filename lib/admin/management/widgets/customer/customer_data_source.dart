@@ -4,13 +4,13 @@ import 'package:intl/intl.dart';
 import 'package:master_gambar/admin/management/widgets/customer/edit_customer_dialog.dart';
 import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/customer.dart';
-import 'package:master_gambar/data/providers/api_client.dart';
+// import 'package:master_gambar/data/providers/api_client.dart'; // Tidak perlu import ini untuk static baseUrl lagi
 
 class CustomerDataSource extends DataTableSource {
   final List<Customer> customers;
   final int totalRecords;
   final int rowsPerPage;
-  final int currentPage; // Halaman saat ini (1-based)
+  final int currentPage;
   final BuildContext context;
   final WidgetRef ref;
 
@@ -25,11 +25,8 @@ class CustomerDataSource extends DataTableSource {
 
   @override
   DataRow? getRow(int index) {
-    // 'index' adalah index global (0 s/d totalRecords - 1)
-    // Kita hitung index lokal untuk list 'customers' di halaman ini
     final int localIndex = index - ((currentPage - 1) * rowsPerPage);
 
-    // Cek apakah index ada di dalam data halaman ini
     if (localIndex < 0 || localIndex >= customers.length) {
       return null;
     }
@@ -37,6 +34,11 @@ class CustomerDataSource extends DataTableSource {
     final customer = customers[localIndex];
     final dateFormat = DateFormat('yyyy.MM.dd HH:mm');
     final authToken = ref.read(authTokenProvider);
+
+    // --- PERUBAHAN DI SINI ---
+    // Ambil base URL dari instance Dio yang aktif
+    final baseUrl = ref.read(apiClientProvider).dio.options.baseUrl;
+    // ------------------------
 
     return DataRow(
       cells: [
@@ -49,7 +51,8 @@ class CustomerDataSource extends DataTableSource {
               ? Padding(
                   padding: const EdgeInsets.symmetric(vertical: 2.0),
                   child: Image.network(
-                    '${ApiClient.baseUrl}/api/admin/customers/${customer.id}/paraf?v=${customer.updatedAt.millisecondsSinceEpoch}',
+                    // Gunakan baseUrl dari Dio. Kita asumsikan baseUrl Dio sudah termasuk '/api'
+                    '$baseUrl/admin/customers/${customer.id}/paraf?v=${customer.updatedAt.millisecondsSinceEpoch}',
                     headers: {'Authorization': 'Bearer $authToken'},
                     fit: BoxFit.contain,
                     loadingBuilder: (context, child, progress) =>
@@ -98,7 +101,7 @@ class CustomerDataSource extends DataTableSource {
   bool get isRowCountApproximate => false;
 
   @override
-  int get rowCount => totalRecords; // <-- INI SOLUSINYA
+  int get rowCount => totalRecords;
 
   @override
   int get selectedRowCount => 0;

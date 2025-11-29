@@ -3,12 +3,9 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiClient {
-  // 1. Definisikan URL dasar di sini. Inilah satu-satunya tempat Anda perlu mengubahnya nanti.
-  static const String baseUrl = 'http://master-gambar.test';
-
   final Dio dio;
 
-  ApiClient(String baseUrl) 
+  ApiClient(String baseUrl)
     : dio = Dio(
         BaseOptions(
           baseUrl: baseUrl,
