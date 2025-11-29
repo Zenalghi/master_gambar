@@ -11,14 +11,11 @@ class AdvancedFilterPanel extends ConsumerStatefulWidget {
 }
 
 class _AdvancedFilterPanelState extends ConsumerState<AdvancedFilterPanel> {
-  // Buat TextEditingController untuk setiap field
   late final Map<String, TextEditingController> _controllers;
 
   @override
   void initState() {
     super.initState();
-    // Inisialisasi semua controller
-
     _controllers = {
       'customer': TextEditingController(),
       'type_engine': TextEditingController(),
@@ -30,118 +27,129 @@ class _AdvancedFilterPanelState extends ConsumerState<AdvancedFilterPanel> {
     };
   }
 
-  @override
-  void dispose() {
-    // Jangan lupa dispose semua controller
-    _controllers.forEach((_, controller) => controller.dispose());
-    super.dispose();
-  }
-
   void _applyFilters() {
-    // Buat map baru untuk menampung filter yang diisi
     final Map<String, String?> newFilters = {};
     _controllers.forEach((key, controller) {
-      if (controller.text.isNotEmpty) {
-        newFilters[key] = controller.text;
-      }
+      if (controller.text.isNotEmpty) newFilters[key] = controller.text;
     });
 
-    // Update provider utama dengan semua filter baru
-    ref.read(transaksiFilterProvider.notifier).update((state) {
-      // Gabungkan state lama (untuk sort) dengan filter baru
-      return {...state, ...newFilters};
-    });
+    ref
+        .read(transaksiFilterProvider.notifier)
+        .update((state) => {...state, ...newFilters});
   }
 
   void _clearFilters() {
-    // Kosongkan semua text field
     _controllers.forEach((_, controller) => controller.clear());
-    // Invalidate provider untuk meresetnya ke state awal
     ref.invalidate(transaksiFilterProvider);
   }
 
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
-      title: const Text('Filter Lanjutan'),
+      title: const Text("Filter Lanjutan"),
       maintainState: true,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Wrap(
-                // spacing: 16.0,
-                runSpacing: 16.0,
-                children: [
-                  _buildFilterTextField(
-                    label: 'Filter Customer',
-                    controller: _controllers['customer']!,
-                  ),
-                  _buildFilterTextField(
-                    label: 'Filter Type Engine',
-                    controller: _controllers['type_engine']!,
-                  ),
-                  _buildFilterTextField(
-                    label: 'Filter Merk',
-                    controller: _controllers['merk']!,
-                  ),
-                  _buildFilterTextField(
-                    label: 'Filter Type Chassis',
-                    controller: _controllers['type_chassis']!,
-                  ),
-                  _buildFilterTextField(
-                    label: 'Filter Jenis Kendaraan',
-                    controller: _controllers['jenis_kendaraan']!,
-                  ),
-                  _buildFilterTextField(
-                    label: 'Filter Jenis Pengajuan',
-                    controller: _controllers['jenis_pengajuan']!,
-                  ),
-                  _buildFilterTextField(
-                    label: 'Filter User',
-                    controller: _controllers['user']!,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: _clearFilters,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 255, 0, 0),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            double maxWidth = constraints.maxWidth;
+
+            // Ukuran textfield responsif, tapi tetap wajar
+            double itemWidth = (maxWidth / 9).clamp(90, 300);
+
+            return Column(
+              children: [
+                // SCROLL HORIZONTAL, ROW DI TENGAH
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: 0,
+                        maxWidth: maxWidth,
+                      ),
+                      child: IntrinsicWidth(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(width: 10),
+                            _tf(
+                              "Customer",
+                              _controllers['customer']!,
+                              itemWidth,
+                            ),
+                            _tf(
+                              "Type Engine",
+                              _controllers['type_engine']!,
+                              itemWidth,
+                            ),
+                            _tf("Merk", _controllers['merk']!, itemWidth),
+                            _tf(
+                              "Type Chassis",
+                              _controllers['type_chassis']!,
+                              itemWidth,
+                            ),
+                            _tf(
+                              "Jenis Kendaraan",
+                              _controllers['jenis_kendaraan']!,
+                              itemWidth,
+                            ),
+                            _tf(
+                              "Jenis Pengajuan",
+                              _controllers['jenis_pengajuan']!,
+                              itemWidth,
+                            ),
+                            _tf("User", _controllers['user']!, itemWidth),
+                            const SizedBox(width: 10),
+                          ],
+                        ),
+                      ),
                     ),
-                    icon: const Icon(Icons.clear),
-                    label: const Text('Bersihkan'),
                   ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: _applyFilters,
-                    icon: const Icon(Icons.search),
-                    label: const Text('Terapkan Filter'),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                ),
+
+                const SizedBox(height: 12),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _clearFilters,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                      icon: const Icon(Icons.clear),
+                      label: const Text("Bersihkan"),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: _applyFilters,
+                      icon: const Icon(Icons.search),
+                      label: const Text("Terapkan Filter"),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+              ],
+            );
+          },
         ),
       ],
     );
   }
 
-  Widget _buildFilterTextField({
-    required String label,
-    required TextEditingController controller,
-  }) {
-    return SizedBox(
-      width: 250,
+  Widget _tf(String label, TextEditingController controller, double width) {
+    return Container(
+      width: width,
+      margin: const EdgeInsets.symmetric(horizontal: 6),
       child: TextField(
         controller: controller,
-        decoration: InputDecoration(labelText: label, isDense: true),
-        onSubmitted: (_) =>
-            _applyFilters(), // Terapkan filter saat menekan Enter
+        decoration: InputDecoration(
+          labelText: label,
+          isDense: true,
+          border: const OutlineInputBorder(),
+        ),
+        onSubmitted: (_) => _applyFilters(),
       ),
     );
   }
