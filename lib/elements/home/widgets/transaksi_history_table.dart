@@ -15,14 +15,13 @@ class TransaksiHistoryTable extends ConsumerStatefulWidget {
 }
 
 class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
-  late final TransaksiDataSource _dataSource; // Instance persisten
+  late final TransaksiDataSource _dataSource;
   int _sortColumnIndex = 9;
   bool _sortAscending = false;
 
   @override
   void initState() {
     super.initState();
-    // 1. Buat DataSource sekali saja di sini
     _dataSource = TransaksiDataSource(ref, context);
   }
 
@@ -30,16 +29,23 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
   Widget build(BuildContext context) {
     final rowsPerPage = ref.watch(rowsPerPageProvider);
 
-    // 2. DENGARKAN PERUBAHAN FILTER DI SINI
-    // Ini akan memicu refresh pada DataSource yang sama
     ref.listen(transaksiFilterProvider, (_, __) {
       _dataSource.refreshDatasource();
     });
 
     return AsyncPaginatedDataTable2(
-      columnSpacing: 12,
-      horizontalMargin: 12,
-      minWidth: 1600,
+      // --- PERBAIKAN 1: KURANGI JARAK ANTAR KOLOM ---
+      columnSpacing: 10,
+      horizontalMargin: 10,
+
+      // --- PERBAIKAN 2: MIN WIDTH DIKECILKAN ---
+      // Dulu 1600, sekarang 1000. Ini membuat tabel mencoba "memadatkan diri"
+      // agar pas di layar 1366px. Jika layar > 1000, dia akan full width tanpa scroll.
+      minWidth: 1000,
+
+      // Opsi agar header tidak terlalu tinggi
+      headingRowHeight: 40,
+
       sortColumnIndex: _sortColumnIndex,
       sortAscending: _sortAscending,
       rowsPerPage: rowsPerPage,
@@ -50,7 +56,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
         }
       },
       columns: _createColumns(),
-      source: _dataSource, // Gunakan instance yang dibuat di initState
+      source: _dataSource,
       loading: const Center(child: CircularProgressIndicator()),
       empty: const Center(child: Text('Tidak ada data ditemukan')),
     );
@@ -84,59 +90,63 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
     });
   }
 
+  // --- PERBAIKAN 3: OPTIMASI UKURAN KOLOM ---
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(
-        label: const Text('ID Transaksi'),
-        size: ColumnSize.S,
-        onSort: _onSort,
-      ),
+      // ID: Pendek & Tetap
+      DataColumn2(label: const Text('ID'), fixedWidth: 90, onSort: _onSort),
+
+      // Customer: Panjang & Penting (Pake L agar mengambil sisa ruang)
       DataColumn2(
         label: const Text('Customer'),
         size: ColumnSize.L,
         onSort: _onSort,
       ),
+
+      // Data Teknis: Ukuran Sedang/Kecil
       DataColumn2(
-        label: const Text('Type Engine'),
+        label: const Text('Engine'),
         size: ColumnSize.S,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Merk'),
-        size: ColumnSize.M,
+        size: ColumnSize.S,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Type Chassis'),
-        size: ColumnSize.L,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Jenis Kendaraan'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Jenis\nPengajuan'),
+        label: const Text('Jenis\nKendaraan'),
         size: ColumnSize.S,
+        onSort: _onSort,
+      ),
+
+      // Info Status: Kecil
+      DataColumn2(
+        label: const Text('Pengajuan'),
+        size: ColumnSize.S,
+        onSort: _onSort,
+      ),
+      DataColumn2(label: const Text('User'), fixedWidth: 70, onSort: _onSort),
+
+      // Tanggal: Fixed Width agar rapi (sekitar 110-120px cukup untuk dd-MM-yyyy HH:mm)
+      DataColumn2(
+        label: const Text('Created at'),
+        fixedWidth: 110,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('User'),
-        size: ColumnSize.S,
+        label: const Text('Updated at'),
+        fixedWidth: 110,
         onSort: _onSort,
       ),
-      DataColumn2(
-        label: const Text('Created At'),
-        size: ColumnSize.S,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Updated At'),
-        size: ColumnSize.S,
-        onSort: _onSort,
-      ),
-      const DataColumn2(label: Text('Option'), fixedWidth: 100),
+
+      // Option: Fixed Width
+      const DataColumn2(label: Text('Options'), fixedWidth: 85),
     ];
   }
 }
