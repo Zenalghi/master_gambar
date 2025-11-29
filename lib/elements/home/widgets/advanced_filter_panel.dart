@@ -54,7 +54,7 @@ class _AdvancedFilterPanelState extends ConsumerState<AdvancedFilterPanel> {
             double maxWidth = constraints.maxWidth;
 
             // Ukuran textfield responsif, tapi tetap wajar
-            double itemWidth = (maxWidth / 9).clamp(90, 300);
+            double itemWidth = (maxWidth / 9).clamp(160, 300);
 
             return Column(
               children: [

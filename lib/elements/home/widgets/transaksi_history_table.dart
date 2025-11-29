@@ -127,7 +127,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
 
       // Info Status: Kecil
       DataColumn2(
-        label: const Text('Pengajuan'),
+        label: const Text('Jenis\nPengajuan'),
         size: ColumnSize.S,
         onSort: _onSort,
       ),
