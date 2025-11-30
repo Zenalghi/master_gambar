@@ -68,6 +68,7 @@ class TransaksiDataSource extends AsyncDataTableSource {
                   children: [
                     IconButton(
                       icon: Icon(
+                        size: 15,
                         Icons.edit,
                         color: canEdit ? Colors.orange.shade700 : Colors.grey,
                       ),
@@ -75,7 +76,11 @@ class TransaksiDataSource extends AsyncDataTableSource {
                       onPressed: canEdit ? () => _showEditDialog(trx) : null,
                     ),
                     IconButton(
-                      icon: const Icon(Icons.open_in_new, color: Colors.blue),
+                      icon: const Icon(
+                        Icons.open_in_new,
+                        size: 15,
+                        color: Colors.blue,
+                      ),
                       tooltip: 'Buka Detail / Input Gambar',
                       onPressed: () {
                         _ref.read(pageStateProvider.notifier).state = PageState(
