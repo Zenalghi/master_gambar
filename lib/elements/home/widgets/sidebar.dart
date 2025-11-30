@@ -19,12 +19,20 @@ class Sidebar extends StatelessWidget {
       labelType: NavigationRailLabelType.all,
       destinations: const [
         NavigationRailDestination(
-          icon: Icon(Icons.table_rows_rounded),
-          label: Text('Transaksi', textAlign: TextAlign.center),
+          icon: Icon(Icons.table_rows_rounded, size: 15),
+          label: Text(
+            'Transaksi',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 9),
+          ),
         ),
         NavigationRailDestination(
-          icon: Icon(Icons.image),
-          label: Text('Input\nGambar', textAlign: TextAlign.center),
+          icon: Icon(Icons.image, size: 15),
+          label: Text(
+            'Input\nGambar',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 9),
+          ),
         ),
       ],
     );
