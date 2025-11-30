@@ -25,12 +25,16 @@ ThemeData createAppTheme() {
     // --- PERBAIKAN 4: Perkecil Ukuran Font Default ---
     // Kita definisikan ulang text theme agar base-nya lebih kecil (12-14px)
     textTheme: const TextTheme(
-      bodyMedium: TextStyle(fontSize: 13.0), // Default text
-      bodySmall: TextStyle(fontSize: 12.0), // Text kecil
+      bodyMedium: TextStyle(fontSize: 12.0), // Default text
+      bodySmall: TextStyle(fontSize: 9.0), // Text kecil
       titleMedium: TextStyle(
-        fontSize: 15.0,
+        fontSize: 11.0,
         fontWeight: FontWeight.w600,
       ), // Subjudul
+    ),
+
+    dropdownMenuTheme: const DropdownMenuThemeData(
+      textStyle: TextStyle(fontSize: 13, fontFamily: 'Poppins'),
     ),
 
     cardTheme: CardThemeData(
@@ -46,12 +50,14 @@ ThemeData createAppTheme() {
 
     inputDecorationTheme: InputDecorationTheme(
       isDense: true, // PENTING: Memadatkan tinggi kolom input
+      hintStyle: const TextStyle(fontSize: 13, fontFamily: 'Poppins'),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(
           8.0,
         ), // Radius lebih kotak dikit hemat tempat
-        borderSide: BorderSide.none,
+        // borderSide: BorderSide.none,
       ),
+
       filled: true,
       fillColor:
           Colors.white, // Ubah ke putih biar bersih, atau tetap background

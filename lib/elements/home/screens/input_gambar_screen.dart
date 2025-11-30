@@ -241,7 +241,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     final jumlahGambarUtama = ref.watch(jumlahGambarProvider);
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(2),
       child: Column(
         children: [
           // Header Info

@@ -38,20 +38,24 @@ class _InputTransaksiScreenState extends ConsumerState<InputTransaksiScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              SizedBox(width: 12),
               const Text(
                 "Histori Transaksi",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
 
               // Tombol Tambah Transaksi
               ElevatedButton.icon(
                 icon: const Icon(Icons.add),
-                label: const Text('TAMBAH TRANSAKSI'),
+                label: const Text(
+                  'TAMBAH TRANSAKSI',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
+                    horizontal: 8,
+                    vertical: 8,
                   ),
                 ),
                 onPressed: () {
@@ -75,9 +79,11 @@ class _InputTransaksiScreenState extends ConsumerState<InputTransaksiScreen> {
               Row(
                 children: [
                   SizedBox(
-                    width: 250,
+                    width: 200,
+                    height: 31,
                     child: TextField(
                       decoration: InputDecoration(
+                        labelStyle: TextStyle(fontSize: 11),
                         labelText: 'Search Global...',
                         prefixIcon: const Icon(Icons.search),
                         isDense: true,
@@ -93,10 +99,10 @@ class _InputTransaksiScreenState extends ConsumerState<InputTransaksiScreen> {
                       },
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 6),
                   // Tombol Reload Manual
                   IconButton(
-                    icon: const Icon(Icons.refresh),
+                    icon: const Icon(Icons.refresh, size: 20),
                     tooltip: 'Reload Data',
                     onPressed: () {
                       // Paksa refresh dengan mengupdate state map baru

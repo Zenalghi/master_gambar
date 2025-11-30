@@ -145,6 +145,7 @@ class GambarUtamaRow extends ConsumerWidget {
                       title: Text(
                         item.name,
                         style: TextStyle(
+                          fontSize: 12,
                           color: hasGambar ? Colors.black : Colors.red,
                           fontWeight: hasGambar
                               ? FontWeight.normal

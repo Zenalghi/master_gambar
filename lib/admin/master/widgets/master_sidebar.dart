@@ -16,7 +16,7 @@ class MasterSidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     // Tentukan lebar sidebar
     return SizedBox(
-      width: 220,
+      width: 160,
       // Gunakan Drawer untuk mendapatkan style latar belakang dan elevasi yang konsisten
       child: Drawer(
         elevation: 0,
@@ -28,50 +28,117 @@ class MasterSidebar extends StatelessWidget {
             ExpansionTile(
               title: const Text(
                 'Master Data',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
               ),
               initiallyExpanded: true, // Default expand sesuai permintaan
-              childrenPadding: const EdgeInsets.only(left: 16.0),
+              childrenPadding: const EdgeInsets.only(left: 6.0),
               children: [
                 ListTile(
-                  leading: const Icon(Icons.dns),
-                  title: const Text('Type Engine'),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -3),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 0,
+                  ),
+                  minLeadingWidth: 22,
+                  leading: const Icon(Icons.dns, size: 21),
+                  title: const Text(
+                    'Type Engine',
+                    style: TextStyle(fontSize: 11),
+                  ),
                   selected: selectedIndex == 0,
                   onTap: () => onItemSelected(0),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.bookmark),
-                  title: const Text('Merk'),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -3),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 0,
+                  ),
+                  minLeadingWidth: 22,
+                  leading: const Icon(Icons.bookmark, size: 21),
+                  title: const Text('Merk', style: TextStyle(fontSize: 11)),
                   selected: selectedIndex == 1,
                   onTap: () => onItemSelected(1),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.fire_truck_rounded),
-                  title: const Text('Type Chassis'),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -3),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 0,
+                  ),
+                  minLeadingWidth: 22,
+                  leading: const Icon(Icons.fire_truck_rounded, size: 21),
+                  title: const Text(
+                    'Type Chassis',
+                    style: TextStyle(fontSize: 11),
+                  ),
                   selected: selectedIndex == 2,
                   onTap: () => onItemSelected(2),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.directions_car_outlined),
-                  title: const Text('Jenis Kendaraan'),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -3),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 0,
+                  ),
+                  minLeadingWidth: 22,
+                  leading: const Icon(Icons.directions_car_outlined, size: 21),
+                  title: const Text(
+                    'Jenis Kendaraan',
+                    style: TextStyle(fontSize: 11),
+                  ),
                   selected: selectedIndex == 3,
                   onTap: () => onItemSelected(3),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.dataset_linked_rounded),
-                  title: const Text('Master Data'),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -3),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 0,
+                  ),
+                  minLeadingWidth: 22,
+                  leading: const Icon(Icons.dataset_linked_rounded, size: 21),
+                  title: const Text(
+                    'Master Data',
+                    style: TextStyle(fontSize: 11),
+                  ),
                   selected: selectedIndex == 4,
                   onTap: () => onItemSelected(4),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.category_sharp),
-                  title: const Text('Varian Body'),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -3),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 0,
+                  ),
+                  minLeadingWidth: 22,
+                  leading: const Icon(Icons.category_sharp, size: 21),
+                  title: const Text(
+                    'Varian Body',
+                    style: TextStyle(fontSize: 11),
+                  ),
                   selected: selectedIndex == 5,
                   onTap: () => onItemSelected(5),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.title_outlined),
-                  title: const Text('Jenis Varian'),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -3),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 0,
+                  ),
+                  minLeadingWidth: 22,
+                  leading: const Icon(Icons.title_outlined, size: 21),
+                  title: const Text(
+                    'Jenis Varian',
+                    style: TextStyle(fontSize: 11),
+                  ),
                   selected: selectedIndex == 6,
                   onTap: () => onItemSelected(6),
                 ),
@@ -84,32 +151,78 @@ class MasterSidebar extends StatelessWidget {
             ExpansionTile(
               title: const Text(
                 'Master Gambar',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
               ),
               initiallyExpanded: true, // Default expand sesuai permintaan
-              childrenPadding: const EdgeInsets.only(left: 16.0),
+              childrenPadding: const EdgeInsets.only(left: 6.0),
               children: [
                 ListTile(
-                  leading: const Icon(Icons.inventory_2_outlined),
-                  title: const Text('Laporan Status Gambar'),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -3),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 0,
+                  ),
+                  minLeadingWidth: 22,
+                  leading: const Icon(Icons.inventory_2_outlined, size: 21),
+                  title: const Text(
+                    'Laporan Status Gambar',
+                    style: TextStyle(fontSize: 11),
+                  ),
                   selected: selectedIndex == 7,
                   onTap: () => onItemSelected(7),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.image_outlined),
-                  title: const Text('Gambar Utama'),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -3),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 0,
+                  ),
+                  minLeadingWidth: 22,
+                  leading: const Icon(Icons.image_outlined, size: 21),
+                  title: const Text(
+                    'Gambar Utama',
+                    style: TextStyle(fontSize: 11),
+                  ),
                   selected: selectedIndex == 8,
                   onTap: () => onItemSelected(8),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.add_photo_alternate_outlined),
-                  title: const Text('Gambar Optional'),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -3),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 0,
+                  ),
+                  minLeadingWidth: 22,
+                  leading: const Icon(
+                    Icons.add_photo_alternate_outlined,
+                    size: 21,
+                  ),
+                  title: const Text(
+                    'Gambar Optional',
+                    style: TextStyle(fontSize: 11),
+                  ),
                   selected: selectedIndex == 9,
                   onTap: () => onItemSelected(9),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.electrical_services_outlined),
-                  title: const Text('Gambar Kelistrikan'),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -3),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 0,
+                  ),
+                  minLeadingWidth: 22,
+                  leading: const Icon(
+                    Icons.electrical_services_outlined,
+                    size: 21,
+                  ),
+                  title: const Text(
+                    'Gambar Kelistrikan',
+                    style: TextStyle(fontSize: 11),
+                  ),
                   selected: selectedIndex == 10,
                   onTap: () => onItemSelected(10),
                 ),

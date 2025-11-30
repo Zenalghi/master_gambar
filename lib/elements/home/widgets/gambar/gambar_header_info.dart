@@ -62,31 +62,33 @@ class GambarHeaderInfo extends ConsumerWidget {
                   'Type Chassis',
                   transaksi.cTypeChassis.typeChassis,
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // --- BARIS KEDUA (Ada perubahan) ---
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildInfoField('Customer', transaksi.customer.namaPt),
                 const SizedBox(width: 16),
                 _buildInfoField(
                   'Jenis Kendaraan',
                   transaksi.dJenisKendaraan.jenisKendaraan,
                 ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // --- BARIS KEDUA (Ada perubahan) ---
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildInfoField('Customer', transaksi.customer.namaPt),
+
                 const SizedBox(width: 16),
                 _buildInfoField(
                   'Jenis Pengajuan',
                   transaksi.fPengajuan.jenisPengajuan,
                 ),
                 const SizedBox(width: 16),
+                Expanded(child: _buildJumlahGambarDropdown(ref)),
+                const SizedBox(width: 16),
                 Expanded(
                   flex: 1,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(child: _buildJumlahGambarDropdown(ref)),
                       const SizedBox(width: 16),
                       Expanded(child: _buildPemeriksaDropdown(ref)),
                       const SizedBox(width: 8),
@@ -115,17 +117,18 @@ class GambarHeaderInfo extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
           ),
           const SizedBox(height: 4),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+            height: 32,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(4),
             ),
-            child: SelectableText(value),
+            child: SelectableText(value, style: const TextStyle(fontSize: 13)),
           ),
         ],
       ),
@@ -204,13 +207,13 @@ Widget _buildPemeriksaDropdown(WidgetRef ref) {
         decoration: const InputDecoration(
           labelText: 'Pemeriksa',
           border: OutlineInputBorder(),
-          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
         ),
         items: items
             .map(
               (e) => DropdownMenuItem<int>(
                 value: e.id as int,
-                child: Text(e.name),
+                child: Text(e.name, style: const TextStyle(fontSize: 13)),
               ),
             )
             .toList(),

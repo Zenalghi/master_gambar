@@ -14,24 +14,25 @@ class Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NavigationRail(
+      minWidth: 1,
       selectedIndex: selectedIndex,
       onDestinationSelected: onItemSelected,
       labelType: NavigationRailLabelType.all,
       destinations: const [
         NavigationRailDestination(
-          icon: Icon(Icons.table_rows_rounded, size: 15),
+          icon: Icon(Icons.table_rows_rounded, size: 21),
           label: Text(
             'Transaksi',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 9),
+            style: TextStyle(fontSize: 10),
           ),
         ),
         NavigationRailDestination(
-          icon: Icon(Icons.image, size: 15),
+          icon: Icon(Icons.image, size: 21),
           label: Text(
             'Input\nGambar',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 9),
+            style: TextStyle(fontSize: 10),
           ),
         ),
       ],
