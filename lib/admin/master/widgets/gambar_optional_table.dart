@@ -25,6 +25,11 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
     final rowsPerPage = ref.watch(gambarOptionalRowsPerPageProvider);
 
     return AsyncPaginatedDataTable2(
+      columnSpacing: 3,
+      horizontalMargin: 10,
+      minWidth: 900,
+      headingRowHeight: 35,
+      dataRowHeight: 30,
       rowsPerPage: rowsPerPage,
       availableRowsPerPage: const [25, 50, 100],
       onRowsPerPageChanged: (value) {
@@ -72,13 +77,17 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
 
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('ID'), fixedWidth: 59, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), size: ColumnSize.S, onSort: _onSort),
       DataColumn2(
         label: const Text('Type\nEngine'),
         fixedWidth: 121,
         onSort: _onSort,
       ),
-      DataColumn2(label: const Text('Merk'), fixedWidth: 136, onSort: _onSort),
+      DataColumn2(
+        label: const Text('Merk'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
       DataColumn2(
         label: const Text('Type\nChassis'),
         size: ColumnSize.M,
@@ -91,23 +100,23 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
       ),
       DataColumn2(
         label: const Text('Varian Body'),
-        size: ColumnSize.L,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(label: const Text('Tipe'), fixedWidth: 136, onSort: _onSort),
       DataColumn2(
         label: const Text('Deskripsi'),
-        fixedWidth: 230,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Created\nAt'),
-        fixedWidth: 137,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Updated\nAt'),
-        fixedWidth: 137,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       const DataColumn2(label: Text('Options'), fixedWidth: 149),
