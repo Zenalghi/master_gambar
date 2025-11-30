@@ -15,8 +15,11 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
     final userName = ref.watch(userNameProvider);
 
     return AppBar(
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      toolbarHeight: 40,
       automaticallyImplyLeading: false,
       title: TabBar(
+        indicatorPadding: const EdgeInsets.only(bottom: 12),
         isScrollable: true,
         tabs: [
           const Tab(text: 'WORK AREA'),
@@ -62,5 +65,5 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(40);
 }
