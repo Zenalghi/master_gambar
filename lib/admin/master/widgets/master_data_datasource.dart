@@ -63,10 +63,15 @@ class MasterDataDataSource extends AsyncDataTableSource {
               DataCell(
                 Center(
                   child: item.kelistrikanId != null
-                      ? const Icon(Icons.check_circle, color: Colors.green)
+                      ? const Icon(
+                          Icons.check_circle,
+                          size: 16,
+                          color: Colors.green,
+                        )
                       : IconButton(
                           icon: const Icon(
                             Icons.add_circle_outline,
+                            size: 16,
                             color: Colors.blue,
                           ),
                           tooltip: 'Tambah Gambar Kelistrikan (Auto-fill)',
@@ -81,7 +86,11 @@ class MasterDataDataSource extends AsyncDataTableSource {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.copy, color: Colors.orange),
+                      icon: const Icon(
+                        Icons.copy,
+                        size: 16,
+                        color: Colors.lightBlueAccent,
+                      ),
                       tooltip: 'Copy Data ke Form',
                       onPressed: () {
                         _ref.read(masterDataToCopyProvider.notifier).state =
@@ -89,14 +98,22 @@ class MasterDataDataSource extends AsyncDataTableSource {
                       },
                     ),
                     IconButton(
-                      icon: const Icon(Icons.edit),
+                      icon: const Icon(
+                        Icons.edit,
+                        size: 16,
+                        color: Colors.orange,
+                      ),
                       onPressed: () => showDialog(
                         context: context,
                         builder: (_) => EditMasterDataDialog(masterData: item),
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(
+                        Icons.delete,
+                        size: 16,
+                        color: Colors.red,
+                      ),
                       onPressed: () => _showDeleteDialog(item),
                     ),
                   ],

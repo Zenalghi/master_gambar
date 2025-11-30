@@ -77,7 +77,7 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
                           ? Colors.blue.shade800
                           : Colors.green.shade800,
                       fontWeight: FontWeight.bold,
-                      fontSize: 11,
+                      fontSize: 9,
                     ),
                   ),
                 ),
@@ -100,16 +100,25 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
               DataCell(
                 Row(
                   mainAxisSize: MainAxisSize.min,
+
                   children: [
                     // Tombol View PDF
                     IconButton(
-                      icon: Icon(Icons.visibility, color: Colors.blue.shade700),
+                      icon: Icon(
+                        Icons.visibility,
+                        size: 15,
+                        color: Colors.blue.shade700,
+                      ),
                       tooltip: 'Lihat PDF',
                       onPressed: () => _showPdfPreview(item),
                     ),
                     // Tombol Edit
                     IconButton(
-                      icon: const Icon(Icons.edit),
+                      icon: const Icon(
+                        Icons.edit,
+                        size: 15,
+                        color: Colors.orange,
+                      ),
                       onPressed: () => showDialog(
                         context: context,
                         builder: (_) =>
@@ -118,7 +127,11 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
                     ),
                     // Tombol Delete (Anda bisa tambahkan _showDeleteDialog jika perlu)
                     IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(
+                        Icons.delete,
+                        size: 15,
+                        color: Colors.red,
+                      ),
                       onPressed: () => _showDeleteDialog(item),
                     ),
                   ],

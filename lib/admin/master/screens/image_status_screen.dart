@@ -31,11 +31,12 @@ class _ImageStatusScreenState extends ConsumerState<ImageStatusScreen> {
             children: [
               const Text(
                 'Laporan Status Gambar',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               SizedBox(
                 width: 300,
+                height: 40,
                 child: TextField(
                   decoration: const InputDecoration(
                     labelText: 'Search (Type Engine, Merk, Varian, dll...)',

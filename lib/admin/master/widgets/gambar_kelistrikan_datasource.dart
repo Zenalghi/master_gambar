@@ -58,12 +58,20 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
                 Row(
                   children: [
                     IconButton(
-                      icon: Icon(Icons.visibility, color: Colors.blue.shade700),
+                      icon: Icon(
+                        Icons.visibility,
+                        size: 16,
+                        color: Colors.blue.shade700,
+                      ),
                       tooltip: 'Lihat PDF',
                       onPressed: () => _showPdfPreview(item),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.edit),
+                      icon: const Icon(
+                        Icons.edit,
+                        size: 16,
+                        color: Colors.orange,
+                      ),
                       onPressed: () => showDialog(
                         context: context,
                         builder: (_) => EditGambarKelistrikanDialog(
@@ -72,7 +80,11 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(
+                        Icons.delete,
+                        size: 16,
+                        color: Colors.red,
+                      ),
                       onPressed: () => _showDeleteDialog(item),
                     ),
                   ],

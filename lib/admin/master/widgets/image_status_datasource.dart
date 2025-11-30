@@ -76,6 +76,7 @@ class ImageStatusDataSource extends AsyncDataTableSource {
                               icon: Icon(
                                 Icons.visibility,
                                 color: Colors.blue.shade700,
+                                size: 16,
                               ),
                               tooltip: 'Preview Semua Gambar',
                               onPressed: () =>
@@ -84,6 +85,7 @@ class ImageStatusDataSource extends AsyncDataTableSource {
                             // Tombol EDIT (Pensil)
                             IconButton(
                               icon: const Icon(
+                                size: 16,
                                 Icons.edit,
                                 color: Colors.orange,
                               ),
@@ -91,7 +93,11 @@ class ImageStatusDataSource extends AsyncDataTableSource {
                               onPressed: () => _navigateToEdit(item),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
+                              icon: const Icon(
+                                Icons.delete,
+                                size: 16,
+                                color: Colors.red,
+                              ),
                               tooltip: 'Hapus Gambar Utama',
                               onPressed: () =>
                                   confirmDeleteDialog(item.gambarUtama!),
@@ -101,16 +107,17 @@ class ImageStatusDataSource extends AsyncDataTableSource {
                       : ElevatedButton.icon(
                           // Tombol ADD (Upload)
                           onPressed: () => _navigateToAdd(item),
-                          icon: const Icon(Icons.upload_file, size: 16),
+                          icon: const Icon(Icons.upload_file, size: 15),
                           label: const Text('Upload'),
                           style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(80, 30),
                             backgroundColor: Colors.green, // Tombol hijau
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 8,
                             ),
-                            textStyle: const TextStyle(fontSize: 12),
+                            textStyle: const TextStyle(fontSize: 13),
                           ),
                         ),
                 ),

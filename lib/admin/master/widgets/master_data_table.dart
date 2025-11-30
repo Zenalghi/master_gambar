@@ -24,9 +24,13 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
     final rowsPerPage = ref.watch(masterDataRowsPerPageProvider);
 
     return AsyncPaginatedDataTable2(
+      columnSpacing: 3,
+      horizontalMargin: 10,
+      minWidth: 900,
+      headingRowHeight: 35,
+      dataRowHeight: 30,
       loading: const Center(child: CircularProgressIndicator()),
       rowsPerPage: rowsPerPage,
-      minWidth: 1000,
       availableRowsPerPage: const [25, 50, 100],
       onRowsPerPageChanged: (value) =>
           ref.read(masterDataRowsPerPageProvider.notifier).state = value!,
@@ -112,7 +116,7 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
         label: Center(child: Text('Kelistrikan')),
         size: ColumnSize.S,
       ),
-      const DataColumn2(label: Text('Options'), fixedWidth: 148),
+      const DataColumn2(label: Text('Options'), fixedWidth: 122),
     ];
   }
 }

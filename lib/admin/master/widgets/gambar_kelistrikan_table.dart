@@ -25,6 +25,11 @@ class _GambarKelistrikanTableState
     final rowsPerPage = ref.watch(gambarKelistrikanRowsPerPageProvider);
 
     return AsyncPaginatedDataTable2(
+      columnSpacing: 3,
+      horizontalMargin: 10,
+      minWidth: 900,
+      headingRowHeight: 35,
+      dataRowHeight: 30,
       rowsPerPage: rowsPerPage,
       availableRowsPerPage: const [25, 50, 100],
       onRowsPerPageChanged: (value) {
@@ -99,7 +104,7 @@ class _GambarKelistrikanTableState
         size: ColumnSize.M,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Options'), fixedWidth: 180),
+      const DataColumn2(label: Text('Options'), fixedWidth: 122),
     ];
   }
 }
