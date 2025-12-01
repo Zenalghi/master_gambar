@@ -82,7 +82,7 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(10.0),
         child: Form(
           key: _formKey,
           child: Row(
@@ -178,7 +178,7 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 1),
               _isLoading
                   ? const CircularProgressIndicator()
                   : ElevatedButton.icon(

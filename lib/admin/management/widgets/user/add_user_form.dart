@@ -104,7 +104,9 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
     final roleOptions = ref.watch(roleOptionsProvider);
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(
+          10,
+        ), // Padding sedikit diperbesar agar rapi
         child: Form(
           key: _formKey,
           child: Column(
@@ -113,9 +115,11 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- SISI KIRI: INPUT FIELDS (FLEX 7) ---
+                  // --- SISI KIRI: INPUT FIELDS ---
+                  // Saya ubah Flex-nya menjadi 3 agar input field mengecil
+                  // dan memberi ruang lebih untuk sisi kanan.
                   Expanded(
-                    flex: 10,
+                    flex: 3,
                     child: Column(
                       children: [
                         // ROW 1: Nama, Username, Role
@@ -233,10 +237,12 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
 
                   const SizedBox(width: 16),
 
-                  // --- SISI KANAN: GAMBAR PARAF (FLEX 2) ---
+                  // --- SISI KANAN: GAMBAR PARAF ---
+                  // Flex: 1 (Rasio 3:1 cukup ideal untuk side-by-side)
                   Expanded(
                     flex: 1,
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // const Text(
                         //   'Paraf',
@@ -245,58 +251,86 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
                         //     fontWeight: FontWeight.bold,
                         //   ),
                         // ),
-                        const SizedBox(height: 8),
-                        DropTarget(
-                          onDragDone: (details) {
-                            if (details.files.isNotEmpty) {
-                              setState(() {
-                                _signatureFile = File(details.files.first.path);
-                              });
-                            }
-                          },
-                          onDragEntered: (details) =>
-                              setState(() => _isDragging = true),
-                          onDragExited: (details) =>
-                              setState(() => _isDragging = false),
-                          child: Container(
-                            height: 80, // Tinggi kotak preview
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: _isDragging
-                                    ? Theme.of(context).primaryColor
-                                    : Colors.grey,
-                                width: _isDragging ? 3 : 1,
-                              ),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: _signatureFile != null
-                                ? Image.file(
-                                    _signatureFile!,
-                                    fit: BoxFit.contain,
-                                  )
-                                : const Center(
-                                    child: Text(
-                                      'Paraf Preview',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        color: Colors.grey,
-                                      ),
+                        // const SizedBox(height: 8),
+
+                        // Layout Horizontal: Preview di kiri, Tombol di kanan
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            // KOTAK PREVIEW
+                            Expanded(
+                              child: DropTarget(
+                                onDragDone: (details) {
+                                  if (details.files.isNotEmpty) {
+                                    setState(() {
+                                      _signatureFile = File(
+                                        details.files.first.path,
+                                      );
+                                    });
+                                  }
+                                },
+                                onDragEntered: (details) =>
+                                    setState(() => _isDragging = true),
+                                onDragExited: (details) =>
+                                    setState(() => _isDragging = false),
+                                child: Container(
+                                  height: 80, // Tinggi tetap
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: _isDragging
+                                          ? Theme.of(context).primaryColor
+                                          : Colors.grey,
+                                      width: _isDragging ? 3 : 1,
                                     ),
+                                    borderRadius: BorderRadius.circular(4),
                                   ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            icon: const Icon(Icons.upload_file, size: 16),
-                            label: const Text('Pilih Gambar'),
-                            onPressed: _pickImage,
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                                  child: _signatureFile != null
+                                      ? Image.file(
+                                          _signatureFile!,
+                                          fit: BoxFit.contain,
+                                        )
+                                      : const Center(
+                                          child: Text(
+                                            'Paraf Preview',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ),
+                                ),
+                              ),
                             ),
-                          ),
+
+                            const SizedBox(width: 8),
+
+                            // TOMBOL PILIH GAMBAR (Ukuran sedang, di sebelah kanan)
+                            SizedBox(
+                              height: 80, // Samakan tinggi dengan kotak preview
+                              width: 80, // Lebar secukupnya
+                              child: ElevatedButton(
+                                onPressed: _pickImage,
+                                style: ElevatedButton.styleFrom(
+                                  padding:
+                                      EdgeInsets.zero, // Biar icon & text muat
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.upload_file, size: 24),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      'Pilih',
+                                      style: TextStyle(fontSize: 11),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -304,9 +338,9 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
                 ],
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 10),
 
-              // TOMBOL SUBMIT (FULL WIDTH DI BAWAH)
+              // TOMBOL SUBMIT
               SizedBox(
                 width: double.infinity,
                 child: _isLoading
