@@ -75,22 +75,25 @@ class _MasterTypeChassisScreenState
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(5.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
+              SizedBox(width: 10),
               const Text(
                 'Manajemen Type Chassis',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               // Search Field
               SizedBox(
                 width: 250,
+                height: 31,
                 child: TextField(
                   decoration: const InputDecoration(
+                    labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Search Type Chassis...',
                     prefixIcon: Icon(Icons.search),
                     isDense: true,
@@ -129,20 +132,22 @@ class _MasterTypeChassisScreenState
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 1),
           // Form Input
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(10.0),
               child: Form(
                 key: _formKey,
                 child: Row(
                   children: [
                     Expanded(
                       child: TextFormField(
+                        style: const TextStyle(fontSize: 14),
                         controller: _chassisController,
                         textCapitalization: TextCapitalization.characters,
                         decoration: const InputDecoration(
+                          labelStyle: TextStyle(fontSize: 14),
                           labelText: 'Nama Type Chassis Baru',
                           hintText: 'Contoh: FM 260 JD',
                         ),
@@ -171,7 +176,7 @@ class _MasterTypeChassisScreenState
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 5),
           const Expanded(child: TypeChassisTable()),
         ],
       ),

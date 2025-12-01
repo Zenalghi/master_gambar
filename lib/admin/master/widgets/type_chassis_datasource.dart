@@ -49,11 +49,19 @@ class TypeChassisDataSource extends AsyncDataTableSource {
                 Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.edit),
+                      icon: const Icon(
+                        Icons.edit,
+                        size: 15,
+                        color: Colors.orange,
+                      ),
                       onPressed: () => _showEditDialog(item),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Colors.red,
+                        size: 15,
+                      ),
                       onPressed: () => _showDeleteDialog(item),
                     ),
                   ],

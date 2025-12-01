@@ -21,6 +21,11 @@ class _TypeChassisTableState extends ConsumerState<TypeChassisTable> {
     final rowsPerPage = ref.watch(typeChassisRowsPerPageProvider);
 
     return AsyncPaginatedDataTable2(
+      columnSpacing: 3,
+      horizontalMargin: 10,
+      minWidth: 900,
+      headingRowHeight: 35,
+      dataRowHeight: 30,
       rowsPerPage: rowsPerPage,
       availableRowsPerPage: const [25, 50, 100],
       onRowsPerPageChanged: (value) {
