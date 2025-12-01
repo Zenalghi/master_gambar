@@ -110,7 +110,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       // 4. Type Chassis
       DataColumn2(
         label: const Text('Type Chassis'),
-        size: ColumnSize.M,
+        size: ColumnSize.L,
         onSort: _onSort,
       ),
 
@@ -124,7 +124,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       // 6. Varian Body
       DataColumn2(
         label: const Text('Varian Body'),
-        size: ColumnSize.M,
+        size: ColumnSize.L,
         onSort: _onSort,
       ),
 

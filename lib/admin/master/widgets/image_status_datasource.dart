@@ -107,15 +107,18 @@ class ImageStatusDataSource extends AsyncDataTableSource {
                       : ElevatedButton.icon(
                           // Tombol ADD (Upload)
                           onPressed: () => _navigateToAdd(item),
-                          icon: const Icon(Icons.upload_file, size: 15),
-                          label: const Text('Upload'),
+                          icon: const Icon(Icons.upload_file, size: 13),
+                          label: const Text(
+                            'Upload',
+                            style: TextStyle(fontSize: 12),
+                          ),
                           style: ElevatedButton.styleFrom(
                             minimumSize: const Size(80, 30),
                             backgroundColor: Colors.green, // Tombol hijau
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
+                              horizontal: 1,
+                              vertical: 0,
                             ),
                             textStyle: const TextStyle(fontSize: 13),
                           ),

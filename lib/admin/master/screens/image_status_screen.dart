@@ -24,21 +24,24 @@ class _ImageStatusScreenState extends ConsumerState<ImageStatusScreen> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(5.0),
       child: Column(
         children: [
           Row(
             children: [
+              SizedBox(width: 10),
               const Text(
                 'Laporan Status Gambar',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               SizedBox(
-                width: 300,
-                height: 40,
+                width: 299,
+                height: 31,
                 child: TextField(
+                  style: TextStyle(fontSize: 13),
                   decoration: const InputDecoration(
+                    labelStyle: TextStyle(fontSize: 11),
                     labelText: 'Search (Type Engine, Merk, Varian, dll...)',
                     prefixIcon: Icon(Icons.search),
                   ),
@@ -61,7 +64,7 @@ class _ImageStatusScreenState extends ConsumerState<ImageStatusScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 1),
           // Widget Tabel
           const Expanded(child: ImageStatusTable()),
         ],
