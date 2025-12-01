@@ -102,8 +102,14 @@ class _GambarOptionalRow extends ConsumerWidget {
         Expanded(
           child: options.when(
             data: (items) => DropdownButtonFormField<int>(
+              itemHeight: 30,
               value: selection.gambarOptionalId,
               decoration: InputDecoration(
+                constraints: BoxConstraints(maxHeight: 32),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 10,
+                ),
                 hintText: 'Pilih Gambar Optional ${index + 1}',
                 border: const OutlineInputBorder(),
               ),
@@ -111,7 +117,7 @@ class _GambarOptionalRow extends ConsumerWidget {
                   .map(
                     (e) => DropdownMenuItem<int>(
                       value: e.id as int,
-                      child: Text(e.name),
+                      child: Text(e.name, style: const TextStyle(fontSize: 12)),
                     ),
                   )
                   .toList(),

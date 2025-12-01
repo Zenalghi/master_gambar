@@ -42,7 +42,7 @@ class GambarHeaderInfo extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(10.0),
         child: Column(
           children: [
             // --- BARIS PERTAMA (Tidak berubah) ---
@@ -69,7 +69,7 @@ class GambarHeaderInfo extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             // --- BARIS KEDUA (Ada perubahan) ---
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -145,7 +145,9 @@ class GambarHeaderInfo extends ConsumerWidget {
 
     return DropdownButtonFormField<int>(
       value: selectedJumlah,
+      itemHeight: 30,
       decoration: const InputDecoration(
+        labelStyle: TextStyle(fontSize: 13),
         labelText: 'Jumlah Gbr',
         border: OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
@@ -201,10 +203,12 @@ Widget _buildPemeriksaDropdown(WidgetRef ref) {
       return DropdownButtonFormField<int>(
         // 3. PENTING: Ganti 'initialValue' menjadi 'value' agar Widget update saat state berubah
         value: selectedId,
-
+        itemHeight: 30,
+        style: const TextStyle(fontSize: 13, color: Colors.black),
         // initialValue: selectedId, <-- HAPUS INI
-        hint: const Text('Pemeriksa'),
+        hint: const Text('Pemeriksa', style: TextStyle(fontSize: 13)),
         decoration: const InputDecoration(
+          labelStyle: TextStyle(fontSize: 13),
           labelText: 'Pemeriksa',
           border: OutlineInputBorder(),
           contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),

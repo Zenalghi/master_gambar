@@ -106,16 +106,30 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
                 },
                 selectedItem: null,
                 decoratorProps: const DropDownDecoratorProps(
+                  baseStyle: TextStyle(fontSize: 13, height: 1.0),
                   decoration: InputDecoration(
+                    constraints: BoxConstraints(maxHeight: 32),
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 0,
+                      horizontal: 10,
+                    ),
+                    labelStyle: TextStyle(fontSize: 12),
                     labelText: 'Customer',
                     border: OutlineInputBorder(),
                     isDense: true,
                   ),
                 ),
-                popupProps: const PopupProps.menu(
+                popupProps: PopupProps.menu(
                   showSearchBox: true,
-                  searchFieldProps: TextFieldProps(
+                  searchFieldProps: const TextFieldProps(
+                    style: TextStyle(fontSize: 13, height: 1.0),
                     decoration: InputDecoration(
+                      constraints: BoxConstraints(maxHeight: 32),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 0,
+                        horizontal: 10,
+                      ),
+                      hintStyle: TextStyle(fontSize: 13, height: 1.0),
                       hintText: "Cari Customer...",
                       prefixIcon: Icon(Icons.search),
                     ),
@@ -123,6 +137,32 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
                   menuProps: MenuProps(
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                   ),
+                  itemBuilder: (context, item, isSelected, isDisabled) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 0,
+                      ),
+                      height:
+                          30, // Paksa tinggi item menjadi 30px (atau lebih kecil sesuai selera)
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        item.name,
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.0,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: isSelected
+                              ? Theme.of(context).primaryColor
+                              : Colors.black87,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  },
                 ),
                 validator: (item) => item == null && _selectedCustomerId == null
                     ? 'Wajib dipilih'
@@ -143,17 +183,31 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
                   setState(() => _selectedMasterDataId = item?.id as int?);
                 },
                 decoratorProps: const DropDownDecoratorProps(
+                  baseStyle: TextStyle(fontSize: 13, height: 1.0),
                   decoration: InputDecoration(
+                    constraints: BoxConstraints(maxHeight: 32),
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 0,
+                      horizontal: 10,
+                    ),
+                    labelStyle: TextStyle(fontSize: 12),
                     labelText:
                         'Pilih Kendaraan (Engine / Merk / Chassis / Jenis)',
                     border: OutlineInputBorder(),
                     isDense: true,
                   ),
                 ),
-                popupProps: const PopupProps.menu(
+                popupProps: PopupProps.menu(
                   showSearchBox: true,
-                  searchFieldProps: TextFieldProps(
+                  searchFieldProps: const TextFieldProps(
+                    style: TextStyle(fontSize: 13, height: 1.0),
                     decoration: InputDecoration(
+                      constraints: BoxConstraints(maxHeight: 32),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 0,
+                        horizontal: 10,
+                      ),
+                      hintStyle: TextStyle(fontSize: 13, height: 1.0),
                       hintText: "Cari kendaraan...",
                       prefixIcon: Icon(Icons.search),
                     ),
@@ -161,6 +215,32 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
                   menuProps: MenuProps(
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                   ),
+                  itemBuilder: (context, item, isSelected, isDisabled) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 0,
+                      ),
+                      height:
+                          30, // Paksa tinggi item menjadi 30px (atau lebih kecil sesuai selera)
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        item.name,
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.0,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: isSelected
+                              ? Theme.of(context).primaryColor
+                              : Colors.black87,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  },
                 ),
                 validator: (item) =>
                     item == null && _selectedMasterDataId == null
@@ -202,30 +282,100 @@ class _TambahTransaksiDialogState extends ConsumerState<TambahTransaksiDialog> {
     required int? selectedValue,
     required Function(int?) onChanged,
   }) {
-    final options = ref.watch(optionsProvider);
-    return options.when(
-      data: (items) => DropdownButtonFormField<int>(
-        value: selectedValue,
-        items: items
-            .map(
-              (item) => DropdownMenuItem<int>(
-                value: item.id as int,
-                child: Text(item.name),
+    final optionsAsync = ref.watch(optionsProvider);
+
+    return optionsAsync.when(
+      data: (items) {
+        // Cari item yang sesuai dengan ID yang terpilih
+        final selectedItem = items
+            .where((e) => e.id == selectedValue)
+            .firstOrNull;
+
+        return DropdownSearch<OptionItem>(
+          // Data list langsung dari items (tanpa filter async karena tidak ada search)
+          items: (filter, _) => items,
+
+          itemAsString: (OptionItem item) => item.name,
+          compareFn: (i1, i2) => i1.id == i2.id,
+          selectedItem: selectedItem,
+
+          onChanged: (OptionItem? item) {
+            onChanged(item?.id as int?);
+          },
+
+          // --- TAMPILAN FIELD (32px) ---
+          decoratorProps: DropDownDecoratorProps(
+            baseStyle: const TextStyle(fontSize: 13, height: 1.0),
+            decoration: InputDecoration(
+              labelText: label,
+              labelStyle: const TextStyle(fontSize: 12),
+              border: const OutlineInputBorder(),
+              constraints: const BoxConstraints(maxHeight: 32),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 0,
               ),
-            )
-            .toList(),
-        onChanged: onChanged,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-        ),
-        validator: (val) => val == null ? 'Wajib diisi' : null,
-      ),
+              isDense: true,
+            ),
+          ),
+
+          // --- TAMPILAN POPUP (Tanpa Search & Item Pendek) ---
+          popupProps: PopupProps.menu(
+            // 1. MATIKAN SEARCH BOX DI SINI
+            showSearchBox: false,
+
+            fit: FlexFit.loose,
+            constraints: const BoxConstraints(
+              maxHeight: 300,
+            ), // Batas tinggi popup
+            menuProps: const MenuProps(
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
+
+            // 2. Custom Item Builder (Agar item list jadi pendek 30px)
+            itemBuilder: (context, item, isSelected, isDisabled) {
+              return Container(
+                height: 30, // Paksa tinggi per item 30px
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                alignment: Alignment.centerLeft,
+                color: isSelected
+                    ? Theme.of(context).primaryColor.withOpacity(0.1)
+                    : null,
+                child: Text(
+                  item.name,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isSelected
+                        ? Theme.of(context).primaryColor
+                        : Colors.black87,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              );
+            },
+          ),
+
+          validator: (item) => item == null ? 'Wajib diisi' : null,
+        );
+      },
+      // Loading State yang ukurannya pas
       loading: () => const SizedBox(
-        height: 50,
-        child: Center(child: CircularProgressIndicator()),
+        height: 32,
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ),
-      error: (err, stack) => Text('Gagal memuat $label'),
+      error: (err, stack) => const SizedBox(
+        height: 32,
+        child: Center(
+          child: Text(
+            'Error',
+            style: TextStyle(color: Colors.red, fontSize: 12),
+          ),
+        ),
+      ),
     );
   }
 }

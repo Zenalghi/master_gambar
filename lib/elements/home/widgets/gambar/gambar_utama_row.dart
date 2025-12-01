@@ -147,7 +147,7 @@ class GambarUtamaRow extends ConsumerWidget {
             },
             loading: () => const SizedBox(
               height: 32,
-              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              child: Center(child: CircularProgressIndicator()),
             ),
             error: (err, stack) => const SizedBox(
               height: 32,
