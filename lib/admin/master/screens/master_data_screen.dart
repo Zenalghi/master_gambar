@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import '../widgets/add_master_data_form.dart';
 import '../widgets/master_data_table.dart';
-// Import widget recycle bin (pastikan file sudah dibuat)
 import '../widgets/recycle_bin/master_data_recycle_bin.dart';
 
 class MasterDataScreen extends ConsumerStatefulWidget {
@@ -38,21 +37,24 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(5.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
+              SizedBox(width: 10),
               const Text(
                 'Manajemen Master Data (Kombinasi)',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               SizedBox(
-                width: 300,
+                width: 250,
+                height: 31,
                 child: TextField(
                   decoration: const InputDecoration(
+                    labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Search...',
                     prefixIcon: Icon(Icons.search),
                   ),
@@ -89,9 +91,9 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 1),
           const AddMasterDataForm(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 5),
           const Expanded(child: MasterDataTable()),
         ],
       ),

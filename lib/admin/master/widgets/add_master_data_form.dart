@@ -58,7 +58,7 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(10.0),
         child: Form(
           key: _formKey,
           child: Row(
@@ -99,7 +99,7 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
                   label: const Text('Tambah'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                      vertical: 20,
+                      vertical: 17,
                       horizontal: 24,
                     ),
                   ),
@@ -178,16 +178,25 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
         selectedItem: selectedItem, // <-- Gunakan state lokal
         onChanged: onChanged,
         decoratorProps: DropDownDecoratorProps(
+          baseStyle: const TextStyle(fontSize: 13),
           decoration: InputDecoration(
             labelText: label,
+            labelStyle: const TextStyle(fontSize: 12),
             isDense: true,
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 6,
+              horizontal: 10,
+            ),
             border: const OutlineInputBorder(),
           ),
         ),
+
         popupProps: const PopupProps.menu(
           showSearchBox: true,
           searchFieldProps: TextFieldProps(
+            style: TextStyle(fontSize: 14),
             decoration: InputDecoration(
+              labelStyle: TextStyle(fontSize: 14),
               hintText: "Cari...",
               prefixIcon: Icon(Icons.search),
             ),
