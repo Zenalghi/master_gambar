@@ -46,7 +46,9 @@ class _AdvancedFilterPanelState extends ConsumerState<AdvancedFilterPanel> {
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
-      title: const Text("Filter Lanjutan"),
+      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+      minTileHeight: 1,
+      title: const Text("Filter Lanjutan", style: TextStyle(fontSize: 14)),
       maintainState: true,
       children: [
         LayoutBuilder(
@@ -58,57 +60,42 @@ class _AdvancedFilterPanelState extends ConsumerState<AdvancedFilterPanel> {
 
             return Column(
               children: [
-                // SCROLL HORIZONTAL, ROW DI TENGAH
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minWidth: 0,
-                        maxWidth: maxWidth,
+                SizedBox(height: 2),
+                IntrinsicWidth(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(width: 10),
+                      _tf("Customer", _controllers['customer']!, itemWidth),
+                      _tf(
+                        "Type Engine",
+                        _controllers['type_engine']!,
+                        itemWidth,
                       ),
-                      child: IntrinsicWidth(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const SizedBox(width: 10),
-                            _tf(
-                              "Customer",
-                              _controllers['customer']!,
-                              itemWidth,
-                            ),
-                            _tf(
-                              "Type Engine",
-                              _controllers['type_engine']!,
-                              itemWidth,
-                            ),
-                            _tf("Merk", _controllers['merk']!, itemWidth),
-                            _tf(
-                              "Type Chassis",
-                              _controllers['type_chassis']!,
-                              itemWidth,
-                            ),
-                            _tf(
-                              "Jenis Kendaraan",
-                              _controllers['jenis_kendaraan']!,
-                              itemWidth,
-                            ),
-                            _tf(
-                              "Jenis Pengajuan",
-                              _controllers['jenis_pengajuan']!,
-                              itemWidth,
-                            ),
-                            _tf("User", _controllers['user']!, itemWidth),
-                            const SizedBox(width: 10),
-                          ],
-                        ),
+                      _tf("Merk", _controllers['merk']!, itemWidth),
+                      _tf(
+                        "Type Chassis",
+                        _controllers['type_chassis']!,
+                        itemWidth,
                       ),
-                    ),
+                      _tf(
+                        "Jenis Kendaraan",
+                        _controllers['jenis_kendaraan']!,
+                        itemWidth,
+                      ),
+                      _tf(
+                        "Jenis Pengajuan",
+                        _controllers['jenis_pengajuan']!,
+                        itemWidth,
+                      ),
+                      _tf("User", _controllers['user']!, itemWidth),
+                      const SizedBox(width: 10),
+                    ],
                   ),
                 ),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -141,11 +128,14 @@ class _AdvancedFilterPanelState extends ConsumerState<AdvancedFilterPanel> {
   Widget _tf(String label, TextEditingController controller, double width) {
     return Container(
       width: width,
+      height: 35,
       margin: const EdgeInsets.symmetric(horizontal: 6),
       child: TextField(
+        style: const TextStyle(fontSize: 11),
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
+          labelStyle: const TextStyle(fontSize: 11, height: 3.0),
           isDense: true,
           border: const OutlineInputBorder(),
         ),
