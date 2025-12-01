@@ -99,7 +99,7 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
                   label: const Text('Tambah'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                      vertical: 17,
+                      vertical: 14,
                       horizontal: 24,
                     ),
                   ),
@@ -178,13 +178,14 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
         selectedItem: selectedItem, // <-- Gunakan state lokal
         onChanged: onChanged,
         decoratorProps: DropDownDecoratorProps(
-          baseStyle: const TextStyle(fontSize: 13),
+          baseStyle: const TextStyle(fontSize: 13, height: 1.0),
           decoration: InputDecoration(
             labelText: label,
             labelStyle: const TextStyle(fontSize: 12),
             isDense: true,
+            constraints: const BoxConstraints(maxHeight: 32),
             contentPadding: const EdgeInsets.symmetric(
-              vertical: 6,
+              vertical: 0,
               horizontal: 10,
             ),
             border: const OutlineInputBorder(),

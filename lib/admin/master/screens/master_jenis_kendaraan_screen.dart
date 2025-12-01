@@ -73,23 +73,26 @@ class _MasterJenisKendaraanScreenState
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(5.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
+              SizedBox(width: 10),
               const Text(
                 'Manajemen Jenis Kendaraan',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
 
               // Search Field
               SizedBox(
                 width: 250,
+                height: 31,
                 child: TextField(
                   decoration: const InputDecoration(
+                    labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Search Jenis Kendaraan...',
                     prefixIcon: Icon(Icons.search),
                     isDense: true,
@@ -128,20 +131,22 @@ class _MasterJenisKendaraanScreenState
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 1),
           // Form Input
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(10),
               child: Form(
                 key: _formKey,
                 child: Row(
                   children: [
                     Expanded(
                       child: TextFormField(
+                        style: const TextStyle(fontSize: 14),
                         controller: _jenisKendaraanController,
                         textCapitalization: TextCapitalization.characters,
                         decoration: const InputDecoration(
+                          labelStyle: TextStyle(fontSize: 14),
                           labelText: 'Nama Jenis Kendaraan Baru',
                           hintText: 'Contoh: BAK BESI',
                         ),
@@ -170,7 +175,7 @@ class _MasterJenisKendaraanScreenState
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 5),
           const Expanded(child: JenisKendaraanTable()),
         ],
       ),
