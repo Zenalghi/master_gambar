@@ -65,6 +65,11 @@ class _JenisVarianTableState extends ConsumerState<JenisVarianTable> {
         }
 
         return PaginatedDataTable2(
+          columnSpacing: 3,
+          horizontalMargin: 10,
+          minWidth: 900,
+          headingRowHeight: 35,
+          dataRowHeight: 30,
           rowsPerPage: rowsPerPage,
           availableRowsPerPage: const [13, 25, 50],
           onRowsPerPageChanged: (value) =>
@@ -130,11 +135,11 @@ class _JenisVarianDataSource extends DataTableSource {
           Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.edit),
+                icon: const Icon(Icons.edit, size: 15, color: Colors.orange),
                 onPressed: () => _showEditDialog(item),
               ),
               IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
+                icon: const Icon(Icons.delete, size: 15, color: Colors.red),
                 onPressed: () => _showDeleteDialog(item),
               ),
             ],

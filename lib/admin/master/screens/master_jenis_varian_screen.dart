@@ -36,21 +36,24 @@ class _MasterJenisVarianScreenState
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(5.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
+              SizedBox(width: 10),
               const Text(
                 'Manajemen Jenis Varian',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               SizedBox(
                 width: 250,
+                height: 31,
                 child: TextField(
                   decoration: InputDecoration(
+                    labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Search...',
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
@@ -70,17 +73,19 @@ class _MasterJenisVarianScreenState
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 1),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(10.0),
               child: Row(
                 children: [
                   Expanded(
                     child: TextFormField(
+                      style: const TextStyle(fontSize: 14),
                       controller: _controller,
                       textCapitalization: TextCapitalization.characters,
                       decoration: const InputDecoration(
+                        labelStyle: TextStyle(fontSize: 14),
                         labelText: 'Nama Jenis Varian Baru',
                         hintText: 'Contoh: VARIAN 4',
                       ),
@@ -138,7 +143,7 @@ class _MasterJenisVarianScreenState
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 5),
           const Expanded(child: JenisVarianTable()),
         ],
       ),
