@@ -38,11 +38,6 @@ class MerkDataSource extends AsyncDataTableSource {
             cells: [
               DataCell(SelectableText(item.id.toString())),
               DataCell(SelectableText(item.name)),
-              // DataCell(
-              //   SelectableText(
-              //     '${item.typeEngine.name} (${item.typeEngine.id})',
-              //   ),
-              // ),
               DataCell(
                 SelectableText(dateFormat.format(item.createdAt.toLocal())),
               ),
@@ -53,11 +48,19 @@ class MerkDataSource extends AsyncDataTableSource {
                 Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.edit),
+                      icon: const Icon(
+                        Icons.edit,
+                        size: 15,
+                        color: Colors.orange,
+                      ),
                       onPressed: () => _showEditDialog(item),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Colors.red,
+                        size: 15,
+                      ),
                       onPressed: () => _showDeleteDialog(item),
                     ),
                   ],

@@ -128,6 +128,7 @@ class _MasterTypeEngineScreenState
                   children: [
                     Expanded(
                       child: TextFormField(
+                        style: const TextStyle(fontSize: 14),
                         controller: _controller,
                         textCapitalization: TextCapitalization.characters,
                         decoration: const InputDecoration(
