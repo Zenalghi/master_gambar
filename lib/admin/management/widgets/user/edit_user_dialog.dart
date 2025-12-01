@@ -134,8 +134,8 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Hapus'),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
           ),
         ],
       ),
@@ -173,10 +173,13 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
         : null;
 
     return AlertDialog(
-      title: Text('Edit User: ${_currentUser.name}'),
+      title: Text(
+        'Edit User: ${_currentUser.name}',
+        style: TextStyle(fontSize: 21),
+      ),
       content: SizedBox(
         width: 500,
-        height: 600,
+        height: 410,
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -322,8 +325,8 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
         if (_isLoading) const CircularProgressIndicator(),
         TextButton(
           onPressed: _isLoading ? null : _submitDelete,
-          child: const Text('Hapus'),
           style: TextButton.styleFrom(foregroundColor: Colors.red),
+          child: const Text('Hapus'),
         ),
         SizedBox(width: 200),
         TextButton(

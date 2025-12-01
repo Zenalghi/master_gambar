@@ -74,7 +74,7 @@ class UserDataSource extends DataTableSource {
           Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.edit, color: Colors.orange),
+                icon: const Icon(Icons.edit, color: Colors.orange, size: 15),
                 tooltip: 'Edit User',
                 onPressed: () {
                   showDialog(

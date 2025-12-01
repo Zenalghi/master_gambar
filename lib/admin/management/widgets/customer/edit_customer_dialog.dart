@@ -163,7 +163,10 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
         ? '$baseUrl/admin/customers/${_currentCustomer.id}/paraf?v=${_currentCustomer.updatedAt.millisecondsSinceEpoch}'
         : null;
     return AlertDialog(
-      title: Text('Edit Customer: ${_currentCustomer.namaPt}'),
+      title: Text(
+        'Edit Customer: ${_currentCustomer.namaPt}',
+        style: TextStyle(fontSize: 21),
+      ),
 
       // --- PERUBAHAN DI SINI ---
       content: SizedBox(
