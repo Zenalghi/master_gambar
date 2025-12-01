@@ -10,12 +10,13 @@ class CustomerManagementScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(10),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              SizedBox(width: 10),
               const Text(
                 'Manajemen Customer',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -23,6 +24,7 @@ class CustomerManagementScreen extends ConsumerWidget {
               const Spacer(),
               SizedBox(
                 width: 250,
+                height: 31,
                 child: TextField(
                   decoration: InputDecoration(
                     labelText: 'Search Customer...',
@@ -47,9 +49,9 @@ class CustomerManagementScreen extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 1),
           const AddCustomerForm(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 1),
           const Expanded(child: CustomerDataTable()),
         ],
       ),
