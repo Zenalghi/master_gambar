@@ -83,8 +83,10 @@ class _MasterTypeEngineScreenState
               const Spacer(),
               SizedBox(
                 width: 250,
+                height: 31,
                 child: TextField(
                   decoration: const InputDecoration(
+                    labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Search Type Engine...',
                     prefixIcon: Icon(Icons.search),
                     isDense: true,
