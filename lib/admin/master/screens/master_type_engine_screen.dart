@@ -69,15 +69,16 @@ class _MasterTypeEngineScreenState
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(5.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
+              SizedBox(width: 10),
               const Text(
                 'Manajemen Type Engine',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               SizedBox(
@@ -114,10 +115,10 @@ class _MasterTypeEngineScreenState
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 1),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(10.0),
               child: Form(
                 // Bungkus dengan Form
                 key: _formKey,
@@ -128,6 +129,7 @@ class _MasterTypeEngineScreenState
                         controller: _controller,
                         textCapitalization: TextCapitalization.characters,
                         decoration: const InputDecoration(
+                          labelStyle: TextStyle(fontSize: 14),
                           labelText: 'Nama Type Engine Baru',
                           hintText: 'Contoh: EURO 4',
                         ),
@@ -157,7 +159,7 @@ class _MasterTypeEngineScreenState
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 5),
           const Expanded(child: TypeEngineTable()),
         ],
       ),
