@@ -33,24 +33,27 @@ class _MasterVarianBodyScreenState
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(5.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // HEADER: Judul & Kontrol
           Row(
             children: [
+              SizedBox(width: 10),
               const Text(
                 'Manajemen Varian Body',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
 
               // Search Field
               SizedBox(
                 width: 250,
+                height: 31,
                 child: TextField(
                   decoration: const InputDecoration(
+                    labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Search Varian...',
                     prefixIcon: Icon(Icons.search),
                     isDense: true,
@@ -90,12 +93,12 @@ class _MasterVarianBodyScreenState
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 1),
 
           // Widget Form Tambah
           const AddVarianBodyForm(),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 5),
 
           // Widget Tabel Data
           const Expanded(child: VarianBodyTable()),

@@ -62,7 +62,11 @@ class VarianBodyDataSource extends AsyncDataTableSource {
                 Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.edit),
+                      icon: const Icon(
+                        Icons.edit,
+                        color: Colors.orange,
+                        size: 15,
+                      ),
                       onPressed: () {
                         // --- PANGGIL DIALOG EDIT ---
                         showDialog(
@@ -73,7 +77,11 @@ class VarianBodyDataSource extends AsyncDataTableSource {
                       },
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Colors.red,
+                        size: 15,
+                      ),
                       onPressed: () => _showDeleteDialog(item),
                     ),
                   ],

@@ -74,7 +74,7 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(10.0),
         child: Form(
           key: _formKey,
           child: Row(
@@ -153,7 +153,7 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
                   label: const Text('Tambah'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                      vertical: 18,
+                      vertical: 17,
                       horizontal: 24,
                     ),
                   ),

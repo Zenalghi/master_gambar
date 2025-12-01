@@ -24,6 +24,11 @@ class _VarianBodyTableState extends ConsumerState<VarianBodyTable> {
     final rowsPerPage = ref.watch(varianBodyRowsPerPageProvider);
 
     return AsyncPaginatedDataTable2(
+      columnSpacing: 3,
+      horizontalMargin: 10,
+      minWidth: 900,
+      headingRowHeight: 35,
+      dataRowHeight: 30,
       rowsPerPage: rowsPerPage,
       availableRowsPerPage: const [25, 50, 100],
       onRowsPerPageChanged: (value) {
