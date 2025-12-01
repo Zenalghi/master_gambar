@@ -164,10 +164,12 @@ class _MasterGambarUtamaScreenState
             // Card Dropdown akan otomatis terisi karena mendengarkan initialGambarUtamaDataProvider
             const PilihVarianBodyCard(),
 
-            const Divider(height: 5),
-
+            // const Divider(height: 5),
             CheckboxListTile(
-              title: const Text("Tambahkan Gambar Optional Paket"),
+              title: const Text(
+                "Tambahkan Gambar Optional Paket",
+                style: TextStyle(fontSize: 13),
+              ),
               value: showDependent,
               onChanged: (value) =>
                   ref.read(mguShowDependentOptionalProvider.notifier).state =
@@ -181,7 +183,7 @@ class _MasterGambarUtamaScreenState
                 deskripsiController: _deskripsiController,
               ),
 
-            const Divider(height: 5),
+            // const Divider(height: 5),
 
             // Card File PDF akan otomatis menampilkan preview file lama
             // karena provider file sudah diisi di _loadExistingData

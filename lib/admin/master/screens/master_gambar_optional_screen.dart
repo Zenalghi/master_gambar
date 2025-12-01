@@ -142,22 +142,25 @@ class _MasterGambarOptionalScreenState
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(5.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // HEADER
           Row(
             children: [
+              SizedBox(width: 10),
               const Text(
                 'Manajemen Gambar Optional',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               SizedBox(
                 width: 250,
+                height: 31,
                 child: TextField(
                   decoration: const InputDecoration(
+                    labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Search...',
                     prefixIcon: Icon(Icons.search),
                   ),
@@ -174,17 +177,20 @@ class _MasterGambarOptionalScreenState
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 1),
 
           // --- AREA UTAMA (ROW BESAR) ---
           // Menggunakan Expanded agar tabel di bawahnya tetap terlihat jika scroll
           // atau kita batasi tingginya agar rapi.
           ExpansionTile(
-            title: const Text('Tambah Gambar Optional Baru'),
+            title: const Text(
+              'Tambah Gambar Optional Baru',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
             maintainState: true,
             children: [
               SizedBox(
-                height: 580, // Tinggi area Input + Preview
+                height: 250, // Tinggi area Input + Preview
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -198,7 +204,7 @@ class _MasterGambarOptionalScreenState
                             // 1. CARD PILIH KENDARAAN
                             PilihVarianBodyCard(),
 
-                            const SizedBox(height: 16),
+                            // const SizedBox(height: 16),
 
                             // 2. CARD INPUT DESKRIPSI & FILE
                             Card(

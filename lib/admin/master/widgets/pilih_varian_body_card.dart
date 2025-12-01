@@ -171,7 +171,7 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard>
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
 
             // 2. DROPDOWN VARIAN BODY
             DropdownSearch<OptionItem>(

@@ -56,7 +56,7 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
           ? null
           : Theme.of(context).cardColor.withOpacity(0.5),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -102,7 +102,7 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
                 ],
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 1),
 
             // --- PILIH LAYOUT BERDASARKAN STATE ---
             if (_isHorizontalView)
@@ -120,17 +120,19 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
                 gambarKontruksiFile,
               ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 10),
 
             // Tombol Upload
             SizedBox(
               width: double.infinity,
+              height: 34,
               child: widget.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton.icon(
                       icon: const Icon(Icons.upload),
                       label: const Text('Upload Gambar'),
                       style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                       onPressed: allFilesSelected ? widget.onSubmit : null,
@@ -290,7 +292,7 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
         ),
         const SizedBox(height: 12),
         Container(
-          height: 300,
+          height: 248,
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.shade400),
             borderRadius: BorderRadius.circular(4),
@@ -354,9 +356,9 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
         const SizedBox(width: 16),
         // Kanan: Preview
         Expanded(
-          flex: 2,
+          flex: 3,
           child: Container(
-            height: 480, // Lebih tinggi untuk mode vertical
+            height: 400, // Lebih tinggi untuk mode vertical
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey.shade400),
               borderRadius: BorderRadius.circular(4),
