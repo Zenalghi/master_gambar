@@ -52,12 +52,13 @@ class _MasterJenisVarianScreenState
                 width: 250,
                 height: 31,
                 child: TextField(
+                  style: const TextStyle(fontSize: 14),
                   decoration: InputDecoration(
                     labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Search...',
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                   ),
                   onChanged: (value) =>
@@ -85,6 +86,9 @@ class _MasterJenisVarianScreenState
                       controller: _controller,
                       textCapitalization: TextCapitalization.characters,
                       decoration: const InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                        ),
                         labelStyle: TextStyle(fontSize: 14),
                         labelText: 'Nama Jenis Varian Baru',
                         hintText: 'Contoh: VARIAN 4',
@@ -104,7 +108,7 @@ class _MasterJenisVarianScreenState
                     label: const Text('Tambah'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
-                        vertical: 16,
+                        vertical: 14,
                         horizontal: 24,
                       ),
                     ),

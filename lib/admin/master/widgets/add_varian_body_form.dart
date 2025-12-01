@@ -99,7 +99,15 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
                   selectedItem:
                       null, // Kita biarkan null agar kosong setelah reset
                   decoratorProps: const DropDownDecoratorProps(
+                    baseStyle: const TextStyle(fontSize: 13, height: 1.0),
+
                     decoration: InputDecoration(
+                      constraints: const BoxConstraints(maxHeight: 32),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 0,
+                        horizontal: 10,
+                      ),
+                      labelStyle: const TextStyle(fontSize: 12),
                       labelText:
                           'Pilih Master Data (Engine / Merk / Chassis / Jenis)',
                       hintText: 'Ketik untuk mencari...',
@@ -132,9 +140,11 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
               Expanded(
                 flex: 2,
                 child: TextFormField(
+                  style: const TextStyle(fontSize: 14),
                   controller: _varianController,
                   textCapitalization: TextCapitalization.characters,
                   decoration: const InputDecoration(
+                    labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Nama Varian Body Baru',
                     border: OutlineInputBorder(),
                   ),
@@ -147,13 +157,13 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
 
               // 3. Tombol Tambah
               Padding(
-                padding: const EdgeInsets.only(top: 4.0),
+                padding: const EdgeInsets.only(top: 0),
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.add),
                   label: const Text('Tambah'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                      vertical: 17,
+                      vertical: 14,
                       horizontal: 24,
                     ),
                   ),
