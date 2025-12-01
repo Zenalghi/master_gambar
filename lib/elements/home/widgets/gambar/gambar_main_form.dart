@@ -45,7 +45,7 @@ class GambarMainForm extends ConsumerWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -68,7 +68,7 @@ class GambarMainForm extends ConsumerWidget {
                 );
               },
             ),
-            const Divider(height: 32),
+            const Divider(height: 10),
             // Gambar Terurai (Sudah Benar)
             _buildSection(
               title: 'Gambar Terurai',
@@ -87,7 +87,7 @@ class GambarMainForm extends ConsumerWidget {
                 );
               },
             ),
-            const Divider(height: 32),
+            const Divider(height: 10),
             _buildSection(
               title: 'Gambar Kontruksi',
               itemCount: jumlahGambarUtama,
@@ -185,7 +185,7 @@ class GambarMainForm extends ConsumerWidget {
               ),
               error: (err, stack) => Text('Error: $err'),
             ),
-            const Divider(height: 32),
+            const Divider(height: 10),
             CheckboxListTile(
               title: const Text("Tampilkan Gambar Optional Independen"),
               value: showOptional,
@@ -205,7 +205,7 @@ class GambarMainForm extends ConsumerWidget {
                 },
               ),
             ],
-            const Divider(height: 32),
+            const Divider(height: 10),
 
             GambarKelistrikanSection(
               transaksi: transaksi,

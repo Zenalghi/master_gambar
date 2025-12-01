@@ -82,7 +82,8 @@ class GambarHeaderInfo extends ConsumerWidget {
                   transaksi.fPengajuan.jenisPengajuan,
                 ),
                 const SizedBox(width: 16),
-                Expanded(child: _buildJumlahGambarDropdown(ref)),
+                Expanded(child: _buildPemeriksaDropdown(ref)),
+
                 const SizedBox(width: 16),
                 Expanded(
                   flex: 1,
@@ -90,7 +91,7 @@ class GambarHeaderInfo extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(width: 16),
-                      Expanded(child: _buildPemeriksaDropdown(ref)),
+                      Expanded(child: _buildJumlahGambarDropdown(ref)),
                       const SizedBox(width: 8),
                       IconButton(
                         icon: const Icon(Icons.refresh),
@@ -148,7 +149,7 @@ class GambarHeaderInfo extends ConsumerWidget {
       itemHeight: 30,
       decoration: const InputDecoration(
         labelStyle: TextStyle(fontSize: 13),
-        labelText: 'Jumlah Gbr',
+        labelText: 'Jumlah Gambar',
         border: OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       ),
