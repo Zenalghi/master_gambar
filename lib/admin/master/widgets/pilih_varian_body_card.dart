@@ -75,7 +75,7 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard>
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -83,7 +83,7 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard>
               "1. Pilih Data Kendaraan",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 5),
 
             // 1. DROPDOWN MASTER DATA
             DropdownSearch<OptionItem>(
@@ -113,21 +113,61 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard>
                 }
               },
               decoratorProps: const DropDownDecoratorProps(
+                baseStyle: TextStyle(fontSize: 13, height: 1.0),
                 decoration: InputDecoration(
+                  constraints: BoxConstraints(maxHeight: 32),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 0,
+                    horizontal: 10,
+                  ),
+                  labelStyle: TextStyle(fontSize: 12),
                   labelText:
                       'Pilih Master Data (Engine / Merk / Chassis / Jenis)',
                   border: OutlineInputBorder(),
                   isDense: true,
                 ),
               ),
-              popupProps: const PopupProps.menu(
+              popupProps: PopupProps.menu(
                 showSearchBox: true,
-                searchFieldProps: TextFieldProps(
+                searchFieldProps: const TextFieldProps(
+                  style: TextStyle(fontSize: 13, height: 1.0),
                   decoration: InputDecoration(
+                    constraints: BoxConstraints(maxHeight: 32),
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 0,
+                      horizontal: 10,
+                    ),
+                    hintStyle: TextStyle(fontSize: 13, height: 1.0),
                     hintText: "Cari...",
                     prefixIcon: Icon(Icons.search),
                   ),
                 ),
+                itemBuilder: (context, item, isSelected, isDisabled) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 0,
+                    ),
+                    height:
+                        30, // Paksa tinggi item menjadi 30px (atau lebih kecil sesuai selera)
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      item.name,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.0,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isSelected
+                            ? Theme.of(context).primaryColor
+                            : Colors.black87,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                },
               ),
             ),
 
@@ -168,20 +208,60 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard>
                     item?.name;
               },
               decoratorProps: const DropDownDecoratorProps(
+                baseStyle: TextStyle(fontSize: 13, height: 1.0),
                 decoration: InputDecoration(
+                  constraints: BoxConstraints(maxHeight: 32),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 0,
+                    horizontal: 10,
+                  ),
+                  labelStyle: TextStyle(fontSize: 12),
                   labelText: 'Pilih Varian Body',
                   border: OutlineInputBorder(),
                   isDense: true,
                 ),
               ),
-              popupProps: const PopupProps.menu(
+              popupProps: PopupProps.menu(
                 showSearchBox: true,
-                searchFieldProps: TextFieldProps(
+                searchFieldProps: const TextFieldProps(
+                  style: TextStyle(fontSize: 13, height: 1.0),
                   decoration: InputDecoration(
+                    constraints: BoxConstraints(maxHeight: 32),
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 0,
+                      horizontal: 10,
+                    ),
+                    hintStyle: TextStyle(fontSize: 13, height: 1.0),
                     hintText: "Cari Varian...",
                     prefixIcon: Icon(Icons.search),
                   ),
                 ),
+                itemBuilder: (context, item, isSelected, isDisabled) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 0,
+                    ),
+                    height:
+                        30, // Paksa tinggi item menjadi 30px (atau lebih kecil sesuai selera)
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      item.name,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.0,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isSelected
+                            ? Theme.of(context).primaryColor
+                            : Colors.black87,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                },
               ),
             ),
           ],

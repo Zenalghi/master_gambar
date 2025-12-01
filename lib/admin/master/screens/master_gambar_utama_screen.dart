@@ -132,16 +132,17 @@ class _MasterGambarUtamaScreenState
     final showDependent = ref.watch(mguShowDependentOptionalProvider);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(5.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
+              SizedBox(width: 10),
               // JUDUL TETAP SAMA (Sesuai request)
               const Text(
                 'Manajemen Gambar Utama',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               IconButton(
@@ -158,12 +159,12 @@ class _MasterGambarUtamaScreenState
               child: Center(child: CircularProgressIndicator()),
             )
           else ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 1),
 
             // Card Dropdown akan otomatis terisi karena mendengarkan initialGambarUtamaDataProvider
             const PilihVarianBodyCard(),
 
-            const Divider(height: 32),
+            const Divider(height: 5),
 
             CheckboxListTile(
               title: const Text("Tambahkan Gambar Optional Paket"),
@@ -180,7 +181,7 @@ class _MasterGambarUtamaScreenState
                 deskripsiController: _deskripsiController,
               ),
 
-            const Divider(height: 32),
+            const Divider(height: 5),
 
             // Card File PDF akan otomatis menampilkan preview file lama
             // karena provider file sudah diisi di _loadExistingData

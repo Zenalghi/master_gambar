@@ -50,37 +50,114 @@ class GambarUtamaRow extends ConsumerWidget {
       children: [
         SizedBox(width: 150, child: Text('Gambar Utama ${index + 1}:')),
 
-        // 1. Dropdown Judul (Tetap pakai standar atau ubah ke Search juga boleh)
         Expanded(
           flex: 2,
           child: judulOptions.when(
-            data: (items) => DropdownButtonFormField<int>(
-              value: selection.judulId,
-              isDense: true,
-              hint: const Text('Pilih Judul'),
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 12,
+            data: (items) {
+              // Cari object OptionItem yang sesuai dengan ID yang tersimpan
+              final selectedOption = items
+                  .where((e) => e.id == selection.judulId)
+                  .firstOrNull;
+
+              return DropdownSearch<OptionItem>(
+                // Data sudah diload oleh provider di atas, jadi langsung pakai list 'items'
+                items: (filter, _) => items
+                    .where(
+                      (e) =>
+                          e.name.toLowerCase().contains(filter.toLowerCase()),
+                    )
+                    .toList(),
+
+                itemAsString: (OptionItem item) => item.name,
+                compareFn: (i1, i2) => i1.id == i2.id,
+                selectedItem: selectedOption,
+
+                onChanged: (OptionItem? item) {
+                  ref
+                      .read(gambarUtamaSelectionProvider.notifier)
+                      .updateSelection(index, judulId: item?.id as int?);
+                },
+
+                // TAMPILAN FIELD (Kecil & Padat)
+                decoratorProps: const DropDownDecoratorProps(
+                  baseStyle: TextStyle(fontSize: 13, height: 1.0),
+                  decoration: InputDecoration(
+                    hintText: 'Pilih Judul',
+                    border: OutlineInputBorder(),
+                    constraints: BoxConstraints(
+                      maxHeight: 32,
+                    ), // Tinggi Field 32px
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 0,
+                    ),
+                    isDense: true,
+                  ),
+                ),
+
+                // TAMPILAN POPUP (Custom Item Builder untuk tinggi 30px)
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                  searchFieldProps: const TextFieldProps(
+                    style: TextStyle(fontSize: 13, height: 1.0),
+                    decoration: InputDecoration(
+                      constraints: BoxConstraints(maxHeight: 32),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 0,
+                      ),
+                      hintText: "Cari Judul...",
+                      prefixIcon: Icon(Icons.search, size: 18),
+                    ),
+                  ),
+                  // --- INI KUNCINYA UNTUK LIST ITEM PENDEK ---
+                  itemBuilder: (context, item, isSelected, isDisabled) {
+                    return Container(
+                      height: 30, // Paksa tinggi item jadi 30px
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      alignment: Alignment.centerLeft,
+                      color: isSelected
+                          ? Theme.of(context).primaryColor.withOpacity(0.1)
+                          : null,
+                      child: Text(
+                        item.name,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isSelected
+                              ? Theme.of(context).primaryColor
+                              : Colors.black87,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  },
+                  // -------------------------------------------
+                  menuProps: const MenuProps(
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
+                ),
+
+                validator: (item) =>
+                    item == null && selection.judulId == null ? 'Wajib' : null,
+              );
+            },
+            loading: () => const SizedBox(
+              height: 32,
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            ),
+            error: (err, stack) => const SizedBox(
+              height: 32,
+              child: Center(
+                child: Text(
+                  'Error',
+                  style: TextStyle(fontSize: 12, color: Colors.red),
                 ),
               ),
-              items: items
-                  .map(
-                    (e) => DropdownMenuItem<int>(
-                      value: e.id as int,
-                      child: Text(e.name),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                ref
-                    .read(gambarUtamaSelectionProvider.notifier)
-                    .updateSelection(index, judulId: value);
-              },
             ),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, stack) => const Text('Error Judul'),
           ),
         ),
 
@@ -121,12 +198,15 @@ class GambarUtamaRow extends ConsumerWidget {
                 },
 
                 decoratorProps: const DropDownDecoratorProps(
+                  baseStyle: TextStyle(fontSize: 13, height: 1.0),
                   decoration: InputDecoration(
-                    border: OutlineInputBorder(),
+                    constraints: BoxConstraints(maxHeight: 32),
                     contentPadding: EdgeInsets.symmetric(
-                      horizontal: 10,
                       vertical: 0,
+                      horizontal: 10,
                     ),
+                    labelStyle: TextStyle(fontSize: 12),
+                    border: OutlineInputBorder(),
                     hintText: 'Pilih Varian',
                   ),
                 ),
@@ -134,34 +214,69 @@ class GambarUtamaRow extends ConsumerWidget {
                 popupProps: PopupProps.menu(
                   showSearchBox: true,
                   searchFieldProps: const TextFieldProps(
+                    style: TextStyle(fontSize: 13, height: 1.0),
                     decoration: InputDecoration(
+                      constraints: BoxConstraints(maxHeight: 32),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 0,
+                        horizontal: 10,
+                      ),
+                      hintStyle: TextStyle(fontSize: 13, height: 1.0),
                       hintText: "Cari Varian...",
                       prefixIcon: Icon(Icons.search),
                     ),
                   ),
                   itemBuilder: (context, item, isSelected, isDisabled) {
                     final hasGambar = item.hasGambar;
-                    return ListTile(
-                      title: Text(
-                        item.name,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: hasGambar ? Colors.black : Colors.red,
-                          fontWeight: hasGambar
-                              ? FontWeight.normal
-                              : FontWeight.bold,
-                        ),
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 0,
                       ),
-                      trailing: hasGambar
-                          ? const Icon(
-                              Icons.check_circle,
-                              color: Colors.green,
-                              size: 16,
-                            )
-                          : const Text(
-                              "Belum Upload",
-                              style: TextStyle(color: Colors.red, fontSize: 10),
+                      height: 30, // tinggi item
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // NAMA ITEM
+                          Expanded(
+                            child: Text(
+                              item.name,
+                              style: TextStyle(
+                                fontSize: 12,
+                                height: 1.0,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : (hasGambar
+                                          ? FontWeight.normal
+                                          : FontWeight.bold),
+                                color: hasGambar
+                                    ? (isSelected
+                                          ? Theme.of(context).primaryColor
+                                          : Colors.black87)
+                                    : Colors.red,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
+                          ),
+
+                          // TRAILING (ICON / TEKS)
+                          hasGambar
+                              ? const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                  size: 14,
+                                )
+                              : const Text(
+                                  "Belum Upload",
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                        ],
+                      ),
                     );
                   },
                 ),

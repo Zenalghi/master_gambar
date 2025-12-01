@@ -163,20 +163,52 @@ class _EditMasterDataDialogState extends ConsumerState<EditMasterDataDialog> {
       selectedItem: selectedItem,
       onChanged: onChanged,
       decoratorProps: DropDownDecoratorProps(
+        baseStyle: const TextStyle(fontSize: 13, height: 1.0),
         decoration: InputDecoration(
+          constraints: const BoxConstraints(maxHeight: 32),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 0,
+            horizontal: 10,
+          ),
+          labelStyle: const TextStyle(fontSize: 12),
           labelText: label,
           isDense: true,
           border: const OutlineInputBorder(),
         ),
       ),
-      popupProps: const PopupProps.menu(
+      popupProps: PopupProps.menu(
         showSearchBox: true,
-        searchFieldProps: TextFieldProps(
+        searchFieldProps: const TextFieldProps(
+          style: TextStyle(fontSize: 13, height: 1.0),
           decoration: InputDecoration(
+            constraints: BoxConstraints(maxHeight: 32),
+            contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+            hintStyle: TextStyle(fontSize: 13, height: 1.0),
             hintText: "Cari...",
             prefixIcon: Icon(Icons.search),
           ),
         ),
+        itemBuilder: (context, item, isSelected, isDisabled) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+            height:
+                30, // Paksa tinggi item menjadi 30px (atau lebih kecil sesuai selera)
+            alignment: Alignment.centerLeft,
+            child: Text(
+              item.name,
+              style: TextStyle(
+                fontSize: 12,
+                height: 1.0,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected
+                    ? Theme.of(context).primaryColor
+                    : Colors.black87,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          );
+        },
       ),
       validator: (item) => item == null ? 'Wajib dipilih' : null,
     );

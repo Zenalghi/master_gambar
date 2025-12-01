@@ -247,7 +247,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
           // Header Info
           GambarHeaderInfo(transaksi: widget.transaksi),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 5),
 
           // Main Form Area
           Expanded(
@@ -261,7 +261,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 5),
 
           // Tombol Aksi
           _buildAksiButton(context),
