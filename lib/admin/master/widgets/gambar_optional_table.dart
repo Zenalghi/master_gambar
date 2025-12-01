@@ -85,17 +85,17 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
       ),
       DataColumn2(
         label: const Text('Merk'),
-        size: ColumnSize.M,
+        size: ColumnSize.S,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Type\nChassis'),
-        size: ColumnSize.M,
+        size: ColumnSize.L,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Jenis\nKendaraan'),
-        size: ColumnSize.M,
+        size: ColumnSize.S,
         onSort: _onSort,
       ),
       DataColumn2(
@@ -110,16 +110,16 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
       ),
       DataColumn2(
         label: const Text('Deskripsi'),
+        size: ColumnSize.L,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Created At'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Created\nAt'),
-        size: ColumnSize.M,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Updated\nAt'),
+        label: const Text('Updated At'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),

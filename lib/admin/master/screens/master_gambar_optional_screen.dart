@@ -190,7 +190,7 @@ class _MasterGambarOptionalScreenState
             maintainState: true,
             children: [
               SizedBox(
-                height: 250, // Tinggi area Input + Preview
+                height: 320, // Tinggi area Input + Preview
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -221,7 +221,7 @@ class _MasterGambarOptionalScreenState
                                         fontSize: 16,
                                       ),
                                     ),
-                                    const SizedBox(height: 16),
+                                    const SizedBox(height: 5),
 
                                     // Input Deskripsi
                                     TextFormField(
@@ -234,7 +234,7 @@ class _MasterGambarOptionalScreenState
                                       textCapitalization:
                                           TextCapitalization.characters,
                                     ),
-                                    const SizedBox(height: 16),
+                                    const SizedBox(height: 5),
 
                                     // Tombol Pilih File
                                     ElevatedButton.icon(
@@ -358,7 +358,7 @@ class _MasterGambarOptionalScreenState
           ),
 
           // const SizedBox(height: 24),
-          const Divider(),
+          // const Divider(),
           // const SizedBox(height: 8),
 
           // TABEL DAFTAR GAMBAR OPTIONAL
