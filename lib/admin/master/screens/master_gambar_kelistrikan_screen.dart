@@ -74,19 +74,21 @@ class _MasterGambarKelistrikanScreenState
     final bool shouldExpand = initialData != null;
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(5.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
+              SizedBox(width: 10),
               const Text(
                 'Manajemen Gambar Kelistrikan',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               SizedBox(
                 width: 250,
+                height: 31,
                 child: TextField(
                   decoration: const InputDecoration(
                     labelText: 'Search...',
@@ -112,10 +114,13 @@ class _MasterGambarKelistrikanScreenState
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 1),
 
           ExpansionTile(
-            title: const Text('Tambah Gambar Kelistrikan Baru'),
+            title: const Text(
+              'Tambah Gambar Kelistrikan Baru',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
             maintainState: true,
             // Buka otomatis jika ada data lemparan
             initiallyExpanded: shouldExpand,
@@ -137,7 +142,7 @@ class _MasterGambarKelistrikanScreenState
                 ),
             ],
           ),
-          const Divider(),
+          // const Divider(),
           const Expanded(child: GambarKelistrikanTable()),
         ],
       ),
