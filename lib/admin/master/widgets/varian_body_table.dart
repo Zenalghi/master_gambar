@@ -19,6 +19,7 @@ class _VarianBodyTableState extends ConsumerState<VarianBodyTable> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedMasterDataId = ref.watch(selectedMasterDataFilterProvider);
     // Buat DataSource di dalam build agar mendapatkan ref yang benar
     final dataSource = VarianBodyDataSource(ref, context);
     final rowsPerPage = ref.watch(varianBodyRowsPerPageProvider);
@@ -41,7 +42,26 @@ class _VarianBodyTableState extends ConsumerState<VarianBodyTable> {
       columns: _createColumns(),
       source: dataSource,
       loading: const Center(child: CircularProgressIndicator()),
-      empty: const Center(child: Text('Tidak ada data ditemukan')),
+      empty: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              selectedMasterDataId != null ? Icons.info_outline : Icons.search,
+              size: 48,
+              color: Colors.grey,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              selectedMasterDataId != null
+                  ? 'Varian Body belum ditambahkan pada Master Data ini.\nSilakan isi nama varian di atas dan tekan Tambah.'
+                  : 'Pilih Master Data di atas untuk memfilter, atau cari menggunakan Search.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey, fontSize: 16),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

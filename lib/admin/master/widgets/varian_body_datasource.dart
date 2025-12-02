@@ -1,5 +1,3 @@
-// File: lib/admin/master/widgets/varian_body_datasource.dart
-
 import 'package:data_table_2/data_table_2.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -8,10 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:master_gambar/admin/master/models/varian_body.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
-
 import 'edit_varian_body_dialog.dart';
-// Pastikan Anda punya dialog edit (jika belum, bisa dibuat nanti)
-// import 'edit_varian_body_dialog.dart';
 
 class VarianBodyDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;
@@ -19,12 +14,21 @@ class VarianBodyDataSource extends AsyncDataTableSource {
   final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
   VarianBodyDataSource(this._ref, this.context) {
+    // Dengarkan Filter Teks
     _ref.listen(varianBodyFilterProvider, (_, __) => refreshDatasource());
+    // Dengarkan Filter Master Data (Dropdown)
+    _ref.listen(
+      selectedMasterDataFilterProvider,
+      (_, __) => refreshDatasource(),
+    );
   }
 
   @override
   Future<AsyncRowsResponse> getRows(int startIndex, int count) async {
     final filters = _ref.read(varianBodyFilterProvider);
+    // Ambil nilai filter Master Data
+    final selectedMasterDataId = _ref.read(selectedMasterDataFilterProvider);
+
     try {
       final response = await _ref
           .read(masterDataRepositoryProvider)
@@ -34,8 +38,8 @@ class VarianBodyDataSource extends AsyncDataTableSource {
             search: filters['search']!,
             sortBy: filters['sortBy']!,
             sortDirection: filters['sortDirection']!,
+            masterDataId: selectedMasterDataId, // <-- Kirim ke repository
           );
-
       return AsyncRowsResponse(
         response.total,
         response.data.map((item) {

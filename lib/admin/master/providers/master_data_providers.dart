@@ -260,3 +260,6 @@ final initialKelistrikanDataProvider = StateProvider<Map<String, dynamic>?>(
 
 // 3. Provider untuk mengontrol Tab Sidebar (Navigasi)
 final adminSidebarIndexProvider = StateProvider<int>((ref) => 0);
+
+// Provider untuk menyimpan Filter Master Data ID pada halaman Varian Body
+final selectedMasterDataFilterProvider = StateProvider<int?>((ref) => null);

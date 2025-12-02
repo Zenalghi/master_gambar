@@ -349,20 +349,26 @@ class MasterDataRepository {
     String sortBy = 'updated_at',
     String sortDirection = 'desc',
     String search = '',
+    int? masterDataId, // <-- TAMBAHKAN PARAMETER INI
   }) async {
+    // Siapkan query parameters dasar
+    final queryParams = {
+      'page': page,
+      'perPage': perPage,
+      'sortBy': sortBy,
+      'sortDirection': sortDirection,
+      'search': search,
+    };
+
+    // Jika ada filter master_data_id, tambahkan ke query
+    if (masterDataId != null) {
+      queryParams['master_data_id'] = masterDataId;
+    }
+
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .get(
-          '/varian-body', // Pastikan endpoint ini benar di api.php (biasanya resource 'varian-body')
-          queryParameters: {
-            'page': page,
-            'perPage': perPage,
-            'sortBy': sortBy,
-            'sortDirection': sortDirection,
-            'search': search,
-          },
-        );
+        .get('/admin/varian-body', queryParameters: queryParams);
     return PaginatedResponse.fromJson(response.data, VarianBody.fromJson);
   }
 

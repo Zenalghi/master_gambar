@@ -19,7 +19,6 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
   final _formKey = GlobalKey<FormState>();
   final _varianController = TextEditingController();
 
-  // Kita hanya butuh 1 ID ini untuk menghubungkan Varian Body ke Master Data
   int? _selectedMasterDataId;
 
   @override
@@ -30,12 +29,12 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
 
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
+    final selectedId = ref.read(selectedMasterDataFilterProvider);
     try {
       await ref
           .read(masterDataRepositoryProvider)
           .addVarianBody(
-            masterDataId: _selectedMasterDataId!,
+            masterDataId: selectedId!,
             varianBody: _varianController.text,
           );
 
@@ -72,6 +71,7 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedMasterDataId = ref.watch(selectedMasterDataFilterProvider);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -84,22 +84,24 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
               Expanded(
                 flex: 3,
                 child: DropdownSearch<OptionItem>(
-                  // Fungsi ini akan dipanggil saat user mengetik
                   items: (String filter, _) =>
                       ref.read(masterDataOptionsProvider(filter).future),
                   itemAsString: (OptionItem item) => item.name,
-                  // --- PERBAIKAN UTAMA DI SINI: Tambahkan compareFn ---
                   compareFn: (item1, item2) => item1.id == item2.id,
-                  // --------------------------------------------------
+                  selectedItem: selectedMasterDataId != null
+                      ? OptionItem(
+                          id: selectedMasterDataId,
+                          name: '',
+                        ) // Name kosong gpp, akan di-resolve atau user search ulang
+                      : null,
+
                   onChanged: (OptionItem? item) {
-                    setState(() {
-                      _selectedMasterDataId = item?.id as int?;
-                    });
+                    // UPDATE PROVIDER GLOBAL -> Ini akan memicu Tabel Refresh otomatis
+                    ref.read(selectedMasterDataFilterProvider.notifier).state =
+                        item?.id as int?;
                   },
-                  selectedItem:
-                      null, // Kita biarkan null agar kosong setelah reset
                   decoratorProps: const DropDownDecoratorProps(
-                    baseStyle: TextStyle(fontSize: 13, height: 1.0),
+                    baseStyle: TextStyle(fontSize: 13),
                     decoration: InputDecoration(
                       constraints: BoxConstraints(maxHeight: 32),
                       contentPadding: EdgeInsets.symmetric(

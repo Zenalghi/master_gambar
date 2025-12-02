@@ -27,6 +27,7 @@ class _MasterVarianBodyScreenState
 
       // 2. Reset Cache Dropdown Master Data (agar data baru dari menu Master Data masuk)
       ref.invalidate(masterDataOptionsProvider);
+      ref.read(selectedMasterDataFilterProvider.notifier).state = null;
     });
   }
 
@@ -74,6 +75,8 @@ class _MasterVarianBodyScreenState
                 onPressed: () {
                   ref.invalidate(varianBodyFilterProvider);
                   ref.invalidate(masterDataOptionsProvider);
+                  ref.read(selectedMasterDataFilterProvider.notifier).state =
+                      null;
                 },
               ),
 
