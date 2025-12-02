@@ -27,8 +27,8 @@ class VarianBodyDataSource extends AsyncDataTableSource {
   Future<AsyncRowsResponse> getRows(int startIndex, int count) async {
     final filters = _ref.read(varianBodyFilterProvider);
     // Ambil nilai filter Master Data
-    final selectedMasterDataId = _ref.read(selectedMasterDataFilterProvider);
-
+    final selectedMasterDataItem = _ref.read(selectedMasterDataFilterProvider);
+    final selectedMasterDataId = selectedMasterDataItem?.id as int?;
     try {
       final response = await _ref
           .read(masterDataRepositoryProvider)

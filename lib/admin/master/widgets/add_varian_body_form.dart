@@ -29,12 +29,12 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
 
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    final selectedId = ref.read(selectedMasterDataFilterProvider);
+    final selectedMasterData = ref.watch(selectedMasterDataFilterProvider);
     try {
       await ref
           .read(masterDataRepositoryProvider)
           .addVarianBody(
-            masterDataId: selectedId!,
+            masterDataId: selectedMasterData!.id,
             varianBody: _varianController.text,
           );
 
@@ -71,7 +71,7 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedMasterDataId = ref.watch(selectedMasterDataFilterProvider);
+    final selectedMasterData = ref.watch(selectedMasterDataFilterProvider);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -88,17 +88,11 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
                       ref.read(masterDataOptionsProvider(filter).future),
                   itemAsString: (OptionItem item) => item.name,
                   compareFn: (item1, item2) => item1.id == item2.id,
-                  selectedItem: selectedMasterDataId != null
-                      ? OptionItem(
-                          id: selectedMasterDataId,
-                          name: '',
-                        ) // Name kosong gpp, akan di-resolve atau user search ulang
-                      : null,
-
+                  selectedItem: selectedMasterData,
                   onChanged: (OptionItem? item) {
-                    // UPDATE PROVIDER GLOBAL -> Ini akan memicu Tabel Refresh otomatis
+                    // SIMPAN OBJECT LENGKAP KE PROVIDER
                     ref.read(selectedMasterDataFilterProvider.notifier).state =
-                        item?.id as int?;
+                        item;
                   },
                   decoratorProps: const DropDownDecoratorProps(
                     baseStyle: TextStyle(fontSize: 13),
