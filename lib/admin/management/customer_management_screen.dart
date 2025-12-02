@@ -27,6 +27,7 @@ class CustomerManagementScreen extends ConsumerWidget {
                 height: 31,
                 child: TextField(
                   decoration: InputDecoration(
+                    labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Search Customer...',
                     prefixIcon: const Icon(Icons.search),
                     isDense: true,

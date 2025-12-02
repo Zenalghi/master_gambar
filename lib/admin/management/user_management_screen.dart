@@ -27,6 +27,7 @@ class UserManagementScreen extends ConsumerWidget {
                 height: 31,
                 child: TextField(
                   decoration: InputDecoration(
+                    labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Search User...',
                     prefixIcon: const Icon(Icons.search),
                     isDense: true,

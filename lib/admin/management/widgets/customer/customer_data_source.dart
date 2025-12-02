@@ -67,6 +67,7 @@ class CustomerDataSource extends DataTableSource {
                 )
               : const Icon(
                   Icons.cancel,
+                  size: 15,
                   color: Colors.red,
                   semanticLabel: 'Tidak Ada',
                 ),
