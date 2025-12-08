@@ -118,7 +118,7 @@ final jenisVarianListProvider = FutureProvider<List<JenisVarian>>((ref) {
   return ref.read(masterDataRepositoryProvider).getJenisVarianList();
 });
 
-final jenisVarianRowsPerPageProvider = StateProvider<int>((ref) => 13);
+final jenisVarianRowsPerPageProvider = StateProvider<int>((ref) => 50);
 final jenisVarianSearchQueryProvider = StateProvider<String>((ref) => '');
 
 // State untuk menyimpan ID yang dipilih di setiap dropdown

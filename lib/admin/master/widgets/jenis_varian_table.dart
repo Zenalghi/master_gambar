@@ -71,7 +71,7 @@ class _JenisVarianTableState extends ConsumerState<JenisVarianTable> {
           headingRowHeight: 35,
           dataRowHeight: 30,
           rowsPerPage: rowsPerPage,
-          availableRowsPerPage: const [13, 25, 50],
+          availableRowsPerPage: const [50, 100, 200],
           onRowsPerPageChanged: (value) =>
               ref.read(jenisVarianRowsPerPageProvider.notifier).state = value!,
           sortColumnIndex: _sortColumnIndex,
