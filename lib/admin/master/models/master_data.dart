@@ -10,9 +10,11 @@ class MasterData {
   final Merk merk;
   final TypeChassis typeChassis;
   final JenisKendaraan jenisKendaraan;
-  final int? kelistrikanId; // ID gambar kelistrikan (jika ada)
   final DateTime createdAt;
   final DateTime updatedAt;
+  final int? kelistrikanId; // ID gambar kelistrikan (jika ada)
+  final String? kelistrikanDeskripsi;
+  final int? fileKelistrikanId; // File ID
 
   MasterData({
     required this.id,
@@ -21,6 +23,8 @@ class MasterData {
     required this.typeChassis,
     required this.jenisKendaraan,
     this.kelistrikanId,
+    this.kelistrikanDeskripsi,
+    this.fileKelistrikanId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -32,9 +36,11 @@ class MasterData {
       merk: Merk.fromJson(json['merk']),
       typeChassis: TypeChassis.fromJson(json['type_chassis']),
       jenisKendaraan: JenisKendaraan.fromJson(json['jenis_kendaraan']),
-      kelistrikanId: json['kelistrikan_id'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
+      kelistrikanId: json['kelistrikan_id'],
+      kelistrikanDeskripsi: json['kelistrikan_deskripsi'],
+      fileKelistrikanId: json['file_kelistrikan_id'],
     );
   }
 }

@@ -1,11 +1,11 @@
 // File: lib/admin/master/screens/master_gambar_kelistrikan_screen.dart
 
-import 'dart:io';
+// import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
+// import 'package:dio/dio.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
+// import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 import '../widgets/add_gambar_kelistrikan_form.dart';
 import '../widgets/gambar_kelistrikan_table.dart';
@@ -22,76 +22,44 @@ class _MasterGambarKelistrikanScreenState
     extends ConsumerState<MasterGambarKelistrikanScreen> {
   bool _isUploading = false;
 
-  // Handler Upload sekarang menerima masterDataId (int) dan File? (nullable)
-  void _handleUpload(int masterDataId, String deskripsi, File? file) async {
-    setState(() => _isUploading = true);
-    try {
-      await ref
-          .read(masterDataRepositoryProvider)
-          .addGambarKelistrikan(
-            masterDataId: masterDataId,
-            deskripsi: deskripsi,
-            gambarKelistrikanFile: file,
-          );
-
-      // Refresh tabel setelah sukses
+  @override
+  void initState() {
+    super.initState();
+    // Reset filter saat halaman dibuka
+    Future.microtask(() {
       ref.invalidate(gambarKelistrikanFilterProvider);
-
-      // Reset data copy-paste agar form kembali bersih/tertutup
-      // ref.read(initialKelistrikanDataProvider.notifier).state = null;
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gambar Kelistrikan berhasil disimpan!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } on DioException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.response?.data['message'] ?? e.message}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isUploading = false);
-      }
-    }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // 1. Cek apakah ada data "lemparan" dari Master Data
+    // 1. Cek apakah ada data "lemparan" dari Master Data (Fitur Copy & Navigate)
     final initialData = ref.watch(initialKelistrikanDataProvider);
 
     // Jika ada data lemparan, form harus terbuka otomatis
     final bool shouldExpand = initialData != null;
 
     return Padding(
-      padding: const EdgeInsets.all(5.0),
+      padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // --- HEADER & SEARCH ---
           Row(
             children: [
-              SizedBox(width: 10),
               const Text(
-                'Manajemen Gambar Kelistrikan',
-                style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
+                'Manajemen File Kelistrikan (Gudang File)',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               SizedBox(
                 width: 250,
-                height: 31,
                 child: TextField(
                   decoration: const InputDecoration(
                     labelText: 'Search...',
                     prefixIcon: Icon(Icons.search),
+                    isDense: true,
+                    border: OutlineInputBorder(),
                   ),
                   onChanged: (value) => ref
                       .read(gambarKelistrikanFilterProvider.notifier)
@@ -113,15 +81,12 @@ class _MasterGambarKelistrikanScreenState
               ),
             ],
           ),
-          const SizedBox(height: 1),
+          const SizedBox(height: 16),
 
+          // --- FORM TAMBAH (EXPANDABLE) ---
           ExpansionTile(
-            title: const Text(
-              'Tambah Gambar Kelistrikan Baru',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            maintainState: true,
-            // Buka otomatis jika ada data lemparan
+            title: const Text('Upload File Kelistrikan Baru'),
+            // Buka otomatis jika ada data lemparan dari Master Data
             initiallyExpanded: shouldExpand,
             children: [
               if (_isUploading)
@@ -130,16 +95,20 @@ class _MasterGambarKelistrikanScreenState
                   child: Center(child: CircularProgressIndicator()),
                 )
               else
-                // 2. Teruskan data ke Form
+                // Panggil Widget Form Baru yang sudah disederhanakan
+                // Form ini otomatis menangani upload via repository
                 AddGambarKelistrikanForm(
-                  onUpload: _handleUpload,
-                  // Ambil key 'masterData' sesuai dengan yang dikirim dari master_data_datasource
-                  initialMasterData: initialData?['masterData'] as OptionItem?,
+                  // Ambil data Type Chassis dari 'initialData' jika ada
+                  // Pastikan key-nya sesuai dengan yang dikirim dari master_data_datasource ('typeChassis')
+                  initialTypeChassis:
+                      initialData?['typeChassis'] as OptionItem?,
                 ),
             ],
           ),
 
           const SizedBox(height: 16),
+
+          // --- TABEL DATA ---
           const Expanded(child: GambarKelistrikanTable()),
         ],
       ),

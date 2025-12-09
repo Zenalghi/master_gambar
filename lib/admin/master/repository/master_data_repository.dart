@@ -9,6 +9,7 @@ import '../../../data/models/option_item.dart';
 import '../../../data/models/paginated_response.dart';
 import '../models/image_status.dart';
 import '../models/master_data.dart';
+import '../models/master_kelistrikan_file.dart';
 import '../models/type_engine.dart';
 import '../models/merk.dart';
 import '../models/type_chassis.dart';
@@ -748,6 +749,83 @@ class MasterDataRepository {
     } catch (e) {
       return {'exists': false};
     }
+  }
+
+  // == GUDANG FILE KELISTRIKAN ==
+  // 1. Get List Files
+  Future<PaginatedResponse<MasterKelistrikanFile>>
+  getKelistrikanFilesPaginated({
+    int page = 1,
+    int perPage = 50, // Default backend Anda 50
+    String sortBy = 'updated_at',
+    String sortDirection = 'desc',
+    String search = '',
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          '/admin/gambar-kelistrikan/files',
+          queryParameters: {
+            'page': page,
+            'perPage': perPage,
+            'sortBy': sortBy,
+            'sortDirection': sortDirection,
+            'search': search,
+          },
+        );
+    return PaginatedResponse.fromJson(
+      response.data,
+      MasterKelistrikanFile.fromJson,
+    );
+  }
+
+  // 2. Upload File Baru (Sesuai Backend storeFile)
+  Future<void> uploadKelistrikanFile({
+    required int typeChassisId,
+    required File file,
+  }) async {
+    final fileName = file.path.split(Platform.pathSeparator).last;
+
+    final formData = FormData.fromMap({
+      'c_type_chassis_id': typeChassisId,
+      'gambar_kelistrikan': await MultipartFile.fromFile(
+        file.path,
+        filename: fileName,
+      ),
+    });
+
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/gambar-kelistrikan/files', data: formData);
+  }
+
+  // 3. Hapus File Fisik
+  Future<void> deleteKelistrikanFile({required int id}) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/gambar-kelistrikan/files/$id');
+  }
+
+  // Helper untuk View PDF (Endpoint ini tetap bisa dipakai karena pathnya valid)
+  // Anda mungkin perlu endpoint khusus jika ingin lebih rapi, tapi showPdf lama bisa dipakai
+  // jika Anda mengirimkan path-nya atau membuat endpoint view by file ID.
+  // SEMENTARA: Kita gunakan endpoint general viewPdf yang menerima PATH.
+
+  // 3. Simpan Deskripsi (Dari Master Data Screen)
+  Future<void> saveDeskripsiKelistrikan({
+    required int masterDataId,
+    required String deskripsi,
+  }) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post(
+          '/admin/gambar-kelistrikan/deskripsi',
+          data: {'master_data_id': masterDataId, 'deskripsi': deskripsi},
+        );
   }
 
   // == IMAGE STATUS (LAPORAN) ==

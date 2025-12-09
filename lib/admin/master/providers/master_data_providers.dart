@@ -167,7 +167,7 @@ final gambarKelistrikanFilterProvider = StateProvider<Map<String, String>>((
   return {'search': '', 'sortBy': 'updated_at', 'sortDirection': 'desc'};
 });
 
-final gambarKelistrikanRowsPerPageProvider = StateProvider<int>((ref) => 25);
+final gambarKelistrikanRowsPerPageProvider = StateProvider<int>((ref) => 50);
 
 // State untuk checkbox "Tambahkan Gambar Optional Dependen"
 final mguShowDependentOptionalProvider = StateProvider<bool>((ref) => false);

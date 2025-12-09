@@ -9,8 +9,7 @@ class PdfViewerDialog extends StatefulWidget {
   const PdfViewerDialog({
     super.key,
     required this.pdfData,
-    required this.title,
-  });
+    this.title = 'PDF Viewer',});
 
   @override
   State<PdfViewerDialog> createState() => _PdfViewerDialogState();

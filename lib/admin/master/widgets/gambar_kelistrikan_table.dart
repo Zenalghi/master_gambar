@@ -16,7 +16,7 @@ class GambarKelistrikanTable extends ConsumerStatefulWidget {
 
 class _GambarKelistrikanTableState
     extends ConsumerState<GambarKelistrikanTable> {
-  int _sortColumnIndex = 6; // Default: updated_at (geser +1 karena ada ID)
+  int _sortColumnIndex = 5;
   bool _sortAscending = false;
 
   @override
@@ -31,7 +31,7 @@ class _GambarKelistrikanTableState
       headingRowHeight: 35,
       dataRowHeight: 30,
       rowsPerPage: rowsPerPage,
-      availableRowsPerPage: const [25, 50, 100],
+      availableRowsPerPage: const [50, 100, 200],
       onRowsPerPageChanged: (value) {
         if (value != null) {
           ref.read(gambarKelistrikanRowsPerPageProvider.notifier).state = value;
@@ -52,23 +52,25 @@ class _GambarKelistrikanTableState
       _sortAscending = ascending;
     });
 
-    ref.read(gambarKelistrikanFilterProvider.notifier).update((state) {
-      // Mapping index kolom ke nama field di database
-      final Map<int, String> columnMapping = {
-        0: 'id',
-        1: 'type_engine',
-        2: 'merk',
-        3: 'type_chassis',
-        4: 'deskripsi',
-        5: 'created_at',
-        6: 'updated_at',
-      };
-      return {
-        ...state,
-        'sortBy': columnMapping[columnIndex] ?? 'updated_at',
-        'sortDirection': ascending ? 'asc' : 'desc',
-      };
-    });
+    // Mapping sesuai indexFiles di backend
+    final Map<int, String> columnMapping = {
+      0: 'id',
+      1: 'type_engine',
+      2: 'merk',
+      3: 'type_chassis',
+      4: 'created_at',
+      5: 'updated_at',
+    };
+
+    ref
+        .read(gambarKelistrikanFilterProvider.notifier)
+        .update(
+          (state) => {
+            ...state,
+            'sortBy': columnMapping[columnIndex] ?? 'updated_at',
+            'sortDirection': ascending ? 'asc' : 'desc',
+          },
+        );
   }
 
   List<DataColumn2> _createColumns() {
@@ -86,11 +88,6 @@ class _GambarKelistrikanTableState
       ),
       DataColumn2(
         label: const Text('Type Chassis'),
-        size: ColumnSize.L,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Deskripsi'),
         size: ColumnSize.L,
         onSort: _onSort,
       ),
