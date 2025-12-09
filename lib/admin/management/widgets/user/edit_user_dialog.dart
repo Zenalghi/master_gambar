@@ -111,6 +111,7 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
           ),
         );
         ref.read(userInvalidator.notifier).state++;
+        Navigator.of(context).pop();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
