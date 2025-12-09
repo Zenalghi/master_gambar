@@ -1,4 +1,5 @@
-// lib/admin/master/models/master_data.dart
+// File: lib/admin/master/models/master_data.dart
+
 import 'type_engine.dart';
 import 'merk.dart';
 import 'type_chassis.dart';
@@ -12,9 +13,12 @@ class MasterData {
   final JenisKendaraan jenisKendaraan;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final int? kelistrikanId; // ID gambar kelistrikan (jika ada)
-  final String? kelistrikanDeskripsi;
-  final int? fileKelistrikanId; // File ID
+
+  // Field Tambahan untuk Kelistrikan
+  final int? kelistrikanId; // ID dari tabel deskripsi (i_gambar_kelistrikan)
+  final String? kelistrikanDeskripsi; // Deskripsinya
+  final int?
+  fileKelistrikanId; // ID dari tabel file fisik (master_kelistrikan_files)
 
   MasterData({
     required this.id,
@@ -22,11 +26,11 @@ class MasterData {
     required this.merk,
     required this.typeChassis,
     required this.jenisKendaraan,
+    required this.createdAt,
+    required this.updatedAt,
     this.kelistrikanId,
     this.kelistrikanDeskripsi,
     this.fileKelistrikanId,
-    required this.createdAt,
-    required this.updatedAt,
   });
 
   factory MasterData.fromJson(Map<String, dynamic> json) {
@@ -38,6 +42,8 @@ class MasterData {
       jenisKendaraan: JenisKendaraan.fromJson(json['jenis_kendaraan']),
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
+
+      // Mapping data kelistrikan dari Controller
       kelistrikanId: json['kelistrikan_id'],
       kelistrikanDeskripsi: json['kelistrikan_deskripsi'],
       fileKelistrikanId: json['file_kelistrikan_id'],

@@ -110,13 +110,13 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
         size: ColumnSize.M,
         onSort: _onSort,
       ),
+      const DataColumn2(label: Text('Options'), fixedWidth: 124),
 
       // Kelistrikan & Options
       const DataColumn2(
-        label: Center(child: Text('Kelistrikan')),
-        size: ColumnSize.S,
+        label: Center(child: Text('Kelistrikan (Deskripsi)')),
+        fixedWidth: 500,
       ),
-      const DataColumn2(label: Text('Options'), fixedWidth: 122),
     ];
   }
 }

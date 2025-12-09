@@ -71,13 +71,21 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
                   children: [
                     // Tombol Lihat PDF
                     IconButton(
-                      icon: Icon(Icons.visibility, color: Colors.blue.shade700),
+                      icon: Icon(
+                        Icons.visibility,
+                        size: 16,
+                        color: Colors.blue.shade700,
+                      ),
                       tooltip: 'Lihat PDF',
                       onPressed: () => _showPdfPreview(item),
                     ),
                     // Tombol Hapus File
                     IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(
+                        Icons.delete,
+                        size: 16,
+                        color: Colors.red,
+                      ),
                       tooltip: 'Hapus File',
                       onPressed: () => _showDeleteDialog(item),
                     ),
