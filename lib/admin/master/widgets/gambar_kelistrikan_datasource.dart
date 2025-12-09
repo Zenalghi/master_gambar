@@ -14,13 +14,7 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
   final BuildContext context;
   final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
-  GambarKelistrikanDataSource(this._ref, this.context) {
-    // Dengarkan perubahan filter untuk refresh otomatis
-    _ref.listen(
-      gambarKelistrikanFilterProvider,
-      (_, __) => refreshDatasource(),
-    );
-  }
+  GambarKelistrikanDataSource(this._ref, this.context);
 
   @override
   Future<AsyncRowsResponse> getRows(int startIndex, int count) async {
@@ -40,23 +34,17 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
       return AsyncRowsResponse(
         response.total,
         response.data.map((item) {
-          // Akses data hirarki dari nested object typeChassis
-          // Pastikan model TypeChassis Anda memiliki relasi 'merk' dan 'typeEngine' yang sudah ter-parsing
-          final tc = item.typeChassis;
-          final merk = tc.merk;
-          final engine = merk?.typeEngine;
-
           return DataRow(
             key: ValueKey(item.id),
             cells: [
               // 1. ID File
               DataCell(SelectableText(item.id.toString())),
 
-              // 2. Info Kendaraan (Hierarki)
-              DataCell(SelectableText(engine!.name)), // Type Engine
-              DataCell(SelectableText(merk!.name)), // Merk
-              DataCell(SelectableText(tc.name)), // Type Chassis
-              // 3. Tanggal
+              // Gunakan properti String langsung dari model baru
+              DataCell(SelectableText(item.engineName)),
+              DataCell(SelectableText(item.merkName)),
+              DataCell(SelectableText(item.chassisName)),
+
               DataCell(
                 SelectableText(dateFormat.format(item.createdAt.toLocal())),
               ),
@@ -123,7 +111,7 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
           context: context,
           builder: (context) => PdfViewerDialog(
             pdfData: pdfData,
-            title: 'Kelistrikan - ${item.typeChassis.name}',
+            title: 'Kelistrikan - ${item.chassisName}',
           ),
         );
       }
@@ -147,7 +135,7 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
       builder: (context) => AlertDialog(
         title: const Text('Hapus File Kelistrikan?'),
         content: Text(
-          'PERINGATAN: File fisik untuk chassis "${item.typeChassis.name}" akan dihapus permanen.\n\n'
+          'PERINGATAN: File fisik untuk chassis "${item.chassisName}" akan dihapus permanen.\n\n'
           'Semua Master Data yang menggunakan file ini akan kehilangan referensi ke gambar kelistrikannya.',
         ),
         actions: [

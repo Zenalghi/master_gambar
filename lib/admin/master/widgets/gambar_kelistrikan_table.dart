@@ -18,11 +18,23 @@ class _GambarKelistrikanTableState
     extends ConsumerState<GambarKelistrikanTable> {
   int _sortColumnIndex = 5;
   bool _sortAscending = false;
+  late final GambarKelistrikanDataSource _dataSource;
+
+  @override
+  void initState() {
+    super.initState();
+    // 1. Buat DataSource SEKALI SAJA di sini
+    _dataSource = GambarKelistrikanDataSource(ref, context);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final dataSource = GambarKelistrikanDataSource(ref, context);
     final rowsPerPage = ref.watch(gambarKelistrikanRowsPerPageProvider);
+
+    // 2. PASANG LISTENER DI SINI (Di dalam build)
+    ref.listen(gambarKelistrikanFilterProvider, (_, __) {
+      _dataSource.refreshDatasource();
+    });
 
     return AsyncPaginatedDataTable2(
       columnSpacing: 3,
@@ -40,7 +52,7 @@ class _GambarKelistrikanTableState
       sortColumnIndex: _sortColumnIndex,
       sortAscending: _sortAscending,
       columns: _createColumns(),
-      source: dataSource,
+      source: _dataSource,
       loading: const Center(child: CircularProgressIndicator()),
       empty: const Center(child: Text('Tidak ada data ditemukan')),
     );

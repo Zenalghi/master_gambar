@@ -650,12 +650,11 @@ class MasterDataRepository {
     }
   }
 
-  //tambahkan fungsi untuk gambar kelistrikan berdasarkan id type chassis
-  // == GAMBAR KELISTRIKAN ==
+  // == REPOSITORY GAMBAR KELISTRIKAN ==
   Future<PaginatedResponse<GambarKelistrikan>>
   getGambarKelistrikanListPaginated({
     int page = 1,
-    int perPage = 25,
+    int perPage = 50,
     String sortBy = 'updated_at',
     String sortDirection = 'desc',
     String search = '',
@@ -752,7 +751,6 @@ class MasterDataRepository {
   }
 
   // == GUDANG FILE KELISTRIKAN ==
-  // 1. Get List Files
   Future<PaginatedResponse<MasterKelistrikanFile>>
   getKelistrikanFilesPaginated({
     int page = 1,
@@ -788,7 +786,8 @@ class MasterDataRepository {
     final fileName = file.path.split(Platform.pathSeparator).last;
 
     final formData = FormData.fromMap({
-      'c_type_chassis_id': typeChassisId,
+      'c_type_chassis_id':
+          typeChassisId, // Pastikan key ini sama dengan validasi controller
       'gambar_kelistrikan': await MultipartFile.fromFile(
         file.path,
         filename: fileName,
@@ -798,7 +797,10 @@ class MasterDataRepository {
     await _ref
         .read(apiClientProvider)
         .dio
-        .post('/admin/gambar-kelistrikan/files', data: formData);
+        .post(
+          '/admin/gambar-kelistrikan/files',
+          data: formData,
+        ); // Pastikan endpoint benar
   }
 
   // 3. Hapus File Fisik
