@@ -780,14 +780,17 @@ class MasterDataRepository {
 
   // 2. Upload File Baru (Sesuai Backend storeFile)
   Future<void> uploadKelistrikanFile({
+    required int typeEngineId, // <-- Tambah
+    required int merkId, // <-- Tambah
     required int typeChassisId,
     required File file,
   }) async {
     final fileName = file.path.split(Platform.pathSeparator).last;
 
     final formData = FormData.fromMap({
-      'c_type_chassis_id':
-          typeChassisId, // Pastikan key ini sama dengan validasi controller
+      'a_type_engine_id': typeEngineId, // <-- Kirim
+      'b_merk_id': merkId, // <-- Kirim
+      'c_type_chassis_id': typeChassisId,
       'gambar_kelistrikan': await MultipartFile.fromFile(
         file.path,
         filename: fileName,
@@ -797,10 +800,7 @@ class MasterDataRepository {
     await _ref
         .read(apiClientProvider)
         .dio
-        .post(
-          '/admin/gambar-kelistrikan/files',
-          data: formData,
-        ); // Pastikan endpoint benar
+        .post('/admin/gambar-kelistrikan/files', data: formData);
   }
 
   // 3. Hapus File Fisik

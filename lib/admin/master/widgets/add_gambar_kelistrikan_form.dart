@@ -13,10 +13,16 @@ import 'package:master_gambar/data/models/option_item.dart';
 import 'package:pdfx/pdfx.dart';
 
 class AddGambarKelistrikanForm extends ConsumerStatefulWidget {
-  // Opsional: Jika navigasi dari Master Data membawa data chassis
+  final OptionItem? initialTypeEngine;
+  final OptionItem? initialMerk;
   final OptionItem? initialTypeChassis;
 
-  const AddGambarKelistrikanForm({super.key, this.initialTypeChassis});
+  const AddGambarKelistrikanForm({
+    super.key,
+    this.initialTypeEngine,
+    this.initialMerk,
+    this.initialTypeChassis,
+  });
 
   @override
   ConsumerState<AddGambarKelistrikanForm> createState() =>
@@ -27,13 +33,23 @@ class _AddGambarKelistrikanFormState
     extends ConsumerState<AddGambarKelistrikanForm> {
   final _formKey = GlobalKey<FormState>();
 
+  int? _selectedTypeEngineId;
+  int? _selectedMerkId;
   int? _selectedTypeChassisId;
+
   File? _selectedFile;
   PdfController? _pdfController;
 
   @override
   void initState() {
     super.initState();
+    // Inisialisasi data jika ada (dari copy/navigate)
+    if (widget.initialTypeEngine != null) {
+      _selectedTypeEngineId = widget.initialTypeEngine!.id as int;
+    }
+    if (widget.initialMerk != null) {
+      _selectedMerkId = widget.initialMerk!.id as int;
+    }
     if (widget.initialTypeChassis != null) {
       _selectedTypeChassisId = widget.initialTypeChassis!.id as int;
     }
@@ -64,6 +80,19 @@ class _AddGambarKelistrikanFormState
 
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Validasi Kelengkapan 3 ID
+    if (_selectedTypeEngineId == null ||
+        _selectedMerkId == null ||
+        _selectedTypeChassisId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Lengkapi data Engine, Merk, dan Chassis'),
+        ),
+      );
+      return;
+    }
+
     if (_selectedFile == null) {
       ScaffoldMessenger.of(
         context,
@@ -72,16 +101,20 @@ class _AddGambarKelistrikanFormState
     }
 
     try {
-      // Panggil repository upload file fisik
+      // Panggil repository upload file fisik dengan 3 ID
       await ref
           .read(masterDataRepositoryProvider)
           .uploadKelistrikanFile(
+            typeEngineId: _selectedTypeEngineId!,
+            merkId: _selectedMerkId!,
             typeChassisId: _selectedTypeChassisId!,
             file: _selectedFile!,
           );
 
       // Reset form
       setState(() {
+        _selectedTypeEngineId = null;
+        _selectedMerkId = null;
         _selectedTypeChassisId = null;
         _selectedFile = null;
         _pdfController?.dispose();
@@ -117,7 +150,7 @@ class _AddGambarKelistrikanFormState
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SizedBox(
-          height: 400, // Tinggi disesuaikan
+          height: 500, // Tinggi disesuaikan agar muat 3 dropdown + file
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -126,53 +159,76 @@ class _AddGambarKelistrikanFormState
                 flex: 2,
                 child: Form(
                   key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Hanya Dropdown Type Chassis
-                      _buildSearchableDropdown(
-                        label: 'Type Chassis',
-                        provider: mdTypeChassisOptionsProvider,
-                        initialItem: widget.initialTypeChassis,
-                        onChanged: (val) =>
-                            _selectedTypeChassisId = val?.id as int?,
-                      ),
-                      const SizedBox(height: 24),
+                  child: SingleChildScrollView(
+                    // Agar tidak overflow
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // 1. Dropdown Type Engine
+                        _buildSearchableDropdown(
+                          label: 'Type Engine',
+                          provider: mdTypeEngineOptionsProvider,
+                          initialItem: widget.initialTypeEngine,
+                          onChanged: (val) =>
+                              _selectedTypeEngineId = val?.id as int?,
+                        ),
+                        const SizedBox(height: 16),
 
-                      // Tombol File
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.picture_as_pdf),
-                        label: Text(
-                          _selectedFile == null ? 'Pilih PDF' : 'Ganti PDF',
+                        // 2. Dropdown Merk
+                        _buildSearchableDropdown(
+                          label: 'Merk',
+                          provider: mdMerkOptionsProvider,
+                          initialItem: widget.initialMerk,
+                          onChanged: (val) => _selectedMerkId = val?.id as int?,
                         ),
-                        onPressed: _pickFile,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        const SizedBox(height: 16),
+
+                        // 3. Dropdown Type Chassis
+                        _buildSearchableDropdown(
+                          label: 'Type Chassis',
+                          provider: mdTypeChassisOptionsProvider,
+                          initialItem: widget.initialTypeChassis,
+                          onChanged: (val) =>
+                              _selectedTypeChassisId = val?.id as int?,
                         ),
-                      ),
-                      if (_selectedFile != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            'File: ${_selectedFile!.path.split(Platform.pathSeparator).last}',
-                            style: Theme.of(context).textTheme.bodySmall,
-                            textAlign: TextAlign.center,
+                        const SizedBox(height: 24),
+
+                        // 4. Tombol File
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.picture_as_pdf),
+                          label: Text(
+                            _selectedFile == null ? 'Pilih PDF' : 'Ganti PDF',
+                          ),
+                          onPressed: _pickFile,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                         ),
+                        if (_selectedFile != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              'File: ${_selectedFile!.path.split(Platform.pathSeparator).last}',
+                              style: Theme.of(context).textTheme.bodySmall,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
 
-                      const Spacer(),
+                        const SizedBox(height: 24),
 
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.upload_file),
-                        label: const Text('Upload File'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        // Submit
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.upload_file),
+                          label: const Text('Upload File'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          onPressed: _submit,
                         ),
-                        onPressed: _submit,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -206,7 +262,7 @@ class _AddGambarKelistrikanFormState
     );
   }
 
-  // Helper dropdown (sama seperti sebelumnya)
+  // Helper dropdown
   Widget _buildSearchableDropdown({
     required String label,
     required FutureProviderFamily<List<OptionItem>, String> provider,
@@ -224,6 +280,7 @@ class _AddGambarKelistrikanFormState
           labelText: label,
           isDense: true,
           border: const OutlineInputBorder(),
+          constraints: const BoxConstraints(maxHeight: 48), // Standar
         ),
       ),
       popupProps: const PopupProps.menu(
