@@ -679,26 +679,29 @@ class MasterDataRepository {
   }
 
   Future<void> addGambarKelistrikan({
-    required String typeEngineId,
-    required String merkId,
-    required String typeChassisId,
+    // Sekarang menerima masterDataId, bukan 3 ID terpisah
+    required int masterDataId,
     required String deskripsi,
-    required File gambarKelistrikanFile,
+    File? gambarKelistrikanFile, // <-- JADI NULLABLE
   }) async {
-    final fileName = gambarKelistrikanFile.path
-        .split(Platform.pathSeparator)
-        .last;
-
-    final formData = FormData.fromMap({
-      'a_type_engine_id': typeEngineId,
-      'b_merk_id': merkId,
-      'c_type_chassis_id': typeChassisId,
+    // Bangun Map data dasar
+    final Map<String, dynamic> dataMap = {
+      'master_data_id': masterDataId,
       'deskripsi': deskripsi,
-      'gambar_kelistrikan': await MultipartFile.fromFile(
+    };
+
+    // Hanya kirim file jika user memilih file baru
+    if (gambarKelistrikanFile != null) {
+      final fileName = gambarKelistrikanFile.path
+          .split(Platform.pathSeparator)
+          .last;
+      dataMap['gambar_kelistrikan'] = await MultipartFile.fromFile(
         gambarKelistrikanFile.path,
         filename: fileName,
-      ),
-    });
+      );
+    }
+
+    final formData = FormData.fromMap(dataMap);
 
     await _ref
         .read(apiClientProvider)
@@ -733,6 +736,18 @@ class MasterDataRepository {
         .dio
         .put('/admin/gambar-kelistrikan/$id', data: {'deskripsi': deskripsi});
     return GambarKelistrikan.fromJson(response.data);
+  }
+
+  Future<Map<String, dynamic>> checkKelistrikanFileStatus(int chassisId) async {
+    try {
+      final response = await _ref
+          .read(apiClientProvider)
+          .dio
+          .get('/admin/gambar-kelistrikan/check-file/$chassisId');
+      return response.data;
+    } catch (e) {
+      return {'exists': false};
+    }
   }
 
   // == IMAGE STATUS (LAPORAN) ==

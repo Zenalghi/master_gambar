@@ -22,42 +22,41 @@ class _MasterGambarKelistrikanScreenState
     extends ConsumerState<MasterGambarKelistrikanScreen> {
   bool _isUploading = false;
 
-  void _handleUpload(
-    String typeEngineId,
-    String merkId,
-    String typeChassisId,
-    String deskripsi,
-    File file,
-  ) async {
+  // Handler Upload sekarang menerima masterDataId (int) dan File? (nullable)
+  void _handleUpload(int masterDataId, String deskripsi, File? file) async {
     setState(() => _isUploading = true);
     try {
       await ref
           .read(masterDataRepositoryProvider)
           .addGambarKelistrikan(
-            typeEngineId: typeEngineId,
-            merkId: merkId,
-            typeChassisId: typeChassisId,
+            masterDataId: masterDataId,
             deskripsi: deskripsi,
             gambarKelistrikanFile: file,
           );
 
+      // Refresh tabel setelah sukses
       ref.invalidate(gambarKelistrikanFilterProvider);
-      // Reset data copy-paste setelah sukses agar form kembali bersih
+
+      // Reset data copy-paste agar form kembali bersih/tertutup
       // ref.read(initialKelistrikanDataProvider.notifier).state = null;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Gambar Kelistrikan berhasil di-upload!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gambar Kelistrikan berhasil disimpan!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     } on DioException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.response?.data['message']}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.response?.data['message'] ?? e.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isUploading = false);
@@ -67,10 +66,10 @@ class _MasterGambarKelistrikanScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Tonton provider data lemparan
+    // 1. Cek apakah ada data "lemparan" dari Master Data
     final initialData = ref.watch(initialKelistrikanDataProvider);
 
-    // Jika ada data, form harus auto-expand
+    // Jika ada data lemparan, form harus terbuka otomatis
     final bool shouldExpand = initialData != null;
 
     return Padding(
@@ -134,15 +133,13 @@ class _MasterGambarKelistrikanScreenState
                 // 2. Teruskan data ke Form
                 AddGambarKelistrikanForm(
                   onUpload: _handleUpload,
-                  // Teruskan data awal ke form
-                  initialTypeEngine: initialData?['typeEngine'] as OptionItem?,
-                  initialMerk: initialData?['merk'] as OptionItem?,
-                  initialTypeChassis:
-                      initialData?['typeChassis'] as OptionItem?,
+                  // Ambil key 'masterData' sesuai dengan yang dikirim dari master_data_datasource
+                  initialMasterData: initialData?['masterData'] as OptionItem?,
                 ),
             ],
           ),
-          // const Divider(),
+
+          const SizedBox(height: 16),
           const Expanded(child: GambarKelistrikanTable()),
         ],
       ),

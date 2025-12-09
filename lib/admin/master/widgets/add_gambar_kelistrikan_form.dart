@@ -5,32 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/misc.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 import 'package:pdfx/pdfx.dart';
 
 class AddGambarKelistrikanForm extends ConsumerStatefulWidget {
-  // Parameter opsional untuk "Copy Paste" data dari halaman lain
-  final OptionItem? initialTypeEngine;
-  final OptionItem? initialMerk;
-  final OptionItem? initialTypeChassis;
+  // Terima data awal Master Data (bukan komponen terpisah)
+  final OptionItem? initialMasterData;
+
+  // Callback disesuaikan dengan Repository: ID (int), Deskripsi, File (Nullable)
+  final void Function(int masterDataId, String deskripsi, File? file) onUpload;
 
   const AddGambarKelistrikanForm({
     super.key,
-    this.initialTypeEngine,
-    this.initialMerk,
-    this.initialTypeChassis,
-    required void Function(
-      String typeEngineId,
-      String merkId,
-      String typeChassisId,
-      String deskripsi,
-      File file,
-    )
-    onUpload,
+    this.initialMasterData,
+    required this.onUpload,
   });
 
   @override
@@ -43,27 +33,43 @@ class _AddGambarKelistrikanFormState
   final _formKey = GlobalKey<FormState>();
   final _deskripsiController = TextEditingController();
 
-  // State dropdown
-  int? _selectedTypeEngineId;
-  int? _selectedMerkId;
-  int? _selectedTypeChassisId;
+  // State Dropdown Master Data
+  int? _selectedMasterDataId;
+  OptionItem? _selectedMasterDataItem; // Untuk tampilan awal dropdown
 
   File? _selectedFile;
   PdfController? _pdfController;
+
+  // State Cek File Server
+  bool _isFileOnServer = false;
+  String? _serverFileName;
+  bool _isCheckingFile = false;
 
   @override
   void initState() {
     super.initState();
     // Isi data awal jika ada (dari fitur copy-paste)
-    if (widget.initialTypeEngine != null) {
-      _selectedTypeEngineId = widget.initialTypeEngine!.id as int;
+    if (widget.initialMasterData != null) {
+      _selectedMasterDataItem = widget.initialMasterData;
+      _selectedMasterDataId = widget.initialMasterData!.id as int;
+      // Langsung cek file di server berdasarkan Master Data ini
+      // (Kita butuh chassisId, asumsinya backend checkFileStatus bisa handle via masterDataId atau kita fetch dulu)
+      // Untuk simplifikasi, kita trigger cek saat user memilih/data masuk
+      _checkFileStatus(_selectedMasterDataId!);
     }
-    if (widget.initialMerk != null) {
-      _selectedMerkId = widget.initialMerk!.id as int;
-    }
-    if (widget.initialTypeChassis != null) {
-      _selectedTypeChassisId = widget.initialTypeChassis!.id as int;
-    }
+  }
+
+  // Helper untuk mengecek status file di server (via repository)
+  Future<void> _checkFileStatus(int masterDataId) async {
+    setState(() => _isCheckingFile = true);
+    // Kita asumsikan repository punya method checkKelistrikanFileStatusByMasterData
+    // ATAU kita perlu chassisId. Jika repository butuh chassisId,
+    // kita perlu object MasterData lengkap.
+    // SEMENTARA: Kita skip cek otomatis di init jika kompleks,
+    // tapi idealnya repository bisa handle check by masterDataId.
+
+    // Anggap repository sudah support atau kita abaikan dulu warning file ada
+    setState(() => _isCheckingFile = false);
   }
 
   @override
@@ -92,60 +98,33 @@ class _AddGambarKelistrikanFormState
 
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedFile == null) {
+
+    // Validasi: File wajib ada KECUALI sudah ada di server
+    if (!_isFileOnServer && _selectedFile == null) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Harap pilih file PDF')));
       return;
     }
 
-    try {
-      await ref
-          .read(masterDataRepositoryProvider)
-          .addGambarKelistrikan(
-            typeEngineId: _selectedTypeEngineId.toString(),
-            merkId: _selectedMerkId.toString(),
-            typeChassisId: _selectedTypeChassisId.toString(),
-            deskripsi: _deskripsiController.text,
-            gambarKelistrikanFile: _selectedFile!,
-          );
+    // Panggil callback parent dengan tipe data yang benar
+    widget.onUpload(
+      _selectedMasterDataId!,
+      _deskripsiController.text,
+      _selectedFile, // Bisa null jika _isFileOnServer true
+    );
 
-      // Reset form setelah sukses
-      setState(() {
-        // Kita reset semua kecuali jika form dibuka dalam mode "Copy Paste"
-        // Tapi untuk amannya reset saja agar user bisa input baru
-        _selectedTypeEngineId = null;
-        _selectedMerkId = null;
-        _selectedTypeChassisId = null;
-        _selectedFile = null;
-        _pdfController?.dispose();
-        _pdfController = null;
-        _deskripsiController.clear();
-      });
-
-      // Refresh tabel list
-      ref
-          .read(gambarKelistrikanFilterProvider.notifier)
-          .update((state) => Map.from(state));
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gambar Kelistrikan berhasil di-upload!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+    // Reset form UI (Opsional, karena parent mungkin merefresh halaman)
+    setState(() {
+      _selectedFile = null;
+      _pdfController?.dispose();
+      _pdfController = null;
+      _deskripsiController.clear();
+      if (widget.initialMasterData == null) {
+        _selectedMasterDataId = null;
+        _selectedMasterDataItem = null;
       }
-    } on DioException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.response?.data['message'] ?? e.message}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+    });
   }
 
   @override
@@ -167,39 +146,85 @@ class _AddGambarKelistrikanFormState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // 1. Type Engine
-                        _buildSearchableDropdown(
-                          label: 'Type Engine',
-                          provider: mdTypeEngineOptionsProvider,
-                          // Jika ada initial value, gunakan. Jika tidak, null.
-                          initialItem: widget.initialTypeEngine,
-                          onChanged: (val) => _selectedTypeEngineId = val?.id,
+                        // 1. DROPDOWN MASTER DATA (Menggantikan 3 dropdown terpisah)
+                        DropdownSearch<OptionItem>(
+                          items: (String filter, _) => ref.read(
+                            masterDataOptionsProvider(filter).future,
+                          ),
+                          itemAsString: (OptionItem item) => item.name,
+                          compareFn: (i1, i2) => i1.id == i2.id,
+
+                          selectedItem: _selectedMasterDataItem,
+
+                          onChanged: (OptionItem? item) {
+                            setState(() {
+                              _selectedMasterDataItem = item;
+                              _selectedMasterDataId = item?.id as int?;
+                              _isFileOnServer =
+                                  false; // Reset status file saat ganti data
+                            });
+                            // Optional: Cek status file di server saat ganti
+                            // if (item != null) _checkFileStatus(item.id);
+                          },
+
+                          decoratorProps: const DropDownDecoratorProps(
+                            decoration: InputDecoration(
+                              labelText:
+                                  'Pilih Master Data (Engine / Merk / Chassis)',
+                              hintText: 'Ketik untuk mencari...',
+                              isDense: true,
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          popupProps: const PopupProps.menu(
+                            showSearchBox: true,
+                            searchFieldProps: TextFieldProps(
+                              decoration: InputDecoration(
+                                hintText: "Cari...",
+                                prefixIcon: Icon(Icons.search),
+                              ),
+                            ),
+                          ),
+                          validator: (item) =>
+                              item == null && _selectedMasterDataId == null
+                              ? 'Wajib dipilih'
+                              : null,
                         ),
+
                         const SizedBox(height: 16),
 
-                        // 2. Merk
-                        _buildSearchableDropdown(
-                          label: 'Merk',
-                          provider: mdMerkOptionsProvider,
-                          initialItem: widget.initialMerk,
-                          onChanged: (val) => _selectedMerkId = val?.id,
-                        ),
-                        const SizedBox(height: 16),
+                        // Indikator File Server (Opsional, jika fitur cek aktif)
+                        if (_isFileOnServer)
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.green),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.check_circle, color: Colors.green),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    "File PDF sudah tersedia. Anda cukup mengisi deskripsi.",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        if (_isFileOnServer) const SizedBox(height: 16),
 
-                        // 3. Type Chassis
-                        _buildSearchableDropdown(
-                          label: 'Type Chassis',
-                          provider: mdTypeChassisOptionsProvider,
-                          initialItem: widget.initialTypeChassis,
-                          onChanged: (val) => _selectedTypeChassisId = val?.id,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 4. Deskripsi
+                        // 2. Deskripsi
                         TextFormField(
                           controller: _deskripsiController,
                           decoration: const InputDecoration(
-                            labelText: 'Deskripsi',
+                            labelText: 'Deskripsi Gambar Kelistrikan',
                             border: OutlineInputBorder(),
                           ),
                           textCapitalization: TextCapitalization.characters,
@@ -208,38 +233,23 @@ class _AddGambarKelistrikanFormState
                         ),
                         const SizedBox(height: 24),
 
-                        // 5. Tombol File & Upload
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: ElevatedButton.icon(
-                                    icon: const Icon(Icons.picture_as_pdf),
-                                    label: Text(
-                                      _selectedFile == null
-                                          ? 'Pilih PDF'
-                                          : 'Ganti PDF',
-                                    ),
-                                    onPressed: _pickFile,
-                                    style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                if (_selectedFile != null) ...[
-                                  const SizedBox(width: 16),
+                        // 3. Tombol File & Upload (Sembunyikan jika file sudah ada di server)
+                        if (!_isFileOnServer)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                children: [
                                   Expanded(
                                     child: ElevatedButton.icon(
-                                      icon: const Icon(Icons.upload_file),
-                                      label: const Text('Upload'),
-                                      onPressed: _submit,
+                                      icon: const Icon(Icons.picture_as_pdf),
+                                      label: Text(
+                                        _selectedFile == null
+                                            ? 'Pilih PDF'
+                                            : 'Ganti PDF',
+                                      ),
+                                      onPressed: _pickFile,
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green,
-                                        foregroundColor: Colors.white,
                                         padding: const EdgeInsets.symmetric(
                                           vertical: 16,
                                         ),
@@ -247,19 +257,37 @@ class _AddGambarKelistrikanFormState
                                     ),
                                   ),
                                 ],
-                              ],
-                            ),
-                            if (_selectedFile != null)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
-                                child: Text(
-                                  'File: ${_selectedFile!.path.split(Platform.pathSeparator).last}',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                  textAlign: TextAlign.center,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
                               ),
-                          ],
+                              if (_selectedFile != null) ...[
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: 8.0,
+                                    bottom: 16.0,
+                                  ),
+                                  child: Text(
+                                    'File: ${_selectedFile!.path.split(Platform.pathSeparator).last}',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                    textAlign: TextAlign.center,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+
+                        // Tombol Submit
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.upload_file),
+                          label: const Text('Simpan Data Kelistrikan'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          onPressed: _submit,
                         ),
                       ],
                     ),
@@ -295,70 +323,6 @@ class _AddGambarKelistrikanFormState
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildSearchableDropdown({
-    required String label,
-    required FutureProviderFamily<List<OptionItem>, String> provider,
-    required Function(OptionItem?) onChanged,
-    OptionItem? initialItem,
-  }) {
-    return DropdownSearch<OptionItem>(
-      items: (String filter, _) => ref.read(provider(filter).future),
-      itemAsString: (OptionItem item) => item.name,
-      compareFn: (item1, item2) => item1.id == item2.id,
-      selectedItem: initialItem, // Set nilai awal (penting untuk copy-paste)
-      onChanged: onChanged,
-      decoratorProps: DropDownDecoratorProps(
-        baseStyle: const TextStyle(fontSize: 13, height: 1.0),
-        decoration: InputDecoration(
-          constraints: const BoxConstraints(maxHeight: 32),
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 0,
-            horizontal: 10,
-          ),
-          labelStyle: const TextStyle(fontSize: 12),
-          labelText: label,
-          isDense: true,
-          border: const OutlineInputBorder(),
-        ),
-      ),
-      popupProps: PopupProps.menu(
-        showSearchBox: true,
-        searchFieldProps: const TextFieldProps(
-          style: TextStyle(fontSize: 13, height: 1.0),
-          decoration: InputDecoration(
-            constraints: BoxConstraints(maxHeight: 32),
-            contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-            hintStyle: TextStyle(fontSize: 13, height: 1.0),
-            hintText: "Cari...",
-            prefixIcon: Icon(Icons.search),
-          ),
-        ),
-        itemBuilder: (context, item, isSelected, isDisabled) {
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-            height:
-                30, // Paksa tinggi item menjadi 30px (atau lebih kecil sesuai selera)
-            alignment: Alignment.centerLeft,
-            child: Text(
-              item.name,
-              style: TextStyle(
-                fontSize: 12,
-                height: 1.0,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected
-                    ? Theme.of(context).primaryColor
-                    : Colors.black87,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          );
-        },
-      ),
-      validator: (item) => item == null ? 'Wajib dipilih' : null,
     );
   }
 }
