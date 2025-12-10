@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
 import '../../models/master_data.dart';
-import '../../providers/master_data_providers.dart';
+// import '../../providers/master_data_providers.dart';
 import '../../repository/master_data_repository.dart';
 
 class MasterDataRecycleBin extends ConsumerStatefulWidget {
@@ -45,10 +45,8 @@ class _MasterDataRecycleBinState extends ConsumerState<MasterDataRecycleBin> {
   Future<void> _restore(int id) async {
     try {
       await ref.read(masterDataRepositoryProvider).restoreMasterData(id);
-      await _fetchTrash(); // Refresh list sampah
-      ref.invalidate(
-        masterDataFilterProvider,
-      ); // Refresh tabel utama di layar belakang
+      await _fetchTrash();
+      // ref.invalidate(masterDataFilterProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -83,7 +81,6 @@ class _MasterDataRecycleBinState extends ConsumerState<MasterDataRecycleBin> {
       }
     } on DioException catch (e) {
       if (mounted) {
-        // Menangkap pesan error validasi dari backend (misal: masih dipakai di Master Data)
         final message =
             e.response?.data['errors']?['general']?[0] ??
             'Gagal menghapus data';

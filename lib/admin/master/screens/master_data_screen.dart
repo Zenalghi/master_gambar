@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import '../widgets/add_master_data_form.dart'; // Pastikan import ini benar
+import '../widgets/add_master_data_form.dart';
 import '../widgets/master_data_table.dart';
 import '../widgets/recycle_bin/master_data_recycle_bin.dart';
 
@@ -15,7 +15,6 @@ class MasterDataScreen extends ConsumerStatefulWidget {
 }
 
 class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
-  // Key untuk memaksa reset form HANYA saat tombol reload ditekan
   int _formResetKey = 0;
 
   @override
@@ -25,18 +24,24 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
   }
 
   void _handleReload() {
-    // 1. Refresh Tabel
+    // Trigger update untuk tabel
     ref
         .read(masterDataFilterProvider.notifier)
-        .update((state) => Map.from(state));
+        .update(
+          (state) => {
+            ...state,
+            'last_update': DateTime.now().millisecondsSinceEpoch
+                .toString(), // Trigger paksa
+          },
+        );
 
-    // 2. Invalidate Option Caches (Agar dropdown dapat data terbaru)
+    // Bersihkan cache dropdown
     ref.invalidate(mdTypeEngineOptionsProvider);
     ref.invalidate(mdMerkOptionsProvider);
     ref.invalidate(mdTypeChassisOptionsProvider);
     ref.invalidate(mdJenisKendaraanOptionsProvider);
 
-    // 3. PAKSA FORM RESET (Hanya saat tombol ini ditekan)
+    // Reset Form Input
     if (mounted) {
       setState(() {
         _formResetKey++;
@@ -53,7 +58,7 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
         children: [
           Row(
             children: [
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               const Text(
                 'Manajemen Master Data',
                 style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
@@ -77,26 +82,25 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
               ),
               const SizedBox(width: 8),
 
-              // TOMBOL RELOAD (Reset Form & Refresh Table)
               IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data & Reset Form',
                 onPressed: _handleReload,
               ),
               const SizedBox(width: 8),
-              // Tombol Menuju Trash Bin (via Dialog)
               IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.orange),
                 tooltip: 'Lihat Data Terhapus (Trash)',
                 onPressed: () async {
-                  // 1. Tampilkan dialog (menunggu dialog ditutup)
+                  // Tunggu sampai dialog ditutup
                   await showDialog(
                     context: context,
                     builder: (_) => const MasterDataRecycleBin(),
                     barrierDismissible: true,
                   );
 
-                  // 2. Setelah dialog ditutup → refresh tabel
+                  // SETELAH DIALOG TUTUP, REFRESH TABEL UTAMA
+                  // Ini penting agar data yang di-restore muncul kembali
                   ref
                       .read(masterDataFilterProvider.notifier)
                       .update(
@@ -107,7 +111,7 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
                         },
                       );
 
-                  // Opsional: invalidate dropdown/options bila perlu
+                  // Invalidate cache dropdown juga jika perlu
                   ref.invalidate(mdTypeEngineOptionsProvider);
                 },
               ),
@@ -115,8 +119,6 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
           ),
           const SizedBox(height: 1),
 
-          // FORM INPUT
-          // Kirim Key agar bisa di-reset dari luar
           AddMasterDataForm(key: ValueKey(_formResetKey)),
 
           const SizedBox(height: 5),

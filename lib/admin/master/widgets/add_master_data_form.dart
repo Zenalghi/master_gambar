@@ -18,7 +18,6 @@ class AddMasterDataForm extends ConsumerStatefulWidget {
 class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
   final _formKey = GlobalKey<FormState>();
 
-  // Gunakan OptionItem lengkap agar dropdown terisi nama
   OptionItem? _selectedTypeEngine;
   OptionItem? _selectedMerk;
   OptionItem? _selectedTypeChassis;
@@ -26,7 +25,6 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
 
   @override
   Widget build(BuildContext context) {
-    // --- LISTENER UNTUK COPY DATA ---
     ref.listen<MasterData?>(masterDataToCopyProvider, (prev, next) {
       if (next != null) {
         setState(() {
@@ -51,7 +49,6 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
             backgroundColor: Colors.blue,
           ),
         );
-        // Reset provider agar tidak trigger ulang
         ref.read(masterDataToCopyProvider.notifier).state = null;
       }
     });
@@ -113,8 +110,6 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
     );
   }
 
-  // ... (method _submit dan _buildSearchableDropdown sama seperti sebelumnya,
-  // pastikan mengirim ID sebagai int: typeEngineId: _selectedTypeEngine!.id as int)
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -128,7 +123,6 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
             jenisKendaraanId: _selectedJenisKendaraan!.id as int,
           );
 
-      // Refresh tabel
       ref
           .read(masterDataFilterProvider.notifier)
           .update(
@@ -203,8 +197,7 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
           itemBuilder: (context, item, isSelected, isDisabled) {
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-              height:
-                  30, // Paksa tinggi item menjadi 30px (atau lebih kecil sesuai selera)
+              height: 30,
               alignment: Alignment.centerLeft,
               child: Text(
                 item.name,

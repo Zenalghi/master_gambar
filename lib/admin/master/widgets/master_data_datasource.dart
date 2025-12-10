@@ -4,13 +4,12 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:dio/dio.dart';
 import 'package:master_gambar/admin/master/models/master_data.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 import 'edit_master_data_dialog.dart';
-import 'kelistrikan_deskripsi_dialog.dart'; // Import dialog baru
+import 'kelistrikan_deskripsi_dialog.dart';
 
 class MasterDataDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;
@@ -39,24 +38,17 @@ class MasterDataDataSource extends AsyncDataTableSource {
           return DataRow(
             key: ValueKey(item.id),
             cells: [
-              // 1. ID
               DataCell(SelectableText(item.id.toString())),
-
-              // Data Utama
               DataCell(SelectableText(item.typeEngine.name)),
               DataCell(SelectableText(item.merk.name)),
               DataCell(SelectableText(item.typeChassis.name)),
               DataCell(SelectableText(item.jenisKendaraan.name)),
-
-              // Tanggal
               DataCell(
                 SelectableText(dateFormat.format(item.createdAt.toLocal())),
               ),
               DataCell(
                 SelectableText(dateFormat.format(item.updatedAt.toLocal())),
               ),
-
-              // --- KOLOM OPTION MASTER DATA (Edit/Delete/Copy) ---
               DataCell(
                 Row(
                   mainAxisSize: MainAxisSize.min,
@@ -97,8 +89,6 @@ class MasterDataDataSource extends AsyncDataTableSource {
                   ],
                 ),
               ),
-
-              // --- KOLOM KELISTRIKAN (Status & Deskripsi) ---
               DataCell(_buildKelistrikanCell(item)),
             ],
           );
@@ -110,10 +100,8 @@ class MasterDataDataSource extends AsyncDataTableSource {
     }
   }
 
-  // Helper untuk logika Merah/Kuning/Hijau
   Widget _buildKelistrikanCell(MasterData item) {
     if (item.kelistrikanId != null) {
-      // HIJAU: File Ada, Deskripsi Ada
       return Row(
         children: [
           IconButton(
@@ -131,7 +119,6 @@ class MasterDataDataSource extends AsyncDataTableSource {
         ],
       );
     } else if (item.fileKelistrikanId != null) {
-      // KUNING: File Ada, Deskripsi Belum
       return Row(
         children: [
           IconButton(
@@ -152,7 +139,6 @@ class MasterDataDataSource extends AsyncDataTableSource {
         ],
       );
     } else {
-      // MERAH: File Belum Ada
       return Center(
         child: IconButton(
           icon: const Icon(
@@ -175,8 +161,6 @@ class MasterDataDataSource extends AsyncDataTableSource {
   }
 
   void _navigateToGudangFile(MasterData item) {
-    // Siapkan data LENGKAP (Engine, Merk, Chassis) untuk form Gudang File
-    // Karena form di sana sekarang butuh 3 dropdown ini terisi.
     final initialData = {
       'typeEngine': OptionItem(
         id: item.typeEngine.id,
@@ -189,11 +173,8 @@ class MasterDataDataSource extends AsyncDataTableSource {
       ),
     };
 
-    // Simpan ke provider
     _ref.read(initialKelistrikanDataProvider.notifier).state = initialData;
 
-    // Pindah ke layar Master Gambar Kelistrikan (Index 10 - Sesuaikan dengan index menu Anda)
-    // Pastikan provider ini benar mengontrol Tab/Sidebar Anda
     _ref.read(adminSidebarIndexProvider.notifier).state = 10;
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -202,7 +183,6 @@ class MasterDataDataSource extends AsyncDataTableSource {
   }
 
   void _showDeleteDialog(MasterData item) {
-    // ... (kode delete dialog sama seperti sebelumnya) ...
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

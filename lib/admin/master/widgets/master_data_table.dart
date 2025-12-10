@@ -16,20 +16,27 @@ class MasterDataTable extends ConsumerStatefulWidget {
 class _MasterDataTableState extends ConsumerState<MasterDataTable> {
   int _sortColumnIndex = 6;
   bool _sortAscending = false;
+
+  // Instance DataSource disimpan di state agar persisten
   late final MasterDataDataSource _dataSource;
 
   @override
   void initState() {
     super.initState();
+    // Inisialisasi hanya SEKALI saat widget dibuat
     _dataSource = MasterDataDataSource(ref, context);
   }
 
   @override
   Widget build(BuildContext context) {
-    // Buat DataSource di dalam build agar mendapatkan ref yang benar
-    final dataSource = MasterDataDataSource(ref, context);
+    // JANGAN BUAT DATASOURCE BARU DI SINI (HAPUS BARIS INI)
+    // final dataSource = MasterDataDataSource(ref, context); <--- INI SALAH
+
     final rowsPerPage = ref.watch(masterDataRowsPerPageProvider);
+
+    // Listener mendengarkan perubahan filter/update trigger
     ref.listen(masterDataFilterProvider, (_, __) {
+      // Refresh instance yang SAMA dengan yang dipakai tabel
       _dataSource.refreshDatasource();
     });
 
@@ -47,7 +54,9 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
       sortColumnIndex: _sortColumnIndex,
       sortAscending: _sortAscending,
       columns: _createColumns(),
-      source: dataSource,
+
+      source: _dataSource, // <--- GUNAKAN INSTANCE DARI INITSTATE
+
       empty: const Center(child: Text('Tidak ada data ditemukan')),
     );
   }
@@ -58,7 +67,6 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
       _sortAscending = ascending;
     });
 
-    // Mapping kolom sesuai backend
     final Map<int, String> columnMapping = {
       0: 'id',
       1: 'type_engine',
@@ -82,10 +90,7 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
 
   List<DataColumn2> _createColumns() {
     return [
-      // 1. ID
       DataColumn2(label: const Text('ID'), fixedWidth: 58, onSort: _onSort),
-
-      // Kolom Data
       DataColumn2(
         label: const Text('Type\nEngine'),
         size: ColumnSize.M,
@@ -106,23 +111,17 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
         size: ColumnSize.M,
         onSort: _onSort,
       ),
-
-      // 2. Tanggal Dibuat
       DataColumn2(
         label: const Text('Dibuat pada'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
-
-      // 3. Tanggal Diupdate
       DataColumn2(
         label: const Text('Diupdate pada'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
       const DataColumn2(label: Text('Options'), fixedWidth: 124),
-
-      // Kelistrikan & Options
       const DataColumn2(
         label: Center(child: Text('Kelistrikan (Deskripsi)')),
         fixedWidth: 500,
