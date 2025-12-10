@@ -13,6 +13,7 @@ import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../models/jenis_varian.dart';
 import '../models/master_data.dart';
 import '../models/g_gambar_utama.dart';
+import '../models/master_kelistrikan_file.dart';
 
 // == PROVIDER UNTUK MENGAMBIL DATA LIST LENGKAP ==
 final typeEngineListProvider = FutureProvider<List<TypeEngine>>((ref) {
@@ -168,7 +169,9 @@ final gambarKelistrikanFilterProvider = StateProvider<Map<String, String>>((
 });
 
 final gambarKelistrikanRowsPerPageProvider = StateProvider<int>((ref) => 50);
-
+final editingKelistrikanFileProvider = StateProvider<MasterKelistrikanFile?>(
+  (ref) => null,
+);
 // State untuk checkbox "Tambahkan Gambar Optional Dependen"
 final mguShowDependentOptionalProvider = StateProvider<bool>((ref) => false);
 

@@ -28,30 +28,34 @@ class _MasterGambarKelistrikanScreenState
 
   @override
   Widget build(BuildContext context) {
-    // 1. Cek apakah ada data "lemparan" dari Master Data (Fitur Copy & Navigate)
+    // 1. Data Copy Paste (Add Baru)
     final initialData = ref.watch(initialKelistrikanDataProvider);
+    // 2. Data Edit (Edit Lama)
+    final editingItem = ref.watch(editingKelistrikanFileProvider);
 
-    // Jika ada data lemparan, form harus terbuka otomatis
-    final bool shouldExpand = initialData != null;
-
+    // Buka form jika ada data Copy Paste ATAU sedang Edit
+    final bool shouldExpand = initialData != null || editingItem != null;
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(5.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // --- HEADER & SEARCH ---
           Row(
             children: [
+              const SizedBox(width: 10),
               const Text(
-                'Manajemen File Kelistrikan (Gudang File)',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                'Manajemen File Kelistrikan',
+                style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               SizedBox(
-                width: 250,
+                width: 299,
+                height: 31,
                 child: TextField(
                   decoration: const InputDecoration(
                     labelText: 'Search (ID, Engine, Merk, Chassis)...',
+                    labelStyle: TextStyle(fontSize: 11),
                     prefixIcon: Icon(Icons.search),
                     isDense: true,
                     border: OutlineInputBorder(),
@@ -77,12 +81,20 @@ class _MasterGambarKelistrikanScreenState
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          // const SizedBox(height: 16),
 
           // --- FORM TAMBAH (EXPANDABLE) ---
           ExpansionTile(
-            title: const Text('Upload File Kelistrikan Baru'),
+            title: Text(
+              editingItem != null
+                  ? 'Edit File Kelistrikan'
+                  : 'Upload File Kelistrikan Baru',
+            ),
+
+            // KUNCI: Gunakan key unik agar widget me-rebuild saat mode berubah
+            key: ValueKey(shouldExpand),
             initiallyExpanded: shouldExpand,
+
             children: [
               // Form Upload dengan 3 Dropdown + File
               AddGambarKelistrikanForm(
@@ -93,7 +105,7 @@ class _MasterGambarKelistrikanScreenState
             ],
           ),
 
-          const SizedBox(height: 16),
+          // const SizedBox(height: 16),
 
           // --- TABEL DATA ---
           const Expanded(child: GambarKelistrikanTable()),

@@ -58,10 +58,26 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // TOMBOL EDIT BARU
+                    IconButton(
+                      icon: const Icon(
+                        Icons.edit,
+                        size: 15,
+                        color: Colors.orange,
+                      ),
+                      tooltip: 'Edit File',
+                      onPressed: () {
+                        // Set item ke provider agar Form tahu kita sedang edit
+                        _ref
+                                .read(editingKelistrikanFileProvider.notifier)
+                                .state =
+                            item;
+                      },
+                    ),
                     IconButton(
                       icon: Icon(
                         Icons.visibility,
-                        size: 20,
+                        size: 15,
                         color: Colors.blue.shade700,
                       ),
                       tooltip: 'Lihat PDF',
@@ -70,7 +86,7 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
                     IconButton(
                       icon: const Icon(
                         Icons.delete,
-                        size: 20,
+                        size: 15,
                         color: Colors.red,
                       ),
                       tooltip: 'Hapus File',

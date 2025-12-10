@@ -37,6 +37,11 @@ class _AddGambarKelistrikanFormState
   int? _selectedMerkId;
   int? _selectedTypeChassisId;
 
+  // Untuk menyimpan Object OptionItem agar dropdown terisi namanya
+  OptionItem? _initialEngineObj;
+  OptionItem? _initialMerkObj;
+  OptionItem? _initialChassisObj;
+
   File? _selectedFile;
   PdfController? _pdfController;
   bool _isUploading = false;
@@ -44,18 +49,75 @@ class _AddGambarKelistrikanFormState
   @override
   void initState() {
     super.initState();
-    if (widget.initialTypeEngine != null)
+    _initializeData();
+  }
+
+  // Listener untuk mendeteksi perubahan mode Edit secara real-time
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Kita baca provider di sini untuk inisialisasi ulang jika mode berubah
+    final editingItem = ref.watch(editingKelistrikanFileProvider);
+    if (editingItem != null) {
+      // Jika sedang mode edit, paksa isi form dengan data edit
+      _selectedTypeEngineId = editingItem.typeEngineId;
+      _selectedMerkId = editingItem.merkId;
+      _selectedTypeChassisId = editingItem.typeChassisId;
+
+      // Buat objek dummy agar dropdown menampilkan nama yang benar
+      _initialEngineObj = OptionItem(
+        id: editingItem.typeEngineId,
+        name: editingItem.engineName,
+      );
+      _initialMerkObj = OptionItem(
+        id: editingItem.merkId,
+        name: editingItem.merkName,
+      );
+      _initialChassisObj = OptionItem(
+        id: editingItem.typeChassisId,
+        name: editingItem.chassisName,
+      );
+    }
+  }
+
+  void _initializeData() {
+    // Logika Copy Paste (Add Baru)
+    if (widget.initialTypeEngine != null) {
       _selectedTypeEngineId = widget.initialTypeEngine!.id as int;
-    if (widget.initialMerk != null)
+      _initialEngineObj = widget.initialTypeEngine;
+    }
+    if (widget.initialMerk != null) {
       _selectedMerkId = widget.initialMerk!.id as int;
-    if (widget.initialTypeChassis != null)
+      _initialMerkObj = widget.initialMerk;
+    }
+    if (widget.initialTypeChassis != null) {
       _selectedTypeChassisId = widget.initialTypeChassis!.id as int;
+      _initialChassisObj = widget.initialTypeChassis;
+    }
   }
 
   @override
   void dispose() {
     _pdfController?.dispose();
     super.dispose();
+  }
+
+  void _cancelEdit() {
+    // Reset provider edit menjadi null
+    ref.read(editingKelistrikanFileProvider.notifier).state = null;
+
+    // Reset form ke kosong
+    setState(() {
+      _selectedTypeEngineId = null;
+      _selectedMerkId = null;
+      _selectedTypeChassisId = null;
+      _initialEngineObj = null;
+      _initialMerkObj = null;
+      _initialChassisObj = null;
+      _selectedFile = null;
+      _pdfController?.dispose();
+      _pdfController = null;
+    });
   }
 
   Future<void> _pickFile() async {
@@ -78,15 +140,6 @@ class _AddGambarKelistrikanFormState
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Validasi Kelengkapan
-    if (_selectedTypeEngineId == null ||
-        _selectedMerkId == null ||
-        _selectedTypeChassisId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lengkapi Engine, Merk, dan Chassis')),
-      );
-      return;
-    }
     if (_selectedFile == null) {
       ScaffoldMessenger.of(
         context,
@@ -97,6 +150,8 @@ class _AddGambarKelistrikanFormState
     setState(() => _isUploading = true);
 
     try {
+      // Backend kita sudah "Pintar": Jika 3 ID ini sudah ada di DB, dia akan UPDATE file-nya.
+      // Jadi kita pakai method upload yang sama.
       await ref
           .read(masterDataRepositoryProvider)
           .uploadKelistrikanFile(
@@ -106,17 +161,8 @@ class _AddGambarKelistrikanFormState
             file: _selectedFile!,
           );
 
-      setState(() {
-        _selectedFile = null;
-        _pdfController?.dispose();
-        _pdfController = null;
-        // Opsional: Reset dropdown jika bukan mode copy-paste
-        if (widget.initialTypeChassis == null) {
-          _selectedTypeEngineId = null;
-          _selectedMerkId = null;
-          _selectedTypeChassisId = null;
-        }
-      });
+      // Setelah sukses, keluar dari mode edit
+      _cancelEdit();
 
       ref
           .read(gambarKelistrikanFilterProvider.notifier)
@@ -125,7 +171,7 @@ class _AddGambarKelistrikanFormState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Upload Berhasil!'),
+            content: Text('Simpan Berhasil!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -144,6 +190,10 @@ class _AddGambarKelistrikanFormState
 
   @override
   Widget build(BuildContext context) {
+    // Cek apakah sedang mode edit
+    final editingItem = ref.watch(editingKelistrikanFileProvider);
+    final bool isEditing = editingItem != null;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -160,10 +210,35 @@ class _AddGambarKelistrikanFormState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        // INFO MODE EDIT
+                        if (isEditing)
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              border: Border.all(color: Colors.orange),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.info_outline, color: Colors.orange),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Mode Edit: Anda tidak dapat mengubah Chassis.\nUpload file baru untuk mengganti file lama.',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
                         _buildSearchableDropdown(
                           label: 'Type Engine',
                           provider: mdTypeEngineOptionsProvider,
-                          initialItem: widget.initialTypeEngine,
+                          initialItem: _initialEngineObj,
+                          enabled: !isEditing, // DISABLE SAAT EDIT
                           onChanged: (val) =>
                               _selectedTypeEngineId = val?.id as int?,
                         ),
@@ -171,14 +246,16 @@ class _AddGambarKelistrikanFormState
                         _buildSearchableDropdown(
                           label: 'Merk',
                           provider: mdMerkOptionsProvider,
-                          initialItem: widget.initialMerk,
+                          initialItem: _initialMerkObj,
+                          enabled: !isEditing, // DISABLE SAAT EDIT
                           onChanged: (val) => _selectedMerkId = val?.id as int?,
                         ),
                         const SizedBox(height: 16),
                         _buildSearchableDropdown(
                           label: 'Type Chassis',
                           provider: mdTypeChassisOptionsProvider,
-                          initialItem: widget.initialTypeChassis,
+                          initialItem: _initialChassisObj,
+                          enabled: !isEditing, // DISABLE SAAT EDIT
                           onChanged: (val) =>
                               _selectedTypeChassisId = val?.id as int?,
                         ),
@@ -187,42 +264,89 @@ class _AddGambarKelistrikanFormState
                         ElevatedButton.icon(
                           icon: const Icon(Icons.picture_as_pdf),
                           label: Text(
-                            _selectedFile == null ? 'Pilih PDF' : 'Ganti PDF',
+                            _selectedFile == null
+                                ? (isEditing ? 'Ganti PDF' : 'Pilih PDF')
+                                : 'Ganti PDF',
                           ),
                           onPressed: _pickFile,
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
+                            backgroundColor: isEditing
+                                ? Colors.orange.shade50
+                                : null,
+                            foregroundColor: isEditing
+                                ? Colors.orange.shade900
+                                : null,
                           ),
                         ),
                         if (_selectedFile != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 8.0),
                             child: Text(
-                              'File: ${_selectedFile!.path.split(Platform.pathSeparator).last}',
+                              'File Baru: ${_selectedFile!.path.split(Platform.pathSeparator).last}',
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
+                          )
+                        else if (isEditing)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              'File Saat Ini: ${editingItem.pathFile.split('/').last}',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
                           ),
+
                         const SizedBox(height: 24),
 
-                        ElevatedButton.icon(
-                          icon: _isUploading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
+                        Row(
+                          children: [
+                            if (isEditing) ...[
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: _cancelEdit,
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
                                   ),
-                                )
-                              : const Icon(Icons.upload_file),
-                          label: const Text('Upload File'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                          onPressed: _isUploading ? null : _submit,
+                                  child: const Text('Batal Edit'),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                            ],
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                icon: _isUploading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.save),
+                                label: Text(
+                                  isEditing
+                                      ? 'Simpan Perubahan'
+                                      : 'Upload File',
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                ),
+                                onPressed: _isUploading ? null : _submit,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -239,11 +363,24 @@ class _AddGambarKelistrikanFormState
                     color: Colors.grey.shade100,
                     child: _pdfController != null
                         ? PdfView(controller: _pdfController!)
-                        : const Center(
-                            child: Icon(
-                              Icons.picture_as_pdf_outlined,
-                              color: Colors.grey,
-                              size: 60,
+                        : Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.picture_as_pdf_outlined,
+                                  color: Colors.grey,
+                                  size: 60,
+                                ),
+                                if (isEditing)
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 16.0),
+                                    child: Text(
+                                      "Preview file lama tidak ditampilkan.\nPilih file baru untuk preview.",
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                   ),
@@ -261,21 +398,60 @@ class _AddGambarKelistrikanFormState
     required FutureProviderFamily<List<OptionItem>, String> provider,
     required Function(OptionItem?) onChanged,
     OptionItem? initialItem,
+    bool enabled = true, // Parameter Baru
   }) {
     return DropdownSearch<OptionItem>(
       items: (String filter, _) => ref.read(provider(filter).future),
       itemAsString: (OptionItem item) => item.name,
       compareFn: (i1, i2) => i1.id == i2.id,
       selectedItem: initialItem,
+      enabled: enabled, // Kunci Dropdown
       onChanged: onChanged,
       decoratorProps: DropDownDecoratorProps(
+        baseStyle: TextStyle(fontSize: 13, height: 1.0),
         decoration: InputDecoration(
+          constraints: BoxConstraints(maxHeight: 32),
+          contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+          labelStyle: TextStyle(fontSize: 12),
           labelText: label,
+          border: OutlineInputBorder(),
           isDense: true,
-          border: const OutlineInputBorder(),
         ),
       ),
-      popupProps: const PopupProps.menu(showSearchBox: true),
+      popupProps: PopupProps.menu(
+        showSearchBox: true,
+        searchFieldProps: const TextFieldProps(
+          style: TextStyle(fontSize: 13, height: 1.0),
+          decoration: InputDecoration(
+            constraints: BoxConstraints(maxHeight: 32),
+            contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+            hintStyle: TextStyle(fontSize: 13, height: 1.0),
+            hintText: "Cari...",
+            prefixIcon: Icon(Icons.search),
+          ),
+        ),
+        itemBuilder: (context, item, isSelected, isDisabled) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+            height:
+                30, // Paksa tinggi item menjadi 30px (atau lebih kecil sesuai selera)
+            alignment: Alignment.centerLeft,
+            child: Text(
+              item.name,
+              style: TextStyle(
+                fontSize: 12,
+                height: 1.0,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected
+                    ? Theme.of(context).primaryColor
+                    : Colors.black87,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          );
+        },
+      ),
       validator: (item) =>
           item == null &&
               (label == 'Type Engine'

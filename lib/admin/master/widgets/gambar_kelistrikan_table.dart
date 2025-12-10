@@ -39,12 +39,11 @@ class _GambarKelistrikanTableState
     });
 
     return AsyncPaginatedDataTable2(
-      columnSpacing: 10,
+      columnSpacing: 3,
       horizontalMargin: 10,
-      minWidth: 1000,
-      headingRowHeight: 40,
-      dataRowHeight: 40,
-
+      minWidth: 900,
+      headingRowHeight: 35,
+      dataRowHeight: 30,
       // Pagination Config
       rowsPerPage: rowsPerPage,
       availableRowsPerPage: const [50, 100, 200],
@@ -102,7 +101,7 @@ class _GambarKelistrikanTableState
       ),
       DataColumn2(
         label: const Text('Merk'),
-        size: ColumnSize.S,
+        size: ColumnSize.L,
         onSort: _onSort,
       ),
       DataColumn2(
@@ -112,15 +111,15 @@ class _GambarKelistrikanTableState
       ),
       DataColumn2(
         label: const Text('Created At'),
-        size: ColumnSize.M,
+        size: ColumnSize.L,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Updated At'),
-        size: ColumnSize.M,
+        size: ColumnSize.L,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Options'), fixedWidth: 100),
+      const DataColumn2(label: Text('Options'), size: ColumnSize.S),
     ];
   }
 }
