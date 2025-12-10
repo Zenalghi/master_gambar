@@ -6,7 +6,12 @@ import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/data/providers/api_endpoints.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../repository/options_repository.dart';
+
 // import 'package:equatable/equatable.dart';
+// Provider untuk menyimpan Info Kelistrikan yang sudah di-fetch di screen
+final kelistrikanInfoProvider = StateProvider<Map<String, dynamic>?>(
+  (ref) => null,
+);
 
 class VarianFilterParams {
   final String search;

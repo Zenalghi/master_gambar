@@ -120,4 +120,41 @@ class ProsesTransaksiRepository {
       );
     }
   }
+
+  // Helper: Ambil Info Kelistrikan berdasarkan Master Data ID
+  Future<Map<String, dynamic>?> getKelistrikanByMasterData(
+    int masterDataId,
+  ) async {
+    try {
+      // Kita panggil endpoint Master Data Detail (atau list dengan filter)
+      // Asumsi: endpoint master-data/{id} sudah mengembalikan kolom kelistrikan_id & deskripsi
+      // Jika belum ada endpoint detail, kita pakai list dengan filter ID
+      final response = await _ref
+          .read(apiClientProvider)
+          .dio
+          .get(
+            '/admin/master-data',
+            queryParameters: {
+              'search': masterDataId.toString(),
+              'perPage': 1,
+            }, // Search by ID spesifik
+          );
+
+      final List data = response.data['data'];
+      if (data.isNotEmpty) {
+        final item = data.first;
+        // Pastikan ID-nya cocok (karena search bisa fuzzy)
+        if (item['id'] == masterDataId) {
+          return {
+            'id': item['kelistrikan_id'],
+            'deskripsi': item['kelistrikan_deskripsi'],
+            'file_id': item['file_kelistrikan_id'],
+          };
+        }
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
 }

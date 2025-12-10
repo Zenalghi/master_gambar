@@ -21,77 +21,69 @@ class GambarKelistrikanSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Awasi provider data yang baru
-    final kelistrikanAsync = ref.watch(
-      gambarKelistrikanDataProvider(transaksi.cTypeChassis.id),
-    );
+    // 1. Baca info kelistrikan dari Provider (yang sudah diisi oleh Screen induk)
+    final kelistrikanInfo = ref.watch(kelistrikanInfoProvider);
 
-    return kelistrikanAsync.when(
-      data: (kelistrikanItem) {
-        final bool hasKelistrikan = kelistrikanItem != null;
-        final bool isPreviewEnabled =
-            hasKelistrikan && ref.watch(pemeriksaIdProvider) != null;
-        final isLoading = ref.watch(isProcessingProvider);
+    // 2. Cek apakah ada data valid (ID Deskripsi dan ID File ada)
+    final bool hasKelistrikan =
+        kelistrikanInfo != null &&
+        kelistrikanInfo['id'] != null &&
+        kelistrikanInfo['file_id'] != null;
 
-        return Row(
-          children: [
-            const SizedBox(width: 150, child: Text('Gambar Kelistrikan:')),
-            Expanded(
-              flex: 6,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                // Tampilkan deskripsi atau keterangan
-                child: Text(
-                  hasKelistrikan
-                      ? kelistrikanItem.name
-                      : 'Gambar Kelistrikan tidak tersedia',
-                  style: TextStyle(
-                    fontStyle: hasKelistrikan
-                        ? FontStyle.normal
-                        : FontStyle.italic,
-                    color: hasKelistrikan ? Colors.black : Colors.grey.shade600,
-                  ),
-                ),
+    final String deskripsi =
+        kelistrikanInfo?['deskripsi'] ??
+        'Deskripsi atau Gambar Kelistrikan tidak tersedia';
+
+    final bool isPreviewEnabled =
+        hasKelistrikan && ref.watch(pemeriksaIdProvider) != null;
+    final isLoading = ref.watch(isProcessingProvider);
+
+    return Row(
+      children: [
+        const SizedBox(width: 150, child: Text('Gambar Kelistrikan:')),
+        Expanded(
+          flex: 6,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            // Tampilkan deskripsi yang benar
+            child: Text(
+              deskripsi,
+              style: TextStyle(
+                fontStyle: hasKelistrikan ? FontStyle.normal : FontStyle.italic,
+                color: hasKelistrikan ? Colors.black : Colors.grey.shade600,
               ),
             ),
-            const SizedBox(width: 10),
-            // Tampilkan nomor halaman hanya jika data ada
-            if (hasKelistrikan)
-              SizedBox(
-                width: 70,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.yellow.shade200,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: Colors.grey),
-                  ),
-                  child: Center(child: Text('$pageNumber/$totalHalaman')),
-                ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        // Tampilkan nomor halaman hanya jika data ada
+        if (hasKelistrikan)
+          SizedBox(
+            width: 70,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.yellow.shade200,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Colors.grey),
               ),
-            const SizedBox(width: 10),
-            // Tampilkan tombol preview hanya jika data ada
-            SizedBox(
-              width: 170,
-              child: ElevatedButton(
-                onPressed: isPreviewEnabled && !isLoading
-                    ? onPreviewPressed
-                    : null,
-                child: const Text('Preview Gambar'),
-              ),
+              child: Center(child: Text('$pageNumber/$totalHalaman')),
             ),
-          ],
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Error memuat data kelistrikan: $err'),
+          ),
+        const SizedBox(width: 10),
+        // Tampilkan tombol preview
+        SizedBox(
+          width: 170,
+          child: ElevatedButton(
+            onPressed: isPreviewEnabled && !isLoading ? onPreviewPressed : null,
+            child: const Text('Preview Gambar'),
+          ),
+        ),
+      ],
     );
   }
 }
