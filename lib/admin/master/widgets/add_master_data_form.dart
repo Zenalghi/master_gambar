@@ -143,11 +143,35 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
       }
     } on DioException catch (e) {
       if (mounted) {
+        String errorMessage = 'Terjadi kesalahan pada server';
+
+        // Cek apakah ini error validasi (422)
+        if (e.response?.statusCode == 422) {
+          final errors = e.response?.data['errors'];
+          if (errors != null) {
+            // Ambil pesan error pertama yang ditemukan
+            // Prioritaskan pesan duplicate dari jenis kendaraan
+            if (errors['d_jenis_kendaraan_id'] != null) {
+              errorMessage = errors['d_jenis_kendaraan_id'][0];
+            } else {
+              // Atau ambil error apapun yang pertama muncul
+              errorMessage = errors.values.first[0];
+            }
+          } else {
+            errorMessage = e.response?.data['message'] ?? errorMessage;
+          }
+        } else {
+          // Error server lain (500, dll)
+          errorMessage = 'Error: ${e.response?.data['message'] ?? e.message}';
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.response?.data['message'] ?? e.message}'),
+            content: Text(errorMessage),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 1),
+            duration: const Duration(
+              seconds: 2,
+            ), // Beri waktu lebih lama buat baca
           ),
         );
       }
