@@ -20,12 +20,24 @@ class _MasterGambarKelistrikanScreenState
   // Key untuk memaksa rebuild form saat data baru masuk / reset
   int _formResetKey = 0;
   // State lokal untuk mengontrol ExpansionTile
-  bool _isExpanded = true;
+  late bool _isExpanded;
 
   @override
   void initState() {
     super.initState();
+
+    // --- LOGIKA CERDAS DI SINI ---
+    // Cek apakah ada data "titipan" atau sedang "edit" SAAT INI JUGA?
+    final hasInitialData = ref.read(initialKelistrikanDataProvider) != null;
+    final isEditing = ref.read(editingKelistrikanFileProvider) != null;
+
+    // Jika ada data, langsung buka. Jika tidak, tutup.
+    _isExpanded = hasInitialData || isEditing;
+    // -----------------------------
+
     Future.microtask(() {
+      // Refresh tabel tetap jalan, tapi jangan invalidate data provider di sini
+      // karena akan menghapus data titipan tadi sebelum sempat dibaca form!
       ref.invalidate(gambarKelistrikanFilterProvider);
     });
   }
@@ -43,7 +55,7 @@ class _MasterGambarKelistrikanScreenState
     if (mounted) {
       setState(() {
         _formResetKey++; // Reset Form jadi kosong
-        _isExpanded = true; // Tutup Form
+        _isExpanded = false; // Tutup Form
       });
     }
   }
@@ -56,7 +68,6 @@ class _MasterGambarKelistrikanScreenState
       next,
     ) {
       if (next != null) {
-        // Jika ada data baru masuk, paksa form rebuild dengan data baru & buka expand
         setState(() {
           _formResetKey++;
           _isExpanded = true;
@@ -64,7 +75,6 @@ class _MasterGambarKelistrikanScreenState
       }
     });
 
-    // DENGARKAN JIKA MODE EDIT AKTIF
     ref.listen(editingKelistrikanFileProvider, (previous, next) {
       if (next != null) {
         setState(() {
@@ -76,7 +86,11 @@ class _MasterGambarKelistrikanScreenState
 
     final initialData = ref.watch(initialKelistrikanDataProvider);
     final editingItem = ref.watch(editingKelistrikanFileProvider);
-
+    String formTitle = 'Upload File Kelistrikan Baru';
+    if (editingItem != null)
+      formTitle = 'Edit File Kelistrikan';
+    else if (initialData != null)
+      formTitle = 'Upload File (Data Master)';
     return Padding(
       padding: const EdgeInsets.all(5.0),
       child: Column(
@@ -119,22 +133,21 @@ class _MasterGambarKelistrikanScreenState
 
           // --- FORM TAMBAH / EDIT ---
           ExpansionTile(
-            key: ValueKey(
-              'expansion_$_isExpanded',
-            ), // Agar status expand responsif secara programatis
+            // Key berubah jika status expand berubah -> memaksa UI update
+            key: ValueKey('expansion_$_isExpanded'),
             initiallyExpanded: _isExpanded,
             onExpansionChanged: (val) => setState(() => _isExpanded = val),
             title: Text(
-              editingItem != null
-                  ? 'Edit File Kelistrikan'
-                  : 'Upload File Kelistrikan Baru',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              formTitle,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: _isExpanded ? Theme.of(context).primaryColor : null,
+              ),
             ),
             children: [
               AddGambarKelistrikanForm(
-                // KUNCI: Key berubah = Form Rebuild ulang (baca data initial baru)
                 key: ValueKey(_formResetKey),
-
                 initialTypeEngine: initialData?['typeEngine'] as OptionItem?,
                 initialMerk: initialData?['merk'] as OptionItem?,
                 initialTypeChassis: initialData?['typeChassis'] as OptionItem?,

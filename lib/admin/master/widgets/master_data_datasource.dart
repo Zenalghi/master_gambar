@@ -222,7 +222,12 @@ class MasterDataDataSource extends AsyncDataTableSource {
                 refreshDatasource();
                 if (context.mounted) Navigator.pop(context);
               } catch (e) {
-                /* handle error */
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error menghapus data: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
               }
             },
             child: const Text('Hapus', style: TextStyle(color: Colors.red)),
