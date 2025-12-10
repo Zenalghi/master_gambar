@@ -131,8 +131,12 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
       // Refresh tabel
       ref
           .read(masterDataFilterProvider.notifier)
-          .update((state) => Map.from(state));
-
+          .update(
+            (state) => {
+              ...state,
+              'last_update': DateTime.now().millisecondsSinceEpoch.toString(),
+            },
+          );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

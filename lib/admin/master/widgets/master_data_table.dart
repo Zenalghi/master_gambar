@@ -16,12 +16,22 @@ class MasterDataTable extends ConsumerStatefulWidget {
 class _MasterDataTableState extends ConsumerState<MasterDataTable> {
   int _sortColumnIndex = 6;
   bool _sortAscending = false;
+  late final MasterDataDataSource _dataSource;
+
+  @override
+  void initState() {
+    super.initState();
+    _dataSource = MasterDataDataSource(ref, context);
+  }
 
   @override
   Widget build(BuildContext context) {
     // Buat DataSource di dalam build agar mendapatkan ref yang benar
     final dataSource = MasterDataDataSource(ref, context);
     final rowsPerPage = ref.watch(masterDataRowsPerPageProvider);
+    ref.listen(masterDataFilterProvider, (_, __) {
+      _dataSource.refreshDatasource();
+    });
 
     return AsyncPaginatedDataTable2(
       columnSpacing: 3,

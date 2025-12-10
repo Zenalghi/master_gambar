@@ -84,14 +84,31 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
                 onPressed: _handleReload,
               ),
               const SizedBox(width: 8),
+              // Tombol Menuju Trash Bin (via Dialog)
               IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.orange),
-                tooltip: 'Recycle Bin',
-                onPressed: () {
-                  showDialog(
+                tooltip: 'Lihat Data Terhapus (Trash)',
+                onPressed: () async {
+                  // 1. Tampilkan dialog (menunggu dialog ditutup)
+                  await showDialog(
                     context: context,
-                    builder: (_) => const MasterDataRecycleBin(), // Widget baru
+                    builder: (_) => const MasterDataRecycleBin(),
+                    barrierDismissible: true,
                   );
+
+                  // 2. Setelah dialog ditutup → refresh tabel
+                  ref
+                      .read(masterDataFilterProvider.notifier)
+                      .update(
+                        (state) => {
+                          ...state,
+                          'last_update': DateTime.now().millisecondsSinceEpoch
+                              .toString(),
+                        },
+                      );
+
+                  // Opsional: invalidate dropdown/options bila perlu
+                  ref.invalidate(mdTypeEngineOptionsProvider);
                 },
               ),
             ],
