@@ -178,7 +178,7 @@ class MasterDataRepository {
   // == TYPE CHASSIS (PAGINATED) ==
   Future<PaginatedResponse<TypeChassis>> getTypeChassisPaginated({
     int page = 1,
-    int perPage = 25,
+    int perPage = 50,
     String sortBy = 'id',
     String sortDirection = 'asc',
     String search = '',
@@ -262,7 +262,7 @@ class MasterDataRepository {
   // == JENIS KENDARAAN (PAGINATED) ==
   Future<PaginatedResponse<JenisKendaraan>> getJenisKendaraanListPaginated({
     int page = 1,
-    int perPage = 25,
+    int perPage = 50,
     String sortBy = 'id',
     String sortDirection = 'asc',
     String search = '',
@@ -346,7 +346,7 @@ class MasterDataRepository {
   // == VARIAN BODY (PAGINATED) ==
   Future<PaginatedResponse<VarianBody>> getVarianBodyListPaginated({
     int page = 1,
-    int perPage = 25,
+    int perPage = 50,
     String sortBy = 'updated_at',
     String sortDirection = 'desc',
     String search = '',
@@ -548,7 +548,7 @@ class MasterDataRepository {
   // == GAMBAR OPTIONAL ==
   Future<PaginatedResponse<GambarOptional>> getGambarOptionalListPaginated({
     int page = 1,
-    int perPage = 25,
+    int perPage = 50,
     String sortBy = 'updated_at',
     String sortDirection = 'desc',
     String search = '',
@@ -833,7 +833,7 @@ class MasterDataRepository {
   // == IMAGE STATUS (LAPORAN) ==
   Future<PaginatedResponse<ImageStatus>> getImageStatus({
     int page = 1,
-    int perPage = 25,
+    int perPage = 50,
     String sortBy = 'updated_at',
     String sortDirection = 'desc',
     String search = '',
@@ -886,7 +886,7 @@ class MasterDataRepository {
   // == MASTER DATA (TABEL UTAMA) ==
   Future<PaginatedResponse<MasterData>> getMasterDataPaginated({
     int page = 1,
-    int perPage = 25,
+    int perPage = 50,
     String sortBy = 'id',
     String sortDirection = 'asc',
     String search = '',

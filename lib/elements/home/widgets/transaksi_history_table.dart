@@ -42,7 +42,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
       sortColumnIndex: _sortColumnIndex,
       sortAscending: _sortAscending,
       rowsPerPage: rowsPerPage,
-      availableRowsPerPage: const [25, 50, 100],
+      availableRowsPerPage: const [50, 100],
       onRowsPerPageChanged: (value) {
         if (value != null) {
           ref.read(rowsPerPageProvider.notifier).state = value;

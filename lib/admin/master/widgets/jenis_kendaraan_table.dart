@@ -31,7 +31,7 @@ class _JenisKendaraanTableState extends ConsumerState<JenisKendaraanTable> {
       headingRowHeight: 35,
       dataRowHeight: 30,
       rowsPerPage: rowsPerPage,
-      availableRowsPerPage: const [25, 50, 100],
+      availableRowsPerPage: const [50, 100],
       onRowsPerPageChanged: (value) {
         if (value != null) {
           ref.read(jenisKendaraanRowsPerPageProvider.notifier).state = value;

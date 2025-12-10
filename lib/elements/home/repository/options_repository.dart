@@ -119,7 +119,7 @@ class TransaksiRepository {
 
   Future<PaginatedResponse<Transaksi>> getTransaksiHistory({
     int page = 1,
-    int perPage = 25,
+    int perPage = 50,
     String sortBy = 'updated_at',
     String sortDirection = 'desc',
     String search = '',

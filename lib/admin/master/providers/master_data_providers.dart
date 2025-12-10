@@ -106,12 +106,12 @@ final typeEngineSearchQueryProvider = StateProvider<String>((ref) => '');
 // Merk
 final merkRowsPerPageProvider = StateProvider<int>((ref) => 25);
 // Type Chassis
-final typeChassisRowsPerPageProvider = StateProvider<int>((ref) => 25);
+final typeChassisRowsPerPageProvider = StateProvider<int>((ref) => 50);
 // Jenis Kendaraan
-final jenisKendaraanRowsPerPageProvider = StateProvider<int>((ref) => 25);
+final jenisKendaraanRowsPerPageProvider = StateProvider<int>((ref) => 50);
 // Varian Body
-final varianBodyRowsPerPageProvider = StateProvider<int>((ref) => 25);
-final imageStatusRowsPerPageProvider = StateProvider<int>((ref) => 25);
+final varianBodyRowsPerPageProvider = StateProvider<int>((ref) => 50);
+final imageStatusRowsPerPageProvider = StateProvider<int>((ref) => 50);
 
 // --- TAMBAHKAN PROVIDER UNTUK JENIS VARIAN ---
 final jenisVarianListProvider = FutureProvider<List<JenisVarian>>((ref) {
@@ -159,7 +159,7 @@ final gambarOptionalFilterProvider = StateProvider<Map<String, String>>((ref) {
   return {'search': '', 'sortBy': 'updated_at', 'sortDirection': 'desc'};
 });
 
-final gambarOptionalRowsPerPageProvider = StateProvider<int>((ref) => 25);
+final gambarOptionalRowsPerPageProvider = StateProvider<int>((ref) => 50);
 
 // --- TAMBAHKAN PROVIDER UNTUK GAMBAR KELISTRIKAN ---
 final gambarKelistrikanFilterProvider = StateProvider<Map<String, String>>((
@@ -202,7 +202,7 @@ final hasExistingPaketOptionalProvider = FutureProvider<bool>((ref) async {
 final masterDataFilterProvider = StateProvider<Map<String, String>>(
   (ref) => {'search': '', 'sortBy': 'id', 'sortDirection': 'desc'},
 );
-final masterDataRowsPerPageProvider = StateProvider<int>((ref) => 25);
+final masterDataRowsPerPageProvider = StateProvider<int>((ref) => 50);
 
 // Provider untuk Dropdown Searchable (Family agar bisa kirim query search)
 final mdTypeEngineOptionsProvider =

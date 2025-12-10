@@ -9,7 +9,7 @@ import '../repository/options_repository.dart';
 // === BAGIAN 1: STATE UNTUK KONTROL UI & FILTER SERVER ===
 
 // State untuk menyimpan jumlah baris per halaman di tabel
-final rowsPerPageProvider = StateProvider<int>((ref) => 25);
+final rowsPerPageProvider = StateProvider<int>((ref) => 50);
 
 // State untuk menyimpan query pencarian global
 

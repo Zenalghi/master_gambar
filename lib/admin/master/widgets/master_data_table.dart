@@ -44,7 +44,7 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
       dataRowHeight: 30,
       loading: const Center(child: CircularProgressIndicator()),
       rowsPerPage: rowsPerPage,
-      availableRowsPerPage: const [25, 50, 100],
+      availableRowsPerPage: const [50, 100],
       onRowsPerPageChanged: (value) =>
           ref.read(masterDataRowsPerPageProvider.notifier).state = value!,
       sortColumnIndex: _sortColumnIndex,

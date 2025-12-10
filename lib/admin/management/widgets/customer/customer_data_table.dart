@@ -12,7 +12,7 @@ class CustomerDataTable extends ConsumerStatefulWidget {
 }
 
 class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
-  int _rowsPerPage = 25;
+  int _rowsPerPage = 50;
   int _currentPage = 1;
   String _sortBy = 'updated_at';
   bool _sortAscending = false;
@@ -71,7 +71,7 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
         rowsPerPage: _rowsPerPage,
 
         // PERMINTAAN ANDA
-        availableRowsPerPage: const [25, 50, 100],
+        availableRowsPerPage: const [50, 100],
 
         onRowsPerPageChanged: (value) {
           if (value != null) {
