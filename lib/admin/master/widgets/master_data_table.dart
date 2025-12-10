@@ -29,15 +29,11 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
 
   @override
   Widget build(BuildContext context) {
-    // JANGAN BUAT DATASOURCE BARU DI SINI (HAPUS BARIS INI)
-    // final dataSource = MasterDataDataSource(ref, context); <--- INI SALAH
-
     final rowsPerPage = ref.watch(masterDataRowsPerPageProvider);
-
-    // Listener mendengarkan perubahan filter/update trigger
     ref.listen(masterDataFilterProvider, (_, __) {
-      // Refresh instance yang SAMA dengan yang dipakai tabel
-      _dataSource.refreshDatasource();
+      Future.microtask(() {
+        _dataSource.refreshDatasource();
+      });
     });
 
     return AsyncPaginatedDataTable2(
@@ -54,8 +50,7 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
       sortColumnIndex: _sortColumnIndex,
       sortAscending: _sortAscending,
       columns: _createColumns(),
-
-      source: _dataSource, // <--- GUNAKAN INSTANCE DARI INITSTATE
+      source: _dataSource,
 
       empty: const Center(child: Text('Tidak ada data ditemukan')),
     );

@@ -196,18 +196,45 @@ class MasterDataDataSource extends AsyncDataTableSource {
           TextButton(
             onPressed: () async {
               try {
+                // 1. Panggil API Delete
                 await _ref
                     .read(masterDataRepositoryProvider)
                     .deleteMasterData(id: item.id);
-                refreshDatasource();
-                if (context.mounted) Navigator.pop(context);
+
+                // 2. TUTUP DIALOG DULU (PENTING!)
+                // Agar fokus UI lepas dari tombol delete dan overlay hilang
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
+
+                // 3. BARU REFRESH DATA SETELAHNYA
+                // Gunakan Future.microtask atau delayed agar aman dari error layout
+                Future.delayed(Duration.zero, () {
+                  refreshDatasource();
+                });
+
+                // Tampilkan snackbar sukses (opsional)
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Data berhasil dihapus'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error menghapus data: $e'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                // Jika error, jangan tutup dialog, tapi kasih tahu user
+                if (context.mounted) {
+                  Navigator.pop(
+                    context,
+                  ); // Tutup dialog jika error parah, atau biarkan terbuka
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error menghapus data: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               }
             },
             child: const Text('Hapus', style: TextStyle(color: Colors.red)),
