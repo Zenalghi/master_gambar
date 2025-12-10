@@ -17,24 +17,53 @@ class MasterGambarKelistrikanScreen extends ConsumerStatefulWidget {
 
 class _MasterGambarKelistrikanScreenState
     extends ConsumerState<MasterGambarKelistrikanScreen> {
+  bool _isUploading = false;
+
+  // Counter untuk memaksa Form me-reset dirinya sendiri
+  int _formResetKey = 0;
+
   @override
   void initState() {
     super.initState();
-    // Reset filter saat halaman dibuka
     Future.microtask(() {
-      ref.invalidate(gambarKelistrikanFilterProvider);
+      _refreshAllData();
     });
+  }
+
+  // Method helper untuk Refresh Total
+  void _refreshAllData() {
+    // 1. Refresh Tabel
+    ref.invalidate(gambarKelistrikanFilterProvider);
+
+    // 2. Reset Mode Edit
+    ref.read(editingKelistrikanFileProvider.notifier).state = null;
+
+    // 3. Reset Data Copy-Paste
+    ref.read(initialKelistrikanDataProvider.notifier).state = null;
+
+    // 4. PENTING: Hapus Cache Dropdown agar data Engine/Merk/Chassis terbaru muncul
+    ref.invalidate(mdTypeEngineOptionsProvider);
+    ref.invalidate(mdMerkOptionsProvider);
+    ref.invalidate(mdTypeChassisOptionsProvider);
+
+    // 5. Paksa Form Input untuk Rebuild (Field jadi kosong)
+    if (mounted) {
+      setState(() {
+        _formResetKey++;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // 1. Data Copy Paste (Add Baru)
+    // Data Copy Paste (Add Baru)
     final initialData = ref.watch(initialKelistrikanDataProvider);
-    // 2. Data Edit (Edit Lama)
+    // Data Edit (Edit Lama)
     final editingItem = ref.watch(editingKelistrikanFileProvider);
 
     // Buka form jika ada data Copy Paste ATAU sedang Edit
     final bool shouldExpand = initialData != null || editingItem != null;
+
     return Padding(
       padding: const EdgeInsets.all(5.0),
       child: Column(
@@ -66,38 +95,35 @@ class _MasterGambarKelistrikanScreenState
                 ),
               ),
               const SizedBox(width: 8),
+
+              // --- TOMBOL REFRESH ---
               IconButton(
                 icon: const Icon(Icons.refresh),
-                tooltip: 'Refresh Data',
-                onPressed: () {
-                  ref
-                      .read(gambarKelistrikanFilterProvider.notifier)
-                      .update((state) => Map.from(state));
-
-                  // Reset data copy-paste saat refresh manual
-                  ref.read(initialKelistrikanDataProvider.notifier).state =
-                      null;
-                },
+                tooltip: 'Refresh Data & Reset Form',
+                onPressed: _refreshAllData, // Panggil fungsi refresh total
               ),
             ],
           ),
-          // const SizedBox(height: 16),
+          const SizedBox(height: 16),
 
-          // --- FORM TAMBAH (EXPANDABLE) ---
+          // --- FORM TAMBAH / EDIT (EXPANDABLE) ---
           ExpansionTile(
+            key: ValueKey(
+              'expansion_$shouldExpand',
+            ), // Agar status expand responsif
             title: Text(
               editingItem != null
                   ? 'Edit File Kelistrikan'
                   : 'Upload File Kelistrikan Baru',
             ),
-
-            // KUNCI: Gunakan key unik agar widget me-rebuild saat mode berubah
-            key: ValueKey(shouldExpand),
             initiallyExpanded: shouldExpand,
-
             children: [
-              // Form Upload dengan 3 Dropdown + File
+              // Form Upload
+              // KUNCI: ValueKey(_formResetKey) akan memaksa widget ini
+              // dihancurkan dan dibuat baru saat _formResetKey berubah.
               AddGambarKelistrikanForm(
+                key: ValueKey(_formResetKey),
+
                 initialTypeEngine: initialData?['typeEngine'] as OptionItem?,
                 initialMerk: initialData?['merk'] as OptionItem?,
                 initialTypeChassis: initialData?['typeChassis'] as OptionItem?,
