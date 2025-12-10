@@ -46,7 +46,7 @@ class _GambarKelistrikanTableState
       dataRowHeight: 30,
       // Pagination Config
       rowsPerPage: rowsPerPage,
-      availableRowsPerPage: const [50, 100, 200],
+      availableRowsPerPage: const [50, 100],
       onRowsPerPageChanged: (value) {
         if (value != null) {
           ref.read(gambarKelistrikanRowsPerPageProvider.notifier).state = value;
