@@ -1,11 +1,8 @@
 // File: lib/admin/master/screens/master_gambar_kelistrikan_screen.dart
 
-// import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:dio/dio.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-// import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 import '../widgets/add_gambar_kelistrikan_form.dart';
 import '../widgets/gambar_kelistrikan_table.dart';
@@ -20,8 +17,6 @@ class MasterGambarKelistrikanScreen extends ConsumerStatefulWidget {
 
 class _MasterGambarKelistrikanScreenState
     extends ConsumerState<MasterGambarKelistrikanScreen> {
-  bool _isUploading = false;
-
   @override
   void initState() {
     super.initState();
@@ -56,7 +51,7 @@ class _MasterGambarKelistrikanScreenState
                 width: 250,
                 child: TextField(
                   decoration: const InputDecoration(
-                    labelText: 'Search...',
+                    labelText: 'Search (ID, Engine, Merk, Chassis)...',
                     prefixIcon: Icon(Icons.search),
                     isDense: true,
                     border: OutlineInputBorder(),
@@ -74,6 +69,7 @@ class _MasterGambarKelistrikanScreenState
                   ref
                       .read(gambarKelistrikanFilterProvider.notifier)
                       .update((state) => Map.from(state));
+
                   // Reset data copy-paste saat refresh manual
                   ref.read(initialKelistrikanDataProvider.notifier).state =
                       null;
@@ -86,23 +82,14 @@ class _MasterGambarKelistrikanScreenState
           // --- FORM TAMBAH (EXPANDABLE) ---
           ExpansionTile(
             title: const Text('Upload File Kelistrikan Baru'),
-            // Buka otomatis jika ada data lemparan dari Master Data
             initiallyExpanded: shouldExpand,
             children: [
-              if (_isUploading)
-                const Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else
-                // Panggil Widget Form Baru yang sudah disederhanakan
-                // Form ini otomatis menangani upload via repository
-                AddGambarKelistrikanForm(
-                  // Ambil data Type Chassis dari 'initialData' jika ada
-                  // Pastikan key-nya sesuai dengan yang dikirim dari master_data_datasource ('typeChassis')
-                  initialTypeChassis:
-                      initialData?['typeChassis'] as OptionItem?,
-                ),
+              // Form Upload dengan 3 Dropdown + File
+              AddGambarKelistrikanForm(
+                initialTypeEngine: initialData?['typeEngine'] as OptionItem?,
+                initialMerk: initialData?['merk'] as OptionItem?,
+                initialTypeChassis: initialData?['typeChassis'] as OptionItem?,
+              ),
             ],
           ),
 

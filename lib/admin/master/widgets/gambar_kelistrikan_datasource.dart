@@ -4,23 +4,24 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:master_gambar/admin/master/models/master_kelistrikan_file.dart'; // Model Baru
+import 'package:master_gambar/admin/master/models/master_kelistrikan_file.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
-import 'pdf_viewer_dialog.dart'; // Pastikan file ini ada
+import 'pdf_viewer_dialog.dart';
 
 class GambarKelistrikanDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;
   final BuildContext context;
   final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
+  // Constructor bersih tanpa listener
   GambarKelistrikanDataSource(this._ref, this.context);
 
   @override
   Future<AsyncRowsResponse> getRows(int startIndex, int count) async {
     final filters = _ref.read(gambarKelistrikanFilterProvider);
     try {
-      // Panggil endpoint untuk mengambil list FILE fisik
+      // Panggil endpoint FILE FISIK
       final response = await _ref
           .read(masterDataRepositoryProvider)
           .getKelistrikanFilesPaginated(
@@ -37,14 +38,14 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
           return DataRow(
             key: ValueKey(item.id),
             cells: [
-              // 1. ID File
+              // 1. ID
               DataCell(SelectableText(item.id.toString())),
-
-              // Gunakan properti String langsung dari model baru
+              // 2. Info Kendaraan (String dari Model MasterKelistrikanFile)
               DataCell(SelectableText(item.engineName)),
               DataCell(SelectableText(item.merkName)),
               DataCell(SelectableText(item.chassisName)),
 
+              // 3. Tanggal
               DataCell(
                 SelectableText(dateFormat.format(item.createdAt.toLocal())),
               ),
@@ -52,26 +53,24 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
                 SelectableText(dateFormat.format(item.updatedAt.toLocal())),
               ),
 
-              // 4. Options (View & Delete)
+              // 4. Options
               DataCell(
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Tombol Lihat PDF
                     IconButton(
                       icon: Icon(
                         Icons.visibility,
-                        size: 16,
+                        size: 20,
                         color: Colors.blue.shade700,
                       ),
                       tooltip: 'Lihat PDF',
                       onPressed: () => _showPdfPreview(item),
                     ),
-                    // Tombol Hapus File
                     IconButton(
                       icon: const Icon(
                         Icons.delete,
-                        size: 16,
+                        size: 20,
                         color: Colors.red,
                       ),
                       tooltip: 'Hapus File',
@@ -90,7 +89,6 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
     }
   }
 
-  // --- LOGIKA PREVIEW PDF ---
   void _showPdfPreview(MasterKelistrikanFile item) async {
     showDialog(
       context: context,
@@ -99,12 +97,10 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
     );
 
     try {
-      // Kita gunakan path file dari item untuk mengambil PDF
       final pdfData = await _ref
           .read(masterDataRepositoryProvider)
           .getPdfFromPath(item.pathFile);
-
-      if (context.mounted) Navigator.of(context).pop(); // Tutup loading
+      if (context.mounted) Navigator.of(context).pop();
 
       if (context.mounted) {
         showDialog(
@@ -116,7 +112,7 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
         );
       }
     } catch (e) {
-      if (context.mounted) Navigator.of(context).pop(); // Tutup loading
+      if (context.mounted) Navigator.of(context).pop();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -128,15 +124,13 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
     }
   }
 
-  // --- LOGIKA HAPUS FILE ---
   void _showDeleteDialog(MasterKelistrikanFile item) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Hapus File Kelistrikan?'),
         content: Text(
-          'PERINGATAN: File fisik untuk chassis "${item.chassisName}" akan dihapus permanen.\n\n'
-          'Semua Master Data yang menggunakan file ini akan kehilangan referensi ke gambar kelistrikannya.',
+          'File fisik untuk chassis "${item.chassisName}" akan dihapus permanen.',
         ),
         actions: [
           TextButton(
@@ -147,35 +141,16 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () async {
               try {
-                // Panggil repository untuk hapus file fisik
                 await _ref
                     .read(masterDataRepositoryProvider)
                     .deleteKelistrikanFile(id: item.id);
-
-                refreshDatasource(); // Refresh tabel
-
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('File berhasil dihapus'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
+                refreshDatasource();
+                if (context.mounted) Navigator.of(context).pop();
               } catch (e) {
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Gagal menghapus: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
+                /* handle error */
               }
             },
-            child: const Text('Hapus Permanen'),
+            child: const Text('Hapus'),
           ),
         ],
       ),

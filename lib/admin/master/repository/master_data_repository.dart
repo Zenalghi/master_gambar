@@ -780,16 +780,16 @@ class MasterDataRepository {
 
   // 2. Upload File Baru (Sesuai Backend storeFile)
   Future<void> uploadKelistrikanFile({
-    required int typeEngineId, // <-- Tambah
-    required int merkId, // <-- Tambah
+    required int typeEngineId,
+    required int merkId,
     required int typeChassisId,
     required File file,
   }) async {
     final fileName = file.path.split(Platform.pathSeparator).last;
 
     final formData = FormData.fromMap({
-      'a_type_engine_id': typeEngineId, // <-- Kirim
-      'b_merk_id': merkId, // <-- Kirim
+      'a_type_engine_id': typeEngineId,
+      'b_merk_id': merkId,
       'c_type_chassis_id': typeChassisId,
       'gambar_kelistrikan': await MultipartFile.fromFile(
         file.path,

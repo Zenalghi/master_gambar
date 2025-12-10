@@ -16,8 +16,10 @@ class GambarKelistrikanTable extends ConsumerStatefulWidget {
 
 class _GambarKelistrikanTableState
     extends ConsumerState<GambarKelistrikanTable> {
+  // Default sort: Updated At (Index 5), Descending
   int _sortColumnIndex = 5;
   bool _sortAscending = false;
+
   late final GambarKelistrikanDataSource _dataSource;
 
   @override
@@ -37,11 +39,13 @@ class _GambarKelistrikanTableState
     });
 
     return AsyncPaginatedDataTable2(
-      columnSpacing: 3,
+      columnSpacing: 10,
       horizontalMargin: 10,
-      minWidth: 900,
-      headingRowHeight: 35,
-      dataRowHeight: 30,
+      minWidth: 1000,
+      headingRowHeight: 40,
+      dataRowHeight: 40,
+
+      // Pagination Config
       rowsPerPage: rowsPerPage,
       availableRowsPerPage: const [50, 100, 200],
       onRowsPerPageChanged: (value) {
@@ -49,8 +53,11 @@ class _GambarKelistrikanTableState
           ref.read(gambarKelistrikanRowsPerPageProvider.notifier).state = value;
         }
       },
+
+      // Sorting Config
       sortColumnIndex: _sortColumnIndex,
       sortAscending: _sortAscending,
+
       columns: _createColumns(),
       source: _dataSource,
       loading: const Center(child: CircularProgressIndicator()),
@@ -64,12 +71,12 @@ class _GambarKelistrikanTableState
       _sortAscending = ascending;
     });
 
-    // Mapping sesuai indexFiles di backend
+    // KEY MAP HARUS SAMA DENGAN VALIDASI BACKEND
     final Map<int, String> columnMapping = {
       0: 'id',
-      1: 'type_engine',
-      2: 'merk',
-      3: 'type_chassis',
+      1: 'type_engine', // Backend: 'type_engine' => 'a_type_engines.type_engine'
+      2: 'merk', // Backend: 'merk' => 'b_merks.merk'
+      3: 'type_chassis', // Backend: 'type_chassis' => 'c_type_chassis.type_chassis'
       4: 'created_at',
       5: 'updated_at',
     };
@@ -87,9 +94,9 @@ class _GambarKelistrikanTableState
 
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('ID'), fixedWidth: 42, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 60, onSort: _onSort),
       DataColumn2(
-        label: const Text('Type\nEngine'),
+        label: const Text('Type Engine'),
         size: ColumnSize.S,
         onSort: _onSort,
       ),
@@ -113,7 +120,7 @@ class _GambarKelistrikanTableState
         size: ColumnSize.M,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Options'), fixedWidth: 122),
+      const DataColumn2(label: Text('Options'), fixedWidth: 100),
     ];
   }
 }
