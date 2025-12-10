@@ -175,24 +175,29 @@ class MasterDataDataSource extends AsyncDataTableSource {
   }
 
   void _navigateToGudangFile(MasterData item) {
-    // Siapkan data Chassis untuk form Gudang File
+    // Siapkan data LENGKAP (Engine, Merk, Chassis) untuk form Gudang File
+    // Karena form di sana sekarang butuh 3 dropdown ini terisi.
     final initialData = {
+      'typeEngine': OptionItem(
+        id: item.typeEngine.id,
+        name: item.typeEngine.name,
+      ),
+      'merk': OptionItem(id: item.merk.id, name: item.merk.name),
       'typeChassis': OptionItem(
         id: item.typeChassis.id,
         name: item.typeChassis.name,
       ),
     };
 
-    // Simpan ke provider (provider ini sudah dibuat sebelumnya untuk kelistrikan)
+    // Simpan ke provider
     _ref.read(initialKelistrikanDataProvider.notifier).state = initialData;
 
-    // Pindah ke layar Master Gambar Kelistrikan (Index 10)
+    // Pindah ke layar Master Gambar Kelistrikan (Index 10 - Sesuaikan dengan index menu Anda)
+    // Pastikan provider ini benar mengontrol Tab/Sidebar Anda
     _ref.read(adminSidebarIndexProvider.notifier).state = 10;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('File belum ada. Silakan upload file untuk chassis ini.'),
-      ),
+      const SnackBar(content: Text('Silakan upload file untuk data ini.')),
     );
   }
 

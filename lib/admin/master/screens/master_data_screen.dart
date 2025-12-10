@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import '../widgets/add_master_data_form.dart';
+import '../widgets/add_master_data_form.dart'; // Pastikan import ini benar
 import '../widgets/master_data_table.dart';
 import '../widgets/recycle_bin/master_data_recycle_bin.dart';
 
@@ -15,23 +15,33 @@ class MasterDataScreen extends ConsumerStatefulWidget {
 }
 
 class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
+  // Key untuk memaksa reset form HANYA saat tombol reload ditekan
+  int _formResetKey = 0;
+
   @override
   void initState() {
     super.initState();
-    // RESET TOTAL SAAT HALAMAN DIBUKA
-    Future.microtask(() {
-      // 1. Reset Search
-      ref.invalidate(masterDataFilterProvider);
+    Future.microtask(() => ref.invalidate(masterDataFilterProvider));
+  }
 
-      // 2. Reset Cache Dropdown (Agar data baru dari menu A/B/C/D masuk)
-      ref.invalidate(mdTypeEngineOptionsProvider);
-      ref.invalidate(mdMerkOptionsProvider);
-      ref.invalidate(mdTypeChassisOptionsProvider);
-      ref.invalidate(mdJenisKendaraanOptionsProvider);
+  void _handleReload() {
+    // 1. Refresh Tabel
+    ref
+        .read(masterDataFilterProvider.notifier)
+        .update((state) => Map.from(state));
 
-      // 3. Reset Copy Provider
-      ref.read(masterDataToCopyProvider.notifier).state = null;
-    });
+    // 2. Invalidate Option Caches (Agar dropdown dapat data terbaru)
+    ref.invalidate(mdTypeEngineOptionsProvider);
+    ref.invalidate(mdMerkOptionsProvider);
+    ref.invalidate(mdTypeChassisOptionsProvider);
+    ref.invalidate(mdJenisKendaraanOptionsProvider);
+
+    // 3. PAKSA FORM RESET (Hanya saat tombol ini ditekan)
+    if (mounted) {
+      setState(() {
+        _formResetKey++;
+      });
+    }
   }
 
   @override
@@ -45,7 +55,7 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
             children: [
               SizedBox(width: 10),
               const Text(
-                'Manajemen Master Data (Kombinasi)',
+                'Manajemen Master Data',
                 style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
@@ -57,6 +67,8 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
                     labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Search...',
                     prefixIcon: Icon(Icons.search),
+                    isDense: true,
+                    border: OutlineInputBorder(),
                   ),
                   onChanged: (value) => ref
                       .read(masterDataFilterProvider.notifier)
@@ -64,19 +76,12 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
                 ),
               ),
               const SizedBox(width: 8),
+
+              // TOMBOL RELOAD (Reset Form & Refresh Table)
               IconButton(
                 icon: const Icon(Icons.refresh),
-                tooltip: 'Refresh Data',
-                onPressed: () {
-                  // Refresh manual juga reset dropdown
-                  ref.invalidate(mdTypeEngineOptionsProvider);
-                  ref.invalidate(mdMerkOptionsProvider);
-                  ref.invalidate(mdTypeChassisOptionsProvider);
-                  ref.invalidate(mdJenisKendaraanOptionsProvider);
-                  ref
-                      .read(masterDataFilterProvider.notifier)
-                      .update((state) => Map.from(state));
-                },
+                tooltip: 'Refresh Data & Reset Form',
+                onPressed: _handleReload,
               ),
               const SizedBox(width: 8),
               IconButton(
@@ -92,7 +97,11 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
             ],
           ),
           const SizedBox(height: 1),
-          const AddMasterDataForm(),
+
+          // FORM INPUT
+          // Kirim Key agar bisa di-reset dari luar
+          AddMasterDataForm(key: ValueKey(_formResetKey)),
+
           const SizedBox(height: 5),
           const Expanded(child: MasterDataTable()),
         ],

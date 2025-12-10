@@ -128,14 +128,6 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
             jenisKendaraanId: _selectedJenisKendaraan!.id as int,
           );
 
-      // Reset form visual
-      // setState(() {
-      //   _selectedTypeEngine = null;
-      //   _selectedMerk = null;
-      //   _selectedTypeChassis = null;
-      //   _selectedJenisKendaraan = null;
-      // });
-
       // Refresh tabel
       ref
           .read(masterDataFilterProvider.notifier)

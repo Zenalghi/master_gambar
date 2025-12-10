@@ -17,59 +17,72 @@ class MasterGambarKelistrikanScreen extends ConsumerStatefulWidget {
 
 class _MasterGambarKelistrikanScreenState
     extends ConsumerState<MasterGambarKelistrikanScreen> {
-  bool _isUploading = false;
-
-  // Counter untuk memaksa Form me-reset dirinya sendiri
+  // Key untuk memaksa rebuild form saat data baru masuk / reset
   int _formResetKey = 0;
+  // State lokal untuk mengontrol ExpansionTile
+  bool _isExpanded = true;
 
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
-      _refreshAllData();
+      ref.invalidate(gambarKelistrikanFilterProvider);
     });
   }
 
-  // Method helper untuk Refresh Total
-  void _refreshAllData() {
-    // 1. Refresh Tabel
+  void _handleRefresh() {
     ref.invalidate(gambarKelistrikanFilterProvider);
-
-    // 2. Reset Mode Edit
+    ref.read(initialKelistrikanDataProvider.notifier).state = null;
     ref.read(editingKelistrikanFileProvider.notifier).state = null;
 
-    // 3. Reset Data Copy-Paste
-    ref.read(initialKelistrikanDataProvider.notifier).state = null;
-
-    // 4. PENTING: Hapus Cache Dropdown agar data Engine/Merk/Chassis terbaru muncul
+    // Invalidate Dropdown Caches
     ref.invalidate(mdTypeEngineOptionsProvider);
     ref.invalidate(mdMerkOptionsProvider);
     ref.invalidate(mdTypeChassisOptionsProvider);
 
-    // 5. Paksa Form Input untuk Rebuild (Field jadi kosong)
     if (mounted) {
       setState(() {
-        _formResetKey++;
+        _formResetKey++; // Reset Form jadi kosong
+        _isExpanded = true; // Tutup Form
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Data Copy Paste (Add Baru)
-    final initialData = ref.watch(initialKelistrikanDataProvider);
-    // Data Edit (Edit Lama)
-    final editingItem = ref.watch(editingKelistrikanFileProvider);
+    // DENGARKAN JIKA ADA DATA "LEMPARAN" DARI MASTER DATA
+    ref.listen<Map<String, dynamic>?>(initialKelistrikanDataProvider, (
+      previous,
+      next,
+    ) {
+      if (next != null) {
+        // Jika ada data baru masuk, paksa form rebuild dengan data baru & buka expand
+        setState(() {
+          _formResetKey++;
+          _isExpanded = true;
+        });
+      }
+    });
 
-    // Buka form jika ada data Copy Paste ATAU sedang Edit
-    final bool shouldExpand = initialData != null || editingItem != null;
+    // DENGARKAN JIKA MODE EDIT AKTIF
+    ref.listen(editingKelistrikanFileProvider, (previous, next) {
+      if (next != null) {
+        setState(() {
+          _formResetKey++;
+          _isExpanded = true;
+        });
+      }
+    });
+
+    final initialData = ref.watch(initialKelistrikanDataProvider);
+    final editingItem = ref.watch(editingKelistrikanFileProvider);
 
     return Padding(
       padding: const EdgeInsets.all(5.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // --- HEADER & SEARCH ---
+          // --- HEADER ---
           Row(
             children: [
               const SizedBox(width: 10),
@@ -95,33 +108,31 @@ class _MasterGambarKelistrikanScreenState
                 ),
               ),
               const SizedBox(width: 8),
-
-              // --- TOMBOL REFRESH ---
               IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data & Reset Form',
-                onPressed: _refreshAllData, // Panggil fungsi refresh total
+                onPressed: _handleRefresh,
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          // const SizedBox(height: 16),
 
-          // --- FORM TAMBAH / EDIT (EXPANDABLE) ---
+          // --- FORM TAMBAH / EDIT ---
           ExpansionTile(
             key: ValueKey(
-              'expansion_$shouldExpand',
-            ), // Agar status expand responsif
+              'expansion_$_isExpanded',
+            ), // Agar status expand responsif secara programatis
+            initiallyExpanded: _isExpanded,
+            onExpansionChanged: (val) => setState(() => _isExpanded = val),
             title: Text(
               editingItem != null
                   ? 'Edit File Kelistrikan'
                   : 'Upload File Kelistrikan Baru',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
-            initiallyExpanded: shouldExpand,
             children: [
-              // Form Upload
-              // KUNCI: ValueKey(_formResetKey) akan memaksa widget ini
-              // dihancurkan dan dibuat baru saat _formResetKey berubah.
               AddGambarKelistrikanForm(
+                // KUNCI: Key berubah = Form Rebuild ulang (baca data initial baru)
                 key: ValueKey(_formResetKey),
 
                 initialTypeEngine: initialData?['typeEngine'] as OptionItem?,

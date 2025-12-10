@@ -30,7 +30,7 @@ void main() async {
     // Fallback jika file config.json tidak ada atau error
     // Anda bisa menampilkan dialog error di sini nanti
     baseUrl = 'http://localhost/error-url/api';
-    debugPrint("Error membaca config.json: $e");
+    debugPrint("Error membaca config.json tidak membaca : $e");
   }
   if (!kIsWeb) {
     await windowManager.ensureInitialized();
