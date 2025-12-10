@@ -65,6 +65,7 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
 
     return Card(
       child: PaginatedDataTable2(
+        headingRowHeight: 36,
         columnSpacing: 12,
         horizontalMargin: 12,
         minWidth: 900,

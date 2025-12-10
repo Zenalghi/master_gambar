@@ -65,6 +65,7 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
 
     return Card(
       child: PaginatedDataTable2(
+        headingRowHeight: 36,
         minWidth: 900,
         rowsPerPage: _rowsPerPage,
 
