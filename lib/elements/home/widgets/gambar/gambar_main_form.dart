@@ -26,10 +26,10 @@ class GambarMainForm extends ConsumerWidget {
         jenisPengajuan == 'VARIAN' || jenisPengajuan == 'REVISI';
     final showOptional = ref.watch(showGambarOptionalProvider);
     final jumlahGambarOptional = ref.watch(jumlahGambarOptionalProvider);
-    final kelistrikanAsync = ref.watch(
-      gambarKelistrikanDataProvider(transaksi.cTypeChassis.id),
-    );
-    final hasKelistrikan = kelistrikanAsync.asData?.value != null;
+    final kelistrikanInfo = ref.watch(kelistrikanInfoProvider);
+    // LOGIKA BARU: Dianggap "Ada" (dihitung halamannya) HANYA jika status 'ready'
+    final hasKelistrikan =
+        kelistrikanInfo != null && kelistrikanInfo['status_code'] == 'ready';
     final dependentOptionals = ref.watch(dependentOptionalOptionsProvider);
     final dependentCount = dependentOptionals.asData?.value.length ?? 0;
 
@@ -38,38 +38,32 @@ class GambarMainForm extends ConsumerWidget {
         dependentCount +
         (showOptional ? jumlahGambarOptional : 0) +
         (hasKelistrikan ? 1 : 0);
+
     int dependentBasePageNumber = (jumlahGambarUtama * 3) + 1;
     int optionalBasePageNumber = dependentBasePageNumber + dependentCount;
     int kelistrikanPageNumber =
         optionalBasePageNumber + (showOptional ? jumlahGambarOptional : 0);
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Gambar Utama (Sudah Benar)
             _buildSection(
               title: 'Gambar Utama',
               itemCount: jumlahGambarUtama,
               itemBuilder: (index) {
-                // Rumus: (index * 3) + 1
                 final pageNumber = (index * 3) + 1;
                 return GambarUtamaRow(
                   index: index,
                   transaksi: transaksi,
                   totalHalaman: totalHalaman,
-                  pageNumber:
-                      pageNumber, // <-- Kirim nomor halaman untuk ditampilkan
-                  onPreviewPressed: () => onPreviewPressed(
-                    pageNumber,
-                  ), // <-- Kirim nomor halaman yang benar
+                  pageNumber: pageNumber,
+                  onPreviewPressed: () => onPreviewPressed(pageNumber),
                 );
               },
             ),
             const Divider(height: 10),
-            // Gambar Terurai (Sudah Benar)
             _buildSection(
               title: 'Gambar Terurai',
               itemCount: jumlahGambarUtama,
@@ -108,9 +102,8 @@ class GambarMainForm extends ConsumerWidget {
             dependentOptionals.when(
               data: (items) {
                 if (items.isEmpty) {
-                  return const SizedBox.shrink(); // Jangan tampilkan apa-apa jika kosong
+                  return const SizedBox.shrink();
                 }
-                // Jika ada data, tampilkan section-nya
                 return Column(
                   children: [
                     const Divider(height: 32),
@@ -199,9 +192,7 @@ class GambarMainForm extends ConsumerWidget {
                 totalHalaman: totalHalaman,
                 onPreviewPressed: (index) {
                   final pageNumber = optionalBasePageNumber + index;
-                  onPreviewPressed(
-                    pageNumber,
-                  ); // Kirim nomor halaman yang sudah benar
+                  onPreviewPressed(pageNumber);
                 },
               ),
             ],

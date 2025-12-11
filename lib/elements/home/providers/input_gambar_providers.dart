@@ -309,3 +309,4 @@ final varianBodyStatusOptionsProvider =
             masterDataId: params.masterDataId,
           );
     });
+final isLoadingKelistrikanProvider = StateProvider<bool>((ref) => false);

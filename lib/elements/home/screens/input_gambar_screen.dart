@@ -10,9 +10,10 @@ import 'package:master_gambar/elements/home/widgets/gambar/gambar_header_info.da
 import 'package:master_gambar/elements/home/widgets/gambar/gambar_main_form.dart';
 import 'package:master_gambar/admin/master/widgets/pdf_viewer_dialog.dart';
 
+import '../../../app/core/notifiers/refresh_notifier.dart';
+
 class InputGambarScreen extends ConsumerStatefulWidget {
   final Transaksi transaksi;
-
   const InputGambarScreen({super.key, required this.transaksi});
 
   @override
@@ -20,8 +21,7 @@ class InputGambarScreen extends ConsumerStatefulWidget {
 }
 
 class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
-  // State lokal untuk menyimpan info kelistrikan yang ditemukan
-  Map<String, dynamic>? _kelistrikanInfo;
+  // State lokal (opsional, karena data utama ada di provider)
   bool _isLoadingKelistrikan = true;
 
   @override
@@ -29,7 +29,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     super.initState();
     Future.microtask(() {
       _resetInputGambarState();
-      _fetchKelistrikanInfo(); // Ambil data kelistrikan saat init
+      _fetchKelistrikanInfo();
     });
   }
 
@@ -43,25 +43,30 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     ref.invalidate(gambarOptionalSelectionProvider);
     ref.read(deskripsiOptionalProvider.notifier).state = '';
     ref.invalidate(varianBodyStatusOptionsProvider);
+    ref.read(kelistrikanInfoProvider.notifier).state = null;
   }
 
   // Fetch data kelistrikan berdasarkan Master Data ID Transaksi
   Future<void> _fetchKelistrikanInfo() async {
+    // 1. Set Loading TRUE
+    ref.read(isLoadingKelistrikanProvider.notifier).state = true;
+
     try {
       final info = await ref
           .read(prosesTransaksiRepositoryProvider)
           .getKelistrikanByMasterData(widget.transaksi.masterDataId);
 
       if (mounted) {
-        setState(() {
-          _kelistrikanInfo = info;
-          _isLoadingKelistrikan = false;
-        });
-        // SIMPAN KE PROVIDER AGAR BISA DIAKSES WIDGET ANAK
+        // Simpan data
         ref.read(kelistrikanInfoProvider.notifier).state = info;
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoadingKelistrikan = false);
+      // Handle error silent
+    } finally {
+      // 2. Set Loading FALSE (Selesai)
+      if (mounted) {
+        ref.read(isLoadingKelistrikanProvider.notifier).state = false;
+      }
     }
   }
 
@@ -74,17 +79,24 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final optionalSelections = ref.read(gambarOptionalSelectionProvider);
       final deskripsiOptional = ref.read(deskripsiOptionalProvider);
 
-      // VALIDASI KELISTRIKAN
-      // Kita pakai ID dari info yang sudah di-fetch
-      final kelistrikanId = _kelistrikanInfo?['id'] as int?;
-
-      if (kelistrikanId == null) {
-        // Warning jika tidak ada data kelistrikan (optional, tergantung bisnis proses)
+      // VALIDASI KELISTRIKAN BARU
+      final kelistrikanInfo = ref.read(kelistrikanInfoProvider);
+      final status =
+          kelistrikanInfo?['status_code']; // 'ready', 'missing_file', dll
+      // Hanya izinkan jika status == 'ready' (File Ada + Deskripsi Ada)
+      if (status != 'ready') {
+        // Tampilkan pesan error dari backend
         _showSnackBar(
-          'Peringatan: Data kelistrikan (Deskripsi) belum diset untuk Master Data ini.',
+          'Kelistrikan belum siap: ${kelistrikanInfo?['display_text'] ?? "Data tidak valid"}',
           Colors.orange,
         );
+        // Opsional: return; jika ingin memblokir preview jika kelistrikan belum siap
+        // Tapi biasanya preview halaman lain tetap boleh jalan.
+        // Namun preview halaman kelistrikan itu sendiri akan gagal/kosong.
       }
+
+      // Kirim ID deskripsi (jika ada) ke backend preview
+      final kelistrikanId = kelistrikanInfo?['desc_id'] as int?;
 
       if (pemeriksaId == null) {
         _showSnackBar('Pilih pemeriksa terlebih dahulu.', Colors.orange);
@@ -156,8 +168,8 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final optionalSelections = ref.read(gambarOptionalSelectionProvider);
       final deskripsiOptional = ref.read(deskripsiOptionalProvider);
 
-      final kelistrikanId = _kelistrikanInfo?['id'] as int?;
-
+      final kelistrikanInfo = ref.read(kelistrikanInfoProvider);
+      final kelistrikanId = kelistrikanInfo?['desc_id'] as int?;
       final varianBodyIds = selections
           .where((s) => s.varianBodyId != null)
           .map((s) => s.varianBodyId!)
@@ -239,6 +251,10 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       ref.read(gambarUtamaSelectionProvider.notifier).resize(next);
     });
 
+    ref.listen(refreshNotifierProvider, (_, __) {
+      _fetchKelistrikanInfo();
+    });
+
     final jumlahGambarUtama = ref.watch(jumlahGambarProvider);
 
     return Padding(
@@ -247,8 +263,6 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
         children: [
           GambarHeaderInfo(transaksi: widget.transaksi),
           const SizedBox(height: 5),
-
-          // ----------------------------------------
           Expanded(
             child: SingleChildScrollView(
               child: GambarMainForm(
@@ -264,61 +278,6 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
 
           // Tombol Aksi
           _buildAksiButton(context),
-        ],
-      ),
-    );
-  }
-
-  // Widget Banner Info Kelistrikan
-  Widget _buildKelistrikanInfoBanner() {
-    if (_isLoadingKelistrikan) {
-      return const SizedBox(height: 20, child: LinearProgressIndicator());
-    }
-
-    final hasDeskripsi = _kelistrikanInfo?['id'] != null;
-    final hasFile = _kelistrikanInfo?['file_id'] != null;
-    final deskripsi = _kelistrikanInfo?['deskripsi'] ?? '-';
-
-    Color bgColor;
-    IconData icon;
-    String text;
-
-    if (hasDeskripsi && hasFile) {
-      bgColor = Colors.green.shade50;
-      icon = Icons.check_circle;
-      text = 'Kelistrikan Terhubung: $deskripsi';
-    } else if (hasFile) {
-      bgColor = Colors.orange.shade50;
-      icon = Icons.warning_amber;
-      text =
-          'Kelistrikan: File Ada, Tapi Deskripsi Belum Diset (Hubungi Admin)';
-    } else {
-      bgColor = Colors.red.shade50;
-      icon = Icons.error_outline;
-      text =
-          'Kelistrikan: File PDF Belum Tersedia untuk Chassis ini (Hubungi Admin)';
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: bgColor.withOpacity(1).withBlue(200),
-        ), // Sedikit menggelapkan border
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Colors.black54),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-            ),
-          ),
         ],
       ),
     );

@@ -126,33 +126,15 @@ class ProsesTransaksiRepository {
     int masterDataId,
   ) async {
     try {
-      // Kita panggil endpoint Master Data Detail (atau list dengan filter)
-      // Asumsi: endpoint master-data/{id} sudah mengembalikan kolom kelistrikan_id & deskripsi
-      // Jika belum ada endpoint detail, kita pakai list dengan filter ID
+      // Panggil API baru yang sudah Anda buat di Laravel
       final response = await _ref
           .read(apiClientProvider)
           .dio
-          .get(
-            '/admin/master-data',
-            queryParameters: {
-              'search': masterDataId.toString(),
-              'perPage': 1,
-            }, // Search by ID spesifik
-          );
+          .get('/options/kelistrikan-status/$masterDataId');
 
-      final List data = response.data['data'];
-      if (data.isNotEmpty) {
-        final item = data.first;
-        // Pastikan ID-nya cocok (karena search bisa fuzzy)
-        if (item['id'] == masterDataId) {
-          return {
-            'id': item['kelistrikan_id'],
-            'deskripsi': item['kelistrikan_deskripsi'],
-            'file_id': item['file_kelistrikan_id'],
-          };
-        }
-      }
-      return null;
+      // Response backend: {status_code, display_text, file_id, desc_id}
+      // Kita kembalikan mentah-mentah karena formatnya sudah pas
+      return response.data as Map<String, dynamic>;
     } catch (e) {
       return null;
     }

@@ -9,29 +9,21 @@ class GambarHeaderInfo extends ConsumerWidget {
   final Transaksi transaksi;
 
   const GambarHeaderInfo({super.key, required this.transaksi});
-  // --- BUAT METHOD BARU UNTUK LOGIKA REFRESH ---
   void _resetAndRefresh(BuildContext context, WidgetRef ref) {
     ref.read(isProcessingProvider.notifier).state = false;
     ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
     ref.read(deskripsiOptionalProvider.notifier).state = '';
-    // 1. Reset semua state pilihan di form
-    // ref.read(pemeriksaIdProvider.notifier).state = null;
     ref.read(jumlahGambarProvider.notifier).state = 1;
-    // invalidate akan mereset StateNotifier ke state awalnya
     ref.invalidate(gambarUtamaSelectionProvider);
-
-    // 2. Tutup dan reset checkbox beserta isinya
     ref.read(showGambarOptionalProvider.notifier).state = false;
     ref.invalidate(gambarOptionalSelectionProvider);
     ref.invalidate(varianBodyStatusOptionsProvider);
-    // 3. Bunyikan "lonceng" untuk memicu FutureProvider mengambil data baru
     ref.read(refreshNotifierProvider.notifier).refresh();
+    ref.watch(kelistrikanInfoProvider);
 
-    // 4. Beri feedback ke pengguna
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Memuat ulang data pilihan...'),
-        //warna biru
         backgroundColor: Colors.blue,
         duration: Duration(seconds: 1),
       ),
@@ -45,7 +37,6 @@ class GambarHeaderInfo extends ConsumerWidget {
         padding: const EdgeInsets.all(10.0),
         child: Column(
           children: [
-            // --- BARIS PERTAMA (Tidak berubah) ---
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -70,7 +61,6 @@ class GambarHeaderInfo extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 10),
-            // --- BARIS KEDUA (Ada perubahan) ---
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -109,7 +99,6 @@ class GambarHeaderInfo extends ConsumerWidget {
     );
   }
 
-  // Widget helper ini diubah untuk menampilkan label di atas field
   Widget _buildInfoField(String label, String value) {
     return Expanded(
       flex: 1,
@@ -136,12 +125,9 @@ class GambarHeaderInfo extends ConsumerWidget {
     );
   }
 
-  // Dropdown ini diubah agar tidak memiliki label eksplisit untuk tampilan yang lebih bersih
   Widget _buildJumlahGambarDropdown(WidgetRef ref) {
-    // Tonton provider untuk mendapatkan nilai yang sedang dipilih
     final selectedJumlah = ref.watch(jumlahGambarProvider);
 
-    // Buat daftar opsi statis dari 1 sampai 4
     final options = [1, 2, 3, 4];
 
     return DropdownButtonFormField<int>(
@@ -160,7 +146,6 @@ class GambarHeaderInfo extends ConsumerWidget {
           .toList(),
       onChanged: (value) {
         if (value != null) {
-          // Update provider saat nilai diubah
           ref.read(jumlahGambarProvider.notifier).state = value;
         }
       },
@@ -171,8 +156,6 @@ class GambarHeaderInfo extends ConsumerWidget {
 Widget _buildPemeriksaDropdown(WidgetRef ref) {
   final pemeriksaOptionsAsync = ref.watch(pemeriksaOptionsProvider);
   final selectedId = ref.watch(pemeriksaIdProvider);
-
-  // 1. Listener untuk menangani perubahan status (misal saat refresh manual)
   ref.listen<AsyncValue<List<OptionItem>>>(pemeriksaOptionsProvider, (
     previous,
     next,
@@ -189,11 +172,8 @@ Widget _buildPemeriksaDropdown(WidgetRef ref) {
 
   return pemeriksaOptionsAsync.when(
     data: (items) {
-      // 2. Logic Tambahan: Handle jika data sudah ada di cache (tidak trigger listener)
-      // Jika item ada, tapi selectedId masih null, kita set sekarang.
       if (items.isNotEmpty && selectedId == null) {
         Future.microtask(() {
-          // Cek lagi untuk memastikan tidak terjadi loop infinite
           if (ref.read(pemeriksaIdProvider) == null) {
             ref.read(pemeriksaIdProvider.notifier).state =
                 items.first.id as int?;
@@ -202,11 +182,9 @@ Widget _buildPemeriksaDropdown(WidgetRef ref) {
       }
 
       return DropdownButtonFormField<int>(
-        // 3. PENTING: Ganti 'initialValue' menjadi 'value' agar Widget update saat state berubah
         value: selectedId,
         itemHeight: 30,
         style: const TextStyle(fontSize: 13, color: Colors.black),
-        // initialValue: selectedId, <-- HAPUS INI
         hint: const Text('Pemeriksa', style: TextStyle(fontSize: 13)),
         decoration: const InputDecoration(
           labelStyle: TextStyle(fontSize: 13),

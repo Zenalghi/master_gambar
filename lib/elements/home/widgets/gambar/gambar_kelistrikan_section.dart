@@ -21,47 +21,80 @@ class GambarKelistrikanSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1. Baca info kelistrikan dari Provider (yang sudah diisi oleh Screen induk)
     final kelistrikanInfo = ref.watch(kelistrikanInfoProvider);
 
-    // 2. Cek apakah ada data valid (ID Deskripsi dan ID File ada)
-    final bool hasKelistrikan =
-        kelistrikanInfo != null &&
-        kelistrikanInfo['id'] != null &&
-        kelistrikanInfo['file_id'] != null;
+    // 1. Baca status loading
+    final bool isLoadingData = ref.watch(isLoadingKelistrikanProvider);
 
-    final String deskripsi =
-        kelistrikanInfo?['deskripsi'] ??
-        'Deskripsi atau Gambar Kelistrikan tidak tersedia';
+    final String displayText =
+        kelistrikanInfo?['display_text'] ?? 'Memuat data kelistrikan...';
+    final String statusCode = kelistrikanInfo?['status_code'] ?? 'loading';
 
+    // Logika ready (hanya jika tidak loading dan status code ready)
+    final bool isReady = !isLoadingData && statusCode == 'ready';
     final bool isPreviewEnabled =
-        hasKelistrikan && ref.watch(pemeriksaIdProvider) != null;
-    final isLoading = ref.watch(isProcessingProvider);
+        isReady && ref.watch(pemeriksaIdProvider) != null;
+    final bool isProcessing = ref.watch(isProcessingProvider);
+
+    Color bgColor;
+    Color textColor;
+
+    if (isReady) {
+      bgColor = Colors.grey.shade200;
+      textColor = Colors.black;
+    } else {
+      // Jika loading, pakai warna netral, jika error pakai merah
+      bgColor = isLoadingData ? Colors.grey.shade100 : Colors.red.shade50;
+      textColor = isLoadingData ? Colors.grey : Colors.red.shade900;
+    }
 
     return Row(
       children: [
         const SizedBox(width: 150, child: Text('Gambar Kelistrikan:')),
+
         Expanded(
           flex: 6,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            height: 48, // Tetapkan tinggi agar loader rapi
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
+              color: bgColor,
               borderRadius: BorderRadius.circular(4),
+              border: isReady || isLoadingData
+                  ? null
+                  : Border.all(color: Colors.red.shade200),
             ),
-            // Tampilkan deskripsi yang benar
-            child: Text(
-              deskripsi,
-              style: TextStyle(
-                fontStyle: hasKelistrikan ? FontStyle.normal : FontStyle.italic,
-                color: hasKelistrikan ? Colors.black : Colors.grey.shade600,
-              ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              // 2. Tampilkan Loader atau Teks
+              child: isLoadingData
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  : Text(
+                      displayText,
+                      style: TextStyle(
+                        fontStyle: isReady
+                            ? FontStyle.normal
+                            : FontStyle.italic,
+                        color: textColor,
+                        fontWeight: isReady
+                            ? FontWeight.normal
+                            : FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
             ),
           ),
         ),
+
         const SizedBox(width: 10),
-        // Tampilkan nomor halaman hanya jika data ada
-        if (hasKelistrikan)
+
+        // Indikator Halaman
+        if (isReady)
           SizedBox(
             width: 70,
             child: Container(
@@ -73,13 +106,19 @@ class GambarKelistrikanSection extends ConsumerWidget {
               ),
               child: Center(child: Text('$pageNumber/$totalHalaman')),
             ),
-          ),
+          )
+        else
+          const SizedBox(width: 70),
+
         const SizedBox(width: 10),
-        // Tampilkan tombol preview
+
+        // Tombol Preview
         SizedBox(
           width: 170,
           child: ElevatedButton(
-            onPressed: isPreviewEnabled && !isLoading ? onPreviewPressed : null,
+            onPressed: isPreviewEnabled && !isProcessing
+                ? onPreviewPressed
+                : null,
             child: const Text('Preview Gambar'),
           ),
         ),
