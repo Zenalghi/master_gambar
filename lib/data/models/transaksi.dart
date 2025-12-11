@@ -12,6 +12,8 @@ class Transaksi {
   final User user;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? judulGambarString;
+  final TransaksiDetail? detail;
 
   Transaksi({
     required this.id,
@@ -25,6 +27,8 @@ class Transaksi {
     required this.user,
     required this.createdAt,
     required this.updatedAt,
+    this.judulGambarString,
+    this.detail,
   });
 
   factory Transaksi.fromJson(Map<String, dynamic> json) {
@@ -52,6 +56,10 @@ class Transaksi {
       // Parse tanggal
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
+      judulGambarString: json['detail']?['judul_string'],
+      detail: json['detail'] != null
+          ? TransaksiDetail.fromJson(json['detail'])
+          : null,
     );
   }
 }
@@ -157,4 +165,34 @@ class User {
     name: (json['name'] ?? '').toString(),
     signature: json['signature'],
   );
+}
+
+class TransaksiDetail {
+  final int pemeriksaId;
+  final int jumlahGambar;
+  final List<Map<String, dynamic>> dataGambarUtama;
+  final List<int> optionalIndependenIds;
+  final String? deskripsiOptional;
+
+  TransaksiDetail({
+    required this.pemeriksaId,
+    required this.jumlahGambar,
+    required this.dataGambarUtama,
+    required this.optionalIndependenIds,
+    this.deskripsiOptional,
+  });
+
+  factory TransaksiDetail.fromJson(Map<String, dynamic> json) {
+    return TransaksiDetail(
+      pemeriksaId: json['pemeriksa_id'],
+      jumlahGambar: json['jumlah_gambar'],
+      dataGambarUtama: List<Map<String, dynamic>>.from(
+        json['data_gambar_utama'] ?? [],
+      ),
+      optionalIndependenIds: List<int>.from(
+        json['data_optional_independen'] ?? [],
+      ),
+      deskripsiOptional: json['deskripsi_optional'],
+    );
+  }
 }

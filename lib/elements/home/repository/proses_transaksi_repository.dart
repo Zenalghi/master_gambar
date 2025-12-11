@@ -15,6 +15,36 @@ class ProsesTransaksiRepository {
   final Ref _ref;
   ProsesTransaksiRepository(this._ref);
 
+  Future<void> saveDraft({
+    required String transaksiId,
+    required int? pemeriksaId,
+    required int jumlahGambar,
+    required List<Map<String, dynamic>> dataGambarUtama,
+    required List<int> optionalIds,
+    String? deskripsiOptional,
+  }) async {
+    try {
+      await _ref
+          .read(apiClientProvider)
+          .dio
+          .post(
+            '${ApiEndpoints.transaksi}/$transaksiId/save',
+            data: {
+              'pemeriksa_id': pemeriksaId,
+              'jumlah_gambar': jumlahGambar,
+              'data_gambar_utama':
+                  dataGambarUtama, // Kirim array object [{judul_id:1, varian_id:2}]
+              'h_gambar_optional_ids': optionalIds,
+              'deskripsi_optional': deskripsiOptional,
+            },
+          );
+    } on DioException catch (e) {
+      throw Exception(
+        'Gagal menyimpan draft: ${e.response?.data['message'] ?? e.message}',
+      );
+    }
+  }
+
   Future<Uint8List> getPreviewPdf({
     required String transaksiId,
     required int pemeriksaId,

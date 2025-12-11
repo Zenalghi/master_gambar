@@ -190,7 +190,7 @@ class _MasterGambarOptionalScreenState
             maintainState: true,
             children: [
               SizedBox(
-                height: 320, // Tinggi area Input + Preview
+                height: 400, // Tinggi area Input + Preview
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

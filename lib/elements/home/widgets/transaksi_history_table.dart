@@ -1,5 +1,3 @@
-// File: lib/elements/home/widgets/transaksi_history_table.dart
-
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,7 +14,9 @@ class TransaksiHistoryTable extends ConsumerStatefulWidget {
 
 class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
   late final TransaksiDataSource _dataSource;
-  int _sortColumnIndex = 9;
+
+  // Default sort updated_at desc (index 10)
+  int _sortColumnIndex = 10;
   bool _sortAscending = false;
 
   @override
@@ -34,9 +34,9 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
     });
 
     return AsyncPaginatedDataTable2(
-      columnSpacing: 3,
+      columnSpacing: 10,
       horizontalMargin: 10,
-      minWidth: 900,
+      minWidth: 1200, // Lebarkan sedikit agar kolom Judul muat
       headingRowHeight: 35,
       dataRowHeight: 30,
       sortColumnIndex: _sortColumnIndex,
@@ -61,6 +61,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
       _sortAscending = ascending;
     });
 
+    // Mapping Index Kolom ke Nama Field Database
     final Map<int, String> columnMapping = {
       0: 'id',
       1: 'customer',
@@ -69,9 +70,10 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
       4: 'type_chassis',
       5: 'jenis_kendaraan',
       6: 'jenis_pengajuan',
-      7: 'user',
-      8: 'created_at',
-      9: 'updated_at',
+      7: 'judul_gambar', // Pastikan backend handle sorting ini (optional)
+      8: 'user',
+      9: 'created_at',
+      10: 'updated_at',
     };
 
     ref.read(transaksiFilterProvider.notifier).update((state) {
@@ -83,62 +85,78 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
     });
   }
 
-  // --- PERBAIKAN 3: OPTIMASI UKURAN KOLOM ---
   List<DataColumn2> _createColumns() {
     return [
-      // ID: Pendek & Tetap
+      // 0. ID
       DataColumn2(label: const Text('ID'), fixedWidth: 90, onSort: _onSort),
 
-      // Customer: Panjang & Penting (Pake L agar mengambil sisa ruang)
+      // 1. Customer
       DataColumn2(
         label: const Text('Customer'),
         size: ColumnSize.L,
         onSort: _onSort,
       ),
 
-      // Data Teknis: Ukuran Sedang/Kecil
+      // 2. Engine
       DataColumn2(
         label: const Text('Engine'),
         size: ColumnSize.S,
         onSort: _onSort,
       ),
+
+      // 3. Merk
       DataColumn2(
         label: const Text('Merk'),
         size: ColumnSize.S,
         onSort: _onSort,
       ),
+
+      // 4. Type Chassis
       DataColumn2(
         label: const Text('Type Chassis'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
+
+      // 5. Jenis Kendaraan
       DataColumn2(
         label: const Text('Jenis\nKendaraan'),
         size: ColumnSize.S,
         onSort: _onSort,
       ),
 
-      // Info Status: Kecil
+      // 6. Jenis Pengajuan
       DataColumn2(
         label: const Text('Jenis\nPengajuan'),
         size: ColumnSize.S,
         onSort: _onSort,
       ),
+
+      // 7. Judul Gambar (BARU)
+      DataColumn2(
+        label: const Text('Judul Gambar'),
+        size: ColumnSize.L,
+        onSort: _onSort, // Sudah diperbaiki dari error _sort
+      ),
+
+      // 8. User
       DataColumn2(label: const Text('User'), fixedWidth: 70, onSort: _onSort),
 
-      // Tanggal: Fixed Width agar rapi (sekitar 110-120px cukup untuk dd-MM-yyyy HH:mm)
+      // 9. Created At
       DataColumn2(
         label: const Text('Created at'),
         fixedWidth: 110,
         onSort: _onSort,
       ),
+
+      // 10. Updated At
       DataColumn2(
         label: const Text('Updated at'),
         fixedWidth: 110,
         onSort: _onSort,
       ),
 
-      // Option: Fixed Width
+      // Options
       const DataColumn2(label: Text('Options'), fixedWidth: 85),
     ];
   }

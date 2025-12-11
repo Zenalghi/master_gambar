@@ -1,5 +1,3 @@
-// File: lib/elements/home/widgets/transaksi_history_datasource.dart
-
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,18 +5,15 @@ import 'package:intl/intl.dart';
 import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/elements/home/providers/page_state_provider.dart';
 import 'package:master_gambar/elements/home/providers/transaksi_providers.dart';
-import 'package:master_gambar/elements/home/repository/options_repository.dart';
 import '../../../data/models/transaksi.dart';
+import '../repository/options_repository.dart';
 import 'edit_transaksi_dialog.dart';
 
-// Hapus provider global transaksiDataSourceProvider jika ada, kita pakai instance lokal
-
 class TransaksiDataSource extends AsyncDataTableSource {
-  final WidgetRef _ref; // Gunakan WidgetRef
+  final WidgetRef _ref;
   final BuildContext context;
   final DateFormat dateFormat = DateFormat('yyyy.MM.dd HH:mm');
 
-  // Hapus listener dari constructor!
   TransaksiDataSource(this._ref, this.context);
 
   @override
@@ -45,44 +40,75 @@ class TransaksiDataSource extends AsyncDataTableSource {
           final canEdit =
               authService.canViewAdminTabs() || (trx.user.id == currentUserId);
 
+          // Cek apakah ada draft tersimpan
+          final bool hasDraft = trx.detail != null;
+
           return DataRow(
             key: ValueKey(trx.id),
             cells: [
+              // 0. ID
               DataCell(SelectableText(trx.id.toString())),
+              // 1. Customer
               DataCell(SelectableText(trx.customer.namaPt)),
+              // 2. Engine
               DataCell(SelectableText(trx.aTypeEngine.typeEngine)),
+              // 3. Merk
               DataCell(SelectableText(trx.bMerk.merk)),
+              // 4. Chassis
               DataCell(SelectableText(trx.cTypeChassis.typeChassis)),
+              // 5. Jenis Kendaraan
               DataCell(SelectableText(trx.dJenisKendaraan.jenisKendaraan)),
+              // 6. Jenis Pengajuan
               DataCell(SelectableText(trx.fPengajuan.jenisPengajuan)),
+
+              // 7. Judul Gambar (Gabungan dari detail)
+              DataCell(SelectableText(trx.judulGambarString ?? '-')),
+
+              // 8. User
               DataCell(SelectableText(trx.user.name)),
+
+              // 9. Created At
               DataCell(
                 SelectableText(dateFormat.format(trx.createdAt.toLocal())),
               ),
+
+              // 10. Updated At
               DataCell(
                 SelectableText(dateFormat.format(trx.updatedAt.toLocal())),
               ),
+
+              // Options
               DataCell(
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Tombol Edit Data Master Transaksi
                     IconButton(
                       icon: Icon(
-                        size: 15,
                         Icons.edit,
+                        size: 15,
                         color: canEdit ? Colors.orange.shade700 : Colors.grey,
                       ),
-                      tooltip: canEdit ? 'Edit' : 'Anda tidak punya akses',
+                      tooltip: canEdit
+                          ? 'Edit Data Transaksi'
+                          : 'Anda tidak punya akses',
                       onPressed: canEdit ? () => _showEditDialog(trx) : null,
                     ),
+
+                    // Tombol Proses / Lanjut Draft
                     IconButton(
-                      icon: const Icon(
-                        Icons.open_in_new,
+                      icon: Icon(
+                        // Ganti Icon jika ada Draft
+                        hasDraft ? Icons.edit_document : Icons.open_in_new,
                         size: 15,
-                        color: Colors.blue,
+                        // Ganti Warna jika ada Draft
+                        color: hasDraft ? Colors.orange : Colors.blue,
                       ),
-                      tooltip: 'Buka Detail / Input Gambar',
+                      tooltip: hasDraft
+                          ? 'Lanjutkan Edit Draft'
+                          : 'Proses Gambar Baru',
                       onPressed: () {
+                        // Buka Tab Input Gambar (Index 1) dengan membawa data transaksi
                         _ref.read(pageStateProvider.notifier).state = PageState(
                           pageIndex: 1,
                           data: trx,
