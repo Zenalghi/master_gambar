@@ -323,7 +323,9 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     ref.listen<int>(jumlahGambarProvider, (previous, next) {
       ref.read(gambarUtamaSelectionProvider.notifier).resize(next);
     });
-
+    ref.listen<int>(jumlahGambarOptionalProvider, (previous, next) {
+      ref.read(gambarOptionalSelectionProvider.notifier).resize(next);
+    });
     ref.listen(refreshNotifierProvider, (_, __) {
       _initOrReloadData();
     });

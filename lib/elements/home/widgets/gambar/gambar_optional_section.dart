@@ -19,9 +19,9 @@ class GambarOptionalSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final jumlah = ref.watch(jumlahGambarOptionalProvider);
 
-    ref.listen<int>(jumlahGambarOptionalProvider, (prev, next) {
-      ref.read(gambarOptionalSelectionProvider.notifier).resize(next);
-    });
+    // ref.listen<int>(jumlahGambarOptionalProvider, (prev, next) {
+    //   ref.read(gambarOptionalSelectionProvider.notifier).resize(next);
+    // });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

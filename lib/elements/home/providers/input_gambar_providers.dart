@@ -56,8 +56,10 @@ final gambarOptionalSelectionProvider =
       GambarOptionalSelectionNotifier,
       List<GambarOptionalSelection>
     >((ref) {
-      final jumlah = ref.watch(jumlahGambarOptionalProvider);
-      return GambarOptionalSelectionNotifier(jumlah);
+      // --- PERBAIKAN: HAPUS ref.watch ---
+      // Jangan watch jumlah di sini agar provider tidak reset saat jumlah berubah.
+      // Kita inisialisasi dengan nilai default (1), nanti listener di UI yang akan me-resize.
+      return GambarOptionalSelectionNotifier(1);
     });
 
 class GambarOptionalSelectionNotifier
