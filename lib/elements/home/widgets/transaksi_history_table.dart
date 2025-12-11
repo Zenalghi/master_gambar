@@ -134,7 +134,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
 
       // 7. Judul Gambar (BARU)
       DataColumn2(
-        label: const Text('Judul Gambar'),
+        label: const Text('Judul (Standar, Varian)'),
         size: ColumnSize.L,
         onSort: _onSort, // Sudah diperbaiki dari error _sort
       ),

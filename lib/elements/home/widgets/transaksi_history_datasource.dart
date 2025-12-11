@@ -62,7 +62,9 @@ class TransaksiDataSource extends AsyncDataTableSource {
               DataCell(SelectableText(trx.fPengajuan.jenisPengajuan)),
 
               // 7. Judul Gambar (Gabungan dari detail)
-              DataCell(SelectableText(trx.judulGambarString ?? '-')),
+              DataCell(
+                SelectableText(trx.judulGambarString ?? '--judul tak ada--'),
+              ),
 
               // 8. User
               DataCell(SelectableText(trx.user.name)),
