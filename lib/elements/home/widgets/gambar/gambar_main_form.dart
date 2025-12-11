@@ -12,11 +12,15 @@ class GambarMainForm extends ConsumerWidget {
   final Function(int pageNumber) onPreviewPressed;
   final int jumlahGambarUtama;
 
+  // Tambahkan Parameter Controller
+  final TextEditingController? deskripsiController;
+
   const GambarMainForm({
     super.key,
     required this.transaksi,
     required this.onPreviewPressed,
     required this.jumlahGambarUtama,
+    this.deskripsiController,
   });
 
   @override
@@ -206,9 +210,9 @@ class GambarMainForm extends ConsumerWidget {
             ),
             if (showDeskripsiOptional) ...[
               const Divider(height: 32),
-              Text(
+              const Text(
                 'Deskripsi Optional (Untuk Varian/Revisi)',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.blue,
@@ -216,9 +220,14 @@ class GambarMainForm extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               TextFormField(
-                initialValue: ref.watch(deskripsiOptionalProvider),
+                // Gunakan controller jika ada, jika tidak null (tapi harusnya ada dari screen)
+                controller: deskripsiController,
+
+                // Hapus initialValue karena bentrok dengan controller
+                // initialValue: ref.watch(deskripsiOptionalProvider),
                 onChanged: (value) =>
                     ref.read(deskripsiOptionalProvider.notifier).state = value,
+
                 decoration: const InputDecoration(
                   hintText: 'Masukkan deskripsi tambahan di sini...',
                   border: OutlineInputBorder(),

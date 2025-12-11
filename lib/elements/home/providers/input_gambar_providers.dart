@@ -75,10 +75,20 @@ class GambarOptionalSelectionNotifier
   }
 
   void resize(int newSize) {
-    state = List.generate(
-      newSize,
-      (i) => i < state.length ? state[i] : GambarOptionalSelection(),
-    );
+    if (newSize == state.length) return;
+
+    final currentList = List<GambarOptionalSelection>.from(state);
+
+    if (newSize > state.length) {
+      // Jika bertambah, COPY data lama, lalu tambahkan slot kosong baru
+      currentList.addAll(
+        List.generate(newSize - state.length, (_) => GambarOptionalSelection()),
+      );
+    } else {
+      // Jika berkurang, potong dari belakang
+      currentList.removeRange(newSize, state.length);
+    }
+    state = currentList;
   }
 }
 

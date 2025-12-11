@@ -23,30 +23,65 @@ class InputGambarScreen extends ConsumerStatefulWidget {
 class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
   // State lokal (opsional, karena data utama ada di provider)
   bool _isLoadingKelistrikan = true;
+  late TextEditingController _deskripsiOptionalController;
 
   @override
   void initState() {
     super.initState();
+    // Inisialisasi controller
+    _deskripsiOptionalController = TextEditingController();
+
     Future.microtask(() {
-      _resetInputGambarState();
-
-      if (widget.transaksi.detail != null) {
-        _loadSavedState(widget.transaksi.detail!);
-      }
-
-      _fetchKelistrikanInfo();
+      _initOrReloadData();
     });
   }
 
+  @override
+  void dispose() {
+    _deskripsiOptionalController.dispose();
+    super.dispose();
+  }
+
+  // --- FIX BUG 3: Method Gabungan untuk Init & Reload ---
+  void _initOrReloadData() {
+    // 1. Reset State Provider (Bersih-bersih)
+    _resetInputGambarState();
+
+    // 2. Fetch Info Kelistrikan (Update Terbaru dari Admin)
+    _fetchKelistrikanInfo();
+
+    // 3. Load Draft History (Jika Ada)
+    // PENTING: Kita load ulang history agar data input user kembali muncul
+    if (widget.transaksi.detail != null) {
+      _loadSavedState(widget.transaksi.detail!);
+    }
+  }
+
+  // Helper untuk Reset
+  void _resetInputGambarState() {
+    ref.read(isProcessingProvider.notifier).state = false;
+    ref.read(pemeriksaIdProvider.notifier).state = null;
+    ref.read(jumlahGambarProvider.notifier).state = 1;
+    ref.invalidate(gambarUtamaSelectionProvider);
+    ref.read(showGambarOptionalProvider.notifier).state = false;
+    ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
+    ref.invalidate(gambarOptionalSelectionProvider);
+
+    // Reset teks deskripsi provider & controller
+    ref.read(deskripsiOptionalProvider.notifier).state = '';
+    _deskripsiOptionalController.text = '';
+
+    ref.invalidate(varianBodyStatusOptionsProvider);
+    ref.read(kelistrikanInfoProvider.notifier).state = null;
+  }
+
+  // Helper Load Data History
   void _loadSavedState(TransaksiDetail detail) {
-    // 1. Pemeriksa & Jumlah Gambar
+    // ... (Logika 1-4 sama seperti sebelumnya) ...
     ref.read(pemeriksaIdProvider.notifier).state = detail.pemeriksaId;
     ref.read(jumlahGambarProvider.notifier).state = detail.jumlahGambar;
-
-    // Resize list selection provider
     ref.read(gambarUtamaSelectionProvider.notifier).resize(detail.jumlahGambar);
 
-    // 2. Isi Gambar Utama (Looping array)
     for (int i = 0; i < detail.dataGambarUtama.length; i++) {
       final item = detail.dataGambarUtama[i];
       ref
@@ -58,12 +93,10 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
           );
     }
 
-    // 3. Optional Independen
     if (detail.optionalIndependenIds.isNotEmpty) {
       ref.read(showGambarOptionalProvider.notifier).state = true;
       ref.read(jumlahGambarOptionalProvider.notifier).state =
           detail.optionalIndependenIds.length;
-
       ref
           .read(gambarOptionalSelectionProvider.notifier)
           .resize(detail.optionalIndependenIds.length);
@@ -77,24 +110,13 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       }
     }
 
-    // 4. Deskripsi Optional
+    // 5. Deskripsi Optional (FIX BUG 1)
     if (detail.deskripsiOptional != null) {
       ref.read(deskripsiOptionalProvider.notifier).state =
           detail.deskripsiOptional!;
+      _deskripsiOptionalController.text =
+          detail.deskripsiOptional!; // Isi Controller!
     }
-  }
-
-  void _resetInputGambarState() {
-    ref.read(isProcessingProvider.notifier).state = false;
-    ref.read(pemeriksaIdProvider.notifier).state = null;
-    ref.read(jumlahGambarProvider.notifier).state = 1;
-    ref.invalidate(gambarUtamaSelectionProvider);
-    ref.read(showGambarOptionalProvider.notifier).state = false;
-    ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
-    ref.invalidate(gambarOptionalSelectionProvider);
-    ref.read(deskripsiOptionalProvider.notifier).state = '';
-    ref.invalidate(varianBodyStatusOptionsProvider);
-    ref.read(kelistrikanInfoProvider.notifier).state = null;
   }
 
   // Fetch data kelistrikan berdasarkan Master Data ID Transaksi
@@ -303,7 +325,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     });
 
     ref.listen(refreshNotifierProvider, (_, __) {
-      _fetchKelistrikanInfo();
+      _initOrReloadData();
     });
 
     final jumlahGambarUtama = ref.watch(jumlahGambarProvider);
@@ -321,6 +343,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
                 onPreviewPressed: (pageNumber) =>
                     _handlePreview(context, pageNumber),
                 jumlahGambarUtama: jumlahGambarUtama,
+                deskripsiController: _deskripsiOptionalController,
               ),
             ),
           ),
