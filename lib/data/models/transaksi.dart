@@ -1,5 +1,7 @@
 // File: lib/data/models/transaksi.dart
 
+import 'package:flutter/material.dart';
+
 class Transaksi {
   final String id;
   final int masterDataId;
@@ -32,35 +34,47 @@ class Transaksi {
   });
 
   factory Transaksi.fromJson(Map<String, dynamic> json) {
-    return Transaksi(
-      // Gunakan toString() untuk ID transaksi agar aman
-      id: json['id'].toString(),
+    try {
+      // --- DEBUGGING ---
+      // Kode ini akan memunculkan daftar key yang diterima dari backend di Debug Console
+      // Cek apakah 'judul_gambar_string' ada di daftar ini.
+      // debugPrint("DEBUG TRANSAKSI ID: ${json['id']} | Keys: ${json.keys.toList()}");
+      // debugPrint("DEBUG JUDUL VALUE: ${json['judul_gambar_string']}");
+      // -----------------
 
-      // master_data_id adalah integer dari database
-      masterDataId: json['master_data_id'] is int
-          ? json['master_data_id']
-          : int.tryParse(json['master_data_id'].toString()) ?? 0,
+      return Transaksi(
+        id: json['id'].toString(),
+        masterDataId: json['master_data_id'] is int
+            ? json['master_data_id']
+            : int.tryParse(json['master_data_id'].toString()) ?? 0,
 
-      // Parse nested objects
-      // Pastikan backend mengirim key 'customer', 'a_type_engine', dll.
-      customer: Customer.fromJson(json['customer'] ?? {}),
-      aTypeEngine: ATypeEngine.fromJson(json['a_type_engine'] ?? {}),
-      bMerk: BMerk.fromJson(json['b_merk'] ?? {}),
-      cTypeChassis: CTypeChassis.fromJson(json['c_type_chassis'] ?? {}),
-      dJenisKendaraan: DJenisKendaraan.fromJson(
-        json['d_jenis_kendaraan'] ?? {},
-      ),
-      fPengajuan: FPengajuan.fromJson(json['f_pengajuan'] ?? {}),
-      user: User.fromJson(json['user'] ?? {}),
+        customer: Customer.fromJson(json['customer'] ?? {}),
+        aTypeEngine: ATypeEngine.fromJson(json['a_type_engine'] ?? {}),
+        bMerk: BMerk.fromJson(json['b_merk'] ?? {}),
+        cTypeChassis: CTypeChassis.fromJson(json['c_type_chassis'] ?? {}),
+        dJenisKendaraan: DJenisKendaraan.fromJson(
+          json['d_jenis_kendaraan'] ?? {},
+        ),
+        fPengajuan: FPengajuan.fromJson(json['f_pengajuan'] ?? {}),
+        user: User.fromJson(json['user'] ?? {}),
+        createdAt: DateTime.parse(json['created_at']),
+        updatedAt: DateTime.parse(json['updated_at']),
 
-      // Parse tanggal
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
-      judulGambarString: json['detail']?['judul_string'],
-      detail: json['detail'] != null
-          ? TransaksiDetail.fromJson(json['detail'])
-          : null,
-    );
+        // --- PERBAIKAN UTAMA DI SINI ---
+        // Ambil langsung dari root JSON dengan nama key yang benar dari Laravel
+        judulGambarString: json['judul_gambar_string']?.toString(),
+
+        // -------------------------------
+        detail: json['detail'] != null
+            ? TransaksiDetail.fromJson(json['detail'])
+            : null,
+      );
+    } catch (e, stack) {
+      // Ini akan memunculkan error detail di Debug Console jika parsing gagal
+      debugPrint("ERROR PARSING TRANSAKSI ${json['id']}: $e");
+      debugPrint("STACK TRACE: $stack");
+      rethrow; // Lempar ulang error agar aplikasi tidak diam saja
+    }
   }
 }
 
