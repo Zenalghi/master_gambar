@@ -244,10 +244,48 @@ class _MasterGambarOptionalScreenState
     }
   }
 
+  void _handleCopyAction() {
+    // 1. Reset Form Input (Deskripsi & File) tapi JANGAN reset Dropdown
+    _deskripsiController.clear();
+    setState(() {
+      _selectedFile = null;
+      _pdfController?.dispose();
+      _pdfController = null;
+    });
+
+    // 2. Pastikan Mode Edit Mati (Jadi Mode Tambah Baru)
+    ref.read(editingGambarOptionalProvider.notifier).state = null;
+
+    // 3. Buka ExpansionTile jika tertutup
+    if (!_expansionController.isExpanded) {
+      _expansionController.expand();
+    }
+
+    // 4. Scroll ke atas (Opsional, agar user sadar form terbuka)
+    // (Jika Anda punya ScrollController di SingleChildScrollView utama)
+
+    // 5. Tampilkan SnackBar Instruksi
+    ScaffoldMessenger.of(context).hideCurrentSnackBar(); // Hapus snackbar lama
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Data Kendaraan disalin! Silakan isi Deskripsi dan Upload File baru.',
+        ),
+        backgroundColor: Colors.blue,
+        duration: Duration(seconds: 4),
+        // showCloseIcon: true,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     _setupEditListener();
-
+    ref.listen(copyGambarOptionalTriggerProvider, (previous, next) {
+      if (next > 0) {
+        _handleCopyAction();
+      }
+    });
     final editingItem = ref.watch(editingGambarOptionalProvider);
     final isEditMode = editingItem != null;
 

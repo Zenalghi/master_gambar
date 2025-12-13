@@ -10,6 +10,7 @@ import 'package:master_gambar/admin/master/providers/master_data_providers.dart'
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import '../../../app/theme/app_theme.dart';
 // import 'edit_gambar_optional_dialog.dart';
+import '../../../data/models/option_item.dart';
 import 'pdf_viewer_dialog.dart'; // Pastikan file ini sudah ada
 
 class GambarOptionalDataSource extends AsyncDataTableSource {
@@ -102,6 +103,15 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
                   mainAxisSize: MainAxisSize.min,
 
                   children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.content_copy, // Icon Copy
+                        size: 15,
+                        color: Colors.lightBlueAccent,
+                      ),
+                      tooltip: 'Copy Data Kendaraan',
+                      onPressed: () => _copyItemToForm(item),
+                    ),
                     // Tombol View PDF
                     IconButton(
                       icon: Icon(
@@ -213,5 +223,28 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
         ],
       ),
     );
+  }
+
+  void _copyItemToForm(GambarOptional item) {
+    final vb = item.varianBody;
+    final md = vb?.masterData;
+
+    if (vb != null && md != null) {
+      // 1. Siapkan Nama Master Data untuk Dropdown Search
+      final masterDataName =
+          '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.name} / ${md.jenisKendaraan.name}';
+
+      // 2. Isi Provider Initial Data (Ini akan otomatis mengisi PilihVarianBodyCard)
+      _ref.read(initialGambarUtamaDataProvider.notifier).state = {
+        'masterData': OptionItem(id: md.id, name: masterDataName),
+        'varianBody': OptionItem(id: vb.id, name: vb.name),
+      };
+
+      // 3. Matikan Mode Edit (Penting! Kita mau nambah baru, bukan edit yang lama)
+      _ref.read(editingGambarOptionalProvider.notifier).state = null;
+
+      // 4. Trigger Layar untuk Buka Form & Reset Field lain
+      _ref.read(copyGambarOptionalTriggerProvider.notifier).state++;
+    }
   }
 }

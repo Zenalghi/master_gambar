@@ -272,3 +272,5 @@ final selectedMasterDataFilterProvider = StateProvider<OptionItem?>(
 final editingGambarOptionalProvider = StateProvider<GambarOptional?>(
   (ref) => null,
 );
+// Provider sederhana untuk men-trigger aksi copy agar UI bereaksi (buka form & snackbar)
+final copyGambarOptionalTriggerProvider = StateProvider<int>((ref) => 0);

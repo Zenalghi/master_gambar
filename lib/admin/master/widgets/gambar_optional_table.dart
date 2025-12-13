@@ -123,7 +123,7 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
         size: ColumnSize.M,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Options'), fixedWidth: 122),
+      const DataColumn2(label: Text('Options'), fixedWidth: 166),
     ];
   }
 }
