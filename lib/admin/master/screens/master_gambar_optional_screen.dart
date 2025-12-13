@@ -10,6 +10,7 @@ import 'package:master_gambar/admin/master/repository/master_data_repository.dar
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfx/pdfx.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
+import '../../../data/models/option_item.dart';
 import '../models/gambar_optional.dart';
 import '../widgets/pilih_varian_body_card.dart';
 import '../widgets/gambar_optional_table.dart';
@@ -29,13 +30,8 @@ class _MasterGambarOptionalScreenState
   File? _selectedFile;
   PdfController? _pdfController;
 
-  // Controller untuk ExpansionTile agar bisa dibuka/tutup secara programatis
-  final ExpansibleController _expansionController = ExpansibleController();
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  final ExpansionTileController _expansionController =
+      ExpansionTileController();
 
   @override
   void dispose() {
@@ -44,91 +40,96 @@ class _MasterGambarOptionalScreenState
     super.dispose();
   }
 
-  // --- LOGIC MODE EDIT ---
-
-  // Listener untuk mendeteksi perubahan mode (Tambah <-> Edit)
   void _setupEditListener() {
     ref.listen<GambarOptional?>(editingGambarOptionalProvider, (
       previous,
       next,
     ) {
       if (next != null) {
-        // --- MASUK MODE EDIT ---
         _enterEditMode(next);
       } else {
-        // --- KELUAR MODE EDIT ---
         _exitEditMode();
       }
     });
   }
 
   Future<void> _enterEditMode(GambarOptional item) async {
-    // 1. Isi Form dengan Data Lama
+    // 1. Reset state preview lama agar tidak glitch
+    setState(() {
+      _isLoading = true;
+      _pdfController?.dispose();
+      _pdfController = null;
+      _selectedFile = null;
+    });
+
+    // 2. Isi Form
     _deskripsiController.text = item.deskripsi;
 
-    // 2. Set Selection Provider (agar dropdown Varian Body terisi - meski disabled)
-    // Kita perlu data Varian Body ID dan Master Data ID dari item
+    // 3. Set Data Dropdown (Penting agar PilihVarianBodyCard terisi)
     final vb = item.varianBody;
-    if (vb != null) {
-      // Set ID Master Data (agar dropdown filter varian body jalan)
-      ref.read(mguSelectedMasterDataIdProvider.notifier).state =
-          item.masterDataId;
-      // Set ID Varian Body
-      ref.read(mguSelectedVarianBodyIdProvider.notifier).state = vb.id;
-      // Set Nama (opsional, untuk UI)
-      ref.read(mguSelectedVarianBodyNameProvider.notifier).state = vb.name;
+    final md = vb?.masterData; // Akses via relasi (pastikan model mendukung)
+
+    if (vb != null && md != null) {
+      // Buat nama gabungan untuk dropdown
+      final masterDataName =
+          '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.name} / ${md.jenisKendaraan.name}';
+
+      // Update provider initial data
+      ref.read(initialGambarUtamaDataProvider.notifier).state = {
+        'masterData': OptionItem(id: md.id, name: masterDataName),
+        'varianBody': OptionItem(id: vb.id, name: vb.name),
+      };
     }
 
-    // 3. Load PDF Preview dari Server (Download sementara ke temp)
-    setState(() => _isLoading = true);
     try {
-      // Download PDF blob dari backend repository
+      // 4. Download PDF
       final pdfBytes = await ref
           .read(masterDataRepositoryProvider)
           .getGambarOptionalPdf(item.id);
 
-      // Simpan ke temp file
       final tempDir = await getTemporaryDirectory();
+      // Gunakan timestamp agar nama file unik dan tidak cache
       final tempFile = File(
-        '${tempDir.path}/temp_edit_optional_${item.id}.pdf',
+        '${tempDir.path}/edit_opt_${item.id}_${DateTime.now().millisecondsSinceEpoch}.pdf',
       );
       await tempFile.writeAsBytes(pdfBytes);
 
-      // Tampilkan di PDF Controller
+      if (!mounted) return;
+
       setState(() {
-        _selectedFile =
-            null; // Reset file upload lokal (karena kita pakai file server)
-        _pdfController?.dispose();
         _pdfController = PdfController(
           document: PdfDocument.openFile(tempFile.path),
         );
       });
 
-      // Buka Panel Expansion
       if (!_expansionController.isExpanded) {
         _expansionController.expand();
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal memuat preview: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal memuat preview: $e')));
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _exitEditMode() {
-    _resetForm(); // Bersihkan form
-    _expansionController
-        .collapse(); // Tutup panel (opsional, atau biarkan terbuka tapi kosong)
+    _resetForm();
+    // if (_expansionController.isExpanded) {
+    //   _expansionController.collapse();
+    // }
   }
-
-  // -----------------------
 
   void _resetForm() {
     ref.read(mguSelectedMasterDataIdProvider.notifier).state = null;
     ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
     ref.read(mguSelectedVarianBodyNameProvider.notifier).state = null;
+    ref.read(initialGambarUtamaDataProvider.notifier).state =
+        null; // Reset dropdown visual
+
     _deskripsiController.clear();
     setState(() {
       _selectedFile = null;
@@ -137,14 +138,12 @@ class _MasterGambarOptionalScreenState
     });
   }
 
-  // Tombol Batal / Refresh
   void _resetAndRefresh() {
-    ref.read(editingGambarOptionalProvider.notifier).state =
-        null; // Keluar mode edit
+    ref.read(editingGambarOptionalProvider.notifier).state = null;
     _resetForm();
     ref
         .read(gambarOptionalFilterProvider.notifier)
-        .update((state) => Map.from(state)); // Refresh tabel
+        .update((state) => Map.from(state));
     ref.read(refreshNotifierProvider.notifier).refresh();
   }
 
@@ -171,7 +170,6 @@ class _MasterGambarOptionalScreenState
     final isEditMode = editingItem != null;
 
     if (!isEditMode) {
-      // --- VALIDASI MODE TAMBAH ---
       final selectedVarianBodyId = ref.read(mguSelectedVarianBodyIdProvider);
       if (selectedVarianBodyId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -198,13 +196,12 @@ class _MasterGambarOptionalScreenState
 
     try {
       if (isEditMode) {
-        // --- PROSES UPDATE ---
         await ref
             .read(masterDataRepositoryProvider)
             .updateGambarOptional(
               id: editingItem.id,
               deskripsi: _deskripsiController.text,
-              file: _selectedFile, // Bisa null jika user tidak ganti file
+              file: _selectedFile,
             );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -212,11 +209,8 @@ class _MasterGambarOptionalScreenState
             backgroundColor: Colors.orange,
           ),
         );
-
-        // Keluar mode edit setelah sukses
         ref.read(editingGambarOptionalProvider.notifier).state = null;
       } else {
-        // --- PROSES CREATE ---
         final selectedVarianBodyId = ref.read(mguSelectedVarianBodyIdProvider);
         await ref
             .read(masterDataRepositoryProvider)
@@ -235,7 +229,6 @@ class _MasterGambarOptionalScreenState
         _resetForm();
       }
 
-      // Refresh Tabel
       ref
           .read(gambarOptionalFilterProvider.notifier)
           .update((state) => Map.from(state));
@@ -253,12 +246,11 @@ class _MasterGambarOptionalScreenState
 
   @override
   Widget build(BuildContext context) {
-    _setupEditListener(); // Pasang listener
+    _setupEditListener();
 
     final editingItem = ref.watch(editingGambarOptionalProvider);
     final isEditMode = editingItem != null;
 
-    // Teks Header Expansion Tile
     String formTitle = 'Tambah Gambar Optional Baru';
     Color headerColor = Colors.black;
     if (isEditMode) {
@@ -271,7 +263,6 @@ class _MasterGambarOptionalScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // HEADER (Sama)
           Row(
             children: [
               const SizedBox(width: 10),
@@ -280,7 +271,6 @@ class _MasterGambarOptionalScreenState
                 style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
-              // ... search bar ...
               SizedBox(
                 width: 250,
                 height: 31,
@@ -305,10 +295,9 @@ class _MasterGambarOptionalScreenState
           ),
           const SizedBox(height: 1),
 
-          // --- EXPANSION TILE (FORM) ---
           ExpansionTile(
-            controller: _expansionController, // Pasang controller
-            initiallyExpanded: isEditMode, // Auto expand jika mode edit
+            controller: _expansionController,
+            initiallyExpanded: isEditMode,
             title: Text(
               formTitle,
               style: TextStyle(
@@ -323,26 +312,16 @@ class _MasterGambarOptionalScreenState
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // === KOLOM KIRI ===
                     Expanded(
                       flex: 2,
                       child: SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            // 1. PILIH KENDARAAN (DISABLED SAAT EDIT)
-                            IgnorePointer(
-                              ignoring:
-                                  isEditMode, // Matikan interaksi saat edit
-                              child: Opacity(
-                                opacity: isEditMode
-                                    ? 0.6
-                                    : 1.0, // Redupkan saat edit
-                                child: const PilihVarianBodyCard(),
-                              ),
-                            ),
+                            // 1. Pilih Kendaraan (Kirim Flag Edit Mode)
+                            PilihVarianBodyCard(isEditMode: isEditMode),
 
-                            // 2. INPUT DETAILS
+                            // 2. Input Details
                             Card(
                               child: Padding(
                                 padding: const EdgeInsets.all(10.0),
@@ -358,8 +337,6 @@ class _MasterGambarOptionalScreenState
                                       ),
                                     ),
                                     const SizedBox(height: 5),
-
-                                    // Info Mode Edit (Opsional)
                                     if (isEditMode)
                                       Container(
                                         margin: const EdgeInsets.only(
@@ -375,7 +352,6 @@ class _MasterGambarOptionalScreenState
                                           ),
                                         ),
                                       ),
-
                                     TextFormField(
                                       controller: _deskripsiController,
                                       decoration: const InputDecoration(
@@ -387,7 +363,6 @@ class _MasterGambarOptionalScreenState
                                           TextCapitalization.characters,
                                     ),
                                     const SizedBox(height: 20),
-
                                     ElevatedButton.icon(
                                       icon: const Icon(Icons.picture_as_pdf),
                                       label: Text(
@@ -404,7 +379,6 @@ class _MasterGambarOptionalScreenState
                                       ),
                                       onPressed: _pickFile,
                                     ),
-
                                     if (_selectedFile != null)
                                       Padding(
                                         padding: const EdgeInsets.only(
@@ -419,13 +393,9 @@ class _MasterGambarOptionalScreenState
                                           textAlign: TextAlign.center,
                                         ),
                                       ),
-
                                     const Divider(height: 30),
-
-                                    // TOMBOL ACTION
                                     Row(
                                       children: [
-                                        // Tombol Batal (Hanya saat Edit)
                                         if (isEditMode)
                                           Expanded(
                                             child: ElevatedButton.icon(
@@ -444,8 +414,6 @@ class _MasterGambarOptionalScreenState
                                           ),
                                         if (isEditMode)
                                           const SizedBox(width: 10),
-
-                                        // Tombol Simpan
                                         Expanded(
                                           child: ElevatedButton.icon(
                                             icon: Icon(
@@ -484,22 +452,28 @@ class _MasterGambarOptionalScreenState
                       ),
                     ),
                     const SizedBox(width: 16),
-
-                    // === KOLOM KANAN (PREVIEW) ===
                     Expanded(
                       flex: 2,
                       child: Card(
                         elevation: 2,
                         child: Container(
                           color: Colors.grey.shade100,
-                          child: _pdfController != null
+                          child: _isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : _pdfController != null
                               ? PdfView(
                                   key: ValueKey(
                                     _selectedFile?.path ?? 'server_file',
                                   ),
                                   controller: _pdfController!,
                                 )
-                              : const Center(child: Text("Preview")),
+                              : const Center(
+                                  child: const Icon(
+                                    Icons.picture_as_pdf_outlined,
+                                    color: Colors.grey,
+                                    size: 60,
+                                  ),
+                                ),
                         ),
                       ),
                     ),

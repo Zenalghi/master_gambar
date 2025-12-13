@@ -1,3 +1,5 @@
+// File: lib/admin/master/screens/master_gambar_utama_screen.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -73,21 +75,14 @@ class _MasterGambarUtamaScreenState
       ref.read(mguGambarKontruksiFileProvider.notifier).state = results[2];
 
       // 5. Cek Gambar Paket Optional
-      // Logic: Filter list gambarOptionals, cari yang tipe == 'paket'
       final paketOptional = gambarUtama.gambarOptionals
           .where((g) => g.tipe == 'paket')
           .firstOrNull;
 
       if (paketOptional != null) {
-        // A. Centang Checkbox
         ref.read(mguShowDependentOptionalProvider.notifier).state = true;
-
-        // B. Isi Deskripsi
         _deskripsiController.text = paketOptional.deskripsi;
 
-        // C. Download & Isi File Optional
-        // Kita gunakan repo.getPdfFromPath dengan path dari model (atau via ID jika ada endpoint khusus)
-        // Asumsi: path di model valid untuk endpoint viewPdf
         final optBytes = await repo.getPdfFromPath(paketOptional.path);
         final tempDir = await getTemporaryDirectory();
         final optFile = File('${tempDir.path}/gambar_paket.pdf');
@@ -95,7 +90,6 @@ class _MasterGambarUtamaScreenState
 
         ref.read(mguDependentFileProvider.notifier).state = optFile;
       } else {
-        // Reset jika tidak ada paket
         ref.read(mguShowDependentOptionalProvider.notifier).state = false;
         ref.read(mguDependentFileProvider.notifier).state = null;
         _deskripsiController.clear();
@@ -103,7 +97,7 @@ class _MasterGambarUtamaScreenState
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Data lama berhasil dimuat. Silakan review/ganti.'),
+          content: Text('Mode Edit Aktif: Data lama berhasil dimuat.'),
           backgroundColor: Colors.blue,
           duration: Duration(seconds: 2),
         ),
@@ -130,6 +124,8 @@ class _MasterGambarUtamaScreenState
     });
 
     final showDependent = ref.watch(mguShowDependentOptionalProvider);
+    final editingItem = ref.watch(mguEditingGambarProvider);
+    final isEditMode = editingItem != null;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(5.0),
@@ -139,12 +135,30 @@ class _MasterGambarUtamaScreenState
           Row(
             children: [
               SizedBox(width: 10),
-              // JUDUL TETAP SAMA (Sesuai request)
-              const Text(
-                'Manajemen Gambar Utama',
-                style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
+              // JUDUL BERUBAH JIKA EDIT
+              Text(
+                isEditMode ? 'Edit Gambar Utama' : 'Manajemen Gambar Utama',
+                style: TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.bold,
+                  color: isEditMode ? Colors.orange.shade800 : Colors.black,
+                ),
               ),
               const Spacer(),
+
+              if (isEditMode)
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.cancel, size: 16),
+                  label: const Text('Batal Edit'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: _resetAndRefresh,
+                ),
+
+              const SizedBox(width: 8),
+
               IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Reset Form',
@@ -161,10 +175,9 @@ class _MasterGambarUtamaScreenState
           else ...[
             const SizedBox(height: 1),
 
-            // Card Dropdown akan otomatis terisi karena mendengarkan initialGambarUtamaDataProvider
-            const PilihVarianBodyCard(),
+            // PASSING PARAMETER isEditMode
+            PilihVarianBodyCard(isEditMode: isEditMode),
 
-            // const Divider(height: 5),
             CheckboxListTile(
               title: const Text(
                 "Tambahkan Gambar Optional Paket",
@@ -183,10 +196,6 @@ class _MasterGambarUtamaScreenState
                 deskripsiController: _deskripsiController,
               ),
 
-            // const Divider(height: 5),
-
-            // Card File PDF akan otomatis menampilkan preview file lama
-            // karena provider file sudah diisi di _loadExistingData
             PilihFilePdfCard(onSubmit: _submit, isLoading: _isLoading),
           ],
         ],
@@ -195,10 +204,6 @@ class _MasterGambarUtamaScreenState
   }
 
   void _resetForm() {
-    // ref.read(mguSelectedMasterDataIdProvider.notifier).state = null;
-    // ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
-    // ref.read(mguSelectedVarianBodyNameProvider.notifier).state = null;
-
     ref.read(mguGambarUtamaFileProvider.notifier).state = null;
     ref.read(mguGambarTeruraiFileProvider.notifier).state = null;
     ref.read(mguGambarKontruksiFileProvider.notifier).state = null;
@@ -209,12 +214,17 @@ class _MasterGambarUtamaScreenState
         null; // Keluar mode edit
 
     _deskripsiController.clear();
+
+    // Reset juga pilihan dropdown
+    ref.read(initialGambarUtamaDataProvider.notifier).state = null;
   }
 
   void _resetAndRefresh() {
+    // Reset data yang dipegang PilihVarianBodyCard via provider global
     ref.read(mguSelectedMasterDataIdProvider.notifier).state = null;
     ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
     ref.read(mguSelectedVarianBodyNameProvider.notifier).state = null;
+
     _resetForm();
     ref.read(refreshNotifierProvider.notifier).refresh();
   }

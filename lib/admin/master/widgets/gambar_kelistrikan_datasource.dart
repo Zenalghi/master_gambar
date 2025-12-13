@@ -60,6 +60,15 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
                   children: [
                     // TOMBOL EDIT BARU
                     IconButton(
+                      icon: Icon(
+                        Icons.visibility,
+                        size: 15,
+                        color: Colors.blue.shade700,
+                      ),
+                      tooltip: 'Lihat PDF',
+                      onPressed: () => _showPdfPreview(item),
+                    ),
+                    IconButton(
                       icon: const Icon(
                         Icons.edit,
                         size: 15,
@@ -73,15 +82,6 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
                                 .state =
                             item;
                       },
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.visibility,
-                        size: 15,
-                        color: Colors.blue.shade700,
-                      ),
-                      tooltip: 'Lihat PDF',
-                      onPressed: () => _showPdfPreview(item),
                     ),
                     IconButton(
                       icon: const Icon(
