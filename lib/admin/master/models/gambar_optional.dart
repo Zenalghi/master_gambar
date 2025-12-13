@@ -7,6 +7,8 @@ class GambarOptional {
   final String tipe; // <-- Tambahkan tipe
   final String deskripsi;
   final String path;
+  //masterDataId
+  final int? masterDataId;
   final VarianBody? varianBody; // <-- Jadikan nullable (?)
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -16,6 +18,7 @@ class GambarOptional {
     required this.tipe, // <-- Tambahkan
     required this.deskripsi,
     required this.path,
+    this.masterDataId,
     this.varianBody, // <-- Jadikan nullable
     required this.createdAt,
     required this.updatedAt,

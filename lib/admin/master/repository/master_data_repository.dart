@@ -612,15 +612,33 @@ class MasterDataRepository {
         .post('/admin/gambar-optional', data: formData);
   }
 
-  Future<GambarOptional> updateGambarOptional({
+  Future<void> updateGambarOptional({
     required int id,
     required String deskripsi,
+    File? file, // File opsional saat update
   }) async {
-    final response = await _ref
-        .read(apiClientProvider)
-        .dio
-        .put('/admin/gambar-optional/$id', data: {'deskripsi': deskripsi});
-    return GambarOptional.fromJson(response.data);
+    final formData = FormData.fromMap({
+      'deskripsi': deskripsi,
+      // '_method': 'PUT', // Kadang diperlukan jika pakai POST untuk update file di Laravel
+    });
+
+    if (file != null) {
+      formData.files.add(
+        MapEntry('gambar_optional', await MultipartFile.fromFile(file.path)),
+      );
+    }
+
+    try {
+      // Gunakan POST ke endpoint khusus update file
+      await _ref
+          .read(apiClientProvider)
+          .dio
+          .post('/master-data/gambar-optional/$id/update-file', data: formData);
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data['message'] ?? 'Gagal update gambar optional',
+      );
+    }
   }
 
   Future<void> deleteGambarOptional({required int id}) async {

@@ -9,7 +9,7 @@ import 'package:master_gambar/admin/master/models/gambar_optional.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import '../../../app/theme/app_theme.dart';
-import 'edit_gambar_optional_dialog.dart';
+// import 'edit_gambar_optional_dialog.dart';
 import 'pdf_viewer_dialog.dart'; // Pastikan file ini sudah ada
 
 class GambarOptionalDataSource extends AsyncDataTableSource {
@@ -119,11 +119,13 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
                         size: 15,
                         color: Colors.orange,
                       ),
-                      onPressed: () => showDialog(
-                        context: context,
-                        builder: (_) =>
-                            EditGambarOptionalDialog(gambarOptional: item),
-                      ),
+                      // PANGGIL PROVIDER UNTUK MASUK MODE EDIT
+                      onPressed: () {
+                        _ref
+                                .read(editingGambarOptionalProvider.notifier)
+                                .state =
+                            item;
+                      },
                     ),
                     // Tombol Delete (Anda bisa tambahkan _showDeleteDialog jika perlu)
                     IconButton(

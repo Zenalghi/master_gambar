@@ -10,6 +10,7 @@ import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/data/providers/api_endpoints.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
 // import '../models/gambar_optional.dart';
+import '../models/gambar_optional.dart';
 import '../models/jenis_varian.dart';
 import '../models/master_data.dart';
 import '../models/g_gambar_utama.dart';
@@ -266,5 +267,8 @@ final adminSidebarIndexProvider = StateProvider<int>((ref) => 0);
 
 // Provider untuk menyimpan Filter Master Data ID pada halaman Varian Body
 final selectedMasterDataFilterProvider = StateProvider<OptionItem?>(
+  (ref) => null,
+);
+final editingGambarOptionalProvider = StateProvider<GambarOptional?>(
   (ref) => null,
 );
