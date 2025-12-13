@@ -132,10 +132,10 @@ class _GambarOptionalRow extends ConsumerWidget {
                       itemHeight: 30,
                       value: validValue, // Gunakan nilai yang sudah divalidasi
                       decoration: InputDecoration(
-                        constraints: const BoxConstraints(maxHeight: 32),
+                        constraints: const BoxConstraints(maxHeight: 50),
                         contentPadding: const EdgeInsets.symmetric(
                           vertical:
-                              0, // Padding vertikal kecil agar teks pas tengah
+                              9, // Padding vertikal kecil agar teks pas tengah
                           horizontal: 10,
                         ),
                         hintText: 'Pilih Gambar Optional ${index + 1}',
