@@ -37,27 +37,36 @@ class GambarMainForm extends ConsumerWidget {
     final dependentOptionals = ref.watch(dependentOptionalOptionsProvider);
     final dependentCount = dependentOptionals.asData?.value.length ?? 0;
 
-    int totalHalaman =
-        (jumlahGambarUtama * 3) +
-        dependentCount +
-        (showOptional ? jumlahGambarOptional : 0) +
-        (hasKelistrikan ? 1 : 0);
+    // Halaman Terurai: Mulai setelah Utama selesai
+    final int startPageTerurai = jumlahGambarUtama + 1;
 
-    int dependentBasePageNumber = (jumlahGambarUtama * 3) + 1;
-    int optionalBasePageNumber = dependentBasePageNumber + dependentCount;
-    int kelistrikanPageNumber =
-        optionalBasePageNumber + (showOptional ? jumlahGambarOptional : 0);
+    // Halaman Kontruksi: Mulai setelah Terurai selesai
+    final int startPageKontruksi = startPageTerurai + jumlahGambarUtama;
+
+    // Halaman Paket: Mulai setelah Kontruksi selesai
+    final int startPagePaket = startPageKontruksi + jumlahGambarUtama;
+
+    // Halaman Independen: Mulai setelah Paket selesai
+    final int startPageIndependen = startPagePaket + dependentCount;
+
+    // Halaman Kelistrikan: Mulai setelah Independen selesai
+    final int pageKelistrikan =
+        startPageIndependen + (showOptional ? jumlahGambarOptional : 0);
+
+    // Total Halaman
+    int totalHalaman = pageKelistrikan + (hasKelistrikan ? 0 : -1);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 1. Gambar Utama (Urutan: 1, 2, 3...)
             _buildSection(
               title: 'Gambar Utama',
               itemCount: jumlahGambarUtama,
               itemBuilder: (index) {
-                final pageNumber = (index * 3) + 1;
+                final pageNumber = index + 1; // Rumus Baru
                 return GambarUtamaRow(
                   index: index,
                   transaksi: transaksi,
@@ -72,8 +81,7 @@ class GambarMainForm extends ConsumerWidget {
               title: 'Gambar Terurai',
               itemCount: jumlahGambarUtama,
               itemBuilder: (index) {
-                // Rumus: (index * 3) + 2
-                final pageNumber = (index * 3) + 2;
+                final pageNumber = startPageTerurai + index; // Rumus Baru
                 return GambarSyncedRow(
                   index: index,
                   title: 'Gambar Terurai',
@@ -90,8 +98,7 @@ class GambarMainForm extends ConsumerWidget {
               title: 'Gambar Kontruksi',
               itemCount: jumlahGambarUtama,
               itemBuilder: (index) {
-                // Rumus: (index * 3) + 3
-                final pageNumber = (index * 3) + 3;
+                final pageNumber = startPageKontruksi + index; // Rumus Baru
                 return GambarSyncedRow(
                   index: index,
                   title: 'Gambar Kontruksi',
@@ -105,9 +112,7 @@ class GambarMainForm extends ConsumerWidget {
             ),
             dependentOptionals.when(
               data: (items) {
-                if (items.isEmpty) {
-                  return const SizedBox.shrink();
-                }
+                if (items.isEmpty) return const SizedBox.shrink();
                 return Column(
                   children: [
                     const Divider(height: 32),
@@ -116,9 +121,8 @@ class GambarMainForm extends ConsumerWidget {
                       itemCount: items.length,
                       itemBuilder: (index) {
                         final item = items[index];
-                        final pageNumber = dependentBasePageNumber + index;
-                        final isPreviewEnabled =
-                            ref.watch(pemeriksaIdProvider) != null;
+                        final pageNumber = startPagePaket + index; // Rumus Baru
+                        ref.watch(pemeriksaIdProvider) != null;
                         final isLoading = ref.watch(isProcessingProvider);
                         return Row(
                           children: [
@@ -161,7 +165,7 @@ class GambarMainForm extends ConsumerWidget {
                             SizedBox(
                               width: 170, // Sesuai permintaan Anda
                               child: ElevatedButton(
-                                onPressed: isPreviewEnabled && !isLoading
+                                onPressed: !isLoading
                                     ? () => onPreviewPressed(pageNumber)
                                     : null,
                                 child: const Text('Preview Gambar'),
@@ -192,10 +196,10 @@ class GambarMainForm extends ConsumerWidget {
             ),
             if (showOptional) ...[
               GambarOptionalSection(
-                basePageNumber: optionalBasePageNumber,
+                basePageNumber: startPageIndependen,
                 totalHalaman: totalHalaman,
                 onPreviewPressed: (index) {
-                  final pageNumber = optionalBasePageNumber + index;
+                  final pageNumber = startPageIndependen + index;
                   onPreviewPressed(pageNumber);
                 },
               ),
@@ -204,9 +208,9 @@ class GambarMainForm extends ConsumerWidget {
 
             GambarKelistrikanSection(
               transaksi: transaksi,
-              pageNumber: kelistrikanPageNumber,
+              pageNumber: pageKelistrikan, // Rumus Baru
               totalHalaman: totalHalaman,
-              onPreviewPressed: () => onPreviewPressed(kelistrikanPageNumber),
+              onPreviewPressed: () => onPreviewPressed(pageKelistrikan),
             ),
             if (showDeskripsiOptional) ...[
               const Divider(height: 32),

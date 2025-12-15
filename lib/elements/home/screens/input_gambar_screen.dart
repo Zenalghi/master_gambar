@@ -152,44 +152,58 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final optionalSelections = ref.read(gambarOptionalSelectionProvider);
       final deskripsiOptional = ref.read(deskripsiOptionalProvider);
 
-      // VALIDASI KELISTRIKAN BARU
+      // --- 1. VALIDASI KELISTRIKAN ---
       final kelistrikanInfo = ref.read(kelistrikanInfoProvider);
-      final status =
-          kelistrikanInfo?['status_code']; // 'ready', 'missing_file', dll
-      // Hanya izinkan jika status == 'ready' (File Ada + Deskripsi Ada)
-      if (status != 'ready') {
-        // Tampilkan pesan error dari backend
-        _showSnackBar(
-          'Kelistrikan belum siap: ${kelistrikanInfo?['display_text'] ?? "Data tidak valid"}',
-          Colors.orange,
-        );
-        // Opsional: return; jika ingin memblokir preview jika kelistrikan belum siap
-        // Tapi biasanya preview halaman lain tetap boleh jalan.
-        // Namun preview halaman kelistrikan itu sendiri akan gagal/kosong.
-      }
-
-      // Kirim ID deskripsi (jika ada) ke backend preview
+      final statusKelistrikan = kelistrikanInfo?['status_code'];
       final kelistrikanId = kelistrikanInfo?['desc_id'] as int?;
 
+      // Cek apakah kelistrikan siap ditampilkan (Status Ready & ID ada)
+      final bool isKelistrikanReady =
+          statusKelistrikan == 'ready' && kelistrikanId != null;
+
+      // --- 2. VALIDASI PEMERIKSA ---
       if (pemeriksaId == null) {
         _showSnackBar('Pilih pemeriksa terlebih dahulu.', Colors.orange);
         return;
       }
 
-      final varianBodyIds = selections
-          .where((s) => s.varianBodyId != null)
-          .map((s) => s.varianBodyId!)
-          .toList();
-      final judulGambarIds = selections
-          .where((s) => s.judulId != null)
-          .map((s) => s.judulId!)
-          .toList();
-
-      if (varianBodyIds.isEmpty) {
-        _showSnackBar('Pilih setidaknya satu varian body.', Colors.orange);
+      // --- 3. CEK JUDUL GAMBAR (Mencegah Error Backend) ---
+      // Jika user memilih Varian Body tapi LUPA memilih Judul, kita cegah di sini
+      final hasIncompleteRow = selections.any(
+        (s) => s.varianBodyId != null && s.judulId == null,
+      );
+      if (hasIncompleteRow) {
+        _showSnackBar(
+          'Mohon lengkapi "Judul Gambar" untuk Varian Body yang telah dipilih.',
+          Colors.orange,
+        );
         return;
       }
 
+      // Ambil ID yang valid saja (Pasangan Lengkap Varian + Judul)
+      final varianBodyIds = selections
+          .where((s) => s.varianBodyId != null && s.judulId != null)
+          .map((s) => s.varianBodyId!)
+          .toList();
+
+      final judulGambarIds = selections
+          .where((s) => s.varianBodyId != null && s.judulId != null)
+          .map((s) => s.judulId!)
+          .toList();
+
+      final bool hasVarianBody = varianBodyIds.isNotEmpty;
+
+      // --- 4. VALIDASI FINAL: MINIMAL ADA SATU KONTEN ---
+      // Boleh lanjut jika: (Ada Varian Body) ATAU (Ada Kelistrikan)
+      if (!hasVarianBody && !isKelistrikanReady) {
+        _showSnackBar(
+          'Pilih setidaknya satu Varian Body ATAU pastikan Kelistrikan tersedia.',
+          Colors.orange,
+        );
+        return;
+      }
+
+      // --- 5. SIAPKAN DATA OPTIONAL ---
       final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
       List<int> independentOptionalIds = showOptional
           ? optionalSelections
@@ -202,16 +216,38 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
         ...independentOptionalIds,
       ];
 
+      // --- 6. LOGIKA SMART PAGE NUMBER (SOLUSI HALAMAN TIDAK DITEMUKAN) ---
+      int finalPageNumber = pageNumber;
+
+      // Jika tidak ada Varian Body yang dikirim, Backend TIDAK akan membuat halaman Utama, Terurai, Kontruksi, dan Paket.
+      // Jadi kita harus menggeser nomor halaman preview mundur (agar sesuai dengan PDF yang dihasilkan backend).
+      if (!hasVarianBody) {
+        final jumlahGambarUtama = ref.read(jumlahGambarProvider);
+
+        // Hitung halaman yang hilang dari PDF (Gambar Utama x3 + Dependent Optionals)
+        // Urutan Backend: [Utama, Terurai, Kontruksi] -> [Paket] -> [Independen] -> [Kelistrikan]
+        final int skippedPages =
+            (jumlahGambarUtama * 3) + dependentOptionalIds.length;
+
+        finalPageNumber = pageNumber - skippedPages;
+
+        // Safety check agar tidak minta halaman 0 atau negatif
+        if (finalPageNumber < 1) finalPageNumber = 1;
+      }
+      // ----------------------------------------------------------------------
+
+      // --- KIRIM KE BACKEND ---
       final pdfData = await ref
           .read(prosesTransaksiRepositoryProvider)
           .getPreviewPdf(
             transaksiId: widget.transaksi.id,
             pemeriksaId: pemeriksaId,
-            varianBodyIds: varianBodyIds,
-            judulGambarIds: judulGambarIds,
+            varianBodyIds: varianBodyIds, // Bisa kosong []
+            judulGambarIds: judulGambarIds, // Bisa kosong []
             hGambarOptionalIds: allOptionalIds,
-            iGambarKelistrikanId: kelistrikanId, // KIRIM ID DESKRIPSI
-            pageNumber: pageNumber,
+            iGambarKelistrikanId: kelistrikanId,
+            pageNumber:
+                finalPageNumber, // Gunakan nomor halaman yang sudah disesuaikan
             deskripsiOptional: deskripsiOptional,
           );
 
@@ -220,7 +256,8 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
           context: context,
           builder: (context) => PdfViewerDialog(
             pdfData: pdfData,
-            title: 'Preview Halaman $pageNumber',
+            title:
+                'Preview Halaman $pageNumber', // Judul tetap tampilkan halaman asli UI agar user tidak bingung
           ),
         );
       }
