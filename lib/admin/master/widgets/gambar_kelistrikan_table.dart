@@ -93,7 +93,7 @@ class _GambarKelistrikanTableState
 
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('ID'), fixedWidth: 60, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 40, onSort: _onSort),
       DataColumn2(
         label: const Text('Type Engine'),
         size: ColumnSize.S,
@@ -111,15 +111,15 @@ class _GambarKelistrikanTableState
       ),
       DataColumn2(
         label: const Text('Created At'),
-        size: ColumnSize.L,
+        fixedWidth: 115,
         onSort: _onSort,
       ),
       DataColumn2(
         label: const Text('Updated At'),
-        size: ColumnSize.L,
+        fixedWidth: 115,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Options'), size: ColumnSize.S),
+      const DataColumn2(label: Text('Options'), fixedWidth: 127),
     ];
   }
 }

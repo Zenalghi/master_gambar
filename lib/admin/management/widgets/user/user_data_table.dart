@@ -152,12 +152,12 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
       ),
       const DataColumn2(label: Text('Paraf'), size: ColumnSize.S, onSort: null),
       DataColumn2(
-        label: const Text('Tanggal Input'),
+        label: const Text('Created At'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Terakhir Update'),
+        label: const Text('Updated At'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),

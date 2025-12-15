@@ -91,21 +91,17 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
   List<DataColumn2> _createColumns() {
     return [
       // 1. ID Varian Body
-      DataColumn2(label: const Text('ID'), fixedWidth: 59, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 40, onSort: _onSort),
 
       // 2. Type Engine
       DataColumn2(
         label: const Text('Type\nEngine'),
-        size: ColumnSize.S,
+        fixedWidth: 62,
         onSort: _onSort,
       ),
 
       // 3. Merk
-      DataColumn2(
-        label: const Text('Merk'),
-        size: ColumnSize.S,
-        onSort: _onSort,
-      ),
+      DataColumn2(label: const Text('Merk'), fixedWidth: 110, onSort: _onSort),
 
       // 4. Type Chassis
       DataColumn2(
@@ -137,7 +133,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       // 8. Updated At
       DataColumn2(
         label: const Text('Updated At'),
-        size: ColumnSize.M,
+        fixedWidth: 115,
         onSort: _onSort,
       ),
 

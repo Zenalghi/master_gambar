@@ -140,13 +140,13 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
       ),
       const DataColumn2(label: Text('Paraf'), size: ColumnSize.S, onSort: null),
       DataColumn2(
-        label: const Text('Tanggal Input'),
-        size: ColumnSize.M,
+        label: const Text('Created At'),
+        fixedWidth: 115,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Terakhir Update'),
-        size: ColumnSize.M,
+        label: const Text('Updated At'),
+        fixedWidth: 115,
         onSort: _onSort,
       ),
       const DataColumn2(

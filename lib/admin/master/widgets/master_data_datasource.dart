@@ -110,10 +110,10 @@ class MasterDataDataSource extends AsyncDataTableSource {
             onPressed: () => _showDeskripsiDialog(item),
           ),
           Expanded(
-            child: Text(
+            child: SelectableText(
               item.kelistrikanDeskripsi ?? '',
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12),
+              // overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 10),
             ),
           ),
         ],

@@ -90,19 +90,19 @@ class _TypeEngineTableState extends ConsumerState<TypeEngineTable> {
   // Method untuk membuat header kolom
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('ID'), fixedWidth: 59, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 40, onSort: _onSort),
       DataColumn2(
         label: const Text('Type Engine'),
         size: ColumnSize.L,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Dibuat Pada'),
+        label: const Text('Created At'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Diupdate Pada'),
+        label: const Text('Updated At'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),

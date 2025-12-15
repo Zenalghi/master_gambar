@@ -88,7 +88,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
   List<DataColumn2> _createColumns() {
     return [
       // 0. ID
-      DataColumn2(label: const Text('ID'), fixedWidth: 90, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 61, onSort: _onSort),
 
       // 1. Customer
       DataColumn2(
@@ -99,8 +99,8 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
 
       // 2. Engine
       DataColumn2(
-        label: const Text('Engine'),
-        size: ColumnSize.S,
+        label: const Text('Type\nEngine'),
+        fixedWidth: 68,
         onSort: _onSort,
       ),
 

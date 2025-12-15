@@ -66,7 +66,7 @@ class _TypeChassisTableState extends ConsumerState<TypeChassisTable> {
 
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('ID'), fixedWidth: 59, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 40, onSort: _onSort),
       DataColumn2(
         label: const Text('Type Chassis'),
         size: ColumnSize.L,
@@ -74,12 +74,12 @@ class _TypeChassisTableState extends ConsumerState<TypeChassisTable> {
       ),
       // DataColumn2(label: const Text('Merk (Induk)'), ...), <-- HAPUS INI
       DataColumn2(
-        label: const Text('Dibuat Pada'),
+        label: const Text('Created At'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Diupdate Pada'),
+        label: const Text('Updated At'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),

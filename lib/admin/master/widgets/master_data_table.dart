@@ -85,17 +85,13 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
 
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('ID'), fixedWidth: 58, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 40, onSort: _onSort),
       DataColumn2(
         label: const Text('Type\nEngine'),
-        size: ColumnSize.M,
+        fixedWidth: 62,
         onSort: _onSort,
       ),
-      DataColumn2(
-        label: const Text('Merk'),
-        size: ColumnSize.M,
-        onSort: _onSort,
-      ),
+      DataColumn2(label: const Text('Merk'), fixedWidth: 110, onSort: _onSort),
       DataColumn2(
         label: const Text('Type Chassis'),
         size: ColumnSize.L,
@@ -107,19 +103,19 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Dibuat pada'),
-        size: ColumnSize.M,
+        label: const Text('Created At'),
+        fixedWidth: 115,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Diupdate pada'),
-        size: ColumnSize.M,
+        label: const Text('Updated At'),
+        fixedWidth: 115,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Options'), fixedWidth: 124),
+      const DataColumn2(label: Text('Options'), fixedWidth: 123),
       const DataColumn2(
         label: Center(child: Text('Kelistrikan (Deskripsi)')),
-        fixedWidth: 500,
+        fixedWidth: 226,
       ),
     ];
   }

@@ -73,7 +73,7 @@ class _JenisKendaraanTableState extends ConsumerState<JenisKendaraanTable> {
 
   List<DataColumn2> _createColumns() {
     return [
-      DataColumn2(label: const Text('ID'), fixedWidth: 59, onSort: _onSort),
+      DataColumn2(label: const Text('ID'), fixedWidth: 40, onSort: _onSort),
       DataColumn2(
         label: const Text('Jenis Kendaraan'),
         size: ColumnSize.L,
@@ -81,12 +81,12 @@ class _JenisKendaraanTableState extends ConsumerState<JenisKendaraanTable> {
       ),
       // Hapus Merk dan Type Chassis
       DataColumn2(
-        label: const Text('Dibuat Pada'),
+        label: const Text('Created At'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
-        label: const Text('Diupdate Pada'),
+        label: const Text('Updated At'),
         size: ColumnSize.M,
         onSort: _onSort,
       ),

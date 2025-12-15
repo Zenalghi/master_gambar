@@ -100,7 +100,8 @@ class _KelistrikanDeskripsiDialogState
               textCapitalization: TextCapitalization.characters,
               decoration: const InputDecoration(
                 labelText: 'Deskripsi Gambar Kelistrikan',
-                hintText: 'Contoh: KABEL BODI TAHUN 2024',
+                hintText:
+                    'Contoh : SEBAGAI MOBIL BARANG BAK MUATAN TERTUTUP (BOX NON LOGAM)',
                 border: OutlineInputBorder(),
               ),
               validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null,
