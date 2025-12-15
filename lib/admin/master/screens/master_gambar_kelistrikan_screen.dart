@@ -55,7 +55,7 @@ class _MasterGambarKelistrikanScreenState
     if (mounted) {
       setState(() {
         _formResetKey++; // Reset Form jadi kosong
-        _isExpanded = false; // Tutup Form
+        // _isExpanded = false; // Tutup Form
       });
     }
   }
