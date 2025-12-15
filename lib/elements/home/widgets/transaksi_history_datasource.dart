@@ -107,7 +107,7 @@ class TransaksiDataSource extends AsyncDataTableSource {
                         color: hasDraft ? Colors.orange : Colors.blue,
                       ),
                       tooltip: hasDraft
-                          ? 'Lanjutkan Edit Draft'
+                          ? 'Lanjutkan Transaksi Gambar'
                           : 'Proses Gambar Baru',
                       onPressed: () {
                         // Buka Tab Input Gambar (Index 1) dengan membawa data transaksi
