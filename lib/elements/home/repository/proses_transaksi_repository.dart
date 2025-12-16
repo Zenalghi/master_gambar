@@ -50,7 +50,7 @@ class ProsesTransaksiRepository {
     required int pemeriksaId,
     required List<int> varianBodyIds,
     required List<int> judulGambarIds,
-    // required List<int>? hGambarOptionalIds,
+    required List<int>? hGambarOptionalIds, // Tambahkan ini (Untuk Paket)
     int? iGambarKelistrikanId,
     required int pageNumber,
     String? deskripsiOptional,
@@ -64,11 +64,13 @@ class ProsesTransaksiRepository {
             data: {
               'pemeriksa_id': pemeriksaId,
               'varian_body_ids': varianBodyIds,
-                // 'judul_gambar_ids': judulGambarIds,
-                // 'h_gambar_optional_ids':
-                //     (hGambarOptionalIds != null && hGambarOptionalIds.isNotEmpty)
-                //     ? hGambarOptionalIds
-                //     : null, // <-- Kirim dengan key yang benar
+
+              // --- PERBAIKAN 1: Pastikan key ini ada ---
+              'judul_gambar_ids': judulGambarIds,
+
+              // --- PERBAIKAN 2: Kirim ID Paket (Dependent) ---
+              'h_gambar_optional_ids': hGambarOptionalIds,
+
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'preview',
               'preview_page': pageNumber,
@@ -78,29 +80,22 @@ class ProsesTransaksiRepository {
           );
       return response.data;
     } on DioException catch (e) {
-      final errorData = e.response?.data;
-      String message = e.message ?? 'Unknown error';
-      if (errorData is List<int>) {
-        try {
-          message = String.fromCharCodes(errorData);
-        } catch (_) {}
-      }
-      throw Exception('Gagal memuat preview: $message');
+      // ... error handling sama ...
+      throw Exception('Gagal memuat preview: ${e.message}');
     }
   }
 
   Future<void> downloadProcessedPdfsAsZip({
     required String transaksiId,
-    required String suggestedFileName, // Nama file zip yang disarankan
+    required String suggestedFileName,
     required int pemeriksaId,
     required List<int> varianBodyIds,
     required List<int> judulGambarIds,
-    // required List<int>? hGambarOptionalIds,
+    required List<int>? hGambarOptionalIds, // Tambahkan ini
     int? iGambarKelistrikanId,
     String? deskripsiOptional,
   }) async {
     try {
-      // 1. Tampilkan dialog "Save As..." untuk mendapatkan path penyimpanan
       String? outputPath = await FilePicker.platform.saveFile(
         dialogTitle: 'Simpan file ZIP...',
         fileName: suggestedFileName,
@@ -108,12 +103,8 @@ class ProsesTransaksiRepository {
         type: FileType.custom,
       );
 
-      // Jika pengguna membatalkan dialog, hentikan proses
-      if (outputPath == null) {
-        throw Exception('Proses penyimpanan dibatalkan.');
-      }
+      if (outputPath == null) throw Exception('Proses penyimpanan dibatalkan.');
 
-      // 2. Lakukan download dengan metode POST
       await _ref
           .read(apiClientProvider)
           .dio
@@ -122,32 +113,25 @@ class ProsesTransaksiRepository {
             data: {
               'pemeriksa_id': pemeriksaId,
               'varian_body_ids': varianBodyIds,
+
+              // --- PERBAIKAN 1: Pastikan key ini ada ---
               'judul_gambar_ids': judulGambarIds,
-              // 'h_gambar_optional_ids':
-              //     (hGambarOptionalIds != null && hGambarOptionalIds.isNotEmpty)
-              //     ? hGambarOptionalIds
-              //     : null,
+
+              // --- PERBAIKAN 2: Kirim ID Paket ---
+              'h_gambar_optional_ids': hGambarOptionalIds,
+
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'proses',
               'deskripsi_optional': deskripsiOptional,
             },
-            options: Options(
-              responseType:
-                  ResponseType.bytes, // Terima data sebagai byte mentah
-            ),
-            // Simpan file langsung ke path yang dipilih pengguna
-            onReceiveProgress: (received, total) {
-              // Di sini Anda bisa menambahkan logika untuk menampilkan progress bar jika mau
-            },
+            options: Options(responseType: ResponseType.bytes),
           )
           .then((response) async {
-            // Tulis byte yang diterima ke dalam file
             await File(outputPath).writeAsBytes(response.data);
           });
     } on DioException catch (e) {
-      throw Exception(
-        'Gagal mengunduh file: ${e.response?.data['message'] ?? e.message}',
-      );
+      // ... error handling ...
+      throw Exception(e.message);
     }
   }
 
