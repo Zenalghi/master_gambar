@@ -63,7 +63,7 @@ class TransaksiDataSource extends AsyncDataTableSource {
 
               // 7. Judul Gambar (Gabungan dari detail)
               DataCell(
-                SelectableText(trx.judulGambarString ?? '--judul tak ada--'),
+                SelectableText(trx.judulGambarString ?? '--judul offline--'),
               ),
 
               // 8. User
@@ -82,20 +82,23 @@ class TransaksiDataSource extends AsyncDataTableSource {
               // Options
               DataCell(
                 Row(
-                  mainAxisSize: MainAxisSize.min,
+                  // mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Tombol Edit Data Master Transaksi
-                    IconButton(
-                      icon: Icon(
-                        Icons.edit,
-                        size: 15,
-                        color: canEdit ? Colors.orange.shade700 : Colors.grey,
+                    if (!hasDraft)
+                      IconButton(
+                        icon: Icon(
+                          Icons.edit,
+                          size: 15,
+                          color: canEdit ? Colors.orange.shade700 : Colors.grey,
+                        ),
+                        tooltip: canEdit
+                            ? 'Edit Data Transaksi'
+                            : 'Anda tidak punya akses',
+                        onPressed: canEdit ? () => _showEditDialog(trx) : null,
                       ),
-                      tooltip: canEdit
-                          ? 'Edit Data Transaksi'
-                          : 'Anda tidak punya akses',
-                      onPressed: canEdit ? () => _showEditDialog(trx) : null,
-                    ),
 
                     // Tombol Proses / Lanjut Draft
                     IconButton(
@@ -104,10 +107,10 @@ class TransaksiDataSource extends AsyncDataTableSource {
                         hasDraft ? Icons.edit_document : Icons.open_in_new,
                         size: 15,
                         // Ganti Warna jika ada Draft
-                        color: hasDraft ? Colors.orange : Colors.blue,
+                        color: hasDraft ? Colors.lightBlueAccent : Colors.blue,
                       ),
                       tooltip: hasDraft
-                          ? 'Lanjutkan Transaksi Gambar'
+                          ? 'Detail Transaksi'
                           : 'Proses Gambar Baru',
                       onPressed: () {
                         // Buka Tab Input Gambar (Index 1) dengan membawa data transaksi
