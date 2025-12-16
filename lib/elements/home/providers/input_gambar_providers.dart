@@ -42,25 +42,44 @@ final jumlahGambarProvider = StateProvider<int>((ref) => 1);
 // Menyimpan ID pemeriksa yang dipilih
 final pemeriksaIdProvider = StateProvider<int?>((ref) => null);
 
-// === State untuk Pilihan Opsional ===
-final showGambarOptionalProvider = StateProvider<bool>((ref) => false);
-final jumlahGambarOptionalProvider = StateProvider<int>((ref) => 1);
-
 class GambarOptionalSelection {
   final int? gambarOptionalId;
   GambarOptionalSelection({this.gambarOptionalId});
 }
 
-final gambarOptionalSelectionProvider =
-    StateNotifierProvider<
-      GambarOptionalSelectionNotifier,
-      List<GambarOptionalSelection>
-    >((ref) {
-      // --- PERBAIKAN: HAPUS ref.watch ---
-      // Jangan watch jumlah di sini agar provider tidak reset saat jumlah berubah.
-      // Kita inisialisasi dengan nilai default (1), nanti listener di UI yang akan me-resize.
-      return GambarOptionalSelectionNotifier(1);
-    });
+final automaticIndependenOptionsProvider = FutureProvider<List<OptionItem>>((
+  ref,
+) async {
+  ref.watch(refreshNotifierProvider);
+
+  // 1. Ambil Varian Body yang sedang dipilih user
+  final utamaSelections = ref.watch(gambarUtamaSelectionProvider);
+
+  final selectedVarianIds = utamaSelections
+      .map((s) => s.varianBodyId)
+      .where((id) => id != null)
+      .toSet()
+      .toList();
+
+  if (selectedVarianIds.isEmpty) {
+    return [];
+  }
+
+  // 2. Panggil API (Gunakan endpoint yang sudah ada atau buat baru khusus list)
+  // Kita bisa reuse endpoint 'getGambarOptionalByVarian' yang ada di _OptionController
+  final response = await ref
+      .watch(apiClientProvider)
+      .dio
+      .post(
+        ApiEndpoints.gambarOptionalByVarian,
+        data: {'varian_ids': selectedVarianIds},
+      );
+
+  final List<dynamic> data = response.data;
+  return data
+      .map((item) => OptionItem.fromJson(item, nameKey: 'deskripsi'))
+      .toList();
+});
 
 class GambarOptionalSelectionNotifier
     extends StateNotifier<List<GambarOptionalSelection>> {

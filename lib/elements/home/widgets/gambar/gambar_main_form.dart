@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
 import 'package:master_gambar/elements/home/providers/input_gambar_providers.dart';
 import 'package:master_gambar/elements/home/widgets/gambar/gambar_kelistrikan_section.dart';
-import 'package:master_gambar/elements/home/widgets/gambar/gambar_optional_section.dart';
 import 'package:master_gambar/elements/home/widgets/gambar/gambar_synced_row.dart';
 import 'package:master_gambar/elements/home/widgets/gambar/gambar_utama_row.dart';
 
@@ -28,33 +27,28 @@ class GambarMainForm extends ConsumerWidget {
     final jenisPengajuan = transaksi.fPengajuan.jenisPengajuan.toUpperCase();
     final bool showDeskripsiOptional =
         jenisPengajuan == 'VARIAN' || jenisPengajuan == 'REVISI';
-    final showOptional = ref.watch(showGambarOptionalProvider);
-    final jumlahGambarOptional = ref.watch(jumlahGambarOptionalProvider);
     final kelistrikanInfo = ref.watch(kelistrikanInfoProvider);
     // LOGIKA BARU: Dianggap "Ada" (dihitung halamannya) HANYA jika status 'ready'
     final hasKelistrikan =
         kelistrikanInfo != null && kelistrikanInfo['status_code'] == 'ready';
+
+    final independentOptionals = ref.watch(automaticIndependenOptionsProvider);
     final dependentOptionals = ref.watch(dependentOptionalOptionsProvider);
+
     final dependentCount = dependentOptionals.asData?.value.length ?? 0;
+    final independentCount = independentOptionals.asData?.value.length ?? 0;
 
-    // Halaman Terurai: Mulai setelah Utama selesai
+    // Hitung Halaman
     final int startPageTerurai = jumlahGambarUtama + 1;
-
-    // Halaman Kontruksi: Mulai setelah Terurai selesai
     final int startPageKontruksi = startPageTerurai + jumlahGambarUtama;
-
-    // Halaman Paket: Mulai setelah Kontruksi selesai
     final int startPagePaket = startPageKontruksi + jumlahGambarUtama;
-
-    // Halaman Independen: Mulai setelah Paket selesai
     final int startPageIndependen = startPagePaket + dependentCount;
-
-    // Halaman Kelistrikan: Mulai setelah Independen selesai
-    final int pageKelistrikan =
-        startPageIndependen + (showOptional ? jumlahGambarOptional : 0);
+    // Kelistrikan mulai setelah independen selesai
+    final int pageKelistrikan = startPageIndependen + independentCount;
 
     // Total Halaman
     int totalHalaman = pageKelistrikan + (hasKelistrikan ? 0 : -1);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -186,24 +180,82 @@ class GambarMainForm extends ConsumerWidget {
               ),
               error: (err, stack) => Text('Error: $err'),
             ),
-            const Divider(height: 10),
-            CheckboxListTile(
-              title: const Text("Tampilkan Gambar Optional Independen"),
-              value: showOptional,
-              onChanged: (value) =>
-                  ref.read(showGambarOptionalProvider.notifier).state = value!,
-              controlAffinity: ListTileControlAffinity.leading,
+            // const Divider(height: 10),
+            independentOptionals.when(
+              data: (items) {
+                if (items.isEmpty) return const SizedBox.shrink();
+                return Column(
+                  children: [
+                    const Divider(height: 32),
+                    _buildSection(
+                      title: 'Gambar Optional Independen',
+                      itemCount: items.length,
+                      itemBuilder: (index) {
+                        final item = items[index];
+                        final pageNumber = startPageIndependen + index;
+                        final isPreviewEnabled =
+                            ref.watch(pemeriksaIdProvider) != null;
+                        final isLoading = ref.watch(isProcessingProvider);
+
+                        return Row(
+                          children: [
+                            SizedBox(
+                              width: 150,
+                              child: Text('Gambar\nIndependen ${index + 1}:'),
+                            ),
+                            Expanded(
+                              flex: 6,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors
+                                      .green
+                                      .shade50, // Pembeda warna dikit
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(item.name),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            SizedBox(
+                              width: 70,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.yellow.shade200,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.grey),
+                                ),
+                                child: Center(
+                                  child: Text('$pageNumber/$totalHalaman'),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            SizedBox(
+                              width: 170,
+                              child: ElevatedButton(
+                                onPressed: isPreviewEnabled && !isLoading
+                                    ? () => onPreviewPressed(pageNumber)
+                                    : null,
+                                child: const Text('Preview Gambar'),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Text('Error: $err'),
             ),
-            if (showOptional) ...[
-              GambarOptionalSection(
-                basePageNumber: startPageIndependen,
-                totalHalaman: totalHalaman,
-                onPreviewPressed: (index) {
-                  final pageNumber = startPageIndependen + index;
-                  onPreviewPressed(pageNumber);
-                },
-              ),
-            ],
             const Divider(height: 10),
 
             GambarKelistrikanSection(

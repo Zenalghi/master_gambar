@@ -20,7 +20,7 @@ class ProsesTransaksiRepository {
     required int? pemeriksaId,
     required int jumlahGambar,
     required List<Map<String, dynamic>> dataGambarUtama,
-    required List<int> optionalIds,
+    // required List<int> optionalIds,
     String? deskripsiOptional,
   }) async {
     try {
@@ -34,7 +34,7 @@ class ProsesTransaksiRepository {
               'jumlah_gambar': jumlahGambar,
               'data_gambar_utama':
                   dataGambarUtama, // Kirim array object [{judul_id:1, varian_id:2}]
-              'h_gambar_optional_ids': optionalIds,
+              // 'h_gambar_optional_ids': optionalIds,
               'deskripsi_optional': deskripsiOptional,
             },
           );
@@ -50,7 +50,7 @@ class ProsesTransaksiRepository {
     required int pemeriksaId,
     required List<int> varianBodyIds,
     required List<int> judulGambarIds,
-    required List<int>? hGambarOptionalIds,
+    // required List<int>? hGambarOptionalIds,
     int? iGambarKelistrikanId,
     required int pageNumber,
     String? deskripsiOptional,
@@ -64,11 +64,11 @@ class ProsesTransaksiRepository {
             data: {
               'pemeriksa_id': pemeriksaId,
               'varian_body_ids': varianBodyIds,
-              'judul_gambar_ids': judulGambarIds,
-              'h_gambar_optional_ids':
-                  (hGambarOptionalIds != null && hGambarOptionalIds.isNotEmpty)
-                  ? hGambarOptionalIds
-                  : null, // <-- Kirim dengan key yang benar
+                // 'judul_gambar_ids': judulGambarIds,
+                // 'h_gambar_optional_ids':
+                //     (hGambarOptionalIds != null && hGambarOptionalIds.isNotEmpty)
+                //     ? hGambarOptionalIds
+                //     : null, // <-- Kirim dengan key yang benar
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'preview',
               'preview_page': pageNumber,
@@ -95,7 +95,7 @@ class ProsesTransaksiRepository {
     required int pemeriksaId,
     required List<int> varianBodyIds,
     required List<int> judulGambarIds,
-    required List<int>? hGambarOptionalIds,
+    // required List<int>? hGambarOptionalIds,
     int? iGambarKelistrikanId,
     String? deskripsiOptional,
   }) async {
@@ -123,10 +123,10 @@ class ProsesTransaksiRepository {
               'pemeriksa_id': pemeriksaId,
               'varian_body_ids': varianBodyIds,
               'judul_gambar_ids': judulGambarIds,
-              'h_gambar_optional_ids':
-                  (hGambarOptionalIds != null && hGambarOptionalIds.isNotEmpty)
-                  ? hGambarOptionalIds
-                  : null,
+              // 'h_gambar_optional_ids':
+              //     (hGambarOptionalIds != null && hGambarOptionalIds.isNotEmpty)
+              //     ? hGambarOptionalIds
+              //     : null,
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'proses',
               'deskripsi_optional': deskripsiOptional,

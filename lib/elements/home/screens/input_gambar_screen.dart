@@ -63,9 +63,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     ref.read(pemeriksaIdProvider.notifier).state = null;
     ref.read(jumlahGambarProvider.notifier).state = 1;
     ref.invalidate(gambarUtamaSelectionProvider);
-    ref.read(showGambarOptionalProvider.notifier).state = false;
-    ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
-    ref.invalidate(gambarOptionalSelectionProvider);
+
 
     // Reset teks deskripsi provider & controller
     ref.read(deskripsiOptionalProvider.notifier).state = '';
@@ -91,23 +89,6 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             judulId: item['judul_id'],
             varianBodyId: item['varian_id'],
           );
-    }
-
-    if (detail.optionalIndependenIds.isNotEmpty) {
-      ref.read(showGambarOptionalProvider.notifier).state = true;
-      ref.read(jumlahGambarOptionalProvider.notifier).state =
-          detail.optionalIndependenIds.length;
-      ref
-          .read(gambarOptionalSelectionProvider.notifier)
-          .resize(detail.optionalIndependenIds.length);
-      for (int i = 0; i < detail.optionalIndependenIds.length; i++) {
-        ref
-            .read(gambarOptionalSelectionProvider.notifier)
-            .updateSelection(
-              i,
-              gambarOptionalId: detail.optionalIndependenIds[i],
-            );
-      }
     }
 
     // 5. Deskripsi Optional (FIX BUG 1)
@@ -148,8 +129,6 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     try {
       final pemeriksaId = ref.read(pemeriksaIdProvider);
       final selections = ref.read(gambarUtamaSelectionProvider);
-      final showOptional = ref.read(showGambarOptionalProvider);
-      final optionalSelections = ref.read(gambarOptionalSelectionProvider);
       final deskripsiOptional = ref.read(deskripsiOptionalProvider);
 
       // --- 1. VALIDASI KELISTRIKAN ---
@@ -205,16 +184,6 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
 
       // --- 5. SIAPKAN DATA OPTIONAL ---
       final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
-      List<int> independentOptionalIds = showOptional
-          ? optionalSelections
-                .where((s) => s.gambarOptionalId != null)
-                .map((s) => s.gambarOptionalId!)
-                .toList()
-          : [];
-      final allOptionalIds = [
-        ...dependentOptionalIds,
-        ...independentOptionalIds,
-      ];
 
       // --- 6. LOGIKA SMART PAGE NUMBER (SOLUSI HALAMAN TIDAK DITEMUKAN) ---
       int finalPageNumber = pageNumber;
@@ -244,7 +213,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             pemeriksaId: pemeriksaId,
             varianBodyIds: varianBodyIds, // Bisa kosong []
             judulGambarIds: judulGambarIds, // Bisa kosong []
-            hGambarOptionalIds: allOptionalIds,
+            // hGambarOptionalIds: allOptionalIds,
             iGambarKelistrikanId: kelistrikanId,
             pageNumber:
                 finalPageNumber, // Gunakan nomor halaman yang sudah disesuaikan
@@ -274,8 +243,8 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     try {
       final pemeriksaId = ref.read(pemeriksaIdProvider);
       final selections = ref.read(gambarUtamaSelectionProvider);
-      final showOptional = ref.read(showGambarOptionalProvider);
-      final optionalSelections = ref.read(gambarOptionalSelectionProvider);
+      // final showOptional = ref.read(showGambarOptionalProvider);
+      // final optionalSelections = ref.read(gambarOptionalSelectionProvider);
       final deskripsiOptional = ref.read(deskripsiOptionalProvider);
 
       final kelistrikanInfo = ref.read(kelistrikanInfoProvider);
@@ -289,17 +258,17 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
           .map((s) => s.judulId!)
           .toList();
 
-      final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
-      List<int> independentOptionalIds = showOptional
-          ? optionalSelections
-                .where((s) => s.gambarOptionalId != null)
-                .map((s) => s.gambarOptionalId!)
-                .toList()
-          : [];
-      final allOptionalIds = [
-        ...dependentOptionalIds,
-        ...independentOptionalIds,
-      ];
+      // final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
+      //   List<int> independentOptionalIds = showOptional
+      //       ? optionalSelections
+      //             .where((s) => s.gambarOptionalId != null)
+      //             .map((s) => s.gambarOptionalId!)
+      //             .toList()
+      //       : [];
+      // final allOptionalIds = [
+      //   ...dependentOptionalIds,
+      //   ...independentOptionalIds,
+      // ];
 
       final rawFileName =
           '${widget.transaksi.user.name} (${widget.transaksi.fPengajuan.jenisPengajuan}) '
@@ -318,7 +287,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             pemeriksaId: pemeriksaId!,
             varianBodyIds: varianBodyIds,
             judulGambarIds: judulGambarIds,
-            hGambarOptionalIds: allOptionalIds,
+            // hGambarOptionalIds: allOptionalIds,
             iGambarKelistrikanId: kelistrikanId, // KIRIM ID DESKRIPSI
             deskripsiOptional: deskripsiOptional,
           );
@@ -360,9 +329,9 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     ref.listen<int>(jumlahGambarProvider, (previous, next) {
       ref.read(gambarUtamaSelectionProvider.notifier).resize(next);
     });
-    ref.listen<int>(jumlahGambarOptionalProvider, (previous, next) {
-      ref.read(gambarOptionalSelectionProvider.notifier).resize(next);
-    });
+    // ref.listen<int>(jumlahGambarOptionalProvider, (previous, next) {
+    //   ref.read(gambarOptionalSelectionProvider.notifier).resize(next);
+    // });
     ref.listen(refreshNotifierProvider, (_, __) {
       _initOrReloadData();
     });
@@ -411,15 +380,6 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
         .map((s) => {'judul_id': s.judulId, 'varian_id': s.varianBodyId})
         .toList();
 
-    // Siapkan data Optional
-    final showOptional = ref.read(showGambarOptionalProvider);
-    final optionalSelections = ref.read(gambarOptionalSelectionProvider);
-    List<int> optionalIds = showOptional
-        ? optionalSelections
-              .where((s) => s.gambarOptionalId != null)
-              .map((s) => s.gambarOptionalId!)
-              .toList()
-        : [];
 
     try {
       await ref
@@ -429,7 +389,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             pemeriksaId: pemeriksaId,
             jumlahGambar: ref.read(jumlahGambarProvider),
             dataGambarUtama: dataGambarUtama,
-            optionalIds: optionalIds,
+            // optionalIds: optionalIds,
             deskripsiOptional: ref.read(deskripsiOptionalProvider),
           );
 

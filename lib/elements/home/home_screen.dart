@@ -52,9 +52,6 @@ class HomeScreen extends ConsumerWidget {
                 // ref.read(pemeriksaIdProvider.notifier).state = null;
                 ref.read(jumlahGambarProvider.notifier).state = 1;
                 ref.invalidate(gambarUtamaSelectionProvider);
-                ref.read(showGambarOptionalProvider.notifier).state = false;
-                ref.read(jumlahGambarOptionalProvider.notifier).state = 1;
-                ref.invalidate(gambarOptionalSelectionProvider);
                 ref.read(deskripsiOptionalProvider.notifier).state = '';
               }
 
