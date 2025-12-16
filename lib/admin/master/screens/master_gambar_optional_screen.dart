@@ -169,48 +169,66 @@ class _MasterGambarOptionalScreenState
     final editingItem = ref.read(editingGambarOptionalProvider);
     final isEditMode = editingItem != null;
 
+    // --- VALIDASI MODE TAMBAH (Create) ---
+    // Saat buat baru, SEMUA WAJIB ADA
     if (!isEditMode) {
       final selectedVarianBodyId = ref.read(mguSelectedVarianBodyIdProvider);
       if (selectedVarianBodyId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Harap pilih Varian Body.')),
-        );
+        _showSnackBar('Harap pilih Varian Body.', Colors.orange);
         return;
       }
       if (_selectedFile == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Harap pilih file PDF.')));
+        _showSnackBar('Harap pilih file PDF.', Colors.orange);
+        return;
+      }
+      if (_deskripsiController.text.isEmpty) {
+        _showSnackBar('Harap isi deskripsi.', Colors.orange);
         return;
       }
     }
 
-    if (_deskripsiController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Harap isi deskripsi.')));
-      return;
+    // --- VALIDASI MODE EDIT (Update) ---
+    // Saat edit, minimal salah satu harus berubah (Deskripsi atau File)
+    if (isEditMode) {
+      // Cek apakah deskripsi berubah dari yang lama?
+      final isDeskripsiChanged =
+          _deskripsiController.text != editingItem.deskripsi;
+      // Cek apakah ada file baru?
+      final isFileChanged = _selectedFile != null;
+
+      if (!isDeskripsiChanged && !isFileChanged) {
+        _showSnackBar('Tidak ada perubahan data.', Colors.blue);
+        return; // Tidak perlu kirim request
+      }
+
+      // Pastikan deskripsi tidak dikosongkan total saat edit (opsional, tergantung rule bisnis)
+      if (_deskripsiController.text.isEmpty) {
+        _showSnackBar('Deskripsi tidak boleh dikosongkan.', Colors.red);
+        return;
+      }
     }
 
     setState(() => _isLoading = true);
 
     try {
       if (isEditMode) {
+        // --- LOGIKA UPDATE FLEKSIBEL ---
         await ref
             .read(masterDataRepositoryProvider)
             .updateGambarOptional(
               id: editingItem.id,
+              // Kirim teks controller (Backend akan update jika dikirim)
               deskripsi: _deskripsiController.text,
+              // Kirim file jika ada yang dipilih (null jika tidak ganti)
               file: _selectedFile,
             );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Update Berhasil!'),
-            backgroundColor: Colors.orange,
-          ),
-        );
+
+        _showSnackBar('Update Berhasil!', Colors.orange);
+
+        // Reset state edit
         ref.read(editingGambarOptionalProvider.notifier).state = null;
       } else {
+        // --- LOGIKA CREATE (Tetap Sama) ---
         final selectedVarianBodyId = ref.read(mguSelectedVarianBodyIdProvider);
         await ref
             .read(masterDataRepositoryProvider)
@@ -220,28 +238,28 @@ class _MasterGambarOptionalScreenState
               gambarOptionalFile: _selectedFile!,
               tipe: 'independen',
             );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Upload Berhasil!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        _showSnackBar('Upload Berhasil!', Colors.green);
         _resetForm();
       }
 
+      // Refresh Tabel
       ref
           .read(gambarOptionalFilterProvider.notifier)
           .update((state) => Map.from(state));
     } on DioException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.response?.data['message'] ?? e.message}'),
-          backgroundColor: Colors.red,
-        ),
+      _showSnackBar(
+        'Error: ${e.response?.data['message'] ?? e.message}',
+        Colors.red,
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message), backgroundColor: color));
   }
 
   void _handleCopyAction() {

@@ -614,13 +614,16 @@ class MasterDataRepository {
 
   Future<void> updateGambarOptional({
     required int id,
-    required String deskripsi,
-    File? file, // File opsional saat update
+    String? deskripsi,
+    File? file,
   }) async {
-    final formData = FormData.fromMap({
-      'deskripsi': deskripsi,
-      // '_method': 'PUT', // Kadang diperlukan jika pakai POST untuk update file di Laravel
-    });
+    final Map<String, dynamic> mapData = {};
+
+    if (deskripsi != null && deskripsi.isNotEmpty) {
+      mapData['deskripsi'] = deskripsi;
+    }
+
+    final formData = FormData.fromMap(mapData);
 
     if (file != null) {
       formData.files.add(
@@ -628,12 +631,17 @@ class MasterDataRepository {
       );
     }
 
+    if (mapData.isEmpty && file == null) return;
+
     try {
-      // Gunakan POST ke endpoint khusus update file
       await _ref
           .read(apiClientProvider)
           .dio
-          .post('/master-data/gambar-optional/$id/update-file', data: formData);
+          // PERBAIKAN: Tambahkan '/admin' di depan URL
+          .post(
+            '/admin/master-data/gambar-optional/$id/update-file',
+            data: formData,
+          );
     } on DioException catch (e) {
       throw Exception(
         e.response?.data['message'] ?? 'Gagal update gambar optional',
