@@ -188,13 +188,28 @@ class GambarMainForm extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Divider(height: 32),
-                    const Text(
-                      'Gambar Optional Independen (Drag untuk Mengurutkan)',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
+                    Row(
+                      children: [
+                        const Text(
+                          'Gambar Optional Independen',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        //icon info
+                        const SizedBox(width: 4),
+                        Tooltip(
+                          message:
+                              'Urutan gambar independen dengan cara drag & drop.',
+                          child: const Icon(
+                            Icons.info_outline,
+                            size: 16,
+                            color: Colors.lightBlueAccent,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
 
