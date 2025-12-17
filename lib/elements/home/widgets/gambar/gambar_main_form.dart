@@ -183,7 +183,6 @@ class GambarMainForm extends ConsumerWidget {
             independentAsync.when(
               data: (items) {
                 if (items.isEmpty) return const SizedBox.shrink();
-
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -231,8 +230,7 @@ class GambarMainForm extends ConsumerWidget {
                       itemBuilder: (context, index) {
                         final item = items[index];
                         final pageNumber = startPageIndependen + index;
-                        final isPreviewEnabled =
-                            ref.watch(pemeriksaIdProvider) != null;
+                        final isLoading = ref.watch(isProcessingProvider);
 
                         return ReorderableDragStartListener(
                           key: ValueKey(item.id), // ID Unik Item
@@ -267,9 +265,6 @@ class GambarMainForm extends ConsumerWidget {
                                           width: 110,
                                           child: Text(
                                             'Independen ${index + 1}:',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
                                           ),
                                         ),
 
@@ -339,7 +334,7 @@ class GambarMainForm extends ConsumerWidget {
                                               vertical: 12,
                                             ),
                                           ),
-                                          onPressed: isPreviewEnabled
+                                          onPressed: !isLoading
                                               ? () =>
                                                     onPreviewPressed(pageNumber)
                                               : null,

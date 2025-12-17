@@ -228,16 +228,27 @@ class _MasterGambarOptionalScreenState
         // Reset state edit
         ref.read(editingGambarOptionalProvider.notifier).state = null;
       } else {
-        // --- LOGIKA CREATE (Tetap Sama) ---
-        final selectedVarianBodyId = ref.read(mguSelectedVarianBodyIdProvider);
+        // 1. Ambil ID Master Data (Bukan Varian Body lagi)
+        final selectedMasterDataId = ref.read(mguSelectedMasterDataIdProvider);
+
+        if (selectedMasterDataId == null) {
+          _showSnackBar(
+            'Master Data ID tidak ditemukan. Pilih kendaraan ulang.',
+            Colors.red,
+          );
+          return;
+        }
+
         await ref
             .read(masterDataRepositoryProvider)
             .addGambarOptional(
-              varianBodyId: selectedVarianBodyId!,
+              // Kirim masterDataId
+              masterDataId: selectedMasterDataId,
               deskripsi: _deskripsiController.text,
               gambarOptionalFile: _selectedFile!,
               tipe: 'independen',
             );
+
         _showSnackBar('Upload Berhasil!', Colors.green);
         _resetForm();
       }

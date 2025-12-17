@@ -155,6 +155,11 @@ final varianBodyOptionsFamilyProvider =
           .toList();
     });
 
+// --- TAMBAHKAN PROVIDER BARU UNTUK TABEL STATUS GAMBAR ---
+final imageStatusFilterProvider = StateProvider<Map<String, String>>((ref) {
+  return {'search': '', 'sortBy': 'id', 'sortDirection': 'desc'};
+});
+
 // --- TAMBAHKAN PROVIDER UNTUK GAMBAR OPTIONAL ---
 final gambarOptionalFilterProvider = StateProvider<Map<String, String>>((ref) {
   return {'search': '', 'sortBy': 'updated_at', 'sortDirection': 'desc'};
@@ -162,27 +167,11 @@ final gambarOptionalFilterProvider = StateProvider<Map<String, String>>((ref) {
 
 final gambarOptionalRowsPerPageProvider = StateProvider<int>((ref) => 50);
 
-// --- TAMBAHKAN PROVIDER UNTUK GAMBAR KELISTRIKAN ---
-final gambarKelistrikanFilterProvider = StateProvider<Map<String, String>>((
-  ref,
-) {
-  return {'search': '', 'sortBy': 'updated_at', 'sortDirection': 'desc'};
-});
-
-final gambarKelistrikanRowsPerPageProvider = StateProvider<int>((ref) => 50);
-final editingKelistrikanFileProvider = StateProvider<MasterKelistrikanFile?>(
-  (ref) => null,
-);
 // State untuk checkbox "Tambahkan Gambar Optional Dependen"
 final mguShowDependentOptionalProvider = StateProvider<bool>((ref) => false);
 
 // State untuk file PDF opsional dependen yang dipilih
 final mguDependentFileProvider = StateProvider<File?>((ref) => null);
-
-// --- TAMBAHKAN PROVIDER BARU UNTUK TABEL STATUS GAMBAR ---
-final imageStatusFilterProvider = StateProvider<Map<String, String>>((ref) {
-  return {'search': '', 'sortBy': 'id', 'sortDirection': 'desc'};
-});
 
 // Provider ini akan melakukan pengecekan ke backend saat Varian Body dipilih
 final hasExistingPaketOptionalProvider = FutureProvider<bool>((ref) async {
@@ -198,7 +187,23 @@ final hasExistingPaketOptionalProvider = FutureProvider<bool>((ref) async {
       .watch(masterDataRepositoryProvider)
       .checkPaketOptionalExists(selectedVarianBodyId);
 });
+final editingGambarOptionalProvider = StateProvider<GambarOptional?>(
+  (ref) => null,
+);
+// Provider sederhana untuk men-trigger aksi copy agar UI bereaksi (buka form & snackbar)
+final copyGambarOptionalTriggerProvider = StateProvider<int>((ref) => 0);
 
+// --- TAMBAHKAN PROVIDER UNTUK GAMBAR KELISTRIKAN ---
+final gambarKelistrikanFilterProvider = StateProvider<Map<String, String>>((
+  ref,
+) {
+  return {'search': '', 'sortBy': 'updated_at', 'sortDirection': 'desc'};
+});
+
+final gambarKelistrikanRowsPerPageProvider = StateProvider<int>((ref) => 50);
+final editingKelistrikanFileProvider = StateProvider<MasterKelistrikanFile?>(
+  (ref) => null,
+);
 // == PROVIDER UNTUK MASTER DATA SCREEN ==
 final masterDataFilterProvider = StateProvider<Map<String, String>>(
   (ref) => {'search': '', 'sortBy': 'id', 'sortDirection': 'desc'},
@@ -269,8 +274,3 @@ final adminSidebarIndexProvider = StateProvider<int>((ref) => 0);
 final selectedMasterDataFilterProvider = StateProvider<OptionItem?>(
   (ref) => null,
 );
-final editingGambarOptionalProvider = StateProvider<GambarOptional?>(
-  (ref) => null,
-);
-// Provider sederhana untuk men-trigger aksi copy agar UI bereaksi (buka form & snackbar)
-final copyGambarOptionalTriggerProvider = StateProvider<int>((ref) => 0);

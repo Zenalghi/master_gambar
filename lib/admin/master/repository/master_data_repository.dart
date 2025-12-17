@@ -576,12 +576,11 @@ class MasterDataRepository {
   }
 
   Future<void> addGambarOptional({
-    // Parameter disesuaikan dengan controller H_GambarOptionalController
     String tipe = 'independen',
     String deskripsi = '',
     required File gambarOptionalFile,
-    int? varianBodyId, // e_varian_body_id (untuk independen)
-    int? gambarUtamaId, // g_gambar_utama_id (untuk paket)
+    int? masterDataId, // GANTI: Dulu varianBodyId, sekarang masterDataId
+    int? gambarUtamaId,
   }) async {
     final fileName = gambarOptionalFile.path.split(Platform.pathSeparator).last;
 
@@ -597,13 +596,13 @@ class MasterDataRepository {
 
     // 2. Tambahkan ID yang relevan secara kondisional
     if (tipe == 'independen') {
-      dataMap['e_varian_body_id'] = varianBodyId;
+      // PERBAIKAN: Gunakan key 'master_data_id'
+      dataMap['master_data_id'] = masterDataId;
     } else {
       // tipe == 'paket'
       dataMap['g_gambar_utama_id'] = gambarUtamaId;
     }
 
-    // 3. Buat FormData dari map yang sudah benar
     final formData = FormData.fromMap(dataMap);
 
     await _ref
