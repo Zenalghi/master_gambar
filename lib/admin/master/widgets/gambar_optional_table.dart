@@ -15,12 +15,11 @@ class GambarOptionalTable extends ConsumerStatefulWidget {
 }
 
 class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
-  int _sortColumnIndex = 9; // Default: updated_at (geser +1 karena ada ID)
+  int _sortColumnIndex = 7; // Default: updated_at (sesuaikan index kolom baru)
   bool _sortAscending = false;
 
   @override
   Widget build(BuildContext context) {
-    // ... kode build tetap sama
     final dataSource = GambarOptionalDataSource(ref, context);
     final rowsPerPage = ref.watch(gambarOptionalRowsPerPageProvider);
 
@@ -42,7 +41,9 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
       columns: _createColumns(),
       source: dataSource,
       loading: const Center(child: CircularProgressIndicator()),
-      empty: const Center(child: Text('Tidak ada data ditemukan')),
+      empty: const Center(
+        child: Text('Tidak ada data Gambar Optional Independen'),
+      ),
     );
   }
 
@@ -52,18 +53,17 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
       _sortAscending = ascending;
     });
 
-    // Mapping ke nama kolom backend yang benar (sesuai Controller)
+    // Mapping Index Kolom -> Field Backend
     final Map<int, String> columnMapping = {
       0: 'id',
       1: 'type_engine',
       2: 'merk',
       3: 'type_chassis',
       4: 'jenis_kendaraan',
-      5: 'varian_body',
-      6: 'tipe',
-      7: 'deskripsi',
-      8: 'created_at',
-      9: 'updated_at',
+      // Kolom 5 adalah Deskripsi
+      5: 'deskripsi',
+      6: 'created_at',
+      7: 'updated_at',
     };
 
     ref.read(gambarOptionalFilterProvider.notifier).update((state) {
@@ -90,7 +90,7 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
       ),
       DataColumn2(
         label: const Text('Type\nChassis'),
-        size: ColumnSize.L,
+        size: ColumnSize.M,
         onSort: _onSort,
       ),
       DataColumn2(
@@ -98,16 +98,7 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
         size: ColumnSize.S,
         onSort: _onSort,
       ),
-      DataColumn2(
-        label: const Text('Varian Body'),
-        size: ColumnSize.M,
-        onSort: _onSort,
-      ),
-      DataColumn2(
-        label: const Text('Tipe'),
-        size: ColumnSize.S,
-        onSort: _onSort,
-      ),
+      // HAPUS VARIAN BODY & TIPE
       DataColumn2(
         label: const Text('Deskripsi'),
         size: ColumnSize.L,

@@ -39,55 +39,28 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
       return AsyncRowsResponse(
         response.total,
         response.data.map((item) {
-          // Akses hirarki data melalui varianBody -> masterData
-          final vb = item.varianBody;
-          final md = vb?.masterData;
+          // --- PERUBAHAN UTAMA DI SINI ---
+          // Kita ambil data langsung dari masterData (karena independen)
+          final md = item.masterData;
 
           return DataRow(
-            // key: ValueKey(item.id),
+            key: ValueKey(item.id),
             cells: [
               DataCell(SelectableText(item.id.toString())),
-              DataCell(SelectableText(md?.typeEngine.name ?? '')),
-              DataCell(SelectableText(md?.merk.name ?? '')),
+              DataCell(SelectableText(md?.typeEngine.name ?? '-')),
+              DataCell(SelectableText(md?.merk.name ?? '-')),
               DataCell(
                 SelectableText(
-                  md?.typeChassis.name ?? '',
+                  md?.typeChassis.name ?? '-',
                   style: AppTextStyles.dynamicSize(md?.typeChassis.name ?? ''),
                 ),
               ),
-              DataCell(SelectableText(md?.jenisKendaraan.name ?? '')),
-              DataCell(SelectableText(vb?.name ?? '')),
+              DataCell(SelectableText(md?.jenisKendaraan.name ?? '-')),
 
-              // Kolom Tipe
-              DataCell(
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: item.tipe == 'paket'
-                        ? Colors.blue.shade100
-                        : Colors.green.shade100,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    item.tipe.toUpperCase(),
-                    style: TextStyle(
-                      color: item.tipe == 'paket'
-                          ? Colors.blue.shade800
-                          : Colors.green.shade800,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 9,
-                    ),
-                  ),
-                ),
-              ),
-
+              // HAPUS CELL VARIAN BODY & TIPE
               DataCell(
                 SelectableText(
                   item.deskripsi,
-                  // PANGGIL HELPER DARI THEME TADI
                   style: AppTextStyles.dynamicSize(item.deskripsi),
                 ),
               ),
@@ -101,18 +74,17 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
               DataCell(
                 Row(
                   mainAxisSize: MainAxisSize.min,
-
                   children: [
+                    // Copy (Sesuaikan parameter copy jika perlu masterDataId)
                     IconButton(
                       icon: const Icon(
-                        Icons.content_copy, // Icon Copy
+                        Icons.content_copy,
                         size: 15,
                         color: Colors.lightBlueAccent,
                       ),
-                      tooltip: 'Copy Data Kendaraan',
+                      tooltip: 'Copy Data',
                       onPressed: () => _copyItemToForm(item),
                     ),
-                    // Tombol View PDF
                     IconButton(
                       icon: Icon(
                         Icons.visibility,
@@ -122,14 +94,12 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
                       tooltip: 'Lihat PDF',
                       onPressed: () => _showPdfPreview(item),
                     ),
-                    // Tombol Edit
                     IconButton(
                       icon: const Icon(
                         Icons.edit,
                         size: 15,
                         color: Colors.orange,
                       ),
-                      // PANGGIL PROVIDER UNTUK MASUK MODE EDIT
                       onPressed: () {
                         _ref
                                 .read(editingGambarOptionalProvider.notifier)
@@ -137,7 +107,6 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
                             item;
                       },
                     ),
-                    // Tombol Delete (Anda bisa tambahkan _showDeleteDialog jika perlu)
                     IconButton(
                       icon: const Icon(
                         Icons.delete,
@@ -226,24 +195,20 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
   }
 
   void _copyItemToForm(GambarOptional item) {
-    final vb = item.varianBody;
-    final md = vb?.masterData;
+    // COPY LOGIC: Ambil Master Data langsung
+    final md = item.masterData;
 
-    if (vb != null && md != null) {
-      // 1. Siapkan Nama Master Data untuk Dropdown Search
+    if (md != null) {
       final masterDataName =
           '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.name} / ${md.jenisKendaraan.name}';
 
-      // 2. Isi Provider Initial Data (Ini akan otomatis mengisi PilihVarianBodyCard)
+      // Isi Provider Initial Data (Hanya Master Data, Varian Body Kosong/Null)
       _ref.read(initialGambarUtamaDataProvider.notifier).state = {
         'masterData': OptionItem(id: md.id, name: masterDataName),
-        'varianBody': OptionItem(id: vb.id, name: vb.name),
+        'varianBody': OptionItem(id: 0, name: ''), // Dummy atau null
       };
 
-      // 3. Matikan Mode Edit (Penting! Kita mau nambah baru, bukan edit yang lama)
       _ref.read(editingGambarOptionalProvider.notifier).state = null;
-
-      // 4. Trigger Layar untuk Buka Form & Reset Field lain
       _ref.read(copyGambarOptionalTriggerProvider.notifier).state++;
     }
   }

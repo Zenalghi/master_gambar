@@ -12,7 +12,7 @@ import 'package:pdfx/pdfx.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../../../data/models/option_item.dart';
 import '../models/gambar_optional.dart';
-import '../widgets/pilih_varian_body_card.dart';
+import '../widgets/pilih_master_data_card.dart';
 import '../widgets/gambar_optional_table.dart';
 
 class MasterGambarOptionalScreen extends ConsumerStatefulWidget {
@@ -54,7 +54,7 @@ class _MasterGambarOptionalScreenState
   }
 
   Future<void> _enterEditMode(GambarOptional item) async {
-    // 1. Reset state preview lama agar tidak glitch
+    // 1. Reset state preview lama
     setState(() {
       _isLoading = true;
       _pdfController?.dispose();
@@ -62,24 +62,33 @@ class _MasterGambarOptionalScreenState
       _selectedFile = null;
     });
 
-    // 2. Isi Form
+    // 2. Isi Form Deskripsi
     _deskripsiController.text = item.deskripsi;
 
-    // 3. Set Data Dropdown (Penting agar PilihVarianBodyCard terisi)
-    final vb = item.varianBody;
-    final md = vb?.masterData; // Akses via relasi (pastikan model mendukung)
+    // --- PERBAIKAN DI SINI ---
 
-    if (vb != null && md != null) {
-      // Buat nama gabungan untuk dropdown
+    // CARA LAMA (SALAH): Mengambil via Varian Body (sekarang null)
+    // final vb = item.varianBody;
+    // final md = vb?.masterData;
+
+    // CARA BARU (BENAR): Mengambil langsung dari properti masterData
+    final md = item.masterData;
+
+    if (md != null) {
+      // Buat nama gabungan untuk tampilan dropdown
       final masterDataName =
           '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.name} / ${md.jenisKendaraan.name}';
 
-      // Update provider initial data
+      // Update provider agar PilihMasterDataCard bereaksi
       ref.read(initialGambarUtamaDataProvider.notifier).state = {
         'masterData': OptionItem(id: md.id, name: masterDataName),
-        'varianBody': OptionItem(id: vb.id, name: vb.name),
+        // 'varianBody' tidak diperlukan lagi untuk card ini
       };
+
+      // PENTING: Update juga ID provider yang dipakai saat submit
+      ref.read(mguSelectedMasterDataIdProvider.notifier).state = md.id;
     }
+    // -------------------------
 
     try {
       // 4. Download PDF
@@ -88,7 +97,6 @@ class _MasterGambarOptionalScreenState
           .getGambarOptionalPdf(item.id);
 
       final tempDir = await getTemporaryDirectory();
-      // Gunakan timestamp agar nama file unik dan tidak cache
       final tempFile = File(
         '${tempDir.path}/edit_opt_${item.id}_${DateTime.now().millisecondsSinceEpoch}.pdf',
       );
@@ -125,7 +133,6 @@ class _MasterGambarOptionalScreenState
 
   void _resetForm() {
     ref.read(mguSelectedMasterDataIdProvider.notifier).state = null;
-    ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
     ref.read(mguSelectedVarianBodyNameProvider.notifier).state = null;
     ref.read(initialGambarUtamaDataProvider.notifier).state =
         null; // Reset dropdown visual
@@ -172,11 +179,6 @@ class _MasterGambarOptionalScreenState
     // --- VALIDASI MODE TAMBAH (Create) ---
     // Saat buat baru, SEMUA WAJIB ADA
     if (!isEditMode) {
-      final selectedVarianBodyId = ref.read(mguSelectedVarianBodyIdProvider);
-      if (selectedVarianBodyId == null) {
-        _showSnackBar('Harap pilih Varian Body.', Colors.orange);
-        return;
-      }
       if (_selectedFile == null) {
         _showSnackBar('Harap pilih file PDF.', Colors.orange);
         return;
@@ -386,8 +388,7 @@ class _MasterGambarOptionalScreenState
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             // 1. Pilih Kendaraan (Kirim Flag Edit Mode)
-                            PilihVarianBodyCard(isEditMode: isEditMode),
-
+                            PilihMasterDataCard(isEditMode: isEditMode),
                             // 2. Input Details
                             Card(
                               child: Padding(

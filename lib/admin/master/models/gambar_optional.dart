@@ -1,25 +1,30 @@
 // lib/admin/master/models/gambar_optional.dart
 
 import 'package:master_gambar/admin/master/models/varian_body.dart';
+import 'package:master_gambar/admin/master/models/master_data.dart'; // Pastikan import MasterData
 
 class GambarOptional {
   final int id;
-  final String tipe; // <-- Tambahkan tipe
+  final String tipe;
   final String deskripsi;
   final String path;
-  //masterDataId
   final int? masterDataId;
-  final VarianBody? varianBody; // <-- Jadikan nullable (?)
+
+  // Relasi
+  final VarianBody? varianBody; // Bisa null (jika independen)
+  final MasterData? masterData; // Baru: Untuk independen
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
   GambarOptional({
     required this.id,
-    required this.tipe, // <-- Tambahkan
+    required this.tipe,
     required this.deskripsi,
     required this.path,
     this.masterDataId,
-    this.varianBody, // <-- Jadikan nullable
+    this.varianBody,
+    this.masterData, // Baru
     required this.createdAt,
     required this.updatedAt,
   });
@@ -27,13 +32,21 @@ class GambarOptional {
   factory GambarOptional.fromJson(Map<String, dynamic> json) {
     return GambarOptional(
       id: json['id'],
-      tipe: json['tipe'], // <-- Tambahkan
+      tipe: json['tipe'],
       deskripsi: json['deskripsi'] ?? 'Tanpa Deskripsi',
-      path: json['path_gambar_optional'],
-      // Cek jika varian_body tidak null sebelum di-parse
+      path: json['path_gambar_optional'] ?? '',
+      masterDataId: json['master_data_id'],
+
+      // Parse Varian Body (jika ada)
       varianBody: json['varian_body'] != null
           ? VarianBody.fromJson(json['varian_body'])
           : null,
+
+      // Parse Master Data (jika ada - KHUSUS INDEPENDEN)
+      masterData: json['master_data'] != null
+          ? MasterData.fromJson(json['master_data'])
+          : null,
+
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );
