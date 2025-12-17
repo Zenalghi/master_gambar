@@ -59,51 +59,22 @@ class IndependentListNotifier
     extends StateNotifier<AsyncValue<List<OptionItem>>> {
   final Ref ref;
 
-  IndependentListNotifier(this.ref) : super(const AsyncValue.loading()) {
-    _init();
-  }
+  IndependentListNotifier(this.ref) : super(const AsyncValue.loading());
 
-  // Listener internal: Jika varian body berubah, fetch ulang data
-  void _init() {
-    ref.listen<List<GambarUtamaSelection>>(gambarUtamaSelectionProvider, (
-      previous,
-      next,
-    ) {
-      fetchIndependentImages();
-    });
-    // Fetch pertama kali
-    fetchIndependentImages();
-  }
-
-  Future<void> fetchIndependentImages() async {
-    // 1. Ambil ID Varian yang dipilih
-    final selections = ref.read(gambarUtamaSelectionProvider);
-    final selectedVarianIds = selections
-        .map((s) => s.varianBodyId)
-        .where((id) => id != null)
-        .toSet()
-        .toList();
-
-    if (selectedVarianIds.isEmpty) {
-      state = const AsyncValue.data([]);
-      return;
-    }
-
+  // 1. Fetch Data Langsung pakai Master Data ID
+  Future<void> fetchByMasterData(int masterDataId) async {
     state = const AsyncValue.loading();
-
     try {
-      // 2. Panggil API (reuse endpoint yang sudah ada)
       final response = await ref
           .read(apiClientProvider)
           .dio
-          .post(
-            ApiEndpoints.gambarOptionalByVarian,
-            data: {'varian_ids': selectedVarianIds},
-          );
+          .get('/options/independent-images/$masterDataId');
 
       final List<dynamic> data = response.data;
       final items = data
-          .map((item) => OptionItem.fromJson(item, nameKey: 'deskripsi'))
+          .map(
+            (item) => OptionItem.fromJson(item, nameKey: 'name'),
+          ) // pastikan key 'name' sesuai backend
           .toList();
 
       state = AsyncValue.data(items);
@@ -112,7 +83,30 @@ class IndependentListNotifier
     }
   }
 
-  // --- LOGIKA REORDER (DRAG & DROP) ---
+  // 2. Fungsi untuk menerapkan urutan yang disimpan (dari Draft)
+  void applySavedOrder(List<int> savedIds) {
+    state.whenData((currentItems) {
+      if (savedIds.isEmpty) return;
+
+      // Urutkan currentItems berdasarkan posisi ID di savedIds
+      // Item yang tidak ada di savedIds akan ditaruh di belakang
+      final sortedList = List<OptionItem>.from(currentItems);
+
+      sortedList.sort((a, b) {
+        int indexA = savedIds.indexOf(a.id as int);
+        int indexB = savedIds.indexOf(b.id as int);
+
+        if (indexA == -1) indexA = 9999;
+        if (indexB == -1) indexB = 9999;
+
+        return indexA.compareTo(indexB);
+      });
+
+      state = AsyncValue.data(sortedList);
+    });
+  }
+
+  // 3. Logic Reorder (Drag & Drop)
   void reorder(int oldIndex, int newIndex) {
     state.whenData((items) {
       if (oldIndex < newIndex) {
@@ -121,8 +115,6 @@ class IndependentListNotifier
       final List<OptionItem> newList = List.from(items);
       final item = newList.removeAt(oldIndex);
       newList.insert(newIndex, item);
-
-      // Update State dengan urutan baru
       state = AsyncValue.data(newList);
     });
   }

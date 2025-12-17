@@ -187,12 +187,14 @@ class TransaksiDetail {
   final List<Map<String, dynamic>> dataGambarUtama;
   final List<int> optionalIndependenIds;
   final String? deskripsiOptional;
+  final List<int>? orderedIndependentIds;
 
   TransaksiDetail({
     required this.pemeriksaId,
     required this.jumlahGambar,
     required this.dataGambarUtama,
     required this.optionalIndependenIds,
+    this.orderedIndependentIds,
     this.deskripsiOptional,
   });
 
@@ -205,6 +207,9 @@ class TransaksiDetail {
       ),
       optionalIndependenIds: List<int>.from(
         json['data_optional_independen'] ?? [],
+      ),
+      orderedIndependentIds: List<int>.from(
+        json['ordered_independent_ids'] ?? [],
       ),
       deskripsiOptional: json['deskripsi_optional'],
     );

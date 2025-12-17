@@ -264,7 +264,7 @@ class GambarMainForm extends ConsumerWidget {
                                         SizedBox(
                                           width: 110,
                                           child: Text(
-                                            'Independen ${index + 1}:',
+                                            'Gambar\nOptional ${index + 1}:',
                                           ),
                                         ),
 

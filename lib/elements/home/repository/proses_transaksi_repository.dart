@@ -20,7 +20,7 @@ class ProsesTransaksiRepository {
     required int? pemeriksaId,
     required int jumlahGambar,
     required List<Map<String, dynamic>> dataGambarUtama,
-    // required List<int> optionalIds,
+    List<int>? orderedIndependentIds,
     String? deskripsiOptional,
   }) async {
     try {
@@ -34,7 +34,7 @@ class ProsesTransaksiRepository {
               'jumlah_gambar': jumlahGambar,
               'data_gambar_utama':
                   dataGambarUtama, // Kirim array object [{judul_id:1, varian_id:2}]
-              // 'h_gambar_optional_ids': optionalIds,
+              'ordered_independent_ids': orderedIndependentIds,
               'deskripsi_optional': deskripsiOptional,
             },
           );
@@ -96,7 +96,7 @@ class ProsesTransaksiRepository {
     required List<int>? hGambarOptionalIds, // Tambahkan ini
     int? iGambarKelistrikanId,
     String? deskripsiOptional,
-    required List<int> orderedIndependentIds,
+    List<int>? orderedIndependentIds,
   }) async {
     try {
       String? outputPath = await FilePicker.platform.saveFile(
@@ -125,8 +125,8 @@ class ProsesTransaksiRepository {
 
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'proses',
-              'deskripsi_optional': deskripsiOptional,
               'ordered_independent_ids': orderedIndependentIds,
+              'deskripsi_optional': deskripsiOptional,
             },
             options: Options(responseType: ResponseType.bytes),
           )

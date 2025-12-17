@@ -40,13 +40,16 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
   }
 
   void _initOrReloadData() {
-    // 1. Reset State Provider (Bersih-bersih)
     _resetInputGambarState();
 
-    // 2. Fetch Info Kelistrikan (Update Terbaru dari Admin)
+    Future.microtask(() {
+      ref
+          .read(independentListNotifierProvider.notifier)
+          .fetchByMasterData(widget.transaksi.masterDataId);
+    });
+
     _fetchKelistrikanInfo();
 
-    // 3. Load Draft History (Jika Ada)
     if (widget.transaksi.detail != null) {
       _loadSavedState(widget.transaksi.detail!);
     }
@@ -84,6 +87,22 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             judulId: item['judul_id'],
             varianBodyId: item['varian_id'],
           );
+    }
+    // TransaksiDetail model sudah punya field 'orderedIndependentIds' (List<int>)
+
+    if (detail.orderedIndependentIds != null &&
+        detail.orderedIndependentIds!.isNotEmpty) {
+      // Kita panggil applySavedOrder.
+      // Note: Ini mungkin perlu delay sedikit agar fetchByMasterData selesai dulu,
+      // atau panggil di dalam callback 'whenData' di provider.
+      // Cara aman sederhana:
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          ref
+              .read(independentListNotifierProvider.notifier)
+              .applySavedOrder(detail.orderedIndependentIds!);
+        }
+      });
     }
 
     if (detail.deskripsiOptional != null) {
@@ -251,6 +270,13 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final independentAsync = ref.read(independentListNotifierProvider);
       List<int> orderedIndependentIds = [];
 
+      // Ambil value dari AsyncValue (jika ada datanya)
+      if (independentAsync.hasValue) {
+        orderedIndependentIds = independentAsync.value!
+            .map((e) => e.id as int)
+            .toList();
+      }
+
       independentAsync.whenData((items) {
         // Map object OptionItem ke List<int> ID
         orderedIndependentIds = items.map((e) => e.id as int).toList();
@@ -276,9 +302,8 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             judulGambarIds: judulGambarIds,
             hGambarOptionalIds: dependentOptionalIds,
             iGambarKelistrikanId: kelistrikanId,
-
-            deskripsiOptional: deskripsiOptional,
             orderedIndependentIds: orderedIndependentIds,
+            deskripsiOptional: deskripsiOptional,
           );
 
       if (context.mounted) {
@@ -318,7 +343,11 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     List<Map<String, dynamic>> dataGambarUtama = selections
         .map((s) => {'judul_id': s.judulId, 'varian_id': s.varianBodyId})
         .toList();
-
+    final independentAsync = ref.read(independentListNotifierProvider);
+    List<int> currentOrderedIds = [];
+    independentAsync.whenData((items) {
+      currentOrderedIds = items.map((e) => e.id as int).toList();
+    });
     try {
       await ref
           .read(prosesTransaksiRepositoryProvider)
@@ -329,6 +358,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             dataGambarUtama: dataGambarUtama,
             // Independen Optional & Paket tidak perlu disimpan manual
             // karena backend/frontend sudah otomatis meloadnya berdasarkan Varian ID.
+            orderedIndependentIds: currentOrderedIds,
             deskripsiOptional: ref.read(deskripsiOptionalProvider),
           );
 
