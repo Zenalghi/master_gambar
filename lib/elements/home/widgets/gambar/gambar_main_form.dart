@@ -31,13 +31,12 @@ class GambarMainForm extends ConsumerWidget {
     // LOGIKA BARU: Dianggap "Ada" (dihitung halamannya) HANYA jika status 'ready'
     final hasKelistrikan =
         kelistrikanInfo != null && kelistrikanInfo['status_code'] == 'ready';
-
-    final independentOptionals = ref.watch(automaticIndependenOptionsProvider);
+    final independentAsync = ref.watch(independentListNotifierProvider);
+    // final independentOptionals = ref.watch(automaticIndependenOptionsProvider);
     final dependentOptionals = ref.watch(dependentOptionalOptionsProvider);
 
     final dependentCount = dependentOptionals.asData?.value.length ?? 0;
-    final independentCount = independentOptionals.asData?.value.length ?? 0;
-
+    final independentCount = independentAsync.asData?.value.length ?? 0;
     // Hitung Halaman
     final int startPageTerurai = jumlahGambarUtama + 1;
     final int startPageKontruksi = startPageTerurai + jumlahGambarUtama;
@@ -181,72 +180,163 @@ class GambarMainForm extends ConsumerWidget {
               error: (err, stack) => Text('Error: $err'),
             ),
             // const Divider(height: 10),
-            independentOptionals.when(
+            independentAsync.when(
               data: (items) {
                 if (items.isEmpty) return const SizedBox.shrink();
+
                 return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Divider(height: 32),
-                    _buildSection(
-                      title: 'Gambar Optional Independen',
+                    const Text(
+                      'Gambar Optional Independen (Drag untuk Mengurutkan)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // WIDGET DRAG & DROP
+                    ReorderableListView.builder(
+                      shrinkWrap: true,
+                      physics:
+                          const NeverScrollableScrollPhysics(), // Agar scroll ikut parent
+                      // Agar list tidak terlihat aneh saat di-drag (opsional)
+                      buildDefaultDragHandles:
+                          false, // Kita buat handle custom (atau bungkus seluruh row)
+
                       itemCount: items.length,
-                      itemBuilder: (index) {
+                      onReorder: (oldIndex, newIndex) {
+                        ref
+                            .read(independentListNotifierProvider.notifier)
+                            .reorder(oldIndex, newIndex);
+                      },
+                      itemBuilder: (context, index) {
                         final item = items[index];
                         final pageNumber = startPageIndependen + index;
                         final isPreviewEnabled =
                             ref.watch(pemeriksaIdProvider) != null;
-                        final isLoading = ref.watch(isProcessingProvider);
 
-                        return Row(
-                          children: [
-                            SizedBox(
-                              width: 150,
-                              child: Text('Gambar\nIndependen ${index + 1}:'),
+                        return ReorderableDragStartListener(
+                          key: ValueKey(item.id), // ID Unik Item
+                          index: index,
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors
+                                  .white, // Background putih agar terlihat saat di-drag
+                              border: Border.all(color: Colors.grey.shade200),
+                              borderRadius: BorderRadius.circular(4),
                             ),
-                            Expanded(
-                              flex: 6,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 12,
+                            child: Row(
+                              children: [
+                                // AREA DRAG (KIRI SAMPAI TEKS DESKRIPSI)
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 8,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        // Icon Drag Handle (Opsional, sebagai indikator visual saja)
+                                        const Icon(
+                                          Icons.drag_indicator,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 8),
+
+                                        SizedBox(
+                                          width: 110,
+                                          child: Text(
+                                            'Independen ${index + 1}:',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+
+                                        Expanded(
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 12,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.green.shade50,
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                              border: Border.all(
+                                                color: Colors.green.shade100,
+                                              ),
+                                            ),
+                                            child: Text(item.name),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                                decoration: BoxDecoration(
-                                  color: Colors
-                                      .green
-                                      .shade50, // Pembeda warna dikit
-                                  borderRadius: BorderRadius.circular(4),
+
+                                // AREA NON-DRAG (KANAN: HALAMAN & TOMBOL)
+                                // Kita pisahkan agar interaksi tombol tidak terganggu
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: Row(
+                                    children: [
+                                      const SizedBox(width: 10),
+                                      // Indikator Halaman
+                                      SizedBox(
+                                        width: 70,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.yellow.shade200,
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              '$pageNumber/$totalHalaman',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+
+                                      // Tombol Preview
+                                      SizedBox(
+                                        width: 160,
+                                        child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 12,
+                                            ),
+                                          ),
+                                          onPressed: isPreviewEnabled
+                                              ? () =>
+                                                    onPreviewPressed(pageNumber)
+                                              : null,
+                                          child: const Text('Preview Gambar'),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                child: Text(item.name),
-                              ),
+                              ],
                             ),
-                            const SizedBox(width: 10),
-                            SizedBox(
-                              width: 70,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.yellow.shade200,
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: Colors.grey),
-                                ),
-                                child: Center(
-                                  child: Text('$pageNumber/$totalHalaman'),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            SizedBox(
-                              width: 170,
-                              child: ElevatedButton(
-                                onPressed: isPreviewEnabled && !isLoading
-                                    ? () => onPreviewPressed(pageNumber)
-                                    : null,
-                                child: const Text('Preview Gambar'),
-                              ),
-                            ),
-                          ],
+                          ),
                         );
                       },
                     ),
@@ -254,7 +344,7 @@ class GambarMainForm extends ConsumerWidget {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Text('Error: $err'),
+              error: (err, stack) => Text('Error loading options: $err'),
             ),
             const Divider(height: 10),
 

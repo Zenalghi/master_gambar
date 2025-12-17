@@ -54,6 +54,7 @@ class ProsesTransaksiRepository {
     int? iGambarKelistrikanId,
     required int pageNumber,
     String? deskripsiOptional,
+    required List<int> orderedIndependentIds,
   }) async {
     try {
       final response = await _ref
@@ -75,6 +76,7 @@ class ProsesTransaksiRepository {
               'aksi': 'preview',
               'preview_page': pageNumber,
               'deskripsi_optional': deskripsiOptional,
+              'ordered_independent_ids': orderedIndependentIds,
             },
             options: Options(responseType: ResponseType.bytes),
           );
@@ -94,6 +96,7 @@ class ProsesTransaksiRepository {
     required List<int>? hGambarOptionalIds, // Tambahkan ini
     int? iGambarKelistrikanId,
     String? deskripsiOptional,
+    required List<int> orderedIndependentIds,
   }) async {
     try {
       String? outputPath = await FilePicker.platform.saveFile(
@@ -123,6 +126,7 @@ class ProsesTransaksiRepository {
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'proses',
               'deskripsi_optional': deskripsiOptional,
+              'ordered_independent_ids': orderedIndependentIds,
             },
             options: Options(responseType: ResponseType.bytes),
           )

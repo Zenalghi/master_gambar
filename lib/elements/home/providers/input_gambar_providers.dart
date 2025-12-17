@@ -47,39 +47,86 @@ class GambarOptionalSelection {
   GambarOptionalSelection({this.gambarOptionalId});
 }
 
-final automaticIndependenOptionsProvider = FutureProvider<List<OptionItem>>((
-  ref,
-) async {
-  ref.watch(refreshNotifierProvider);
+final independentListNotifierProvider =
+    StateNotifierProvider<
+      IndependentListNotifier,
+      AsyncValue<List<OptionItem>>
+    >((ref) {
+      return IndependentListNotifier(ref);
+    });
 
-  // 1. Ambil Varian Body yang sedang dipilih user
-  final utamaSelections = ref.watch(gambarUtamaSelectionProvider);
+class IndependentListNotifier
+    extends StateNotifier<AsyncValue<List<OptionItem>>> {
+  final Ref ref;
 
-  final selectedVarianIds = utamaSelections
-      .map((s) => s.varianBodyId)
-      .where((id) => id != null)
-      .toSet()
-      .toList();
-
-  if (selectedVarianIds.isEmpty) {
-    return [];
+  IndependentListNotifier(this.ref) : super(const AsyncValue.loading()) {
+    _init();
   }
 
-  // 2. Panggil API (Gunakan endpoint yang sudah ada atau buat baru khusus list)
-  // Kita bisa reuse endpoint 'getGambarOptionalByVarian' yang ada di _OptionController
-  final response = await ref
-      .watch(apiClientProvider)
-      .dio
-      .post(
-        ApiEndpoints.gambarOptionalByVarian,
-        data: {'varian_ids': selectedVarianIds},
-      );
+  // Listener internal: Jika varian body berubah, fetch ulang data
+  void _init() {
+    ref.listen<List<GambarUtamaSelection>>(gambarUtamaSelectionProvider, (
+      previous,
+      next,
+    ) {
+      fetchIndependentImages();
+    });
+    // Fetch pertama kali
+    fetchIndependentImages();
+  }
 
-  final List<dynamic> data = response.data;
-  return data
-      .map((item) => OptionItem.fromJson(item, nameKey: 'deskripsi'))
-      .toList();
-});
+  Future<void> fetchIndependentImages() async {
+    // 1. Ambil ID Varian yang dipilih
+    final selections = ref.read(gambarUtamaSelectionProvider);
+    final selectedVarianIds = selections
+        .map((s) => s.varianBodyId)
+        .where((id) => id != null)
+        .toSet()
+        .toList();
+
+    if (selectedVarianIds.isEmpty) {
+      state = const AsyncValue.data([]);
+      return;
+    }
+
+    state = const AsyncValue.loading();
+
+    try {
+      // 2. Panggil API (reuse endpoint yang sudah ada)
+      final response = await ref
+          .read(apiClientProvider)
+          .dio
+          .post(
+            ApiEndpoints.gambarOptionalByVarian,
+            data: {'varian_ids': selectedVarianIds},
+          );
+
+      final List<dynamic> data = response.data;
+      final items = data
+          .map((item) => OptionItem.fromJson(item, nameKey: 'deskripsi'))
+          .toList();
+
+      state = AsyncValue.data(items);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  // --- LOGIKA REORDER (DRAG & DROP) ---
+  void reorder(int oldIndex, int newIndex) {
+    state.whenData((items) {
+      if (oldIndex < newIndex) {
+        newIndex -= 1;
+      }
+      final List<OptionItem> newList = List.from(items);
+      final item = newList.removeAt(oldIndex);
+      newList.insert(newIndex, item);
+
+      // Update State dengan urutan baru
+      state = AsyncValue.data(newList);
+    });
+  }
+}
 
 class GambarOptionalSelectionNotifier
     extends StateNotifier<List<GambarOptionalSelection>> {

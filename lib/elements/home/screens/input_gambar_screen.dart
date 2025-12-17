@@ -66,7 +66,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     ref.read(kelistrikanInfoProvider.notifier).state = null;
 
     // Invalidate provider otomatis agar fetch ulang saat reset
-    ref.invalidate(automaticIndependenOptionsProvider);
+    // ref.invalidate(independentListNotifierProvider);
     ref.invalidate(dependentOptionalOptionsProvider);
   }
 
@@ -118,7 +118,13 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final pemeriksaId = ref.read(pemeriksaIdProvider);
       final selections = ref.read(gambarUtamaSelectionProvider);
       final deskripsiOptional = ref.read(deskripsiOptionalProvider);
+      final independentAsync = ref.read(independentListNotifierProvider);
+      List<int> orderedIndependentIds = [];
 
+      independentAsync.whenData((items) {
+        // Map object OptionItem ke List<int> ID
+        orderedIndependentIds = items.map((e) => e.id as int).toList();
+      });
       // --- Info Kelistrikan ---
       final kelistrikanInfo = ref.read(kelistrikanInfoProvider);
       final statusKelistrikan = kelistrikanInfo?['status_code'];
@@ -185,6 +191,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final pdfData = await ref
           .read(prosesTransaksiRepositoryProvider)
           .getPreviewPdf(
+            orderedIndependentIds: orderedIndependentIds,
             transaksiId: widget.transaksi.id,
             pemeriksaId: pemeriksaId,
             varianBodyIds: varianBodyIds,
@@ -241,7 +248,13 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
 
       // WAJIB: Ambil Paket Optional (Dependent)
       final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
+      final independentAsync = ref.read(independentListNotifierProvider);
+      List<int> orderedIndependentIds = [];
 
+      independentAsync.whenData((items) {
+        // Map object OptionItem ke List<int> ID
+        orderedIndependentIds = items.map((e) => e.id as int).toList();
+      });
       final rawFileName =
           '${widget.transaksi.user.name} (${widget.transaksi.fPengajuan.jenisPengajuan}) '
           '${widget.transaksi.customer.namaPt}_${widget.transaksi.bMerk.merk} '
@@ -265,6 +278,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             iGambarKelistrikanId: kelistrikanId,
 
             deskripsiOptional: deskripsiOptional,
+            orderedIndependentIds: orderedIndependentIds,
           );
 
       if (context.mounted) {
