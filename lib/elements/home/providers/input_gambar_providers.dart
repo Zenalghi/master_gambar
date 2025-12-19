@@ -324,31 +324,42 @@ final dependentOptionalOptionsProvider = FutureProvider<List<OptionItem>>((
   ref,
 ) async {
   ref.watch(refreshNotifierProvider);
+
   // 1. Awasi pilihan di baris-baris Gambar Utama
   final utamaSelections = ref.watch(gambarUtamaSelectionProvider);
 
-  // 2. Kumpulkan semua ID Varian Body yang unik dan tidak null
-  final selectedVarianIds = utamaSelections
-      .map((s) => s.varianBodyId)
-      .where((id) => id != null)
-      .toSet()
+  // 2. Kumpulkan data Varian DAN Judul secara berurutan
+  // Kita perlu list yang sinkron, jadi jangan pakai toSet/unique sembarangan jika urutan index penting
+  // Tapi API kita loop berdasarkan index input, jadi kita kirim array mentah yang valid.
+
+  final validSelections = utamaSelections
+      .where((s) => s.varianBodyId != null)
       .toList();
 
-  // 3. Jika tidak ada yang dipilih, kembalikan daftar kosong
-  if (selectedVarianIds.isEmpty) {
+  if (validSelections.isEmpty) {
     return [];
   }
 
-  // 4. Panggil endpoint baru dengan metode POST
+  final List<int> varianIds = validSelections
+      .map((s) => s.varianBodyId!)
+      .toList();
+  // Kirim Judul ID (bisa null jika user belum pilih judul)
+  final List<int?> judulIds = validSelections.map((s) => s.judulId).toList();
+
+  // 3. Panggil endpoint dengan parameter lengkap
   final response = await ref
-      .watch(apiClientProvider)
+      .read(apiClientProvider)
       .dio
       .post(
-        '/options/dependent-optionals', // Endpoint baru
-        data: {'varian_ids': selectedVarianIds},
+        '/options/dependent-optionals',
+        data: {
+          'varian_ids': varianIds,
+          'judul_ids': judulIds, // Kirim ini
+        },
       );
 
   final List<dynamic> data = response.data;
+  // UI otomatis akan menampilkan nama baru karena OptionItem mengambil key 'deskripsi' yang sudah diubah backend
   return data
       .map((item) => OptionItem.fromJson(item, nameKey: 'deskripsi'))
       .toList();
