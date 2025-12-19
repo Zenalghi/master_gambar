@@ -479,14 +479,27 @@ class MasterDataRepository {
   }
 
   // == MASTER GAMBAR UTAMA ==
+  // == MASTER GAMBAR UTAMA ==
   Future<void> uploadGambarUtama({
-    required int
-    masterDataId, // <-- Ubah dari varianBodyId (sesuai controller baru)
-    required String varianBodyName, // <-- Nama varian body
+    required int masterDataId,
+    required String varianBodyName,
     required File gambarUtama,
     required File gambarTerurai,
     required File gambarKontruksi,
   }) async {
+    // --- VALIDASI UKURAN FILE (MAX 1 MB) ---
+    final int sizeUtama = await gambarUtama.length();
+    final int sizeTerurai = await gambarTerurai.length();
+    final int sizeKontruksi = await gambarKontruksi.length();
+    const int maxBytes = 1024 * 1024; // 1 MB
+
+    if (sizeUtama > maxBytes ||
+        sizeTerurai > maxBytes ||
+        sizeKontruksi > maxBytes) {
+      throw Exception('File PDF lebih dari 1 MB!!!');
+    }
+    // ----------------------------------------
+
     final formData = FormData.fromMap({
       'master_data_id': masterDataId,
       'varian_body': varianBodyName,
@@ -520,6 +533,21 @@ class MasterDataRepository {
     required File gambarTerurai,
     required File gambarKontruksi,
   }) async {
+    // --- VALIDASI UKURAN FILE (MAX 1 MB) ---
+    final int sizeUtama = await gambarUtama.length();
+    final int sizeTerurai = await gambarTerurai.length();
+    final int sizeKontruksi = await gambarKontruksi.length();
+    const int maxBytes = 1024 * 1024; // 1 MB
+
+    if (sizeUtama > maxBytes ||
+        sizeTerurai > maxBytes ||
+        sizeKontruksi > maxBytes) {
+      throw Exception(
+        'Salah satu file melebihi 1 MB. Harap kompres file PDF Anda.',
+      );
+    }
+    // ----------------------------------------
+
     final formData = FormData.fromMap({
       'master_data_id': masterDataId,
       'varian_body': varianBodyName,
@@ -582,6 +610,12 @@ class MasterDataRepository {
     int? masterDataId, // GANTI: Dulu varianBodyId, sekarang masterDataId
     int? gambarUtamaId,
   }) async {
+    final int fileSizeInBytes = await gambarOptionalFile.length();
+    if (fileSizeInBytes > (1024 * 1024)) {
+      throw Exception(
+        'Ukuran file melebihi 1 MB. Harap kompres file PDF Anda.',
+      );
+    }
     final fileName = gambarOptionalFile.path.split(Platform.pathSeparator).last;
 
     // Bangun map data
@@ -616,6 +650,14 @@ class MasterDataRepository {
     String? deskripsi,
     File? file,
   }) async {
+    if (file != null) {
+      final int fileSizeInBytes = await file.length();
+      if (fileSizeInBytes > (1024 * 1024)) {
+        throw Exception(
+          'Ukuran file melebihi 1 MB. Harap kompres file PDF Anda.',
+        );
+      }
+    }
     final Map<String, dynamic> mapData = {};
 
     if (deskripsi != null && deskripsi.isNotEmpty) {
@@ -704,10 +746,9 @@ class MasterDataRepository {
   }
 
   Future<void> addGambarKelistrikan({
-    // Sekarang menerima masterDataId, bukan 3 ID terpisah
     required int masterDataId,
     required String deskripsi,
-    File? gambarKelistrikanFile, // <-- JADI NULLABLE
+    File? gambarKelistrikanFile,
   }) async {
     // Bangun Map data dasar
     final Map<String, dynamic> dataMap = {
@@ -717,6 +758,13 @@ class MasterDataRepository {
 
     // Hanya kirim file jika user memilih file baru
     if (gambarKelistrikanFile != null) {
+      // --- VALIDASI UKURAN FILE (MAX 1 MB) ---
+      final int fileSizeInBytes = await gambarKelistrikanFile.length();
+      if (fileSizeInBytes > (1024 * 1024)) {
+        throw Exception('Ukuran file kelistrikan melebihi 1 MB.');
+      }
+      // ----------------------------------------
+
       final fileName = gambarKelistrikanFile.path
           .split(Platform.pathSeparator)
           .last;
@@ -810,6 +858,13 @@ class MasterDataRepository {
     required int typeChassisId,
     required File file,
   }) async {
+    // --- VALIDASI UKURAN FILE (MAX 1 MB) ---
+    final int fileSizeInBytes = await file.length();
+    if (fileSizeInBytes > (1024 * 1024)) {
+      throw Exception('Ukuran file kelistrikan melebihi 1 MB.');
+    }
+    // ----------------------------------------
+
     final fileName = file.path.split(Platform.pathSeparator).last;
 
     final formData = FormData.fromMap({
