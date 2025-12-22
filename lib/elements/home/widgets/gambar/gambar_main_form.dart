@@ -1,3 +1,5 @@
+// File: lib/elements/home/widgets/gambar/gambar_main_form.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
@@ -10,8 +12,6 @@ class GambarMainForm extends ConsumerWidget {
   final Transaksi transaksi;
   final Function(int pageNumber) onPreviewPressed;
   final int jumlahGambarUtama;
-
-  // Tambahkan Parameter Controller
   final TextEditingController? deskripsiController;
 
   const GambarMainForm({
@@ -24,29 +24,42 @@ class GambarMainForm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // 1. Tentukan Jenis Pengajuan
     final jenisPengajuan = transaksi.fPengajuan.jenisPengajuan.toUpperCase();
+
+    // 2. Logika Khusus 'GAMBAR TU' (Hanya Gambar Utama)
+    final bool isGambarTU = jenisPengajuan == 'GAMBAR TU';
+
+    // 3. Logika Tampil Deskripsi Optional (Varian, Revisi, Baru)
     final bool showDeskripsiOptional =
-        jenisPengajuan == 'VARIAN' || jenisPengajuan == 'REVISI';
+        jenisPengajuan == 'VARIAN' ||
+        jenisPengajuan == 'REVISI' ||
+        jenisPengajuan == 'BARU';
+
+    // 4. Ambil Data Provider
     final kelistrikanInfo = ref.watch(kelistrikanInfoProvider);
-    // LOGIKA BARU: Dianggap "Ada" (dihitung halamannya) HANYA jika status 'ready'
     final hasKelistrikan =
         kelistrikanInfo != null && kelistrikanInfo['status_code'] == 'ready';
+
     final independentAsync = ref.watch(independentListNotifierProvider);
-    // final independentOptionals = ref.watch(automaticIndependenOptionsProvider);
     final dependentOptionals = ref.watch(dependentOptionalOptionsProvider);
 
     final dependentCount = dependentOptionals.asData?.value.length ?? 0;
     final independentCount = independentAsync.asData?.value.length ?? 0;
-    // Hitung Halaman
+
+    // 5. Hitung Halaman
     final int startPageTerurai = jumlahGambarUtama + 1;
     final int startPageKontruksi = startPageTerurai + jumlahGambarUtama;
     final int startPagePaket = startPageKontruksi + jumlahGambarUtama;
     final int startPageIndependen = startPagePaket + dependentCount;
-    // Kelistrikan mulai setelah independen selesai
     final int pageKelistrikan = startPageIndependen + independentCount;
 
-    // Total Halaman
-    int totalHalaman = pageKelistrikan + (hasKelistrikan ? 0 : -1);
+    // Total Halaman (Hanya hitung yg relevan)
+    // Jika GAMBAR TU: Total = jumlahGambarUtama saja.
+    // Jika tidak: Hitung semuanya.
+    int totalHalaman = isGambarTU
+        ? jumlahGambarUtama
+        : pageKelistrikan + (hasKelistrikan ? 0 : -1);
 
     return Card(
       child: Padding(
@@ -54,12 +67,12 @@ class GambarMainForm extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Gambar Utama (Urutan: 1, 2, 3...)
+            // --- 1. Gambar Utama (SELALU ADA) ---
             _buildSection(
               title: 'Gambar Utama',
               itemCount: jumlahGambarUtama,
               itemBuilder: (index) {
-                final pageNumber = index + 1; // Rumus Baru
+                final pageNumber = index + 1;
                 return GambarUtamaRow(
                   index: index,
                   transaksi: transaksi,
@@ -69,305 +82,307 @@ class GambarMainForm extends ConsumerWidget {
                 );
               },
             ),
-            const Divider(height: 10),
-            _buildSection(
-              title: 'Gambar Terurai',
-              itemCount: jumlahGambarUtama,
-              itemBuilder: (index) {
-                final pageNumber = startPageTerurai + index; // Rumus Baru
-                return GambarSyncedRow(
-                  index: index,
-                  title: 'Gambar Terurai',
-                  transaksi: transaksi,
-                  totalHalaman: totalHalaman,
-                  jumlahGambarUtama: jumlahGambarUtama,
-                  pageNumber: pageNumber,
-                  onPreviewPressed: () => onPreviewPressed(pageNumber),
-                );
-              },
-            ),
-            const Divider(height: 10),
-            _buildSection(
-              title: 'Gambar Kontruksi',
-              itemCount: jumlahGambarUtama,
-              itemBuilder: (index) {
-                final pageNumber = startPageKontruksi + index; // Rumus Baru
-                return GambarSyncedRow(
-                  index: index,
-                  title: 'Gambar Kontruksi',
-                  transaksi: transaksi,
-                  totalHalaman: totalHalaman,
-                  jumlahGambarUtama: jumlahGambarUtama,
-                  pageNumber: pageNumber,
-                  onPreviewPressed: () => onPreviewPressed(pageNumber),
-                );
-              },
-            ),
-            dependentOptionals.when(
-              data: (items) {
-                if (items.isEmpty) return const SizedBox.shrink();
-                return Column(
-                  children: [
-                    const Divider(height: 32),
-                    _buildSection(
-                      title: 'Gambar Optional Paket',
-                      itemCount: items.length,
-                      itemBuilder: (index) {
-                        final item = items[index];
-                        final pageNumber = startPagePaket + index; // Rumus Baru
-                        ref.watch(pemeriksaIdProvider) != null;
-                        final isLoading = ref.watch(isProcessingProvider);
-                        return Row(
-                          children: [
-                            SizedBox(
-                              width: 150,
-                              child: Text('Optional Paket ${index + 1}:'),
-                            ),
-                            Expanded(
-                              flex: 6, // Beri ruang lebih untuk deskripsi
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(item.name),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            SizedBox(
-                              width: 70,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.yellow.shade200,
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: Colors.grey),
-                                ),
-                                child: Center(
-                                  child: Text('$pageNumber/$totalHalaman'),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            SizedBox(
-                              width: 170, // Sesuai permintaan Anda
-                              child: ElevatedButton(
-                                onPressed: !isLoading
-                                    ? () => onPreviewPressed(pageNumber)
-                                    : null,
-                                child: const Text('Preview Gambar'),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
-                );
-              },
-              loading: () => const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: CircularProgressIndicator(),
-                ),
+
+            // --- JIKA BUKAN 'GAMBAR TU', TAMPILKAN SEMUANYA ---
+            if (!isGambarTU) ...[
+              const Divider(height: 10),
+
+              // 2. Gambar Terurai
+              _buildSection(
+                title: 'Gambar Terurai',
+                itemCount: jumlahGambarUtama,
+                itemBuilder: (index) {
+                  final pageNumber = startPageTerurai + index;
+                  return GambarSyncedRow(
+                    index: index,
+                    title: 'Gambar Terurai',
+                    transaksi: transaksi,
+                    totalHalaman: totalHalaman,
+                    jumlahGambarUtama: jumlahGambarUtama,
+                    pageNumber: pageNumber,
+                    onPreviewPressed: () => onPreviewPressed(pageNumber),
+                  );
+                },
               ),
-              error: (err, stack) => Text('Error: $err'),
-            ),
-            // const Divider(height: 10),
-            independentAsync.when(
-              data: (items) {
-                if (items.isEmpty) return const SizedBox.shrink();
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Divider(height: 32),
-                    Row(
-                      children: [
-                        const Text(
-                          'Gambar Optional Independen',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        //icon info
-                        const SizedBox(width: 4),
-                        Tooltip(
-                          message:
-                              'Urutan gambar independen dengan cara drag & drop.',
-                          child: const Icon(
-                            Icons.info_outline,
-                            size: 16,
-                            color: Colors.lightBlueAccent,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
 
-                    // WIDGET DRAG & DROP
-                    ReorderableListView.builder(
-                      shrinkWrap: true,
-                      physics:
-                          const NeverScrollableScrollPhysics(), // Agar scroll ikut parent
-                      // Agar list tidak terlihat aneh saat di-drag (opsional)
-                      buildDefaultDragHandles:
-                          false, // Kita buat handle custom (atau bungkus seluruh row)
+              const Divider(height: 10),
 
-                      itemCount: items.length,
-                      onReorder: (oldIndex, newIndex) {
-                        ref
-                            .read(independentListNotifierProvider.notifier)
-                            .reorder(oldIndex, newIndex);
-                      },
-                      itemBuilder: (context, index) {
-                        final item = items[index];
-                        final pageNumber = startPageIndependen + index;
-                        final isLoading = ref.watch(isProcessingProvider);
+              // 3. Gambar Kontruksi
+              _buildSection(
+                title: 'Gambar Kontruksi',
+                itemCount: jumlahGambarUtama,
+                itemBuilder: (index) {
+                  final pageNumber = startPageKontruksi + index;
+                  return GambarSyncedRow(
+                    index: index,
+                    title: 'Gambar Kontruksi',
+                    transaksi: transaksi,
+                    totalHalaman: totalHalaman,
+                    jumlahGambarUtama: jumlahGambarUtama,
+                    pageNumber: pageNumber,
+                    onPreviewPressed: () => onPreviewPressed(pageNumber),
+                  );
+                },
+              ),
 
-                        return ReorderableDragStartListener(
-                          key: ValueKey(item.id), // ID Unik Item
-                          index: index,
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors
-                                  .white, // Background putih agar terlihat saat di-drag
-                              border: Border.all(color: Colors.grey.shade200),
-                              borderRadius: BorderRadius.circular(4),
+              // 4. Gambar Optional Paket
+              dependentOptionals.when(
+                data: (items) {
+                  if (items.isEmpty) return const SizedBox.shrink();
+                  return Column(
+                    children: [
+                      const Divider(height: 32),
+                      _buildSection(
+                        title: 'Gambar Optional Paket',
+                        itemCount: items.length,
+                        itemBuilder: (index) {
+                          final item = items[index];
+                          final pageNumber = startPagePaket + index;
+                          final isLoading = ref.watch(isProcessingProvider);
+                          return Row(
+                            children: [
+                              SizedBox(
+                                width: 150,
+                                child: Text('Optional Paket ${index + 1}:'),
+                              ),
+                              Expanded(
+                                flex: 6,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(item.name),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              SizedBox(
+                                width: 70,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.yellow.shade200,
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: Colors.grey),
+                                  ),
+                                  child: Center(
+                                    child: Text('$pageNumber/$totalHalaman'),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              SizedBox(
+                                width: 170,
+                                child: ElevatedButton(
+                                  onPressed: !isLoading
+                                      ? () => onPreviewPressed(pageNumber)
+                                      : null,
+                                  child: const Text('Preview Gambar'),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
+                loading: () => const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+                error: (err, stack) => Text('Error: $err'),
+              ),
+
+              // 5. Gambar Optional Independen
+              independentAsync.when(
+                data: (items) {
+                  if (items.isEmpty) return const SizedBox.shrink();
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Divider(height: 32),
+                      Row(
+                        children: [
+                          const Text(
+                            'Gambar Optional Independen',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
                             ),
-                            child: Row(
-                              children: [
-                                // AREA DRAG (KIRI SAMPAI TEKS DESKRIPSI)
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 8,
+                          ),
+                          const SizedBox(width: 4),
+                          const Tooltip(
+                            message:
+                                'Urutan gambar independen dengan cara drag & drop.',
+                            child: Icon(
+                              Icons.info_outline,
+                              size: 16,
+                              color: Colors.lightBlueAccent,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ReorderableListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        buildDefaultDragHandles: false,
+                        itemCount: items.length,
+                        onReorder: (oldIndex, newIndex) {
+                          ref
+                              .read(independentListNotifierProvider.notifier)
+                              .reorder(oldIndex, newIndex);
+                        },
+                        itemBuilder: (context, index) {
+                          final item = items[index];
+                          final pageNumber = startPageIndependen + index;
+                          final isLoading = ref.watch(isProcessingProvider);
+                          final isPreviewEnabled =
+                              ref.watch(pemeriksaIdProvider) != null;
+
+                          return ReorderableDragStartListener(
+                            key: ValueKey(item.id),
+                            index: index,
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                border: Border.all(color: Colors.grey.shade200),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 8,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.drag_indicator,
+                                            color: Colors.grey,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          SizedBox(
+                                            width: 110,
+                                            child: Text(
+                                              'Gambar\nOptional ${index + 1}:',
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 12,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.green.shade50,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                                border: Border.all(
+                                                  color: Colors.green.shade100,
+                                                ),
+                                              ),
+                                              child: Text(item.name),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
                                     child: Row(
                                       children: [
-                                        // Icon Drag Handle (Opsional, sebagai indikator visual saja)
-                                        const Icon(
-                                          Icons.drag_indicator,
-                                          color: Colors.grey,
-                                        ),
-                                        const SizedBox(width: 8),
-
+                                        const SizedBox(width: 10),
                                         SizedBox(
-                                          width: 110,
-                                          child: Text(
-                                            'Gambar\nOptional ${index + 1}:',
-                                          ),
-                                        ),
-
-                                        Expanded(
+                                          width: 70,
                                           child: Container(
                                             padding: const EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                              vertical: 12,
+                                              vertical: 8,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: Colors.green.shade50,
+                                              color: Colors.yellow.shade200,
                                               borderRadius:
                                                   BorderRadius.circular(4),
                                               border: Border.all(
-                                                color: Colors.green.shade100,
+                                                color: Colors.grey,
                                               ),
                                             ),
-                                            child: Text(item.name),
+                                            child: Center(
+                                              child: Text(
+                                                '$pageNumber/$totalHalaman',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        SizedBox(
+                                          width: 170,
+                                          child: ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 12,
+                                                  ),
+                                            ),
+                                            onPressed:
+                                                isPreviewEnabled && !isLoading
+                                                ? () => onPreviewPressed(
+                                                    pageNumber,
+                                                  )
+                                                : null,
+                                            child: const Text('Preview Gambar'),
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                ),
-
-                                // AREA NON-DRAG (KANAN: HALAMAN & TOMBOL)
-                                // Kita pisahkan agar interaksi tombol tidak terganggu
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: Row(
-                                    children: [
-                                      const SizedBox(width: 10),
-                                      // Indikator Halaman
-                                      SizedBox(
-                                        width: 70,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 8,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.yellow.shade200,
-                                            borderRadius: BorderRadius.circular(
-                                              4,
-                                            ),
-                                            border: Border.all(
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              '$pageNumber/$totalHalaman',
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-
-                                      // Tombol Preview
-                                      SizedBox(
-                                        width: 160,
-                                        child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 12,
-                                            ),
-                                          ),
-                                          onPressed: !isLoading
-                                              ? () =>
-                                                    onPreviewPressed(pageNumber)
-                                              : null,
-                                          child: const Text('Preview Gambar'),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Text('Error loading options: $err'),
-            ),
-            const Divider(height: 10),
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) => Text('Error loading options: $err'),
+              ),
 
-            GambarKelistrikanSection(
-              transaksi: transaksi,
-              pageNumber: pageKelistrikan, // Rumus Baru
-              totalHalaman: totalHalaman,
-              onPreviewPressed: () => onPreviewPressed(pageKelistrikan),
-            ),
+              const Divider(height: 10),
+
+              // 6. Kelistrikan
+              GambarKelistrikanSection(
+                transaksi: transaksi,
+                pageNumber: pageKelistrikan,
+                totalHalaman: totalHalaman,
+                onPreviewPressed: () => onPreviewPressed(pageKelistrikan),
+              ),
+            ],
+
+            // --- 7. Deskripsi Optional (Kondisional) ---
             if (showDeskripsiOptional) ...[
               const Divider(height: 32),
               const Text(
-                'Deskripsi Optional (Untuk Varian/Revisi)',
+                'Deskripsi Optional (Untuk Varian/Revisi/Baru)',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -376,14 +391,9 @@ class GambarMainForm extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               TextFormField(
-                // Gunakan controller jika ada, jika tidak null (tapi harusnya ada dari screen)
                 controller: deskripsiController,
-
-                // Hapus initialValue karena bentrok dengan controller
-                // initialValue: ref.watch(deskripsiOptionalProvider),
                 onChanged: (value) =>
                     ref.read(deskripsiOptionalProvider.notifier).state = value,
-
                 decoration: const InputDecoration(
                   hintText: 'Masukkan deskripsi tambahan di sini...',
                   border: OutlineInputBorder(),

@@ -7,7 +7,7 @@ import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
 import 'package:master_gambar/elements/home/providers/input_gambar_providers.dart';
 
-class GambarUtamaRow extends ConsumerWidget {
+class GambarUtamaRow extends ConsumerWidget { 
   final int index;
   final Transaksi transaksi;
   final int totalHalaman;
