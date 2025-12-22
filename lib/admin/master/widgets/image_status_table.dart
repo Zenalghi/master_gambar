@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/models/g_gambar_utama.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
+import '../models/image_status.dart';
 import '../repository/master_data_repository.dart';
 import 'image_status_datasource.dart';
 import 'gambar_utama_viewer_dialog.dart';
@@ -149,10 +150,8 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
 
 class _ImageStatusDataSourceWithContext extends ImageStatusDataSource {
   final BuildContext _context;
-  // 1. Tambahkan properti ref di sini agar bisa diakses
   final WidgetRef ref;
 
-  // 2. Update constructor untuk mengisi ref lokal dan meneruskannya ke super
   _ImageStatusDataSourceWithContext(this.ref, this._context) : super(ref);
 
   @override
@@ -163,16 +162,25 @@ class _ImageStatusDataSourceWithContext extends ImageStatusDataSource {
     );
   }
 
+  // UBAH PARAMETER MENJADI 'ImageStatus'
   @override
-  void confirmDeleteDialog(GGambarUtama gambarUtama) {
+  void confirmDeleteDialog(ImageStatus item) {
+    final hasOptionalPaket = item.deskripsiOptional != null;
+    final gambarUtama =
+        item.gambarUtama!; // Pasti ada jika tombol delete muncul
+
+    // Tentukan pesan teks dinamis
+    final String contentText = hasOptionalPaket
+        ? 'Apakah Anda yakin ingin menghapus Gambar Utama ini?\n\n'
+              'PERINGATAN: File PDF Gambar Utama, Terurai, Kontruksi, dan Optional Paket akan dihapus permanen dari storage.'
+        : 'Apakah Anda yakin ingin menghapus Gambar Utama ini?\n\n'
+              'PERINGATAN: File PDF Gambar Utama, Terurai, dan Kontruksi akan dihapus permanen dari storage.';
+
     showDialog(
       context: _context,
       builder: (context) => AlertDialog(
         title: const Text('Konfirmasi Hapus'),
-        content: const Text(
-          'Apakah Anda yakin ingin menghapus Gambar Utama ini?\n'
-          'File PDF (Utama, Terurai, Kontruksi) dan Paket Optional akan dihapus permanen dari storage.',
-        ),
+        content: Text(contentText),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -181,14 +189,13 @@ class _ImageStatusDataSourceWithContext extends ImageStatusDataSource {
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () async {
-              Navigator.of(context).pop(); // Tutup Dialog Konfirmasi
+              Navigator.of(context).pop(); // Tutup Dialog
               try {
-                // 3. Sekarang 'ref' sudah dikenali
+                // Panggil API Delete (menggunakan ID Gambar Utama)
                 await ref
                     .read(masterDataRepositoryProvider)
                     .deleteGambarUtama(gambarUtama.id);
 
-                // Refresh Tabel
                 refreshDatasource();
 
                 if (_context.mounted) {

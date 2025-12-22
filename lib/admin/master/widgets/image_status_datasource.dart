@@ -99,8 +99,7 @@ class ImageStatusDataSource extends AsyncDataTableSource {
                                 color: Colors.red,
                               ),
                               tooltip: 'Hapus Gambar Utama',
-                              onPressed: () =>
-                                  confirmDeleteDialog(item.gambarUtama!),
+                              onPressed: () => confirmDeleteDialog(item),
                             ),
                           ],
                         )
@@ -210,5 +209,5 @@ class ImageStatusDataSource extends AsyncDataTableSource {
     _ref.read(adminSidebarIndexProvider.notifier).state = 8;
   }
 
-  void confirmDeleteDialog(GGambarUtama gambarUtama) {}
+  void confirmDeleteDialog(ImageStatus item) {}
 }
