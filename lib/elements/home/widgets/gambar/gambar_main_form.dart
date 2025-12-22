@@ -382,7 +382,7 @@ class GambarMainForm extends ConsumerWidget {
             if (showDeskripsiOptional) ...[
               const Divider(height: 32),
               const Text(
-                'Deskripsi Optional (Untuk Varian/Revisi/Baru)',
+                'Deskripsi Optional',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
