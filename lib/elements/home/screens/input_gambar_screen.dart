@@ -42,6 +42,17 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
   void _initOrReloadData() {
     _resetInputGambarState();
 
+    // ---  BATASI JUMLAH GAMBAR UNTUK VARIAN ---
+    final jenisPengajuan = widget.transaksi.fPengajuan.jenisPengajuan
+        .toUpperCase();
+
+    if (jenisPengajuan == 'VARIAN') {
+      // Jika draft sebelumnya menyimpan 4, atau defaultnya 4, paksa turun ke 3
+      final currentJumlah = ref.read(jumlahGambarProvider);
+      if (currentJumlah > 3) {
+        ref.read(jumlahGambarProvider.notifier).state = 3;
+      }
+    }
     Future.microtask(() {
       ref
           .read(independentListNotifierProvider.notifier)
@@ -77,7 +88,17 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     ref.read(pemeriksaIdProvider.notifier).state = detail.pemeriksaId;
     ref.read(jumlahGambarProvider.notifier).state = detail.jumlahGambar;
     ref.read(gambarUtamaSelectionProvider.notifier).resize(detail.jumlahGambar);
+    final jenisPengajuan = widget.transaksi.fPengajuan.jenisPengajuan
+        .toUpperCase();
+    int jumlahLoad = detail.jumlahGambar;
 
+    // Jika saved data isinya 4 tapi jenisnya VARIAN, paksa jadi 3
+    if (jenisPengajuan == 'VARIAN' && jumlahLoad > 3) {
+      jumlahLoad = 3;
+    }
+
+    ref.read(jumlahGambarProvider.notifier).state = jumlahLoad;
+    ref.read(gambarUtamaSelectionProvider.notifier).resize(jumlahLoad);
     for (int i = 0; i < detail.dataGambarUtama.length; i++) {
       final item = detail.dataGambarUtama[i];
       ref

@@ -124,11 +124,20 @@ class GambarHeaderInfo extends ConsumerWidget {
 
   Widget _buildJumlahGambarDropdown(WidgetRef ref) {
     final selectedJumlah = ref.watch(jumlahGambarProvider);
-
-    final options = [1, 2, 3, 4];
-
+    // --- LOGIKA BARU: TENTUKAN OPSI BERDASARKAN JENIS PENGAJUAN ---
+    final jenisPengajuan = transaksi.fPengajuan.jenisPengajuan.toUpperCase();
+    List<int> options = [1, 2, 3, 4];
+    if (jenisPengajuan == 'VARIAN') {
+      options = [1, 2, 3];
+    }
+    if (!options.contains(selectedJumlah)) {
+      // Kita gunakan Future.microtask karena tidak boleh setState saat build
+      Future.microtask(() {
+        ref.read(jumlahGambarProvider.notifier).state = options.last;
+      });
+    }
     return DropdownButtonFormField<int>(
-      value: selectedJumlah,
+      value: options.contains(selectedJumlah) ? selectedJumlah : options.last,
       itemHeight: 30,
       decoration: const InputDecoration(
         labelStyle: TextStyle(fontSize: 13),
