@@ -30,7 +30,9 @@ class _TypeChassisTableState extends ConsumerState<TypeChassisTable> {
       availableRowsPerPage: const [50, 100],
       onRowsPerPageChanged: (value) {
         if (value != null) {
-          ref.read(typeChassisRowsPerPageProvider.notifier).state = value;
+          Future.microtask(() {
+            ref.read(typeChassisRowsPerPageProvider.notifier).state = value;
+          });
         }
       },
       sortColumnIndex: _sortColumnIndex,
@@ -52,9 +54,8 @@ class _TypeChassisTableState extends ConsumerState<TypeChassisTable> {
       final Map<int, String> columnMapping = {
         0: 'id',
         1: 'type_chassis',
-        // Index 2 dihapus
-        2: 'created_at', // Geser index
-        3: 'updated_at', // Geser index
+        2: 'created_at',
+        3: 'updated_at',
       };
       return {
         ...state,
@@ -72,7 +73,6 @@ class _TypeChassisTableState extends ConsumerState<TypeChassisTable> {
         size: ColumnSize.L,
         onSort: _onSort,
       ),
-      // DataColumn2(label: const Text('Merk (Induk)'), ...), <-- HAPUS INI
       DataColumn2(
         label: const Text('Created At'),
         size: ColumnSize.M,

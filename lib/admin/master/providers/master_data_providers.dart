@@ -113,6 +113,10 @@ final jenisKendaraanRowsPerPageProvider = StateProvider<int>((ref) => 50);
 // Varian Body
 final varianBodyRowsPerPageProvider = StateProvider<int>((ref) => 50);
 final imageStatusRowsPerPageProvider = StateProvider<int>((ref) => 50);
+final gambarOptionalRowsPerPageProvider = StateProvider<int>((ref) => 50);
+final gambarKelistrikanRowsPerPageProvider = StateProvider<int>((ref) => 50);
+final masterDataRowsPerPageProvider = StateProvider<int>((ref) => 50);
+final jenisVarianRowsPerPageProvider = StateProvider<int>((ref) => 50);
 
 // --- TAMBAHKAN PROVIDER UNTUK JENIS VARIAN ---
 final jenisVarianListProvider = FutureProvider<List<JenisVarian>>((ref) {
@@ -120,7 +124,6 @@ final jenisVarianListProvider = FutureProvider<List<JenisVarian>>((ref) {
   return ref.read(masterDataRepositoryProvider).getJenisVarianList();
 });
 
-final jenisVarianRowsPerPageProvider = StateProvider<int>((ref) => 50);
 final jenisVarianSearchQueryProvider = StateProvider<String>((ref) => '');
 
 // State untuk menyimpan ID yang dipilih di setiap dropdown
@@ -165,7 +168,6 @@ final gambarOptionalFilterProvider = StateProvider<Map<String, String>>((ref) {
   return {'search': '', 'sortBy': 'updated_at', 'sortDirection': 'desc'};
 });
 
-final gambarOptionalRowsPerPageProvider = StateProvider<int>((ref) => 50);
 
 // State untuk checkbox "Tambahkan Gambar Optional Dependen"
 final mguShowDependentOptionalProvider = StateProvider<bool>((ref) => false);
@@ -200,7 +202,6 @@ final gambarKelistrikanFilterProvider = StateProvider<Map<String, String>>((
   return {'search': '', 'sortBy': 'updated_at', 'sortDirection': 'desc'};
 });
 
-final gambarKelistrikanRowsPerPageProvider = StateProvider<int>((ref) => 50);
 final editingKelistrikanFileProvider = StateProvider<MasterKelistrikanFile?>(
   (ref) => null,
 );
@@ -208,7 +209,6 @@ final editingKelistrikanFileProvider = StateProvider<MasterKelistrikanFile?>(
 final masterDataFilterProvider = StateProvider<Map<String, String>>(
   (ref) => {'search': '', 'sortBy': 'id', 'sortDirection': 'desc'},
 );
-final masterDataRowsPerPageProvider = StateProvider<int>((ref) => 50);
 
 // Provider untuk Dropdown Searchable (Family agar bisa kirim query search)
 final mdTypeEngineOptionsProvider =
