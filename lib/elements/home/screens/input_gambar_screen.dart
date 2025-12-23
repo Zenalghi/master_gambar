@@ -9,7 +9,6 @@ import 'package:master_gambar/elements/home/repository/proses_transaksi_reposito
 import 'package:master_gambar/elements/home/widgets/gambar/gambar_header_info.dart';
 import 'package:master_gambar/elements/home/widgets/gambar/gambar_main_form.dart';
 import 'package:master_gambar/admin/master/widgets/pdf_viewer_dialog.dart';
-
 import '../../../app/core/notifiers/refresh_notifier.dart';
 
 class InputGambarScreen extends ConsumerStatefulWidget {
@@ -22,6 +21,7 @@ class InputGambarScreen extends ConsumerStatefulWidget {
 
 class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
   late TextEditingController _deskripsiOptionalController;
+  bool _hasSavedData = false; // Penanda apakah data sudah tersimpan di DB
 
   @override
   void initState() {
@@ -42,12 +42,22 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
   void _initOrReloadData() {
     _resetInputGambarState();
 
+    // Cek apakah ada data detail yang tersimpan
+    if (widget.transaksi.detail != null) {
+      _hasSavedData = true;
+      // Jika ada data tersimpan, defaultnya adalah READ ONLY (Edit Mode = False)
+      ref.read(isEditModeProvider.notifier).state = false;
+      _loadSavedState(widget.transaksi.detail!);
+    } else {
+      _hasSavedData = false;
+      // Jika data baru, defaultnya adalah EDITABLE (Edit Mode = True)
+      ref.read(isEditModeProvider.notifier).state = true;
+    }
+
     // ---  BATASI JUMLAH GAMBAR UNTUK VARIAN ---
     final jenisPengajuan = widget.transaksi.fPengajuan.jenisPengajuan
         .toUpperCase();
-
     if (jenisPengajuan == 'VARIAN') {
-      // Jika draft sebelumnya menyimpan 4, atau defaultnya 4, paksa turun ke 3
       final currentJumlah = ref.read(jumlahGambarProvider);
       if (currentJumlah > 3) {
         ref.read(jumlahGambarProvider.notifier).state = 3;
@@ -60,10 +70,6 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     });
 
     _fetchKelistrikanInfo();
-
-    if (widget.transaksi.detail != null) {
-      _loadSavedState(widget.transaksi.detail!);
-    }
   }
 
   void _resetInputGambarState() {
@@ -71,16 +77,10 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     ref.read(pemeriksaIdProvider.notifier).state = null;
     ref.read(jumlahGambarProvider.notifier).state = 1;
     ref.invalidate(gambarUtamaSelectionProvider);
-
-    // Reset teks deskripsi provider & controller
     ref.read(deskripsiOptionalProvider.notifier).state = '';
     _deskripsiOptionalController.text = '';
-
     ref.invalidate(varianBodyStatusOptionsProvider);
     ref.read(kelistrikanInfoProvider.notifier).state = null;
-
-    // Invalidate provider otomatis agar fetch ulang saat reset
-    // ref.invalidate(independentListNotifierProvider);
     ref.invalidate(dependentOptionalOptionsProvider);
   }
 
@@ -369,6 +369,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     independentAsync.whenData((items) {
       currentOrderedIds = items.map((e) => e.id as int).toList();
     });
+
     try {
       await ref
           .read(prosesTransaksiRepositoryProvider)
@@ -377,76 +378,211 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             pemeriksaId: pemeriksaId,
             jumlahGambar: ref.read(jumlahGambarProvider),
             dataGambarUtama: dataGambarUtama,
-            // Independen Optional & Paket tidak perlu disimpan manual
-            // karena backend/frontend sudah otomatis meloadnya berdasarkan Varian ID.
             orderedIndependentIds: currentOrderedIds,
             deskripsiOptional: ref.read(deskripsiOptionalProvider),
           );
 
-      if (mounted) _showSnackBar('Draft berhasil disimpan!', Colors.green);
+      if (mounted) {
+        _showSnackBar('Draft berhasil disimpan!', Colors.green);
+        // SETELAH SIMPAN -> MATIKAN MODE EDIT
+        setState(() {
+          _hasSavedData = true;
+        });
+        ref.read(isEditModeProvider.notifier).state = false;
+      }
     } catch (e) {
       if (mounted) _showSnackBar('Gagal simpan: $e', Colors.red);
     }
   }
 
+  Future<void> _handleDelete(BuildContext context) async {
+    // Tampilkan Dialog Konfirmasi
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Data'),
+        content: const Text(
+          'Yakin ingin menghapus seluruh data transaksi ini? Data yang dihapus tidak dapat dikembalikan.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      try {
+        await ref
+            .read(prosesTransaksiRepositoryProvider)
+            .deleteTransaksi(widget.transaksi.id); // Panggil API Delete
+
+        if (mounted) {
+          _showSnackBar('Data berhasil dihapus.', Colors.green);
+          // Kembali ke halaman list transaksi
+          ref.read(pageStateProvider.notifier).state = PageState(pageIndex: 0);
+        }
+      } catch (e) {
+        if (mounted) _showSnackBar('Gagal menghapus: $e', Colors.red);
+      }
+    }
+  }
+
+  void _toggleEditMode() {
+    final isEditMode = ref.read(isEditModeProvider);
+    if (isEditMode) {
+      // Jika user menekan "Batal Edit"
+      // Revert data ke kondisi awal (load ulang dari widget.transaksi jika detail tidak null,
+      // tapi idealnya fetch ulang detail terbaru dari API.
+      // Sederhananya, kita reset dan load saved state yang ada di memory)
+      if (widget.transaksi.detail != null) {
+        _loadSavedState(widget.transaksi.detail!);
+      }
+      ref.read(isEditModeProvider.notifier).state = false;
+      _showSnackBar('Edit dibatalkan.', Colors.blue);
+    } else {
+      // Jika user menekan "Edit"
+      ref.read(isEditModeProvider.notifier).state = true;
+    }
+  }
+
   void _showSnackBar(String message, Color color) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message), backgroundColor: color));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        duration: const Duration(seconds: 1),
+        
+      ),
+    );
   }
 
   Widget _buildAksiButton(BuildContext context) {
     final pemeriksaId = ref.watch(pemeriksaIdProvider);
     final selections = ref.watch(gambarUtamaSelectionProvider);
+    final isEditMode = ref.watch(isEditModeProvider);
+    final isLoading = ref.watch(isProcessingProvider);
 
     final bool areSelectionsValid =
         selections.isNotEmpty &&
         selections.every((s) => s.judulId != null && s.varianBodyId != null);
     final bool isFormValid = pemeriksaId != null && areSelectionsValid;
-    final isLoading = ref.watch(isProcessingProvider);
 
+    // --- LOGIKA TOMBOL DINAMIS ---
+
+    // CASE 1: Belum ada data tersimpan (New Data) -> [Simpan] [Proses]
+    if (!_hasSavedData) {
+      return Row(
+        children: [
+          Expanded(child: _btnSimpan(context)),
+          const SizedBox(width: 10),
+          Expanded(flex: 2, child: _btnProses(context, isFormValid, isLoading)),
+        ],
+      );
+    }
+
+    // CASE 2: Ada data & Mode Edit Aktif -> [Batal Edit] [Hapus] [Simpan]
+    if (isEditMode) {
+      return Row(
+        children: [
+          Expanded(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              onPressed: _toggleEditMode,
+              child: const Text(
+                'Batal Edit',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              onPressed: () => _handleDelete(context),
+              child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(child: _btnSimpan(context)),
+        ],
+      );
+    }
+
+    // CASE 3: Ada data & Read Only -> [Edit] [Hapus] [Proses]
     return Row(
       children: [
         Expanded(
-          flex: 1,
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.save),
-            label: const Text('Simpan'),
+          child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
+              backgroundColor: Colors.blue,
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
-            onPressed: () => _handleSave(context),
+            onPressed: _toggleEditMode,
+            child: const Text('Edit', style: TextStyle(color: Colors.white)),
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
-          flex: 2,
-          child: ElevatedButton.icon(
-            icon: isLoading ? Container() : const Icon(Icons.arrow_forward),
-            label: isLoading
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 3,
-                    ),
-                  )
-                : const Text('Proses Gambar'),
+          child: ElevatedButton(
             style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              textStyle: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
             ),
-            onPressed: isFormValid && !isLoading
-                ? () => _handleProses(context)
-                : null,
+            onPressed: () => _handleDelete(context),
+            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
           ),
         ),
+        const SizedBox(width: 10),
+        Expanded(flex: 2, child: _btnProses(context, isFormValid, isLoading)),
       ],
+    );
+  }
+
+  // Helper Widget Buttons
+  Widget _btnSimpan(BuildContext context) {
+    return ElevatedButton.icon(
+      icon: const Icon(Icons.save),
+      label: const Text('Simpan'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.orange,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+      ),
+      onPressed: () => _handleSave(context),
+    );
+  }
+
+  Widget _btnProses(BuildContext context, bool isValid, bool isLoading) {
+    return ElevatedButton.icon(
+      icon: isLoading ? Container() : const Icon(Icons.arrow_forward),
+      label: isLoading
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 3,
+              ),
+            )
+          : const Text('Proses Gambar'),
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+      onPressed: isValid && !isLoading ? () => _handleProses(context) : null,
     );
   }
 

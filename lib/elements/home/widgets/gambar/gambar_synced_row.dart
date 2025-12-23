@@ -63,13 +63,6 @@ class GambarSyncedRow extends ConsumerWidget {
       }
     });
 
-    // int pageNumber;
-    // if (title.contains('Terurai')) {
-    //   pageNumber = (index * 3) + 2;
-    // } else {
-    //   pageNumber = (index * 3) + 3;
-    // }
-
     return Row(
       children: [
         SizedBox(width: 150, child: Text('$title ${index + 1}:')),

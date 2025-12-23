@@ -29,6 +29,7 @@ class GambarHeaderInfo extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isEditMode = ref.watch(isEditModeProvider);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -69,8 +70,15 @@ class GambarHeaderInfo extends ConsumerWidget {
                   transaksi.fPengajuan.jenisPengajuan,
                 ),
                 const SizedBox(width: 16),
-                Expanded(child: _buildPemeriksaDropdown(ref)),
-
+                Expanded(
+                  child: IgnorePointer(
+                    ignoring: !isEditMode, // Kunci jika bukan edit mode
+                    child: Opacity(
+                      opacity: isEditMode ? 1.0 : 0.6, // Visual cue
+                      child: _buildPemeriksaDropdown(ref),
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 16),
                 Expanded(
                   flex: 1,
@@ -78,13 +86,24 @@ class GambarHeaderInfo extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(width: 16),
-                      Expanded(child: _buildJumlahGambarDropdown(ref)),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.refresh),
-                        tooltip: 'Muat Ulang Pilihan',
-                        onPressed: () => _resetAndRefresh(context, ref),
+                      // Disable/Enable Jumlah Gambar
+                      Expanded(
+                        child: IgnorePointer(
+                          ignoring: !isEditMode,
+                          child: Opacity(
+                            opacity: isEditMode ? 1.0 : 0.6,
+                            child: _buildJumlahGambarDropdown(ref),
+                          ),
+                        ),
                       ),
+                      const SizedBox(width: 8),
+                      // Disable Reload button jika locked
+                      if (isEditMode)
+                        IconButton(
+                          icon: const Icon(Icons.refresh),
+                          tooltip: 'Muat Ulang Pilihan',
+                          onPressed: () => _resetAndRefresh(context, ref),
+                        ),
                     ],
                   ),
                 ),

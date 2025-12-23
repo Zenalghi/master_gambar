@@ -61,6 +61,8 @@ class GambarMainForm extends ConsumerWidget {
         ? jumlahGambarUtama
         : pageKelistrikan + (hasKelistrikan ? 0 : -1);
 
+    final isEditMode = ref.watch(isEditModeProvider);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -233,140 +235,297 @@ class GambarMainForm extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      ReorderableListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        buildDefaultDragHandles: false,
-                        itemCount: items.length,
-                        onReorder: (oldIndex, newIndex) {
-                          ref
-                              .read(independentListNotifierProvider.notifier)
-                              .reorder(oldIndex, newIndex);
-                        },
-                        itemBuilder: (context, index) {
-                          final item = items[index];
-                          final pageNumber = startPageIndependen + index;
-                          final isLoading = ref.watch(isProcessingProvider);
-                          final isPreviewEnabled =
-                              ref.watch(pemeriksaIdProvider) != null;
 
-                          return ReorderableDragStartListener(
-                            key: ValueKey(item.id),
-                            index: index,
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(color: Colors.grey.shade200),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 8,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.drag_indicator,
-                                            color: Colors.grey,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          SizedBox(
-                                            width: 110,
-                                            child: Text(
-                                              'Gambar\nOptional ${index + 1}:',
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 12,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.green.shade50,
-                                                borderRadius:
-                                                    BorderRadius.circular(4),
-                                                border: Border.all(
-                                                  color: Colors.green.shade100,
-                                                ),
-                                              ),
-                                              child: Text(item.name),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                      // --- LOGIKA TAMPILAN BERDASARKAN MODE ---
+                      isEditMode
+                          ? ReorderableListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              buildDefaultDragHandles: false,
+                              itemCount: items.length,
+                              onReorder: (oldIndex, newIndex) {
+                                ref
+                                    .read(
+                                      independentListNotifierProvider.notifier,
+                                    )
+                                    .reorder(oldIndex, newIndex);
+                              },
+                              itemBuilder: (context, index) {
+                                final item = items[index];
+                                final pageNumber = startPageIndependen + index;
+                                final isLoading = ref.watch(
+                                  isProcessingProvider,
+                                );
+                                final isPreviewEnabled =
+                                    ref.watch(pemeriksaIdProvider) != null;
+
+                                return ReorderableDragStartListener(
+                                  key: ValueKey(item.id),
+                                  index: index,
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(
+                                      vertical: 4,
                                     ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 8.0),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(
+                                        color: Colors.grey.shade200,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
                                     child: Row(
                                       children: [
-                                        const SizedBox(width: 10),
-                                        SizedBox(
-                                          width: 70,
-                                          child: Container(
+                                        Expanded(
+                                          child: Padding(
                                             padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
                                               vertical: 8,
                                             ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.yellow.shade200,
-                                              borderRadius:
-                                                  BorderRadius.circular(4),
-                                              border: Border.all(
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                '$pageNumber/$totalHalaman',
-                                                style: const TextStyle(
-                                                  fontSize: 12,
+                                            child: Row(
+                                              children: [
+                                                // ICON DRAG (Hanya ada di Edit Mode)
+                                                const Icon(
+                                                  Icons.drag_indicator,
+                                                  color: Colors.grey,
                                                 ),
-                                              ),
+                                                const SizedBox(width: 8),
+                                                SizedBox(
+                                                  width: 110,
+                                                  child: Text(
+                                                    'Gambar\nOptional ${index + 1}:',
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 12,
+                                                          vertical: 12,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          Colors.green.shade50,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            4,
+                                                          ),
+                                                      border: Border.all(
+                                                        color: Colors
+                                                            .green
+                                                            .shade100,
+                                                      ),
+                                                    ),
+                                                    child: Text(item.name),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(width: 10),
-                                        SizedBox(
-                                          width: 170,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    vertical: 12,
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            right: 8.0,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              const SizedBox(width: 10),
+                                              SizedBox(
+                                                width: 70,
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 8,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        Colors.yellow.shade200,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          4,
+                                                        ),
+                                                    border: Border.all(
+                                                      color: Colors.grey,
+                                                    ),
                                                   ),
-                                            ),
-                                            onPressed:
-                                                isPreviewEnabled && !isLoading
-                                                ? () => onPreviewPressed(
-                                                    pageNumber,
-                                                  )
-                                                : null,
-                                            child: const Text('Preview Gambar'),
+                                                  child: Center(
+                                                    child: Text(
+                                                      '$pageNumber/$totalHalaman',
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              SizedBox(
+                                                width: 170,
+                                                child: ElevatedButton(
+                                                  style: ElevatedButton.styleFrom(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          vertical: 12,
+                                                        ),
+                                                  ),
+                                                  onPressed:
+                                                      isPreviewEnabled &&
+                                                          !isLoading
+                                                      ? () => onPreviewPressed(
+                                                          pageNumber,
+                                                        )
+                                                      : null,
+                                                  child: const Text(
+                                                    'Preview Gambar',
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                ],
-                              ),
+                                );
+                              },
+                            )
+                          : ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: items.length,
+                              itemBuilder: (context, index) {
+                                final item = items[index];
+                                final pageNumber = startPageIndependen + index;
+                                final isLoading = ref.watch(
+                                  isProcessingProvider,
+                                );
+                                final isPreviewEnabled =
+                                    ref.watch(pemeriksaIdProvider) != null;
+
+                                return Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors
+                                        .grey
+                                        .shade50, // Sedikit beda warna
+                                    border: Border.all(
+                                      color: Colors.grey.shade200,
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 8,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              // HAPUS ICON DRAG DISINI
+                                              const SizedBox(width: 8),
+                                              SizedBox(
+                                                width: 110,
+                                                child: Text(
+                                                  'Gambar\nOptional ${index + 1}:',
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 12,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.green.shade50,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          4,
+                                                        ),
+                                                    border: Border.all(
+                                                      color:
+                                                          Colors.green.shade100,
+                                                    ),
+                                                  ),
+                                                  child: Text(item.name),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      // TOMBOL PREVIEW TETAP ADA
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: 8.0,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            const SizedBox(width: 10),
+                                            SizedBox(
+                                              width: 70,
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 8,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.yellow.shade200,
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                  border: Border.all(
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                                child: Center(
+                                                  child: Text(
+                                                    '$pageNumber/$totalHalaman',
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            SizedBox(
+                                              width: 170,
+                                              child: ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 12,
+                                                      ),
+                                                ),
+                                                onPressed:
+                                                    isPreviewEnabled &&
+                                                        !isLoading
+                                                    ? () => onPreviewPressed(
+                                                        pageNumber,
+                                                      )
+                                                    : null,
+                                                child: const Text(
+                                                  'Preview Gambar',
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
-                      ),
                     ],
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (err, stack) => Text('Error loading options: $err'),
               ),
-
               const Divider(height: 10),
 
               // 6. Kelistrikan
@@ -391,6 +550,7 @@ class GambarMainForm extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               TextFormField(
+                enabled: isEditMode,
                 controller: deskripsiController,
                 onChanged: (value) =>
                     ref.read(deskripsiOptionalProvider.notifier).state = value,

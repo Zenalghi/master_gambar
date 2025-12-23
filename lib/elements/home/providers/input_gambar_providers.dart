@@ -391,3 +391,5 @@ final varianBodyStatusOptionsProvider =
           );
     });
 final isLoadingKelistrikanProvider = StateProvider<bool>((ref) => false);
+// Default true (mode edit aktif/bisa ngetik)
+final isEditModeProvider = StateProvider.autoDispose<bool>((ref) => true);

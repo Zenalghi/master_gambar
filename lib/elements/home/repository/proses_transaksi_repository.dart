@@ -157,4 +157,17 @@ class ProsesTransaksiRepository {
       return null;
     }
   }
+
+  Future<void> deleteTransaksi(String transaksiId) async {
+    try {
+      await _ref
+          .read(apiClientProvider)
+          .dio
+          .delete('${ApiEndpoints.transaksi}/$transaksiId');
+    } on DioException catch (e) {
+      throw Exception(
+        'Gagal menghapus transaksi: ${e.response?.data['message'] ?? e.message}',
+      );
+    }
+  }
 }
