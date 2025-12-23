@@ -458,8 +458,13 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: color,
-        duration: const Duration(seconds: 1),
-        
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating, // Agar melayang
+        margin: const EdgeInsets.only(
+          bottom: 50, // Angkat setinggi 80px (sesuaikan tinggi tombol Anda)
+          left: 50,
+          right: 50,
+        ),
       ),
     );
   }
