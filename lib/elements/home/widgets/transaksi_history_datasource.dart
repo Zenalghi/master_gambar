@@ -87,7 +87,6 @@ class TransaksiDataSource extends AsyncDataTableSource {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Tombol Edit Data Master Transaksi
-                    if (!hasDraft)
                       IconButton(
                         icon: Icon(
                           Icons.edit,
