@@ -86,18 +86,17 @@ class TransaksiDataSource extends AsyncDataTableSource {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Tombol Edit Data Master Transaksi
-                      IconButton(
-                        icon: Icon(
-                          Icons.edit,
-                          size: 15,
-                          color: canEdit ? Colors.orange.shade700 : Colors.grey,
-                        ),
-                        tooltip: canEdit
-                            ? 'Edit Data Transaksi'
-                            : 'Anda tidak punya akses',
-                        onPressed: canEdit ? () => _showEditDialog(trx) : null,
+                    IconButton(
+                      icon: Icon(
+                        Icons.edit,
+                        size: 15,
+                        color: canEdit ? Colors.orange.shade700 : Colors.grey,
                       ),
+                      tooltip: canEdit
+                          ? 'Edit Data Transaksi'
+                          : 'Anda tidak punya akses',
+                      onPressed: canEdit ? () => _showEditDialog(trx) : null,
+                    ),
 
                     // Tombol Proses / Lanjut Draft
                     IconButton(
@@ -110,7 +109,7 @@ class TransaksiDataSource extends AsyncDataTableSource {
                       ),
                       tooltip: hasDraft
                           ? 'Detail Transaksi'
-                          : 'Proses Gambar Baru',
+                          : 'Proses Transaksi Baru',
                       onPressed: () {
                         // Buka Tab Input Gambar (Index 1) dengan membawa data transaksi
                         _ref.read(pageStateProvider.notifier).state = PageState(
