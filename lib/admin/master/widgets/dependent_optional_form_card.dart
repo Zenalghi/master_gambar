@@ -31,7 +31,25 @@ class _DependentOptionalFormCardState
 
     if (result != null && result.files.single.path != null) {
       final file = File(result.files.single.path!);
-      // Update provider, nanti UI akan bereaksi otomatis
+
+      // --- VALIDASI UKURAN FILE (Max 1 MB) ---
+      final int sizeInBytes = await file.length();
+      const int maxBytes = 1024 * 1024; // 1 MB
+
+      if (sizeInBytes > maxBytes) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Gagal: Ukuran file melebihi 1 MB.'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Update provider jika lolos validasi
       ref.read(mguDependentFileProvider.notifier).state = file;
     }
   }

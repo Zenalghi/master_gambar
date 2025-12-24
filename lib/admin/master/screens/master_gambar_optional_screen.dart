@@ -32,7 +32,7 @@ class _MasterGambarOptionalScreenState
 
   final ExpansionTileController _expansionController =
       ExpansionTileController();
-
+  static const int _maxFileSize = 1024 * 1024;
   @override
   void dispose() {
     _deskripsiController.dispose();
@@ -162,6 +162,19 @@ class _MasterGambarOptionalScreenState
 
     if (result != null && result.files.single.path != null) {
       final file = File(result.files.single.path!);
+
+      // CEK UKURAN
+      final size = await file.length();
+      if (size > _maxFileSize) {
+        if (mounted) {
+          _showSnackBar(
+            'Ukuran file melebihi 1 MB. Harap kompres file PDF Anda.',
+            Colors.red,
+          );
+        }
+        return; // Jangan set file jika terlalu besar
+      }
+
       setState(() {
         _selectedFile = file;
         _pdfController?.dispose();
@@ -177,7 +190,6 @@ class _MasterGambarOptionalScreenState
     final isEditMode = editingItem != null;
 
     // --- VALIDASI MODE TAMBAH (Create) ---
-    // Saat buat baru, SEMUA WAJIB ADA
     if (!isEditMode) {
       if (_selectedFile == null) {
         _showSnackBar('Harap pilih file PDF.', Colors.orange);
@@ -190,47 +202,52 @@ class _MasterGambarOptionalScreenState
     }
 
     // --- VALIDASI MODE EDIT (Update) ---
-    // Saat edit, minimal salah satu harus berubah (Deskripsi atau File)
     if (isEditMode) {
-      // Cek apakah deskripsi berubah dari yang lama?
       final isDeskripsiChanged =
           _deskripsiController.text != editingItem.deskripsi;
-      // Cek apakah ada file baru?
       final isFileChanged = _selectedFile != null;
 
       if (!isDeskripsiChanged && !isFileChanged) {
         _showSnackBar('Tidak ada perubahan data.', Colors.blue);
-        return; // Tidak perlu kirim request
+        return;
       }
 
-      // Pastikan deskripsi tidak dikosongkan total saat edit (opsional, tergantung rule bisnis)
       if (_deskripsiController.text.isEmpty) {
         _showSnackBar('Deskripsi tidak boleh dikosongkan.', Colors.red);
         return;
       }
     }
 
+    // --- 2. VALIDASI UKURAN FILE (DOUBLE CHECK SAAT SUBMIT) ---
+    if (_selectedFile != null) {
+      final size = await _selectedFile!.length();
+      if (size > _maxFileSize) {
+        _showSnackBar(
+          'Ukuran file melebihi 1 MB. Harap kompres file PDF Anda.',
+          Colors.red,
+        );
+        return;
+      }
+    }
+    // ---------------------------------------------------------
+
     setState(() => _isLoading = true);
 
     try {
       if (isEditMode) {
-        // --- LOGIKA UPDATE FLEKSIBEL ---
+        // --- LOGIKA UPDATE ---
         await ref
             .read(masterDataRepositoryProvider)
             .updateGambarOptional(
               id: editingItem.id,
-              // Kirim teks controller (Backend akan update jika dikirim)
               deskripsi: _deskripsiController.text,
-              // Kirim file jika ada yang dipilih (null jika tidak ganti)
               file: _selectedFile,
             );
 
         _showSnackBar('Update Berhasil!', Colors.orange);
-
-        // Reset state edit
         ref.read(editingGambarOptionalProvider.notifier).state = null;
       } else {
-        // 1. Ambil ID Master Data (Bukan Varian Body lagi)
+        // --- LOGIKA CREATE ---
         final selectedMasterDataId = ref.read(mguSelectedMasterDataIdProvider);
 
         if (selectedMasterDataId == null) {
@@ -244,7 +261,6 @@ class _MasterGambarOptionalScreenState
         await ref
             .read(masterDataRepositoryProvider)
             .addGambarOptional(
-              // Kirim masterDataId
               masterDataId: selectedMasterDataId,
               deskripsi: _deskripsiController.text,
               gambarOptionalFile: _selectedFile!,

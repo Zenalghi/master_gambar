@@ -31,8 +31,28 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
       type: FileType.custom,
       allowedExtensions: ['pdf'],
     );
-    if (result != null) {
-      return File(result.files.single.path!);
+
+    if (result != null && result.files.single.path != null) {
+      final file = File(result.files.single.path!);
+
+      // --- VALIDASI UKURAN FILE (Max 1 MB) ---
+      final int sizeInBytes = await file.length();
+      const int maxBytes = 1024 * 1024; // 1 MB
+
+      if (sizeInBytes > maxBytes) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Gagal: Ukuran file melebihi 1 MB.'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        return null; // Return null agar state tidak berubah
+      }
+
+      return file;
     }
     return null;
   }

@@ -45,6 +45,7 @@ class _AddGambarKelistrikanFormState
   File? _selectedFile;
   PdfController? _pdfController;
   bool _isUploading = false;
+  static const int _maxFileSize = 1024 * 1024;
 
   @override
   void initState() {
@@ -127,8 +128,26 @@ class _AddGambarKelistrikanFormState
     );
 
     if (result != null && result.files.single.path != null) {
+      final file = File(result.files.single.path!);
+
+      // Cek Ukuran
+      final size = await file.length();
+      if (size > _maxFileSize) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Ukuran file melebihi 1 MB. Harap kompres file PDF Anda.',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return; // Jangan update state
+      }
+
       setState(() {
-        _selectedFile = File(result.files.single.path!);
+        _selectedFile = file;
         _pdfController?.dispose();
         _pdfController = PdfController(
           document: PdfDocument.openFile(_selectedFile!.path),
@@ -144,6 +163,19 @@ class _AddGambarKelistrikanFormState
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Harap pilih file PDF')));
+      return;
+    }
+    // --- VALIDASI SAAT SUBMIT (DOUBLE CHECK) ---
+    final size = await _selectedFile!.length();
+    if (size > _maxFileSize) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Ukuran file melebihi 1 MB. Harap kompres file PDF Anda.',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 

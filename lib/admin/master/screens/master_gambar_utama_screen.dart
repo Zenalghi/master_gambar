@@ -240,6 +240,7 @@ class _MasterGambarUtamaScreenState
     final showDependent = ref.read(mguShowDependentOptionalProvider);
     final dependentFile = ref.read(mguDependentFileProvider);
 
+    // 1. Validasi Kelengkapan Data
     if (selectedMasterDataId == null ||
         selectedVarianBodyName == null ||
         gambarUtamaFile == null ||
@@ -265,9 +266,44 @@ class _MasterGambarUtamaScreenState
       return;
     }
 
+    // --- VALIDASI UKURAN FILE (MAX 1 MB) ---
+    const int maxFileSize = 1024 * 1024; // 1 MB
+
+    // Helper lokal untuk pesan error agar kodingan rapi
+    void showSizeError(String filename) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Ukuran file $filename melebihi 1 MB. Harap kompres file PDF Anda.',
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+
+    if (await gambarUtamaFile.length() > maxFileSize) {
+      showSizeError('Gambar Utama');
+      return;
+    }
+    if (await gambarTeruraiFile.length() > maxFileSize) {
+      showSizeError('Gambar Terurai');
+      return;
+    }
+    if (await gambarKontruksiFile.length() > maxFileSize) {
+      showSizeError('Gambar Kontruksi');
+      return;
+    }
+    if (showDependent && dependentFile != null) {
+      if (await dependentFile.length() > maxFileSize) {
+        showSizeError('Gambar Optional Paket');
+        return;
+      }
+    }
+
     setState(() => _isLoading = true);
     try {
-      // 1. Upload (Akan menimpa file lama di server karena nama file di backend distandarisasi)
+      // 3. Upload (Akan menimpa file lama di server)
       final gambarUtama = await ref
           .read(masterDataRepositoryProvider)
           .uploadGambarUtamaWithResult(
@@ -278,7 +314,7 @@ class _MasterGambarUtamaScreenState
             gambarKontruksi: gambarKontruksiFile,
           );
 
-      // 2. Handle Optional Paket
+      // 4. Handle Optional Paket
       if (showDependent) {
         await ref
             .read(masterDataRepositoryProvider)
@@ -290,21 +326,25 @@ class _MasterGambarUtamaScreenState
             );
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Gambar berhasil disimpan/diupdate!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gambar berhasil disimpan/diupdate!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
 
       _resetForm();
     } on DioException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.response?.data['message'] ?? e.message}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.response?.data['message'] ?? e.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
