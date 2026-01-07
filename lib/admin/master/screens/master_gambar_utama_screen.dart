@@ -222,6 +222,7 @@ class _MasterGambarUtamaScreenState
   void _resetAndRefresh() {
     // Reset data yang dipegang PilihVarianBodyCard via provider global
     ref.read(mguSelectedMasterDataIdProvider.notifier).state = null;
+    ref.read(initialGambarUtamaDataProvider.notifier).state = null;
     ref.read(mguSelectedVarianBodyIdProvider.notifier).state = null;
     ref.read(mguSelectedVarianBodyNameProvider.notifier).state = null;
 

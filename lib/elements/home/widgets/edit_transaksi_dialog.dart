@@ -189,6 +189,7 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
                   popupProps: PopupProps.menu(
                     showSearchBox: true,
                     searchFieldProps: const TextFieldProps(
+                      autofocus: true,
                       style: TextStyle(fontSize: 13, height: 1.0),
                       decoration: InputDecoration(
                         constraints: BoxConstraints(maxHeight: 32),
@@ -263,6 +264,7 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
                   popupProps: PopupProps.menu(
                     showSearchBox: true,
                     searchFieldProps: const TextFieldProps(
+                      autofocus: true,
                       style: TextStyle(fontSize: 13, height: 1.0),
                       decoration: InputDecoration(
                         constraints: BoxConstraints(maxHeight: 32),
