@@ -9,12 +9,8 @@ import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/app/core/providers.dart';
 
 class PilihVarianBodyCard extends ConsumerStatefulWidget {
-  final bool isEditMode; // Parameter baru untuk mengunci dropdown
-
-  const PilihVarianBodyCard({
-    super.key,
-    this.isEditMode = false, // Default false (Mode Tambah)
-  });
+  final bool isEditMode;
+  const PilihVarianBodyCard({super.key, this.isEditMode = false});
 
   @override
   ConsumerState<PilihVarianBodyCard> createState() =>
@@ -25,7 +21,6 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard>
     with AutomaticKeepAliveClientMixin {
   OptionItem? _selectedMasterData;
   OptionItem? _selectedVarianBody;
-  // Seed untuk memaksa rebuild dropdown jika key berubah (opsional, tapi membantu reset)
   int _dropdownSeed = 0;
 
   @override
@@ -34,7 +29,6 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard>
   @override
   void initState() {
     super.initState();
-    // Cek data awal saat pertama kali dibangun
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndLoadInitialData();
     });
@@ -73,7 +67,7 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard>
   Widget build(BuildContext context) {
     super.build(context);
 
-    // Listener Aktif: Setiap kali provider initial data berubah, update UI dropdown
+    // 1. Listener untuk Data Awal (Dari Laporan Status Gambar) - TETAP SAMA
     ref.listen<Map<String, dynamic>?>(initialGambarUtamaDataProvider, (
       prev,
       next,
@@ -81,7 +75,7 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard>
       if (next != null) {
         _processInitialData(next);
       } else {
-        // Jika null (misal tombol reset ditekan), bersihkan dropdown
+        // Ini menangani reset jika trigger datang dari initialDataProvider
         setState(() {
           _selectedMasterData = null;
           _selectedVarianBody = null;
@@ -90,9 +84,21 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard>
       }
     });
 
+    // 2. PERBAIKAN: Listener untuk Provider ID Global (Menangani Reset Manual)
+    // Jika ID di provider global jadi null (karena _resetForm dipanggil),
+    // maka kita wajib membersihkan dropdown lokal.
+    ref.listen<int?>(mguSelectedMasterDataIdProvider, (prev, next) {
+      if (next == null && _selectedMasterData != null) {
+        setState(() {
+          _selectedMasterData = null;
+          _selectedVarianBody = null;
+          _dropdownSeed++; // Paksa rebuild dropdown agar teks kembali ke labelText
+        });
+      }
+    });
+
     final globalSelectedMasterId = ref.watch(mguSelectedMasterDataIdProvider);
 
-    // Widget Utama
     return Card(
       // Bungkus dengan IgnorePointer jika Mode Edit aktif
       child: IgnorePointer(
