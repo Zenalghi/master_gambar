@@ -103,7 +103,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       ),
 
       // 3. Merk
-      DataColumn2(label: const Text('Merk'), fixedWidth: 110, onSort: _onSort),
+      DataColumn2(label: const Text('Merk'), fixedWidth: 90, onSort: _onSort),
 
       // 4. Type Chassis
       DataColumn2(
@@ -115,7 +115,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       // 5. Jenis Kendaraan
       DataColumn2(
         label: const Text('Jenis Kendaraan'),
-        size: ColumnSize.M,
+        fixedWidth: 115,
         onSort: _onSort,
       ),
 
@@ -129,24 +129,24 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       // 7. Gbr Utama (Action Column)
       const DataColumn2(
         label: Center(child: Text('Gambar Utama', textAlign: TextAlign.center)),
-        fixedWidth: 200,
+        fixedWidth: 123,
       ),
       DataColumn2(
         label: const Text('Created At'),
-        fixedWidth: 115,
+        fixedWidth: 99,
         onSort: _onSort,
       ),
       // 8. Updated At
       DataColumn2(
         label: const Text('Updated At'),
-        fixedWidth: 115,
+        fixedWidth: 99,
         onSort: _onSort,
       ),
 
       // 9. Gbr. Optional Paket
       DataColumn2(
         label: const Text('Gbr. Optional\nPaket'),
-        size: ColumnSize.M,
+        size: ColumnSize.L,
         onSort: _onSort,
       ),
     ];
