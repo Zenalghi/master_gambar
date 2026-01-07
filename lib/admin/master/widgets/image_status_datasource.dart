@@ -11,7 +11,6 @@ import 'package:master_gambar/admin/master/repository/master_data_repository.dar
 import 'package:master_gambar/data/models/option_item.dart';
 
 // Hapus provider global karena diinstansiasi di UI
-// final imageStatusSourceProvider ...
 
 class ImageStatusDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;
@@ -124,7 +123,13 @@ class ImageStatusDataSource extends AsyncDataTableSource {
                         ),
                 ),
               ),
-
+              DataCell(
+                SelectableText(
+                  item.gambarUtamaCreatedAt != null
+                      ? dateFormat.format(item.gambarUtamaCreatedAt!.toLocal())
+                      : 'Belum ada',
+                ),
+              ),
               // 8. Updated At
               DataCell(
                 SelectableText(

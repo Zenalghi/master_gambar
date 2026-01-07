@@ -71,8 +71,9 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       3: 'type_chassis',
       4: 'jenis_kendaraan',
       5: 'varian_body',
-      7: 'updated_at',
-      8: 'deskripsi_optional',
+      7: 'created_at',
+      8: 'updated_at',
+      9: 'deskripsi_optional',
     };
 
     setState(() {
@@ -130,7 +131,11 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
         label: Center(child: Text('Gambar Utama', textAlign: TextAlign.center)),
         fixedWidth: 200,
       ),
-
+      DataColumn2(
+        label: const Text('Created At'),
+        fixedWidth: 115,
+        onSort: _onSort,
+      ),
       // 8. Updated At
       DataColumn2(
         label: const Text('Updated At'),

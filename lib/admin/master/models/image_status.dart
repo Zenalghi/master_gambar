@@ -9,13 +9,15 @@ class ImageStatus {
   final GGambarUtama? gambarUtama;
 
   // Data tambahan untuk laporan
+  final DateTime? gambarUtamaCreatedAt;
   final DateTime? gambarUtamaUpdatedAt;
   final String? deskripsiOptional;
   final bool hasGambarUtama;
 
   ImageStatus({
     required this.varianBody,
-    this.gambarUtama, // <-- Pastikan ini ada
+    this.gambarUtama,
+    this.gambarUtamaCreatedAt,
     this.gambarUtamaUpdatedAt,
     this.deskripsiOptional,
     required this.hasGambarUtama,
@@ -32,7 +34,10 @@ class ImageStatus {
           ? GGambarUtama.fromJson(json['gambar_utama'])
           : null,
 
-      // 3. Data tambahan
+      gambarUtamaCreatedAt: json['gambar_utama_created_at'] != null
+          ? DateTime.parse(json['gambar_utama_created_at'])
+          : null,
+
       gambarUtamaUpdatedAt: json['gambar_utama_updated_at'] != null
           ? DateTime.parse(json['gambar_utama_updated_at'])
           : null,
