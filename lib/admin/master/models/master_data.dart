@@ -15,11 +15,10 @@ class MasterData {
   final DateTime updatedAt;
 
   // Field Tambahan untuk Kelistrikan
-  final int? kelistrikanId; // ID dari tabel deskripsi (i_gambar_kelistrikan)
+  final int? kelistrikanId;
   final String? kelistrikanDeskripsi; // Deskripsinya
-  final int?
-  fileKelistrikanId; // ID dari tabel file fisik (master_kelistrikan_files)
-
+  final int? fileKelistrikanId;
+  final int? kelistrikanCount;
   MasterData({
     required this.id,
     required this.typeEngine,
@@ -31,6 +30,7 @@ class MasterData {
     this.kelistrikanId,
     this.kelistrikanDeskripsi,
     this.fileKelistrikanId,
+    this.kelistrikanCount,
   });
 
   factory MasterData.fromJson(Map<String, dynamic> json) {
@@ -47,6 +47,7 @@ class MasterData {
       kelistrikanId: json['kelistrikan_id'],
       kelistrikanDeskripsi: json['kelistrikan_deskripsi'],
       fileKelistrikanId: json['file_kelistrikan_id'],
+      kelistrikanCount: json['kelistrikan_count'],
     );
   }
 }

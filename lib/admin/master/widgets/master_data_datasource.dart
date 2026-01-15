@@ -101,24 +101,24 @@ class MasterDataDataSource extends AsyncDataTableSource {
   }
 
   Widget _buildKelistrikanCell(MasterData item) {
-    if (item.kelistrikanId != null) {
-      return Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.check_circle, size: 16, color: Colors.green),
-            tooltip: 'Lengkap. Klik untuk Edit Deskripsi.',
-            onPressed: () => _showDeskripsiDialog(item),
+    // KASUS 1: Belum ada file fisik (Upload dulu)
+    if (item.fileKelistrikanId == null) {
+      return Center(
+        child: IconButton(
+          icon: const Icon(
+            Icons.add_circle_outline,
+            size: 16,
+            color: Colors.red,
           ),
-          Expanded(
-            child: SelectableText(
-              item.kelistrikanDeskripsi ?? '',
-              // overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 10),
-            ),
-          ),
-        ],
+          tooltip: 'File PDF belum ada. Klik untuk upload.',
+          onPressed: () => _navigateToGudangFile(item),
+        ),
       );
-    } else if (item.fileKelistrikanId != null) {
+    }
+
+    // KASUS 2: File ada, tapi belum ada deskripsi satupun
+    // (Asumsi: kelistrikanId null berarti belum ada row deskripsi)
+    if (item.kelistrikanId == null) {
       return Row(
         children: [
           IconButton(
@@ -138,17 +138,76 @@ class MasterDataDataSource extends AsyncDataTableSource {
           ),
         ],
       );
-    } else {
-      return Center(
-        child: IconButton(
-          icon: const Icon(
-            Icons.add_circle_outline,
-            size: 16,
-            color: Colors.red,
+    }
+
+    // KASUS 3: Ada Deskripsi (Bisa 1 atau Lebih)
+    // Kita gunakan kelistrikanCount jika ada (dari update backend),
+    // atau fallback logika lama jika belum update backend.
+    final int count = item.kelistrikanCount ?? 1;
+
+    if (count > 1) {
+      // --- SUB-KASUS: BANYAK OPSI ---
+      return Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.edit_note, size: 18, color: Colors.blue),
+            tooltip: 'Klik untuk mengelola $count opsi deskripsi',
+            onPressed: () => _showDeskripsiDialog(item),
           ),
-          tooltip: 'File PDF belum ada. Klik untuk upload.',
-          onPressed: () => _navigateToGudangFile(item),
-        ),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "$count Opsi",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade800,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  // Tooltip Indikator
+                  Tooltip(
+                    message: "Data ini memiliki $count variasi deskripsi.",
+                    child: Icon(
+                      Icons.info_outline,
+                      size: 14,
+                      color: Colors.blue.shade400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      // --- SUB-KASUS: SINGLE OPSI (Normal) ---
+      return Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.check_circle, size: 16, color: Colors.green),
+            tooltip: 'Lengkap. Klik untuk Edit Deskripsi.',
+            onPressed: () => _showDeskripsiDialog(item),
+          ),
+          Expanded(
+            child: SelectableText(
+              item.kelistrikanDeskripsi ?? '',
+              style: const TextStyle(fontSize: 11),
+              maxLines: 2,
+              // minLines: 1,
+              // Jika terlalu panjang, text akan terpotong rapi (ellipsis handled by table cell)
+            ),
+          ),
+        ],
       );
     }
   }

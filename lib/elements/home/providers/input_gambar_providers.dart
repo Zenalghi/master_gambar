@@ -8,10 +8,6 @@ import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../repository/options_repository.dart';
 
 // import 'package:equatable/equatable.dart';
-// Provider untuk menyimpan Info Kelistrikan yang sudah di-fetch di screen
-final kelistrikanInfoProvider = StateProvider<Map<String, dynamic>?>(
-  (ref) => null,
-);
 
 class VarianFilterParams {
   final String search;
@@ -382,6 +378,13 @@ final gambarKelistrikanDataProvider =
       return null;
     });
 
+final isLoadingKelistrikanProvider = StateProvider<bool>((ref) => false);
+// Provider untuk menyimpan Info Kelistrikan yang sudah di-fetch di screen
+final kelistrikanInfoProvider = StateProvider<Map<String, dynamic>?>(
+  (ref) => null,
+);
+final selectedKelistrikanIdProvider = StateProvider<int?>((ref) => null);
+
 final dependentOptionalOptionsProvider = FutureProvider<List<OptionItem>>((
   ref,
 ) async {
@@ -452,6 +455,5 @@ final varianBodyStatusOptionsProvider =
             masterDataId: params.masterDataId,
           );
     });
-final isLoadingKelistrikanProvider = StateProvider<bool>((ref) => false);
 // Default true (mode edit aktif/bisa ngetik)
 final isEditModeProvider = StateProvider.autoDispose<bool>((ref) => true);

@@ -900,14 +900,34 @@ class MasterDataRepository {
   Future<void> saveDeskripsiKelistrikan({
     required int masterDataId,
     required String deskripsi,
+    int? id, // Parameter Tambahan (Nullable)
   }) async {
+    final Map<String, dynamic> data = {
+      'master_data_id': masterDataId,
+      'deskripsi': deskripsi,
+    };
+
+    if (id != null) {
+      data['id'] = id;
+    }
+
     await _ref
         .read(apiClientProvider)
         .dio
-        .post(
-          '/admin/gambar-kelistrikan/deskripsi',
-          data: {'master_data_id': masterDataId, 'deskripsi': deskripsi},
-        );
+        .post('/admin/gambar-kelistrikan/deskripsi', data: data);
+  }
+
+  // 4. Hapus Deskripsi Kelistrikan
+  Future<void> deleteDeskripsiKelistrikan(int id) async {
+    try {
+      await _ref
+          .read(apiClientProvider)
+          .dio
+          .delete('/admin/gambar-kelistrikan/deskripsi/$id');
+    } on DioException catch (e) {
+      // Lempar error agar bisa ditangkap UI (untuk menampilkan pesan 422)
+      throw Exception(e.response?.data['message'] ?? e.message);
+    }
   }
 
   // == IMAGE STATUS (LAPORAN) ==

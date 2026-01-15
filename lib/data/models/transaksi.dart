@@ -187,6 +187,7 @@ class TransaksiDetail {
   final List<Map<String, dynamic>> dataGambarUtama;
   final List<int> optionalIndependenIds;
   final String? deskripsiOptional;
+  final int? iGambarKelistrikanId;
   final List<int>? orderedIndependentIds;
 
   TransaksiDetail({
@@ -196,6 +197,7 @@ class TransaksiDetail {
     required this.optionalIndependenIds,
     this.orderedIndependentIds,
     this.deskripsiOptional,
+    this.iGambarKelistrikanId,
   });
 
   factory TransaksiDetail.fromJson(Map<String, dynamic> json) {
@@ -212,6 +214,7 @@ class TransaksiDetail {
         json['ordered_independent_ids'] ?? [],
       ),
       deskripsiOptional: json['deskripsi_optional'],
+      iGambarKelistrikanId: json['i_gambar_kelistrikan_id'],
     );
   }
 }

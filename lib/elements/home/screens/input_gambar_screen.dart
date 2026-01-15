@@ -80,8 +80,9 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     ref.read(deskripsiOptionalProvider.notifier).state = '';
     _deskripsiOptionalController.text = '';
     ref.invalidate(varianBodyStatusOptionsProvider);
-    ref.read(kelistrikanInfoProvider.notifier).state = null;
     ref.invalidate(dependentOptionalOptionsProvider);
+    ref.read(kelistrikanInfoProvider.notifier).state = null;
+    ref.read(selectedKelistrikanIdProvider.notifier).state = null;
   }
 
   void _loadSavedState(TransaksiDetail detail) {
@@ -131,6 +132,10 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
           detail.deskripsiOptional!;
       _deskripsiOptionalController.text = detail.deskripsiOptional!;
     }
+    if (detail.iGambarKelistrikanId != null) {
+      ref.read(selectedKelistrikanIdProvider.notifier).state =
+          detail.iGambarKelistrikanId;
+    }
   }
 
   Future<void> _fetchKelistrikanInfo() async {
@@ -142,9 +147,13 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
 
       if (mounted) {
         ref.read(kelistrikanInfoProvider.notifier).state = info;
+        if (info != null && info['status_code'] == 'ready') {
+          ref.read(selectedKelistrikanIdProvider.notifier).state =
+              info['selected_id'];
+        }
       }
     } catch (e) {
-      // Handle error silent
+      // Handle silent
     } finally {
       if (mounted) {
         ref.read(isLoadingKelistrikanProvider.notifier).state = false;
@@ -170,7 +179,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       // --- Info Kelistrikan ---
       final kelistrikanInfo = ref.read(kelistrikanInfoProvider);
       final statusKelistrikan = kelistrikanInfo?['status_code'];
-      final kelistrikanId = kelistrikanInfo?['desc_id'] as int?;
+      final kelistrikanId = ref.read(selectedKelistrikanIdProvider);
       final bool isKelistrikanReady =
           statusKelistrikan == 'ready' && kelistrikanId != null;
 
@@ -237,16 +246,11 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             transaksiId: widget.transaksi.id,
             pemeriksaId: pemeriksaId,
             varianBodyIds: varianBodyIds,
-
-            // WAJIB: Kirim Judul Gambar IDs
             judulGambarIds: judulGambarIds,
-
-            // WAJIB: Kirim Paket Optional IDs
             hGambarOptionalIds: dependentOptionalIds,
-
-            iGambarKelistrikanId: kelistrikanId,
             pageNumber: finalPageNumber,
             deskripsiOptional: deskripsiOptional,
+            iGambarKelistrikanId: kelistrikanId,
           );
 
       if (context.mounted) {
@@ -273,10 +277,16 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final selections = ref.read(gambarUtamaSelectionProvider);
       final deskripsiOptional = ref.read(deskripsiOptionalProvider);
 
-      // Info Kelistrikan
+      // --- Info Kelistrikan ---
       final kelistrikanInfo = ref.read(kelistrikanInfoProvider);
-      final kelistrikanId = kelistrikanInfo?['desc_id'] as int?;
-
+      final statusKelistrikan = kelistrikanInfo?['status_code'];
+      final kelistrikanId = ref.read(selectedKelistrikanIdProvider);
+      final bool isKelistrikanReady =
+          statusKelistrikan == 'ready' && kelistrikanId != null;
+      if (!isKelistrikanReady) {
+        _showSnackBar('Pastikan Kelistrikan tersedia.', Colors.orange);
+        return;
+      }
       // Filter Data Valid
       final varianBodyIds = selections
           .where((s) => s.varianBodyId != null && s.judulId != null)
@@ -356,7 +366,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       _showSnackBar('Pilih pemeriksa untuk menyimpan draft.', Colors.orange);
       return;
     }
-
+    final kelistrikanId = ref.read(selectedKelistrikanIdProvider);
     final selections = ref.read(gambarUtamaSelectionProvider);
     List<Map<String, dynamic>> dataGambarUtama = selections
         .map((s) => {'judul_id': s.judulId, 'varian_id': s.varianBodyId})
@@ -377,6 +387,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             dataGambarUtama: dataGambarUtama,
             orderedIndependentIds: currentOrderedIds,
             deskripsiOptional: ref.read(deskripsiOptionalProvider),
+            iGambarKelistrikanId: kelistrikanId,
           );
 
       if (mounted) {

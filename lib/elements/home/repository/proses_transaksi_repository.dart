@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/app/core/providers.dart';
 import '../../../data/providers/api_endpoints.dart';
+import '../providers/input_gambar_providers.dart';
 
 final prosesTransaksiRepositoryProvider = Provider(
   (ref) => ProsesTransaksiRepository(ref),
@@ -22,7 +23,10 @@ class ProsesTransaksiRepository {
     required List<Map<String, dynamic>> dataGambarUtama,
     List<int>? orderedIndependentIds,
     String? deskripsiOptional,
+    int? iGambarKelistrikanId,
   }) async {
+    final kelistrikanId = _ref.read(selectedKelistrikanIdProvider);
+    print("DEBUG SAVE: Kelistrikan ID yang akan dikirim: $kelistrikanId");
     try {
       await _ref
           .read(apiClientProvider)
@@ -32,10 +36,10 @@ class ProsesTransaksiRepository {
             data: {
               'pemeriksa_id': pemeriksaId,
               'jumlah_gambar': jumlahGambar,
-              'data_gambar_utama':
-                  dataGambarUtama, // Kirim array object [{judul_id:1, varian_id:2}]
+              'data_gambar_utama': dataGambarUtama,
               'ordered_independent_ids': orderedIndependentIds,
               'deskripsi_optional': deskripsiOptional,
+              'i_gambar_kelistrikan_id': iGambarKelistrikanId,
             },
           );
     } on DioException catch (e) {
@@ -50,11 +54,11 @@ class ProsesTransaksiRepository {
     required int pemeriksaId,
     required List<int> varianBodyIds,
     required List<int> judulGambarIds,
-    required List<int>? hGambarOptionalIds, // Tambahkan ini (Untuk Paket)
-    int? iGambarKelistrikanId,
+    required List<int>? hGambarOptionalIds,
     required int pageNumber,
     String? deskripsiOptional,
     required List<int> orderedIndependentIds,
+    int? iGambarKelistrikanId,
   }) async {
     try {
       final response = await _ref
@@ -65,13 +69,8 @@ class ProsesTransaksiRepository {
             data: {
               'pemeriksa_id': pemeriksaId,
               'varian_body_ids': varianBodyIds,
-
-              // --- PERBAIKAN 1: Pastikan key ini ada ---
               'judul_gambar_ids': judulGambarIds,
-
-              // --- PERBAIKAN 2: Kirim ID Paket (Dependent) ---
               'h_gambar_optional_ids': hGambarOptionalIds,
-
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'preview',
               'preview_page': pageNumber,
@@ -82,7 +81,6 @@ class ProsesTransaksiRepository {
           );
       return response.data;
     } on DioException catch (e) {
-      // ... error handling sama ...
       throw Exception('Gagal memuat preview: ${e.message}');
     }
   }
@@ -93,10 +91,10 @@ class ProsesTransaksiRepository {
     required int pemeriksaId,
     required List<int> varianBodyIds,
     required List<int> judulGambarIds,
-    required List<int>? hGambarOptionalIds, // Tambahkan ini
-    int? iGambarKelistrikanId,
+    required List<int>? hGambarOptionalIds,
     String? deskripsiOptional,
     List<int>? orderedIndependentIds,
+    int? iGambarKelistrikanId,
   }) async {
     try {
       String? outputPath = await FilePicker.platform.saveFile(
@@ -116,17 +114,12 @@ class ProsesTransaksiRepository {
             data: {
               'pemeriksa_id': pemeriksaId,
               'varian_body_ids': varianBodyIds,
-
-              // --- PERBAIKAN 1: Pastikan key ini ada ---
               'judul_gambar_ids': judulGambarIds,
-
-              // --- PERBAIKAN 2: Kirim ID Paket ---
               'h_gambar_optional_ids': hGambarOptionalIds,
-
-              'i_gambar_kelistrikan_id': iGambarKelistrikanId,
               'aksi': 'proses',
               'ordered_independent_ids': orderedIndependentIds,
               'deskripsi_optional': deskripsiOptional,
+              'i_gambar_kelistrikan_id': iGambarKelistrikanId,
             },
             options: Options(responseType: ResponseType.bytes),
           )
@@ -134,8 +127,7 @@ class ProsesTransaksiRepository {
             await File(outputPath).writeAsBytes(response.data);
           });
     } on DioException catch (e) {
-      // ... error handling ...
-      throw Exception(e.message);
+      throw Exception('Gagal memuat proses: ${e.message}');
     }
   }
 

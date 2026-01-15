@@ -48,18 +48,26 @@ class GambarMainForm extends ConsumerWidget {
     final dependentOptionals = ref.watch(dependentOptionalOptionsProvider);
 
     final dependentCount = dependentOptionals.asData?.value.length ?? 0;
+
+    // Gunakan asData untuk akses value yang aman
     final activeIndependentCount =
-        independentStateAsync.value?.activeItems.length ?? 0;
-    // 5. Hitung Halaman
+        independentStateAsync.asData?.value.activeItems.length ?? 0;
+
+    // 5. Hitung Halaman (LOGIKA FIXED)
     final int startPageTerurai = jumlahGambarUtama + 1;
     final int startPageKontruksi = startPageTerurai + jumlahGambarUtama;
     final int startPagePaket = startPageKontruksi + jumlahGambarUtama;
     final int startPageIndependen = startPagePaket + dependentCount;
+
+    // Halaman Kelistrikan selalu setelah semua halaman independen selesai
     final int pageKelistrikan = startPageIndependen + activeIndependentCount;
 
+    // Total Halaman
+    // Jika tidak ada kelistrikan, totalnya adalah halaman terakhir independen (pageKelistrikan - 1)
+    // Jika ada kelistrikan, totalnya adalah pageKelistrikan itu sendiri
     int totalHalaman = isGambarTU
         ? jumlahGambarUtama
-        : pageKelistrikan + (hasKelistrikan ? 0 : -1);
+        : (hasKelistrikan ? pageKelistrikan : (pageKelistrikan - 1));
 
     final isEditMode = ref.watch(isEditModeProvider);
 
