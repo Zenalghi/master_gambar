@@ -42,7 +42,9 @@ class GambarMainForm extends ConsumerWidget {
     // 4. Ambil Data Provider
     final kelistrikanInfo = ref.watch(kelistrikanInfoProvider);
     final hasKelistrikan =
-        kelistrikanInfo != null && kelistrikanInfo['status_code'] == 'ready';
+        kelistrikanInfo != null &&
+        (kelistrikanInfo['status_code'] == 'ready' ||
+            kelistrikanInfo['status_code'] == 'multiple_options');
 
     final independentStateAsync = ref.watch(independentListNotifierProvider);
     final dependentOptionals = ref.watch(dependentOptionalOptionsProvider);
