@@ -8,6 +8,9 @@ import 'package:master_gambar/elements/home/widgets/gambar/gambar_kelistrikan_se
 import 'package:master_gambar/elements/home/widgets/gambar/gambar_synced_row.dart';
 import 'package:master_gambar/elements/home/widgets/gambar/gambar_utama_row.dart';
 
+import '../../../../admin/master/repository/master_data_repository.dart';
+import '../../../../admin/master/widgets/pdf_viewer_dialog.dart';
+
 class GambarMainForm extends ConsumerWidget {
   final Transaksi transaksi;
   final Function(int pageNumber) onPreviewPressed;
@@ -202,13 +205,11 @@ class GambarMainForm extends ConsumerWidget {
               ),
 
               // 5. Gambar Optional Independen
-              // 5. Gambar Optional Independen (ACTIVE & HIDDEN)
               independentStateAsync.when(
                 data: (independentState) {
                   final activeItems = independentState.activeItems;
                   final hiddenItems = independentState.hiddenItems;
 
-                  // Jika kedua list kosong, sembunyikan section ini
                   if (activeItems.isEmpty && hiddenItems.isEmpty) {
                     return const SizedBox.shrink();
                   }
@@ -218,7 +219,7 @@ class GambarMainForm extends ConsumerWidget {
                     children: [
                       const Divider(height: 32),
 
-                      // --- HEADER SECTION ---
+                      // --- HEADER ---
                       Row(
                         children: [
                           const Text(
@@ -233,8 +234,7 @@ class GambarMainForm extends ConsumerWidget {
                           Tooltip(
                             message:
                                 'Gambar di list atas AKAN DICETAK.\n'
-                                'Geser icon titik-titik untuk mengubah urutan halaman.\n'
-                                'Tekan icon mata coret untuk menyembunyikan gambar.',
+                                'Gambar di list bawah DISEMBUNYIKAN.',
                             triggerMode: TooltipTriggerMode.tap,
                             child: Icon(
                               Icons.info_outline,
@@ -246,7 +246,7 @@ class GambarMainForm extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
 
-                      // Pesan jika list aktif kosong tapi ada yang di-hide
+                      // Pesan jika list aktif kosong
                       if (activeItems.isEmpty && hiddenItems.isNotEmpty)
                         Container(
                           width: double.infinity,
@@ -259,7 +259,7 @@ class GambarMainForm extends ConsumerWidget {
                           ),
                           child: const Text(
                             'Tidak ada gambar optional yang dipilih untuk dicetak.\n'
-                            'Buka menu "Gambar Disembunyikan" di bawah untuk menambahkan gambar.',
+                            'Buka menu "Gambar Disembunyikan" di bawah untuk menambahkan.',
                             style: TextStyle(
                               fontStyle: FontStyle.italic,
                               color: Colors.brown,
@@ -272,10 +272,8 @@ class GambarMainForm extends ConsumerWidget {
                       if (isEditMode && activeItems.isNotEmpty)
                         ReorderableListView.builder(
                           shrinkWrap: true,
-                          // Penting agar tidak bentrok dengan scroll parent
                           physics: const NeverScrollableScrollPhysics(),
-                          buildDefaultDragHandles:
-                              false, // Kita pakai custom handle
+                          buildDefaultDragHandles: false,
                           itemCount: activeItems.length,
                           onReorder: (oldIndex, newIndex) {
                             ref
@@ -289,139 +287,114 @@ class GambarMainForm extends ConsumerWidget {
                                 ref.watch(pemeriksaIdProvider) != null;
                             final isLoading = ref.watch(isProcessingProvider);
 
-                            return ReorderableDragStartListener(
+                            return Container(
                               key: ValueKey(item.id),
-                              index: index,
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(
-                                    color: Colors.grey.shade300,
-                                  ),
-                                  borderRadius: BorderRadius.circular(4),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.1),
-                                      blurRadius: 2,
-                                      offset: const Offset(0, 1),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    // 1. Drag Handle
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 16,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade100,
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(4),
-                                          bottomLeft: Radius.circular(4),
-                                        ),
-                                      ),
-                                      child: const Icon(
-                                        Icons.drag_indicator,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-
-                                    // 2. Nama Item
-                                    Expanded(
-                                      child: Padding(
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                children: [
+                                  // BAGIAN KIRI: NAMA & DRAG
+                                  Expanded(
+                                    child: ReorderableDragStartListener(
+                                      index: index,
+                                      child: Container(
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 12,
+                                          horizontal: 8,
+                                          vertical: 8,
                                         ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.grey.withOpacity(
+                                                0.1,
+                                              ),
+                                              blurRadius: 2,
+                                              offset: const Offset(0, 1),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
                                           children: [
-                                            Text(
-                                              item.name,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14,
-                                              ),
+                                            const Icon(
+                                              Icons.drag_indicator,
+                                              color: Colors.grey,
                                             ),
-                                            const SizedBox(height: 4),
-                                            // Badge Halaman
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 6,
-                                                    vertical: 2,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.yellow.shade100,
-                                                borderRadius:
-                                                    BorderRadius.circular(4),
-                                                border: Border.all(
-                                                  color: Colors.orange.shade200,
-                                                ),
-                                              ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
                                               child: Text(
-                                                'Hal $pageNumber / $totalHalaman',
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.orange.shade900,
+                                                item.name,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
                                                 ),
                                               ),
                                             ),
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.visibility_off,
+                                                color: Colors.grey,
+                                              ),
+                                              tooltip: 'Sembunyikan',
+                                              padding: EdgeInsets.zero,
+                                              constraints:
+                                                  const BoxConstraints(),
+                                              onPressed: () {
+                                                ref
+                                                    .read(
+                                                      independentListNotifierProvider
+                                                          .notifier,
+                                                    )
+                                                    .hideItem(item);
+                                              },
+                                            ),
+                                            const SizedBox(width: 8),
                                           ],
                                         ),
                                       ),
                                     ),
+                                  ),
 
-                                    // 3. Action Buttons
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        // Tombol Preview
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.visibility,
-                                            color: Colors.blue,
-                                          ),
-                                          tooltip: 'Preview Gambar',
-                                          onPressed:
-                                              isPreviewEnabled && !isLoading
-                                              ? () =>
-                                                    onPreviewPressed(pageNumber)
-                                              : null,
+                                  // BAGIAN KANAN: NOMOR & PREVIEW
+                                  const SizedBox(width: 10),
+                                  SizedBox(
+                                    width: 70,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.yellow.shade200,
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(color: Colors.grey),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          '$pageNumber/$totalHalaman',
                                         ),
-
-                                        // Tombol Hide (Pindah ke bawah)
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.visibility_off,
-                                            color: Colors.grey,
-                                          ),
-                                          tooltip:
-                                              'Sembunyikan (Tidak ikut diproses)',
-                                          onPressed: () {
-                                            ref
-                                                .read(
-                                                  independentListNotifierProvider
-                                                      .notifier,
-                                                )
-                                                .hideItem(item);
-                                          },
-                                        ),
-                                        const SizedBox(width: 4),
-                                      ],
+                                      ),
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  SizedBox(
+                                    width: 170,
+                                    child: ElevatedButton(
+                                      onPressed: isPreviewEnabled && !isLoading
+                                          ? () => onPreviewPressed(pageNumber)
+                                          : null,
+                                      child: const Text('Preview Gambar'),
+                                    ),
+                                  ),
+                                ],
                               ),
                             );
                           },
                         )
-                      // Tampilan Read-Only (Mode View)
+                      // View Mode (Read Only)
                       else if (!isEditMode && activeItems.isNotEmpty)
                         ListView.builder(
                           shrinkWrap: true,
@@ -430,49 +403,66 @@ class GambarMainForm extends ConsumerWidget {
                           itemBuilder: (context, index) {
                             final item = activeItems[index];
                             final pageNumber = startPageIndependen + index;
+                            final isPreviewEnabled =
+                                ref.watch(pemeriksaIdProvider) != null;
+                            final isLoading = ref.watch(isProcessingProvider);
+
                             return Container(
                               margin: const EdgeInsets.symmetric(vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade50,
-                                border: Border.all(color: Colors.grey.shade200),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                title: Text(
-                                  item.name,
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                                leading: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.yellow.shade200,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    '$pageNumber/$totalHalaman',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 12,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        item.name,
+                                        style: const TextStyle(
+                                          color: Colors.black87,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                trailing: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 15,
-                                      vertical: 13,
+                                  const SizedBox(width: 10),
+                                  SizedBox(
+                                    width: 70,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.yellow.shade200,
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(color: Colors.grey),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          '$pageNumber/$totalHalaman',
+                                        ),
+                                      ),
                                     ),
-                                    minimumSize: const Size(80, 32),
                                   ),
-                                  onPressed: () => onPreviewPressed(pageNumber),
-                                  child: const Text('Preview Gambar'),
-                                ),
+                                  const SizedBox(width: 10),
+                                  SizedBox(
+                                    width: 170,
+                                    child: ElevatedButton(
+                                      onPressed: isPreviewEnabled && !isLoading
+                                          ? () => onPreviewPressed(pageNumber)
+                                          : null,
+                                      child: const Text('Preview Gambar'),
+                                    ),
+                                  ),
+                                ],
                               ),
                             );
                           },
@@ -488,13 +478,11 @@ class GambarMainForm extends ConsumerWidget {
                             border: Border.all(color: Colors.grey.shade300),
                           ),
                           child: Theme(
-                            // Hilangkan garis divider default ExpansionTile
                             data: Theme.of(
                               context,
                             ).copyWith(dividerColor: Colors.transparent),
                             child: ExpansionTile(
-                              initiallyExpanded: activeItems
-                                  .isEmpty, // Auto expand jika list atas kosong
+                              initiallyExpanded: activeItems.isEmpty,
                               tilePadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 0,
@@ -511,13 +499,6 @@ class GambarMainForm extends ConsumerWidget {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              subtitle: const Text(
-                                'Klik untuk membuka dan menambahkan ke list cetak',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey,
-                                ),
-                              ),
                               children: [
                                 const Divider(height: 1),
                                 ListView.separated(
@@ -528,6 +509,10 @@ class GambarMainForm extends ConsumerWidget {
                                       const Divider(height: 1),
                                   itemBuilder: (context, index) {
                                     final item = hiddenItems[index];
+                                    final isLoading = ref.watch(
+                                      isProcessingProvider,
+                                    );
+
                                     return ListTile(
                                       dense: true,
                                       contentPadding: const EdgeInsets.only(
@@ -541,29 +526,102 @@ class GambarMainForm extends ConsumerWidget {
                                           fontSize: 13,
                                         ),
                                       ),
-                                      trailing: TextButton.icon(
-                                        icon: const Icon(
-                                          Icons.add_circle,
-                                          size: 16,
-                                          color: Colors.green,
-                                        ),
-                                        label: const Text(
-                                          'Pakai',
-                                          style: TextStyle(color: Colors.green),
-                                        ),
-                                        style: TextButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
+                                      // --- ACTION BUTTONS (Preview & Pakai) ---
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          // 1. Button Preview
+                                          TextButton.icon(
+                                            icon: const Icon(
+                                              Icons.visibility,
+                                              size: 16,
+                                              color: Colors.blue,
+                                            ),
+                                            label: const Text(
+                                              'Preview',
+                                              style: TextStyle(
+                                                color: Colors.blue,
+                                              ),
+                                            ),
+                                            style: TextButton.styleFrom(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                  ),
+                                            ),
+                                            onPressed: isLoading
+                                                ? null
+                                                : () async {
+                                                    // Logic Preview File Mentah via Repository
+                                                    try {
+                                                      // Tampilkan Loading (opsional)
+                                                      final bytes = await ref
+                                                          .read(
+                                                            masterDataRepositoryProvider,
+                                                          )
+                                                          .getGambarOptionalPdf(
+                                                            item.id as int,
+                                                          );
+
+                                                      if (context.mounted) {
+                                                        showDialog(
+                                                          context: context,
+                                                          builder: (ctx) =>
+                                                              PdfViewerDialog(
+                                                                pdfData: bytes,
+                                                                title:
+                                                                    'Preview: ${item.name}\nDeskripsi dicetak pada saat dipakai',
+                                                              ),
+                                                        );
+                                                      }
+                                                    } catch (e) {
+                                                      if (context.mounted) {
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          SnackBar(
+                                                            content: Text(
+                                                              'Gagal preview: $e',
+                                                            ),
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                          ),
+                                                        );
+                                                      }
+                                                    }
+                                                  },
                                           ),
-                                        ),
-                                        onPressed: () {
-                                          ref
-                                              .read(
-                                                independentListNotifierProvider
-                                                    .notifier,
-                                              )
-                                              .unhideItem(item);
-                                        },
+                                          const SizedBox(width: 8),
+
+                                          // 2. Button Pakai
+                                          TextButton.icon(
+                                            icon: const Icon(
+                                              Icons.add_circle,
+                                              size: 16,
+                                              color: Colors.green,
+                                            ),
+                                            label: const Text(
+                                              'Pakai',
+                                              style: TextStyle(
+                                                color: Colors.green,
+                                              ),
+                                            ),
+                                            style: TextButton.styleFrom(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                  ),
+                                            ),
+                                            onPressed: () {
+                                              ref
+                                                  .read(
+                                                    independentListNotifierProvider
+                                                        .notifier,
+                                                  )
+                                                  .unhideItem(item);
+                                            },
+                                          ),
+                                        ],
                                       ),
                                     );
                                   },
