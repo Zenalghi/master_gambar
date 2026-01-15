@@ -161,9 +161,11 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final independentAsync = ref.read(independentListNotifierProvider);
       List<int> orderedIndependentIds = [];
 
-      independentAsync.whenData((items) {
-        // Map object OptionItem ke List<int> ID
-        orderedIndependentIds = items.map((e) => e.id as int).toList();
+      independentAsync.whenData((state) {
+        // HANYA AMBIL YANG ACTIVE
+        orderedIndependentIds = state.activeItems
+            .map((e) => e.id as int)
+            .toList();
       });
       // --- Info Kelistrikan ---
       final kelistrikanInfo = ref.read(kelistrikanInfoProvider);
@@ -291,16 +293,11 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final independentAsync = ref.read(independentListNotifierProvider);
       List<int> orderedIndependentIds = [];
 
-      // Ambil value dari AsyncValue (jika ada datanya)
-      if (independentAsync.hasValue) {
-        orderedIndependentIds = independentAsync.value!
+      independentAsync.whenData((state) {
+        // HANYA AMBIL YANG ACTIVE
+        orderedIndependentIds = state.activeItems
             .map((e) => e.id as int)
             .toList();
-      }
-
-      independentAsync.whenData((items) {
-        // Map object OptionItem ke List<int> ID
-        orderedIndependentIds = items.map((e) => e.id as int).toList();
       });
       final rawFileName =
           '${widget.transaksi.user.name} (${widget.transaksi.fPengajuan.jenisPengajuan}) '
@@ -366,8 +363,8 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
         .toList();
     final independentAsync = ref.read(independentListNotifierProvider);
     List<int> currentOrderedIds = [];
-    independentAsync.whenData((items) {
-      currentOrderedIds = items.map((e) => e.id as int).toList();
+    independentAsync.whenData((state) {
+      currentOrderedIds = state.activeItems.map((e) => e.id as int).toList();
     });
 
     try {

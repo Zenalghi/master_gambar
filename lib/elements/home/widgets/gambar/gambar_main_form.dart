@@ -41,22 +41,19 @@ class GambarMainForm extends ConsumerWidget {
     final hasKelistrikan =
         kelistrikanInfo != null && kelistrikanInfo['status_code'] == 'ready';
 
-    final independentAsync = ref.watch(independentListNotifierProvider);
+    final independentStateAsync = ref.watch(independentListNotifierProvider);
     final dependentOptionals = ref.watch(dependentOptionalOptionsProvider);
 
     final dependentCount = dependentOptionals.asData?.value.length ?? 0;
-    final independentCount = independentAsync.asData?.value.length ?? 0;
-
+    final activeIndependentCount =
+        independentStateAsync.value?.activeItems.length ?? 0;
     // 5. Hitung Halaman
     final int startPageTerurai = jumlahGambarUtama + 1;
     final int startPageKontruksi = startPageTerurai + jumlahGambarUtama;
     final int startPagePaket = startPageKontruksi + jumlahGambarUtama;
     final int startPageIndependen = startPagePaket + dependentCount;
-    final int pageKelistrikan = startPageIndependen + independentCount;
+    final int pageKelistrikan = startPageIndependen + activeIndependentCount;
 
-    // Total Halaman (Hanya hitung yg relevan)
-    // Jika GAMBAR TU: Total = jumlahGambarUtama saja.
-    // Jika tidak: Hitung semuanya.
     int totalHalaman = isGambarTU
         ? jumlahGambarUtama
         : pageKelistrikan + (hasKelistrikan ? 0 : -1);
@@ -205,13 +202,23 @@ class GambarMainForm extends ConsumerWidget {
               ),
 
               // 5. Gambar Optional Independen
-              independentAsync.when(
-                data: (items) {
-                  if (items.isEmpty) return const SizedBox.shrink();
+              // 5. Gambar Optional Independen (ACTIVE & HIDDEN)
+              independentStateAsync.when(
+                data: (independentState) {
+                  final activeItems = independentState.activeItems;
+                  final hiddenItems = independentState.hiddenItems;
+
+                  // Jika kedua list kosong, sembunyikan section ini
+                  if (activeItems.isEmpty && hiddenItems.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Divider(height: 32),
+
+                      // --- HEADER SECTION ---
                       Row(
                         children: [
                           const Text(
@@ -223,9 +230,12 @@ class GambarMainForm extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(width: 4),
-                          const Tooltip(
+                          Tooltip(
                             message:
-                                'Urutan gambar independen dengan cara drag & drop.',
+                                'Gambar di list atas AKAN DICETAK.\n'
+                                'Geser icon titik-titik untuk mengubah urutan halaman.\n'
+                                'Tekan icon mata coret untuk menyembunyikan gambar.',
+                            triggerMode: TooltipTriggerMode.tap,
                             child: Icon(
                               Icons.info_outline,
                               size: 16,
@@ -236,295 +246,349 @@ class GambarMainForm extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
 
-                      // --- LOGIKA TAMPILAN BERDASARKAN MODE ---
-                      isEditMode
-                          ? ReorderableListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              buildDefaultDragHandles: false,
-                              itemCount: items.length,
-                              onReorder: (oldIndex, newIndex) {
-                                ref
-                                    .read(
-                                      independentListNotifierProvider.notifier,
-                                    )
-                                    .reorder(oldIndex, newIndex);
-                              },
-                              itemBuilder: (context, index) {
-                                final item = items[index];
-                                final pageNumber = startPageIndependen + index;
-                                final isLoading = ref.watch(
-                                  isProcessingProvider,
-                                );
-                                final isPreviewEnabled =
-                                    ref.watch(pemeriksaIdProvider) != null;
+                      // Pesan jika list aktif kosong tapi ada yang di-hide
+                      if (activeItems.isEmpty && hiddenItems.isNotEmpty)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12.0),
+                          margin: const EdgeInsets.only(bottom: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade50,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.orange.shade200),
+                          ),
+                          child: const Text(
+                            'Tidak ada gambar optional yang dipilih untuk dicetak.\n'
+                            'Buka menu "Gambar Disembunyikan" di bawah untuk menambahkan gambar.',
+                            style: TextStyle(
+                              fontStyle: FontStyle.italic,
+                              color: Colors.brown,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
 
-                                return ReorderableDragStartListener(
-                                  key: ValueKey(item.id),
-                                  index: index,
-                                  child: Container(
-                                    margin: const EdgeInsets.symmetric(
-                                      vertical: 4,
+                      // --- BAGIAN 1: LIST AKTIF (Reorderable) ---
+                      if (isEditMode && activeItems.isNotEmpty)
+                        ReorderableListView.builder(
+                          shrinkWrap: true,
+                          // Penting agar tidak bentrok dengan scroll parent
+                          physics: const NeverScrollableScrollPhysics(),
+                          buildDefaultDragHandles:
+                              false, // Kita pakai custom handle
+                          itemCount: activeItems.length,
+                          onReorder: (oldIndex, newIndex) {
+                            ref
+                                .read(independentListNotifierProvider.notifier)
+                                .reorder(oldIndex, newIndex);
+                          },
+                          itemBuilder: (context, index) {
+                            final item = activeItems[index];
+                            final pageNumber = startPageIndependen + index;
+                            final isPreviewEnabled =
+                                ref.watch(pemeriksaIdProvider) != null;
+                            final isLoading = ref.watch(isProcessingProvider);
+
+                            return ReorderableDragStartListener(
+                              key: ValueKey(item.id),
+                              index: index,
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.1),
+                                      blurRadius: 2,
+                                      offset: const Offset(0, 1),
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      border: Border.all(
-                                        color: Colors.grey.shade200,
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    // 1. Drag Handle
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 16,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 8,
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                // ICON DRAG (Hanya ada di Edit Mode)
-                                                const Icon(
-                                                  Icons.drag_indicator,
-                                                  color: Colors.grey,
-                                                ),
-                                                const SizedBox(width: 8),
-                                                SizedBox(
-                                                  width: 110,
-                                                  child: Text(
-                                                    'Gambar\nOptional ${index + 1}:',
-                                                  ),
-                                                ),
-                                                Expanded(
-                                                  child: Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 12,
-                                                          vertical: 12,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      color:
-                                                          Colors.green.shade50,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            4,
-                                                          ),
-                                                      border: Border.all(
-                                                        color: Colors
-                                                            .green
-                                                            .shade100,
-                                                      ),
-                                                    ),
-                                                    child: Text(item.name),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            right: 8.0,
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              const SizedBox(width: 10),
-                                              SizedBox(
-                                                width: 70,
-                                                child: Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        vertical: 8,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        Colors.yellow.shade200,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          4,
-                                                        ),
-                                                    border: Border.all(
-                                                      color: Colors.grey,
-                                                    ),
-                                                  ),
-                                                  child: Center(
-                                                    child: Text(
-                                                      '$pageNumber/$totalHalaman',
-                                                      style: const TextStyle(
-                                                        fontSize: 12,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 10),
-                                              SizedBox(
-                                                width: 170,
-                                                child: ElevatedButton(
-                                                  style: ElevatedButton.styleFrom(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          vertical: 12,
-                                                        ),
-                                                  ),
-                                                  onPressed:
-                                                      isPreviewEnabled &&
-                                                          !isLoading
-                                                      ? () => onPreviewPressed(
-                                                          pageNumber,
-                                                        )
-                                                      : null,
-                                                  child: const Text(
-                                                    'Preview Gambar',
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            )
-                          : ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: items.length,
-                              itemBuilder: (context, index) {
-                                final item = items[index];
-                                final pageNumber = startPageIndependen + index;
-                                final isLoading = ref.watch(
-                                  isProcessingProvider,
-                                );
-                                final isPreviewEnabled =
-                                    ref.watch(pemeriksaIdProvider) != null;
-
-                                return Container(
-                                  margin: const EdgeInsets.symmetric(
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors
-                                        .grey
-                                        .shade50, // Sedikit beda warna
-                                    border: Border.all(
-                                      color: Colors.grey.shade200,
-                                    ),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 8,
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              // HAPUS ICON DRAG DISINI
-                                              const SizedBox(width: 8),
-                                              SizedBox(
-                                                width: 110,
-                                                child: Text(
-                                                  'Gambar\nOptional ${index + 1}:',
-                                                ),
-                                              ),
-                                              Expanded(
-                                                child: Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 12,
-                                                        vertical: 12,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.green.shade50,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          4,
-                                                        ),
-                                                    border: Border.all(
-                                                      color:
-                                                          Colors.green.shade100,
-                                                    ),
-                                                  ),
-                                                  child: Text(item.name),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade100,
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(4),
+                                          bottomLeft: Radius.circular(4),
                                         ),
                                       ),
-                                      // TOMBOL PREVIEW TETAP ADA
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 8.0,
+                                      child: const Icon(
+                                        Icons.drag_indicator,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+
+                                    // 2. Nama Item
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 12,
                                         ),
-                                        child: Row(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            const SizedBox(width: 10),
-                                            SizedBox(
-                                              width: 70,
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      vertical: 8,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.yellow.shade200,
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
-                                                  border: Border.all(
-                                                    color: Colors.grey,
-                                                  ),
-                                                ),
-                                                child: Center(
-                                                  child: Text(
-                                                    '$pageNumber/$totalHalaman',
-                                                    style: const TextStyle(
-                                                      fontSize: 12,
-                                                    ),
-                                                  ),
-                                                ),
+                                            Text(
+                                              item.name,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 14,
                                               ),
                                             ),
-                                            const SizedBox(width: 10),
-                                            SizedBox(
-                                              width: 170,
-                                              child: ElevatedButton(
-                                                style: ElevatedButton.styleFrom(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        vertical: 12,
-                                                      ),
+                                            const SizedBox(height: 4),
+                                            // Badge Halaman
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.yellow.shade100,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                                border: Border.all(
+                                                  color: Colors.orange.shade200,
                                                 ),
-                                                onPressed:
-                                                    isPreviewEnabled &&
-                                                        !isLoading
-                                                    ? () => onPreviewPressed(
-                                                        pageNumber,
-                                                      )
-                                                    : null,
-                                                child: const Text(
-                                                  'Preview Gambar',
+                                              ),
+                                              child: Text(
+                                                'Hal $pageNumber / $totalHalaman',
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.orange.shade900,
                                                 ),
                                               ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                    ],
+                                    ),
+
+                                    // 3. Action Buttons
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        // Tombol Preview
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.visibility,
+                                            color: Colors.blue,
+                                          ),
+                                          tooltip: 'Preview Gambar',
+                                          onPressed:
+                                              isPreviewEnabled && !isLoading
+                                              ? () =>
+                                                    onPreviewPressed(pageNumber)
+                                              : null,
+                                        ),
+
+                                        // Tombol Hide (Pindah ke bawah)
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.visibility_off,
+                                            color: Colors.grey,
+                                          ),
+                                          tooltip:
+                                              'Sembunyikan (Tidak ikut diproses)',
+                                          onPressed: () {
+                                            ref
+                                                .read(
+                                                  independentListNotifierProvider
+                                                      .notifier,
+                                                )
+                                                .hideItem(item);
+                                          },
+                                        ),
+                                        const SizedBox(width: 4),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      // Tampilan Read-Only (Mode View)
+                      else if (!isEditMode && activeItems.isNotEmpty)
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: activeItems.length,
+                          itemBuilder: (context, index) {
+                            final item = activeItems[index];
+                            final pageNumber = startPageIndependen + index;
+                            return Container(
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                border: Border.all(color: Colors.grey.shade200),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                title: Text(
+                                  item.name,
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                leading: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
                                   ),
-                                );
-                              },
+                                  decoration: BoxDecoration(
+                                    color: Colors.yellow.shade200,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    '$pageNumber/$totalHalaman',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                                trailing: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 15,
+                                      vertical: 13,
+                                    ),
+                                    minimumSize: const Size(80, 32),
+                                  ),
+                                  onPressed: () => onPreviewPressed(pageNumber),
+                                  child: const Text('Preview Gambar'),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+
+                      // --- BAGIAN 2: LIST HIDDEN (Hanya di Mode Edit) ---
+                      if (isEditMode && hiddenItems.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: Theme(
+                            // Hilangkan garis divider default ExpansionTile
+                            data: Theme.of(
+                              context,
+                            ).copyWith(dividerColor: Colors.transparent),
+                            child: ExpansionTile(
+                              initiallyExpanded: activeItems
+                                  .isEmpty, // Auto expand jika list atas kosong
+                              tilePadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 0,
+                              ),
+                              leading: Icon(
+                                Icons.archive_outlined,
+                                color: Colors.grey.shade600,
+                              ),
+                              title: Text(
+                                'Gambar Disembunyikan (${hiddenItems.length})',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade800,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: const Text(
+                                'Klik untuk membuka dan menambahkan ke list cetak',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              children: [
+                                const Divider(height: 1),
+                                ListView.separated(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: hiddenItems.length,
+                                  separatorBuilder: (_, __) =>
+                                      const Divider(height: 1),
+                                  itemBuilder: (context, index) {
+                                    final item = hiddenItems[index];
+                                    return ListTile(
+                                      dense: true,
+                                      contentPadding: const EdgeInsets.only(
+                                        left: 16,
+                                        right: 8,
+                                      ),
+                                      title: Text(
+                                        item.name,
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      trailing: TextButton.icon(
+                                        icon: const Icon(
+                                          Icons.add_circle,
+                                          size: 16,
+                                          color: Colors.green,
+                                        ),
+                                        label: const Text(
+                                          'Pakai',
+                                          style: TextStyle(color: Colors.green),
+                                        ),
+                                        style: TextButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          ref
+                                              .read(
+                                                independentListNotifierProvider
+                                                    .notifier,
+                                              )
+                                              .unhideItem(item);
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
+                          ),
+                        ),
+                      ],
                     ],
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, stack) => Text('Error loading options: $err'),
+                loading: () => const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+                error: (err, stack) => Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Gagal memuat list optional: $err',
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
               ),
               const Divider(height: 10),
 

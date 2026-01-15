@@ -47,21 +47,46 @@ class GambarOptionalSelection {
   GambarOptionalSelection({this.gambarOptionalId});
 }
 
+// 1. Buat Class State baru untuk menampung dua list
+class IndependentListState {
+  final List<OptionItem> activeItems;
+  final List<OptionItem> hiddenItems;
+
+  IndependentListState({
+    this.activeItems = const [],
+    this.hiddenItems = const [],
+  });
+
+  IndependentListState copyWith({
+    List<OptionItem>? activeItems,
+    List<OptionItem>? hiddenItems,
+  }) {
+    return IndependentListState(
+      activeItems: activeItems ?? this.activeItems,
+      hiddenItems: hiddenItems ?? this.hiddenItems,
+    );
+  }
+}
+
+// 2. Update Provider Definition
 final independentListNotifierProvider =
     StateNotifierProvider<
       IndependentListNotifier,
-      AsyncValue<List<OptionItem>>
+      AsyncValue<IndependentListState>
     >((ref) {
       return IndependentListNotifier(ref);
     });
 
+// 3. Update Notifier Logic
 class IndependentListNotifier
-    extends StateNotifier<AsyncValue<List<OptionItem>>> {
+    extends StateNotifier<AsyncValue<IndependentListState>> {
   final Ref ref;
 
   IndependentListNotifier(this.ref) : super(const AsyncValue.loading());
 
-  // 1. Fetch Data Langsung pakai Master Data ID
+  // Simpan data master mentah untuk referensi
+  List<OptionItem> _allMasterItems = [];
+
   Future<void> fetchByMasterData(int masterDataId) async {
     state = const AsyncValue.loading();
     try {
@@ -71,51 +96,88 @@ class IndependentListNotifier
           .get('/options/independent-images/$masterDataId');
 
       final List<dynamic> data = response.data;
-      final items = data
-          .map(
-            (item) => OptionItem.fromJson(item, nameKey: 'name'),
-          ) // pastikan key 'name' sesuai backend
+      _allMasterItems = data
+          .map((item) => OptionItem.fromJson(item, nameKey: 'name'))
           .toList();
 
-      state = AsyncValue.data(items);
+      // Default: Semua masuk ke Active Items
+      state = AsyncValue.data(
+        IndependentListState(
+          activeItems: List.from(_allMasterItems),
+          hiddenItems: [],
+        ),
+      );
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
   }
 
-  // 2. Fungsi untuk menerapkan urutan yang disimpan (dari Draft)
+  // Apply Saved Order (Logic Baru: Memisahkan Active vs Hidden berdasarkan ID yang disimpan)
   void applySavedOrder(List<int> savedIds) {
-    state.whenData((currentItems) {
-      if (savedIds.isEmpty) return;
+    if (_allMasterItems.isEmpty) return;
 
-      // Urutkan currentItems berdasarkan posisi ID di savedIds
-      // Item yang tidak ada di savedIds akan ditaruh di belakang
-      final sortedList = List<OptionItem>.from(currentItems);
+    // 1. Filter Active Items (Yang ada di savedIds)
+    // Kita harus menjaga urutan sesuai savedIds
+    final List<OptionItem> newActive = [];
+    for (var id in savedIds) {
+      final found = _allMasterItems.where((e) => e.id == id).firstOrNull;
+      if (found != null) {
+        newActive.add(found);
+      }
+    }
 
-      sortedList.sort((a, b) {
-        int indexA = savedIds.indexOf(a.id as int);
-        int indexB = savedIds.indexOf(b.id as int);
+    // 2. Filter Hidden Items (Yang TIDAK ada di savedIds)
+    final newHidden = _allMasterItems
+        .where((e) => !savedIds.contains(e.id))
+        .toList();
 
-        if (indexA == -1) indexA = 9999;
-        if (indexB == -1) indexB = 9999;
+    state = AsyncValue.data(
+      IndependentListState(activeItems: newActive, hiddenItems: newHidden),
+    );
+  }
 
-        return indexA.compareTo(indexB);
-      });
+  // Pindahkan dari Active ke Hidden
+  void hideItem(OptionItem item) {
+    state.whenData((currentState) {
+      final newActive = List<OptionItem>.from(currentState.activeItems)
+        ..remove(item);
+      final newHidden = List<OptionItem>.from(currentState.hiddenItems)
+        ..add(item);
 
-      state = AsyncValue.data(sortedList);
+      // Opsional: Sort hidden items by name agar rapi
+      // newHidden.sort((a, b) => a.name.compareTo(b.name));
+
+      state = AsyncValue.data(
+        currentState.copyWith(activeItems: newActive, hiddenItems: newHidden),
+      );
     });
   }
 
-  // 3. Logic Reorder (Drag & Drop)
+  // Pindahkan dari Hidden ke Active
+  void unhideItem(OptionItem item) {
+    state.whenData((currentState) {
+      final newHidden = List<OptionItem>.from(currentState.hiddenItems)
+        ..remove(item);
+      final newActive = List<OptionItem>.from(currentState.activeItems)
+        ..add(item); // Masuk ke paling bawah
+
+      state = AsyncValue.data(
+        currentState.copyWith(activeItems: newActive, hiddenItems: newHidden),
+      );
+    });
+  }
+
+  // Reorder hanya untuk Active Items
   void reorder(int oldIndex, int newIndex) {
-    state.whenData((items) {
+    state.whenData((currentState) {
       if (oldIndex < newIndex) {
         newIndex -= 1;
       }
-      final List<OptionItem> newList = List.from(items);
-      final item = newList.removeAt(oldIndex);
-      newList.insert(newIndex, item);
-      state = AsyncValue.data(newList);
+      final newActive = List<OptionItem>.from(currentState.activeItems);
+      final item = newActive.removeAt(oldIndex);
+      newActive.insert(newIndex, item);
+
+      state = AsyncValue.data(currentState.copyWith(activeItems: newActive));
     });
   }
 }
