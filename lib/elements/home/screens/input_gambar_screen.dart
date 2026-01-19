@@ -276,17 +276,9 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final pemeriksaId = ref.read(pemeriksaIdProvider);
       final selections = ref.read(gambarUtamaSelectionProvider);
       final deskripsiOptional = ref.read(deskripsiOptionalProvider);
-
       // --- Info Kelistrikan ---
-      final kelistrikanInfo = ref.read(kelistrikanInfoProvider);
-      final statusKelistrikan = kelistrikanInfo?['status_code'];
       final kelistrikanId = ref.read(selectedKelistrikanIdProvider);
-      final bool isKelistrikanReady =
-          statusKelistrikan == 'ready' && kelistrikanId != null;
-      if (!isKelistrikanReady) {
-        _showSnackBar('Pastikan Kelistrikan tersedia.', Colors.orange);
-        return;
-      }
+
       // Filter Data Valid
       final varianBodyIds = selections
           .where((s) => s.varianBodyId != null && s.judulId != null)
