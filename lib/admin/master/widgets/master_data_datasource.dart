@@ -203,7 +203,7 @@ class MasterDataDataSource extends AsyncDataTableSource {
               item.kelistrikanDeskripsi ?? '',
               style: const TextStyle(fontSize: 11),
               maxLines: 2,
-              // minLines: 1,
+              minLines: 1,
               // Jika terlalu panjang, text akan terpotong rapi (ellipsis handled by table cell)
             ),
           ),
