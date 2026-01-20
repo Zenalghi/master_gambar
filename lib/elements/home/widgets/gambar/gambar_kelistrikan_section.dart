@@ -46,84 +46,108 @@ class GambarKelistrikanSection extends ConsumerWidget {
         ? Colors.grey.shade200
         : (isLoadingData ? Colors.grey.shade100 : Colors.red.shade50);
 
-    return Row(
-      crossAxisAlignment:
-          CrossAxisAlignment.start, // Align top agar rapi jika list panjang
+    return Column(
       children: [
-        const SizedBox(
-          width: 150,
-          child: Padding(
-            padding: EdgeInsets.only(
-              top: 12.0,
-            ), // Sejajarkan dengan baris pertama
-            child: Text('Gambar Kelistrikan:'),
-          ),
-        ),
-
-        // BAGIAN TENGAH (Konten Dinamis)
-        Expanded(
-          flex: 6,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(4),
-              border: isReady ? null : Border.all(color: Colors.red.shade200),
-            ),
-            child: isLoadingData
-                ? const SizedBox(
-                    height: 24,
-                    child: Center(
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    ),
-                  )
-                : _buildContent(
-                    ref,
-                    statusCode,
-                    displayText,
-                    options,
-                    selectedId,
-                    isEditMode,
-                  ),
-          ),
-        ),
-
-        const SizedBox(width: 10),
-
-        // BAGIAN KANAN (Nomor & Preview)
         Row(
           children: [
-            // Indikator Halaman
-            SizedBox(
-              width: 70,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: isReady
-                      ? Colors.yellow.shade200
-                      : Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: Colors.grey),
-                ),
-                child: Center(
-                  child: Text(isReady ? '$pageNumber/$totalHalaman' : '-/-'),
-                ),
+            const Text(
+              'Gambar Kelistrikan',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
               ),
             ),
-            const SizedBox(width: 8),
-            // Tombol Preview
-            SizedBox(
-              width: 170,
-              child: ElevatedButton(
-                onPressed: isPreviewEnabled && !isProcessing
-                    ? onPreviewPressed
-                    : null,
-                child: const Text('Preview Gambar'),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          crossAxisAlignment:
+              CrossAxisAlignment.start, // Align top agar rapi jika list panjang
+          children: [
+            const SizedBox(
+              width: 150,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: 12.0,
+                ), // Sejajarkan dengan baris pertama
+                child: Text('Gambar Kelistrikan:'),
               ),
+            ),
+
+            // BAGIAN TENGAH (Konten Dinamis)
+            Expanded(
+              flex: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(4),
+                  border: isReady
+                      ? null
+                      : Border.all(color: Colors.red.shade200),
+                ),
+                child: isLoadingData
+                    ? const SizedBox(
+                        height: 24,
+                        child: Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      )
+                    : _buildContent(
+                        ref,
+                        statusCode,
+                        displayText,
+                        options,
+                        selectedId,
+                        isEditMode,
+                      ),
+              ),
+            ),
+
+            const SizedBox(width: 10),
+
+            // BAGIAN KANAN (Nomor & Preview)
+            Row(
+              children: [
+                // Indikator Halaman
+                SizedBox(
+                  width: 70,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isReady
+                          ? Colors.yellow.shade200
+                          : Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.grey),
+                    ),
+                    child: Center(
+                      child: Text(
+                        isReady ? '$pageNumber/$totalHalaman' : '-/-',
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Tombol Preview
+                SizedBox(
+                  width: 170,
+                  child: ElevatedButton(
+                    onPressed: isPreviewEnabled && !isProcessing
+                        ? onPreviewPressed
+                        : null,
+                    child: const Text('Preview Gambar'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -143,7 +143,7 @@ class GambarMainForm extends ConsumerWidget {
                   if (items.isEmpty) return const SizedBox.shrink();
                   return Column(
                     children: [
-                      const Divider(height: 32),
+                      const Divider(height: 10),
                       _buildSection(
                         title: 'Gambar Optional Paket',
                         itemCount: items.length,
@@ -215,6 +215,7 @@ class GambarMainForm extends ConsumerWidget {
               ),
 
               // 5. Gambar Optional Independen
+              // 5. Gambar Optional Independen
               independentStateAsync.when(
                 data: (independentState) {
                   final activeItems = independentState.activeItems;
@@ -243,8 +244,8 @@ class GambarMainForm extends ConsumerWidget {
                           const SizedBox(width: 4),
                           Tooltip(
                             message:
-                                'Gambar di list atas AKAN DICETAK.\n'
-                                'Gambar di list bawah DISEMBUNYIKAN.',
+                                'Drag untuk mengatur urutan halaman\nGambar di list atas AKAN DICETAK.\n'
+                                'Gambar optional independen bisa disembunyikan\nGambar yang disembunyikan akan muncul di menu "Gambar Disembunyikan".',
                             triggerMode: TooltipTriggerMode.tap,
                             child: Icon(
                               Icons.info_outline,
@@ -297,12 +298,16 @@ class GambarMainForm extends ConsumerWidget {
                                 ref.watch(pemeriksaIdProvider) != null;
                             final isLoading = ref.watch(isProcessingProvider);
 
+                            // Penomoran Dinamis (Index + 1)
+                            final labelNumber = index + 1;
+
                             return Container(
                               key: ValueKey(item.id),
                               margin: const EdgeInsets.symmetric(vertical: 4),
                               child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  // BAGIAN KIRI: NAMA & DRAG
+                                  // --- BAGIAN KIRI: DRAGGABLE ---
                                   Expanded(
                                     child: ReorderableDragStartListener(
                                       index: index,
@@ -331,19 +336,56 @@ class GambarMainForm extends ConsumerWidget {
                                         ),
                                         child: Row(
                                           children: [
+                                            // 1. Icon Drag
                                             const Icon(
                                               Icons.drag_indicator,
                                               color: Colors.grey,
                                             ),
-                                            const SizedBox(width: 8),
-                                            Expanded(
+                                            const SizedBox(width: 12),
+
+                                            // 2. Label "Optional Independen X"
+                                            // Lebar fix agar sejajar vertikal
+                                            SizedBox(
+                                              width: 140,
                                               child: Text(
-                                                item.name,
+                                                'Optional\nIndependen $labelNumber:',
                                                 style: const TextStyle(
-                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.black87,
                                                 ),
                                               ),
                                             ),
+
+                                            // 3. Nama Item (Dalam Kotak)
+                                            Expanded(
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 10,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey.shade50,
+                                                  border: Border.all(
+                                                    color: Colors.grey.shade200,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                                child: Text(
+                                                  item.name,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+
+                                            const SizedBox(width: 8),
+
+                                            // 4. Tombol Hide
                                             IconButton(
                                               icon: const Icon(
                                                 Icons.visibility_off,
@@ -362,14 +404,14 @@ class GambarMainForm extends ConsumerWidget {
                                                     .hideItem(item);
                                               },
                                             ),
-                                            const SizedBox(width: 8),
+                                            const SizedBox(width: 4),
                                           ],
                                         ),
                                       ),
                                     ),
                                   ),
 
-                                  // BAGIAN KANAN: NOMOR & PREVIEW
+                                  // --- BAGIAN KANAN: STATIS (Nomor & Preview) ---
                                   const SizedBox(width: 10),
                                   SizedBox(
                                     width: 70,
@@ -404,7 +446,7 @@ class GambarMainForm extends ConsumerWidget {
                             );
                           },
                         )
-                      // View Mode (Read Only)
+                      // --- MODE READ-ONLY (View) ---
                       else if (!isEditMode && activeItems.isNotEmpty)
                         ListView.builder(
                           shrinkWrap: true,
@@ -417,6 +459,9 @@ class GambarMainForm extends ConsumerWidget {
                                 ref.watch(pemeriksaIdProvider) != null;
                             final isLoading = ref.watch(isProcessingProvider);
 
+                            // Penomoran Dinamis Read Only
+                            final labelNumber = index + 1;
+
                             return Container(
                               margin: const EdgeInsets.symmetric(vertical: 4),
                               child: Row(
@@ -428,18 +473,41 @@ class GambarMainForm extends ConsumerWidget {
                                         vertical: 12,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
+                                        color: Colors.white,
                                         border: Border.all(
                                           color: Colors.grey.shade300,
                                         ),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      child: Text(
-                                        item.name,
-                                        style: const TextStyle(
-                                          color: Colors.black87,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                      child: Row(
+                                        children: [
+                                          // Label Statis
+                                          SizedBox(
+                                            width: 140,
+                                            child: Text(
+                                              'Optional \nIndependen $labelNumber:',
+                                            ),
+                                          ),
+                                          // Nama Item
+                                          Expanded(
+                                            child: Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade100,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                item.name,
+                                                style: const TextStyle(
+                                                  color: Colors.black87,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
@@ -478,7 +546,7 @@ class GambarMainForm extends ConsumerWidget {
                           },
                         ),
 
-                      // --- BAGIAN 2: LIST HIDDEN (Hanya di Mode Edit) ---
+                      // --- BAGIAN 2: LIST HIDDEN (Sama seperti sebelumnya) ---
                       if (isEditMode && hiddenItems.isNotEmpty) ...[
                         const SizedBox(height: 24),
                         Container(
@@ -509,6 +577,17 @@ class GambarMainForm extends ConsumerWidget {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
+                              trailing: Tooltip(
+                                message:
+                                    'Preview untuk melihat gambar yang disembunyikan\n'
+                                    'Pakai untuk menambahkan gambar ke daftar cetak',
+                                triggerMode: TooltipTriggerMode.tap,
+                                child: Icon(
+                                  Icons.info_outline,
+                                  size: 16,
+                                  color: Colors.lightBlueAccent,
+                                ),
+                              ),
                               children: [
                                 const Divider(height: 1),
                                 ListView.separated(
@@ -536,11 +615,9 @@ class GambarMainForm extends ConsumerWidget {
                                           fontSize: 13,
                                         ),
                                       ),
-                                      // --- ACTION BUTTONS (Preview & Pakai) ---
                                       trailing: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          // 1. Button Preview
                                           TextButton.icon(
                                             icon: const Icon(
                                               Icons.visibility,
@@ -562,9 +639,7 @@ class GambarMainForm extends ConsumerWidget {
                                             onPressed: isLoading
                                                 ? null
                                                 : () async {
-                                                    // Logic Preview File Mentah via Repository
                                                     try {
-                                                      // Tampilkan Loading (opsional)
                                                       final bytes = await ref
                                                           .read(
                                                             masterDataRepositoryProvider,
@@ -580,7 +655,7 @@ class GambarMainForm extends ConsumerWidget {
                                                               PdfViewerDialog(
                                                                 pdfData: bytes,
                                                                 title:
-                                                                    'Preview: ${item.name}\nDeskripsi dicetak pada saat dipakai',
+                                                                    'Preview: ${item.name}',
                                                               ),
                                                         );
                                                       }
@@ -602,8 +677,6 @@ class GambarMainForm extends ConsumerWidget {
                                                   },
                                           ),
                                           const SizedBox(width: 8),
-
-                                          // 2. Button Pakai
                                           TextButton.icon(
                                             icon: const Icon(
                                               Icons.add_circle,
@@ -671,7 +744,7 @@ class GambarMainForm extends ConsumerWidget {
 
             // --- 7. Deskripsi Optional (Kondisional) ---
             if (showDeskripsiOptional) ...[
-              const Divider(height: 32),
+              const Divider(height: 10),
               const Text(
                 'Deskripsi Optional',
                 style: TextStyle(
