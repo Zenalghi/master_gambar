@@ -228,7 +228,7 @@ class GambarMainForm extends ConsumerWidget {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Divider(height: 32),
+                      const Divider(height: 10),
 
                       // --- HEADER ---
                       Row(

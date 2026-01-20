@@ -179,13 +179,27 @@ class GambarKelistrikanSection extends ConsumerWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            displayText, // "Pilih Opsi Kelistrikan"
-            style: const TextStyle(
-              fontStyle: FontStyle.italic,
-              color: Colors.grey,
-              fontSize: 12,
-            ),
+          Row(
+            children: [
+              Text(
+                displayText, // "Pilih Opsi Kelistrikan"
+                style: const TextStyle(
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Tooltip(
+                message: 'Pilih salah satu deskripsi kelistrikan yang sesuai',
+                triggerMode: TooltipTriggerMode.tap,
+                child: Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: Colors.lightBlueAccent,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 4),
           // List Radio Buttons
