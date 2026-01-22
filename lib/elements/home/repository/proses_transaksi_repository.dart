@@ -85,9 +85,10 @@ class ProsesTransaksiRepository {
     }
   }
 
-  Future<void> downloadProcessedPdfsAsZip({
+  Future<void> downloadProcessedPdfs({
     required String transaksiId,
     required String suggestedFileName,
+    required String extension,
     required int pemeriksaId,
     required List<int> varianBodyIds,
     required List<int> judulGambarIds,
@@ -98,9 +99,9 @@ class ProsesTransaksiRepository {
   }) async {
     try {
       String? outputPath = await FilePicker.platform.saveFile(
-        dialogTitle: 'Simpan file ZIP...',
+        dialogTitle: 'Simpan file...',
         fileName: suggestedFileName,
-        allowedExtensions: ['zip'],
+        allowedExtensions: [extension],
         type: FileType.custom,
       );
 

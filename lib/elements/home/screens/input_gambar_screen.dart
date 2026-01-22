@@ -273,6 +273,10 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
   Future<void> _handleProses(BuildContext context) async {
     ref.read(isProcessingProvider.notifier).state = true;
     try {
+      final jenisPengajuan = widget.transaksi.fPengajuan.jenisPengajuan
+          .toUpperCase();
+      final bool isGambarTU = jenisPengajuan == 'GAMBAR TU';
+      final String extension = isGambarTU ? 'pdf' : 'zip';
       final pemeriksaId = ref.read(pemeriksaIdProvider);
       final selections = ref.read(gambarUtamaSelectionProvider);
       final deskripsiOptional = ref.read(deskripsiOptionalProvider);
@@ -304,21 +308,22 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final rawFileName =
           '${widget.transaksi.user.name} (${widget.transaksi.fPengajuan.jenisPengajuan}) '
           '${widget.transaksi.customer.namaPt}_${widget.transaksi.bMerk.merk} '
-          '${widget.transaksi.cTypeChassis.typeChassis} (${widget.transaksi.dJenisKendaraan.jenisKendaraan}).zip';
-      final suggestedFileName = rawFileName.replaceAll(
-        RegExp(r'[\\/:*?"<>|]'),
-        '_',
-      );
+          '${widget.transaksi.cTypeChassis.typeChassis} (${widget.transaksi.dJenisKendaraan.jenisKendaraan}).$extension';
+
+      final suggestedFileName = rawFileName
+          .replaceAll(RegExp(r'[\r\n]+'), ' ')
+          .replaceAll(RegExp(r'[\\/:*?"<>|]'), '_')
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .trim();
 
       await ref
           .read(prosesTransaksiRepositoryProvider)
-          .downloadProcessedPdfsAsZip(
+          .downloadProcessedPdfs(
             transaksiId: widget.transaksi.id,
             suggestedFileName: suggestedFileName,
+            extension: extension,
             pemeriksaId: pemeriksaId!,
             varianBodyIds: varianBodyIds,
-
-            // WAJIB: Kirim parameter lengkap agar Backend memproses semuanya
             judulGambarIds: judulGambarIds,
             hGambarOptionalIds: dependentOptionalIds,
             iGambarKelistrikanId: kelistrikanId,
