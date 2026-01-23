@@ -463,7 +463,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: color,
-        duration: const Duration(seconds: 3),
+        duration: const Duration(seconds: 4),
         behavior: SnackBarBehavior.floating, // Agar melayang
         margin: const EdgeInsets.only(
           bottom: 50, // Angkat setinggi 80px (sesuaikan tinggi tombol Anda)
@@ -485,15 +485,13 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
         selections.every((s) => s.judulId != null && s.varianBodyId != null);
     final bool isFormValid = pemeriksaId != null && areSelectionsValid;
 
-    // --- LOGIKA TOMBOL DINAMIS ---
-
     // CASE 1: Belum ada data tersimpan (New Data) -> [Simpan] [Proses]
     if (!_hasSavedData) {
       return Row(
         children: [
           Expanded(child: _btnSimpan(context)),
-          const SizedBox(width: 10),
-          Expanded(flex: 2, child: _btnProses(context, isFormValid, isLoading)),
+          // const SizedBox(width: 10),
+          // Expanded(flex: 2, child: _btnProses(context, isFormValid, isLoading)),
         ],
       );
     }

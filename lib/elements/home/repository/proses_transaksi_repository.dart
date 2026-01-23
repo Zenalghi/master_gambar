@@ -98,6 +98,7 @@ class ProsesTransaksiRepository {
     int? iGambarKelistrikanId,
   }) async {
     try {
+      // 1. Pilih Lokasi Simpan
       String? outputPath = await FilePicker.platform.saveFile(
         dialogTitle: 'Simpan file...',
         fileName: suggestedFileName,
@@ -107,7 +108,8 @@ class ProsesTransaksiRepository {
 
       if (outputPath == null) throw Exception('Proses penyimpanan dibatalkan.');
 
-      await _ref
+      // 2. Request ke Backend
+      final response = await _ref
           .read(apiClientProvider)
           .dio
           .post(
@@ -127,18 +129,37 @@ class ProsesTransaksiRepository {
               receiveTimeout: const Duration(minutes: 5),
               sendTimeout: const Duration(minutes: 1),
             ),
-          )
-          .then((response) async {
-            await File(outputPath).writeAsBytes(response.data);
-          });
+          );
+
+      // 3. Tulis File (Dengan Penanganan Error File Locked)
+      try {
+        await File(outputPath).writeAsBytes(response.data);
+      } on FileSystemException catch (e) {
+        // Error Code 32 pada Windows = Sharing violation (File sedang dipakai)
+        if (e.osError?.errorCode == 32 ||
+            e.message.contains('used by another process')) {
+          throw Exception(
+            'Gagal menyimpan file. File dengan nama yang sama sedang dibuka oleh aplikasi lain.\n\n'
+            'Mohon tutup file tersebut terlebih dahulu, lalu coba lagi.',
+          );
+        } else if (e.osError?.errorCode == 13) {
+          throw Exception(
+            'Gagal menyimpan file. Aplikasi tidak memiliki izin akses (Permission Denied).',
+          );
+        }
+        // Lempar error file system lainnya apa adanya
+        throw Exception('Gagal menulis file: ${e.message}');
+      }
     } on DioException catch (e) {
-      // Menangani error timeout secara spesifik agar pesan lebih jelas
       if (e.type == DioExceptionType.receiveTimeout) {
         throw Exception(
-          'Proses server terlalu lama (Timeout). Coba kurangi jumlah gambar atau coba lagi.',
+          'Proses server terlalu lama (Timeout). Coba lagi nanti.',
         );
       }
       throw Exception('Gagal memuat proses: ${e.message}');
+    } catch (e) {
+      // Tangkap Exception custom yang kita lempar di atas (File Locked)
+      rethrow;
     }
   }
 
