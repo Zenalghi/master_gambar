@@ -122,12 +122,22 @@ class ProsesTransaksiRepository {
               'deskripsi_optional': deskripsiOptional,
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
             },
-            options: Options(responseType: ResponseType.bytes),
+            options: Options(
+              responseType: ResponseType.bytes,
+              receiveTimeout: const Duration(minutes: 5),
+              sendTimeout: const Duration(minutes: 1),
+            ),
           )
           .then((response) async {
             await File(outputPath).writeAsBytes(response.data);
           });
     } on DioException catch (e) {
+      // Menangani error timeout secara spesifik agar pesan lebih jelas
+      if (e.type == DioExceptionType.receiveTimeout) {
+        throw Exception(
+          'Proses server terlalu lama (Timeout). Coba kurangi jumlah gambar atau coba lagi.',
+        );
+      }
       throw Exception('Gagal memuat proses: ${e.message}');
     }
   }
