@@ -158,7 +158,7 @@ final varianBodyOptionsFamilyProvider =
           .toList();
     });
 
-// --- TAMBAHKAN PROVIDER BARU UNTUK TABEL STATUS GAMBAR ---
+// --- PROVIDER UNTUK TABEL STATUS GAMBAR ---
 final imageStatusFilterProvider = StateProvider<Map<String, String>>((ref) {
   return {'search': '', 'sortBy': 'id', 'sortDirection': 'desc'};
 });

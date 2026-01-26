@@ -12,13 +12,23 @@ class ImageStatusScreen extends ConsumerStatefulWidget {
 }
 
 class _ImageStatusScreenState extends ConsumerState<ImageStatusScreen> {
+  late TextEditingController _searchController;
   @override
   void initState() {
     super.initState();
-    // 2. Reset filter & paksa refresh saat halaman dibuka
+    final currentFilters = ref.read(imageStatusFilterProvider);
+    _searchController = TextEditingController(
+      text: currentFilters['search'] ?? '',
+    );
     Future.microtask(() {
-      ref.invalidate(imageStatusFilterProvider);
+      // ref.invalidate(imageStatusFilterProvider);
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose(); // Jangan lupa dispose controller
+    super.dispose();
   }
 
   @override
@@ -39,6 +49,7 @@ class _ImageStatusScreenState extends ConsumerState<ImageStatusScreen> {
                 width: 299,
                 height: 31,
                 child: TextField(
+                  controller: _searchController,
                   style: TextStyle(fontSize: 13),
                   decoration: const InputDecoration(
                     labelStyle: TextStyle(fontSize: 11),
@@ -60,6 +71,7 @@ class _ImageStatusScreenState extends ConsumerState<ImageStatusScreen> {
                 onPressed: () {
                   // Trigger refresh manual
                   ref.invalidate(imageStatusFilterProvider);
+                  _searchController.clear();
                 },
               ),
             ],

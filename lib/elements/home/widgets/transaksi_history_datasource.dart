@@ -98,7 +98,7 @@ class TransaksiDataSource extends AsyncDataTableSource {
                       onPressed: canEdit ? () => _showEditDialog(trx) : null,
                     ),
 
-                    // Tombol Proses / Lanjut Draft
+                    // Tombol input gambar / Lanjut Draft
                     IconButton(
                       icon: Icon(
                         // Ganti Icon jika ada Draft
