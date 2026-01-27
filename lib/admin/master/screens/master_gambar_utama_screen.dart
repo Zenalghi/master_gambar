@@ -154,7 +154,10 @@ class _MasterGambarUtamaScreenState
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
                   ),
-                  onPressed: _resetAndRefresh,
+                  onPressed: () {
+                    _resetAndRefresh();
+                    ref.read(adminSidebarIndexProvider.notifier).state = 7;
+                  },
                 ),
 
               const SizedBox(width: 8),
@@ -337,6 +340,7 @@ class _MasterGambarUtamaScreenState
       }
 
       _resetForm();
+      ref.read(adminSidebarIndexProvider.notifier).state = 7;
     } on DioException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
