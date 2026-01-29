@@ -44,10 +44,10 @@ class MasterDataDataSource extends AsyncDataTableSource {
               DataCell(SelectableText(item.typeChassis.name)),
               DataCell(SelectableText(item.jenisKendaraan.name)),
               DataCell(
-                SelectableText(dateFormat.format(item.createdAt.toLocal())),
+                SelectableText(dateFormat.format(item.createdAt!.toLocal())),
               ),
               DataCell(
-                SelectableText(dateFormat.format(item.updatedAt.toLocal())),
+                SelectableText(dateFormat.format(item.updatedAt!.toLocal())),
               ),
               DataCell(
                 Row(

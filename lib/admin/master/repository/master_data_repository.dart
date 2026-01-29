@@ -530,40 +530,49 @@ class MasterDataRepository {
     required int masterDataId,
     required String varianBodyName,
     required File gambarUtama,
-    required File gambarTerurai,
-    required File gambarKontruksi,
+    File? gambarTerurai, // Ubah jadi Nullable
+    File? gambarKontruksi, // Ubah jadi Nullable
   }) async {
-    // --- VALIDASI UKURAN FILE (MAX 1 MB) ---
-    final int sizeUtama = await gambarUtama.length();
-    final int sizeTerurai = await gambarTerurai.length();
-    final int sizeKontruksi = await gambarKontruksi.length();
-    const int maxBytes = 1024 * 1024; // 1 MB
+    const int maxBytes = 1024 * 1024;
 
-    if (sizeUtama > maxBytes ||
-        sizeTerurai > maxBytes ||
-        sizeKontruksi > maxBytes) {
-      throw Exception(
-        'Salah satu file melebihi 1 MB. Harap kompres file PDF Anda.',
-      );
+    // Validasi Ukuran (Hanya jika file ada)
+    if (await gambarUtama.length() > maxBytes) {
+      throw Exception('Gambar Utama melebihi 1 MB.');
     }
-    // ----------------------------------------
+    if (gambarTerurai != null && await gambarTerurai.length() > maxBytes) {
+      throw Exception('Gambar Terurai melebihi 1 MB.');
+    }
+    if (gambarKontruksi != null && await gambarKontruksi.length() > maxBytes) {
+      throw Exception('Gambar Kontruksi melebihi 1 MB.');
+    }
 
-    final formData = FormData.fromMap({
+    // Bangun Map Dasar
+    final Map<String, dynamic> mapData = {
       'master_data_id': masterDataId,
       'varian_body': varianBodyName,
       'gambar_utama': await MultipartFile.fromFile(
         gambarUtama.path,
         filename: gambarUtama.path.split(Platform.pathSeparator).last,
       ),
-      'gambar_terurai': await MultipartFile.fromFile(
+    };
+
+    // Tambahkan Terurai Jika Ada
+    if (gambarTerurai != null) {
+      mapData['gambar_terurai'] = await MultipartFile.fromFile(
         gambarTerurai.path,
         filename: gambarTerurai.path.split(Platform.pathSeparator).last,
-      ),
-      'gambar_kontruksi': await MultipartFile.fromFile(
+      );
+    }
+
+    // Tambahkan Kontruksi Jika Ada
+    if (gambarKontruksi != null) {
+      mapData['gambar_kontruksi'] = await MultipartFile.fromFile(
         gambarKontruksi.path,
         filename: gambarKontruksi.path.split(Platform.pathSeparator).last,
-      ),
-    });
+      );
+    }
+
+    final formData = FormData.fromMap(mapData);
 
     final response = await _ref
         .read(apiClientProvider)

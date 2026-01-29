@@ -7,7 +7,6 @@ import 'package:master_gambar/admin/master/models/g_gambar_utama.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:pdfx/pdfx.dart';
 
-// Widget ini adalah inti dari dialog, mengelola state tab dan pengambilan data
 class GambarUtamaViewerDialog extends ConsumerStatefulWidget {
   final GGambarUtama gambarUtama;
 
@@ -21,11 +20,8 @@ class GambarUtamaViewerDialog extends ConsumerStatefulWidget {
 class _GambarUtamaViewerDialogState
     extends ConsumerState<GambarUtamaViewerDialog>
     with SingleTickerProviderStateMixin {
-  // Controller dibuat nullable karena menunggu data dulu
   TabController? _tabController;
-
-  Map<String, String>? _paths;
-  bool _isLoadingPaths = true;
+  // bool _isLoadingPaths = true; // Tidak perlu loading lagi karena path sudah ada di object gambarUtama
 
   // List dinamis untuk Tab dan View
   List<Tab> _tabs = [];
@@ -34,53 +30,62 @@ class _GambarUtamaViewerDialogState
   @override
   void initState() {
     super.initState();
-    // Jangan inisialisasi TabController di sini
-    _fetchPaths();
+    // Kita tidak perlu fetch lagi ke server jika object GGambarUtama sudah membawa path-nya.
+    // Tapi jika repository Anda `getGambarUtamaPaths` melakukan sesuatu yang spesial (seperti resolve URL paket),
+    // kita tetap pakai fetch. Asumsi saya: kita perlu fetch untuk dapat path 'paket' juga.
+    _initTabs();
   }
 
-  Future<void> _fetchPaths() async {
+  Future<void> _initTabs() async {
     try {
+      // 1. Ambil Path lengkap dari Server (termasuk paket optional)
       final paths = await ref
           .read(masterDataRepositoryProvider)
           .getGambarUtamaPaths(widget.gambarUtama.id);
 
-      // --- LOGIKA DINAMIS MEMBANGUN TAB ---
+      List<Tab> tempTabs = [];
+      List<Widget> tempViews = [];
 
-      // 1. Siapkan List Dasar (3 Tab Wajib)
-      List<Tab> tempTabs = [
-        const Tab(text: 'Gambar Utama'),
-        const Tab(text: 'Gambar Terurai'),
-        const Tab(text: 'Gambar Kontruksi'),
-      ];
-
-      List<Widget> tempViews = [
-        _PdfLazyViewer(path: paths['utama']),
-        _PdfLazyViewer(path: paths['terurai']),
-        _PdfLazyViewer(path: paths['kontruksi']),
-      ];
-
-      // 2. Cek apakah Backend mengirim key 'paket'
-      if (paths.containsKey('paket') && paths['paket'] != null) {
-        tempTabs.add(const Tab(text: 'Gambar Paket'));
-        tempViews.add(_PdfLazyViewer(path: paths['paket']));
+      // 2. Helper function untuk tambah tab secara kondisional
+      void addTabIfExist(String key, String label) {
+        // Cek apakah key ada DAN value-nya tidak null/kosong
+        if (paths.containsKey(key) &&
+            paths[key] != null &&
+            paths[key]!.isNotEmpty) {
+          tempTabs.add(Tab(text: label));
+          tempViews.add(_PdfLazyViewer(path: paths[key]));
+        }
       }
 
-      // 3. Update State & Inisialisasi Controller
+      // 3. Tambahkan Tab sesuai ketersediaan data
+      addTabIfExist('utama', 'Gambar Utama');
+      addTabIfExist('terurai', 'Gambar Terurai');
+      addTabIfExist('kontruksi', 'Gambar Kontruksi');
+      addTabIfExist('paket', 'Gambar Paket');
+
+      // 4. Jika tidak ada gambar sama sekali (Sangat jarang terjadi karena Utama wajib)
+      if (tempTabs.isEmpty) {
+        if (mounted) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Data gambar tidak ditemukan (file fisik hilang).'),
+            ),
+          );
+        }
+        return;
+      }
+
+      // 5. Update State
       if (mounted) {
         setState(() {
-          _paths = paths;
           _tabs = tempTabs;
           _views = tempViews;
-
-          // Inisialisasi controller sesuai panjang list yang dinamis (3 atau 4)
           _tabController = TabController(length: _tabs.length, vsync: this);
-
-          _isLoadingPaths = false;
         });
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoadingPaths = false);
         Navigator.of(context).pop();
         ScaffoldMessenger.of(
           context,
@@ -91,14 +96,19 @@ class _GambarUtamaViewerDialogState
 
   @override
   void dispose() {
-    _tabController?.dispose(); // Tambahkan ? karena nullable
+    _tabController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Tampilkan loading jika controller belum siap
+    if (_tabController == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return AlertDialog(
-      title: const Text('Pratinjau Gambar Utama'),
+      title: const Text('Pratinjau Gambar'),
       contentPadding: const EdgeInsets.fromLTRB(8.0, 20.0, 8.0, 8.0),
       insetPadding: const EdgeInsets.symmetric(
         horizontal: 40.0,
@@ -107,32 +117,23 @@ class _GambarUtamaViewerDialogState
       content: SizedBox(
         width: MediaQuery.of(context).size.width * 0.8,
         height: MediaQuery.of(context).size.height * 0.8,
-
-        // Tampilkan loading jika controller belum siap
-        child: _isLoadingPaths || _tabController == null
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                children: [
-                  // TabBar menggunakan list dinamis _tabs
-                  TabBar(
-                    controller: _tabController,
-                    tabs: _tabs,
-                    isScrollable:
-                        true, // Opsional: agar tab muat jika layar sempit
-                    labelColor:
-                        Colors.blue, // Styling tambahan agar terlihat aktif
-                    unselectedLabelColor: Colors.grey,
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    // TabBarView menggunakan list dinamis _views
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: _views,
-                    ),
-                  ),
-                ],
-              ),
+        child: Column(
+          children: [
+            // TabBar Dinamis
+            TabBar(
+              controller: _tabController,
+              tabs: _tabs,
+              isScrollable: true,
+              labelColor: Colors.blue,
+              unselectedLabelColor: Colors.grey,
+            ),
+            const SizedBox(height: 8),
+            // View Dinamis
+            Expanded(
+              child: TabBarView(controller: _tabController, children: _views),
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
@@ -144,7 +145,7 @@ class _GambarUtamaViewerDialogState
   }
 }
 
-// Widget helper ini bertanggung jawab untuk memuat satu PDF secara "malas"
+// Widget Helper (TETAP SAMA)
 class _PdfLazyViewer extends ConsumerStatefulWidget {
   final String? path;
   const _PdfLazyViewer({this.path});
@@ -154,18 +155,16 @@ class _PdfLazyViewer extends ConsumerStatefulWidget {
 }
 
 class _PdfLazyViewerState extends ConsumerState<_PdfLazyViewer> {
-  // Gunakan FutureProvider untuk menangani state loading/error/data
   late final FutureProvider<Uint8List> _pdfDataProvider;
 
   @override
   void initState() {
     super.initState();
-    _pdfDataProvider = FutureProvider<Uint8List>((provRef) {
-      // Jika tidak ada path, langsung throw error
+    // Unique key untuk provider agar tidak clash antar tab (opsional tapi aman)
+    _pdfDataProvider = FutureProvider.autoDispose<Uint8List>((provRef) {
       if (widget.path == null) {
         throw Exception('Path PDF tidak ditemukan.');
       }
-      // Panggil repository untuk mengunduh PDF
       return ref
           .read(masterDataRepositoryProvider)
           .getPdfFromPath(widget.path!);
@@ -185,6 +184,7 @@ class _PdfLazyViewerState extends ConsumerState<_PdfLazyViewer> {
         child: Text(
           'Gagal memuat PDF: ${err.toString()}',
           textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.red),
         ),
       ),
     );

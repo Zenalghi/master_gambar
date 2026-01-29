@@ -63,14 +63,12 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
         ref.watch(mguSelectedVarianBodyIdProvider) != null;
 
     final gambarUtamaFile = ref.watch(mguGambarUtamaFileProvider);
-    final gambarTeruraiFile = ref.watch(mguGambarTeruraiFileProvider);
-    final gambarKontruksiFile = ref.watch(mguGambarKontruksiFileProvider);
+    // Kita tidak perlu cek terurai/kontruksi untuk mengaktifkan tombol
+    // final gambarTeruraiFile = ref.watch(mguGambarTeruraiFileProvider);
+    // final gambarKontruksiFile = ref.watch(mguGambarKontruksiFileProvider);
 
-    final allFilesSelected =
-        gambarUtamaFile != null &&
-        gambarTeruraiFile != null &&
-        gambarKontruksiFile != null;
-
+    // LOGIKA BARU: Hanya Gambar Utama yang WAJIB
+    final allFilesSelected = gambarUtamaFile != null;
     return Card(
       color: isVarianBodySelected
           ? null
@@ -129,15 +127,15 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
               _buildHorizontalLayout(
                 isVarianBodySelected,
                 gambarUtamaFile,
-                gambarTeruraiFile,
-                gambarKontruksiFile,
+                ref.watch(mguGambarTeruraiFileProvider), // Baca langsung
+                ref.watch(mguGambarKontruksiFileProvider), // Baca langsung
               )
             else
               _buildVerticalLayout(
                 isVarianBodySelected,
                 gambarUtamaFile,
-                gambarTeruraiFile,
-                gambarKontruksiFile,
+                ref.watch(mguGambarTeruraiFileProvider),
+                ref.watch(mguGambarKontruksiFileProvider),
               ),
 
             const SizedBox(height: 10),

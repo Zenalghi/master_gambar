@@ -244,15 +244,13 @@ class _MasterGambarUtamaScreenState
     final showDependent = ref.read(mguShowDependentOptionalProvider);
     final dependentFile = ref.read(mguDependentFileProvider);
 
-    // 1. Validasi Kelengkapan Data
+    // 1. Validasi Kelengkapan Data (HANYA GAMBAR UTAMA YANG WAJIB)
     if (selectedMasterDataId == null ||
         selectedVarianBodyName == null ||
-        gambarUtamaFile == null ||
-        gambarTeruraiFile == null ||
-        gambarKontruksiFile == null) {
+        gambarUtamaFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Data belum lengkap (Master Data / File Utama).'),
+          content: Text('Data belum lengkap (Master Data / File Utama Wajib).'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -290,11 +288,14 @@ class _MasterGambarUtamaScreenState
       showSizeError('Gambar Utama');
       return;
     }
-    if (await gambarTeruraiFile.length() > maxFileSize) {
+    // Cek ukuran hanya jika file ada
+    if (gambarTeruraiFile != null &&
+        await gambarTeruraiFile.length() > maxFileSize) {
       showSizeError('Gambar Terurai');
       return;
     }
-    if (await gambarKontruksiFile.length() > maxFileSize) {
+    if (gambarKontruksiFile != null &&
+        await gambarKontruksiFile.length() > maxFileSize) {
       showSizeError('Gambar Kontruksi');
       return;
     }
@@ -307,15 +308,15 @@ class _MasterGambarUtamaScreenState
 
     setState(() => _isLoading = true);
     try {
-      // 3. Upload (Akan menimpa file lama di server)
+      // 3. Upload (Kirim null jika file tidak dipilih)
       final gambarUtama = await ref
           .read(masterDataRepositoryProvider)
           .uploadGambarUtamaWithResult(
             masterDataId: selectedMasterDataId,
             varianBodyName: selectedVarianBodyName,
             gambarUtama: gambarUtamaFile,
-            gambarTerurai: gambarTeruraiFile,
-            gambarKontruksi: gambarKontruksiFile,
+            gambarTerurai: gambarTeruraiFile, // Bisa null
+            gambarKontruksi: gambarKontruksiFile, // Bisa null
           );
 
       // 4. Handle Optional Paket
