@@ -67,7 +67,7 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard>
   Widget build(BuildContext context) {
     super.build(context);
 
-    // 1. Listener untuk Data Awal (Dari Laporan Status Gambar) - TETAP SAMA
+    // 1. Listener untuk Data Awal
     ref.listen<Map<String, dynamic>?>(initialGambarUtamaDataProvider, (
       prev,
       next,
