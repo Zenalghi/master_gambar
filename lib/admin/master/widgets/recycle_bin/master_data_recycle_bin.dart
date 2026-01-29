@@ -109,7 +109,7 @@ class _MasterDataRecycleBinState extends ConsumerState<MasterDataRecycleBin> {
                   final item = _deletedItems[index];
                   final dateStr = DateFormat(
                     'dd/MM/yyyy HH:mm:ss',
-                  ).format(item.updatedAt.toLocal());
+                  ).format(item.updatedAt!.toLocal());
 
                   return ListTile(
                     title: Text(item.id.toString()),

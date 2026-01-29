@@ -5,10 +5,8 @@ import 'package:master_gambar/admin/master/models/varian_body.dart';
 
 class ImageStatus {
   final VarianBody varianBody;
-  // Properti ini wajib ada untuk mengatasi error getter
   final GGambarUtama? gambarUtama;
 
-  // Data tambahan untuk laporan
   final DateTime? gambarUtamaCreatedAt;
   final DateTime? gambarUtamaUpdatedAt;
   final String? deskripsiOptional;
@@ -25,27 +23,23 @@ class ImageStatus {
 
   factory ImageStatus.fromJson(Map<String, dynamic> json) {
     return ImageStatus(
-      // 1. Parse data Varian Body (root object)
       varianBody: VarianBody.fromJson(json),
 
-      // 2. Parse objek GGambarUtama jika ada
-      // Backend biasanya mengirim key 'gambar_utama' (snake_case)
+      // KOREKSI: Backend mengirim object 'gambar_utama' hasil rekonstruksi
       gambarUtama: json['gambar_utama'] != null
           ? GGambarUtama.fromJson(json['gambar_utama'])
           : null,
 
       gambarUtamaCreatedAt: json['gambar_utama_created_at'] != null
-          ? DateTime.parse(json['gambar_utama_created_at'])
+          ? DateTime.tryParse(json['gambar_utama_created_at'].toString())
           : null,
 
       gambarUtamaUpdatedAt: json['gambar_utama_updated_at'] != null
-          ? DateTime.parse(json['gambar_utama_updated_at'])
+          ? DateTime.tryParse(json['gambar_utama_updated_at'].toString())
           : null,
 
       deskripsiOptional: json['deskripsi_optional'],
-
-      // 4. Status keberadaan
-      hasGambarUtama: json['gambar_utama'] != null,
+      hasGambarUtama: json['gambar_utama'] != null, // Cek keberadaan object
     );
   }
 }

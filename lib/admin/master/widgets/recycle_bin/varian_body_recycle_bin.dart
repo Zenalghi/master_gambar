@@ -103,7 +103,7 @@ class _VarianBodyRecycleBinState extends ConsumerState<VarianBodyRecycleBin> {
                   final md = item.masterData;
                   final dateStr = DateFormat(
                     'dd/MM/yyyy HH:mm',
-                  ).format(item.updatedAt.toLocal());
+                  ).format(item.updatedAt!.toLocal());
 
                   return ListTile(
                     title: Text(item.name),

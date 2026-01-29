@@ -57,10 +57,10 @@ class VarianBodyDataSource extends AsyncDataTableSource {
               DataCell(SelectableText(md.jenisKendaraan.name)),
               DataCell(SelectableText(item.name)),
               DataCell(
-                SelectableText(dateFormat.format(item.createdAt.toLocal())),
+                SelectableText(dateFormat.format(item.createdAt!.toLocal())),
               ),
               DataCell(
-                SelectableText(dateFormat.format(item.updatedAt.toLocal())),
+                SelectableText(dateFormat.format(item.updatedAt!.toLocal())),
               ),
               DataCell(
                 Row(
