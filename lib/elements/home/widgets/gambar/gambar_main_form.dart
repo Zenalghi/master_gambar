@@ -29,49 +29,135 @@ class GambarMainForm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // 1. Tentukan Jenis Pengajuan
     final jenisPengajuan = transaksi.fPengajuan.jenisPengajuan.toUpperCase();
-
-    // 2. Logika Khusus 'GAMBAR TU' (Hanya Gambar Utama)
     final bool isGambarTU = jenisPengajuan == 'GAMBAR TU';
 
-    // 3. Logika Tampil Deskripsi Optional (Varian, Revisi, Baru)
     final bool showDeskripsiOptional =
         jenisPengajuan == 'VARIAN' ||
         jenisPengajuan == 'REVISI' ||
         jenisPengajuan == 'BARU';
 
-    // 4. Ambil Data Provider
+    // 2. Ambil State Selection & Options (Untuk Cek Status File)
+    final selections = ref.watch(gambarUtamaSelectionProvider);
+    final isEditMode = ref.watch(isEditModeProvider);
+
+    // Kita gunakan provider options untuk mengecek status 'hasTerurai' / 'hasKontruksi'
+    final defaultParams = VarianFilterParams(
+      search: '',
+      masterDataId: transaksi.masterDataId,
+    );
+    final varianOptionsAsync = ref.watch(
+      varianBodyStatusOptionsProvider(defaultParams),
+    );
+
+    // --- LOGIKA PERHITUNGAN HALAMAN DINAMIS ---
+
+    // Struktur Data untuk menyimpan konfigurasi halaman setiap baris
+    List<Map<String, dynamic>> finalPages = [];
+    int currentPage = 1;
+
+    // A. SETUP GAMBAR UTAMA (Selalu Ada dan Urut)
+    for (int i = 0; i < jumlahGambarUtama; i++) {
+      finalPages.add({
+        'type': 'utama',
+        'index': i,
+        'page': currentPage++, // Halaman 1, 2, 3...
+      });
+    }
+
+    // B. SETUP GAMBAR LAIN (Hanya jika bukan GAMBAR TU dan Data Options Tersedia)
+    if (!isGambarTU && varianOptionsAsync.hasValue) {
+      final options = varianOptionsAsync.value!;
+
+      // -- TERURAI --
+      // Loop sebanyak jumlah gambar utama untuk cek masing-masing varian
+      List<Map<String, dynamic>> teruraiItems = [];
+      for (int i = 0; i < jumlahGambarUtama; i++) {
+        // Cek apakah user sudah memilih varian di index ini
+        if (i < selections.length) {
+          final selectedVarianId = selections[i].varianBodyId;
+          if (selectedVarianId != null) {
+            // Cari data varian di options untuk cek status file
+            final varianData = options
+                .where((e) => e.id == selectedVarianId)
+                .firstOrNull;
+
+            // Cek Flag hasTerurai (Pastikan model OptionItem sudah diupdate)
+            if (varianData?.hasTerurai == true) {
+              teruraiItems.add({
+                'type': 'terurai',
+                'index': i,
+                // Page diisi nanti di loop bawah agar urut
+              });
+            }
+          }
+        }
+      }
+      // Assign nomor halaman untuk item yang valid
+      for (var item in teruraiItems) {
+        item['page'] = currentPage++;
+        finalPages.add(item);
+      }
+
+      // -- KONTRUKSI --
+      List<Map<String, dynamic>> kontruksiItems = [];
+      for (int i = 0; i < jumlahGambarUtama; i++) {
+        if (i < selections.length) {
+          final selectedVarianId = selections[i].varianBodyId;
+          if (selectedVarianId != null) {
+            final varianData = options
+                .where((e) => e.id == selectedVarianId)
+                .firstOrNull;
+
+            // Cek Flag hasKontruksi
+            if (varianData?.hasKontruksi == true) {
+              kontruksiItems.add({'type': 'kontruksi', 'index': i});
+            }
+          }
+        }
+      }
+      for (var item in kontruksiItems) {
+        item['page'] = currentPage++;
+        finalPages.add(item);
+      }
+    }
+
+    // C. PERHITUNGAN TOTAL HALAMAN UNTUK BAGIAN BAWAH
+    // Variabel ini akan dipakai oleh widget anak (Optional & Kelistrikan)
+    // untuk melanjutkan penomoran
+
+    final dependentOptionals = ref.watch(dependentOptionalOptionsProvider);
+    final dependentCount = dependentOptionals.asData?.value.length ?? 0;
+
+    // Start page paket = halaman terakhir setelah kontruksi + 1
+    // (currentPage saat ini sudah menunjuk ke next available page)
+    final int startPagePaket = currentPage;
+
+    // Update currentPage setelah paket
+    currentPage += dependentCount;
+
+    final independentStateAsync = ref.watch(independentListNotifierProvider);
+    final activeIndependentCount =
+        independentStateAsync.asData?.value.activeItems.length ?? 0;
+
+    final int startPageIndependen = currentPage;
+
+    // Update currentPage setelah independen
+    currentPage += activeIndependentCount;
+
+    // Halaman Kelistrikan
+    final int pageKelistrikan = currentPage;
+
     final kelistrikanInfo = ref.watch(kelistrikanInfoProvider);
     final hasKelistrikan =
         kelistrikanInfo != null &&
         (kelistrikanInfo['status_code'] == 'ready' ||
             kelistrikanInfo['status_code'] == 'multiple_options');
 
-    final independentStateAsync = ref.watch(independentListNotifierProvider);
-    final dependentOptionals = ref.watch(dependentOptionalOptionsProvider);
-
-    final dependentCount = dependentOptionals.asData?.value.length ?? 0;
-
-    // Gunakan asData untuk akses value yang aman
-    final activeIndependentCount =
-        independentStateAsync.asData?.value.activeItems.length ?? 0;
-
-    // 5. Hitung Halaman (LOGIKA FIXED)
-    final int startPageTerurai = jumlahGambarUtama + 1;
-    final int startPageKontruksi = startPageTerurai + jumlahGambarUtama;
-    final int startPagePaket = startPageKontruksi + jumlahGambarUtama;
-    final int startPageIndependen = startPagePaket + dependentCount;
-
-    // Halaman Kelistrikan selalu setelah semua halaman independen selesai
-    final int pageKelistrikan = startPageIndependen + activeIndependentCount;
-
-    // Total Halaman
-    // Jika tidak ada kelistrikan, totalnya adalah halaman terakhir independen (pageKelistrikan - 1)
-    // Jika ada kelistrikan, totalnya adalah pageKelistrikan itu sendiri
-    int totalHalaman = isGambarTU
-        ? jumlahGambarUtama
-        : (hasKelistrikan ? pageKelistrikan : (pageKelistrikan - 1));
-
-    final isEditMode = ref.watch(isEditModeProvider);
+    // Total Halaman Final untuk Label "1/X"
+    // Jika ada kelistrikan, totalnya adalah pageKelistrikan. Jika tidak, kurangi 1.
+    final int totalHalaman = hasKelistrikan
+        ? pageKelistrikan
+        : (pageKelistrikan - 1);
 
     return Card(
       child: Padding(
@@ -82,57 +168,81 @@ class GambarMainForm extends ConsumerWidget {
             // --- 1. Gambar Utama (SELALU ADA) ---
             _buildSection(
               title: 'Gambar Utama',
-              itemCount: jumlahGambarUtama,
-              itemBuilder: (index) {
-                final pageNumber = index + 1;
+              items: finalPages.where((e) => e['type'] == 'utama').toList(),
+              itemBuilder: (item) {
                 return GambarUtamaRow(
-                  index: index,
+                  index: item['index'],
                   transaksi: transaksi,
                   totalHalaman: totalHalaman,
-                  pageNumber: pageNumber,
-                  onPreviewPressed: () => onPreviewPressed(pageNumber),
+                  pageNumber: item['page'], // Halaman 1, 2, ...
+                  onPreviewPressed: () => onPreviewPressed(item['page']),
                 );
               },
             ),
 
-            // --- JIKA BUKAN 'GAMBAR TU', TAMPILKAN SEMUANYA ---
+            // --- JIKA BUKAN 'GAMBAR TU', TAMPILKAN SISANYA ---
             if (!isGambarTU) ...[
-              const Divider(height: 10),
+              // 2. Gambar Terurai (Builder agar UI reaktif jika list kosong)
+              Builder(
+                builder: (context) {
+                  // Ambil items terurai yang sudah difilter valid
+                  final items = finalPages
+                      .where((e) => e['type'] == 'terurai')
+                      .toList();
 
-              // 2. Gambar Terurai
-              _buildSection(
-                title: 'Gambar Terurai',
-                itemCount: jumlahGambarUtama,
-                itemBuilder: (index) {
-                  final pageNumber = startPageTerurai + index;
-                  return GambarSyncedRow(
-                    index: index,
-                    title: 'Gambar Terurai',
-                    transaksi: transaksi,
-                    totalHalaman: totalHalaman,
-                    jumlahGambarUtama: jumlahGambarUtama,
-                    pageNumber: pageNumber,
-                    onPreviewPressed: () => onPreviewPressed(pageNumber),
+                  // JIKA KOSONG, HIDDEN TOTAL (Sesuai Permintaan)
+                  if (items.isEmpty) return const SizedBox.shrink();
+
+                  return Column(
+                    children: [
+                      const Divider(height: 10),
+                      _buildSection(
+                        title: 'Gambar Terurai',
+                        items: items,
+                        itemBuilder: (item) => GambarSyncedRow(
+                          index: item['index'],
+                          title: 'Gambar Terurai',
+                          transaksi: transaksi,
+                          totalHalaman: totalHalaman,
+                          jumlahGambarUtama: jumlahGambarUtama,
+                          pageNumber: item['page'], // Halaman dinamis
+                          onPreviewPressed: () =>
+                              onPreviewPressed(item['page']),
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),
 
-              const Divider(height: 10),
-
               // 3. Gambar Kontruksi
-              _buildSection(
-                title: 'Gambar Kontruksi',
-                itemCount: jumlahGambarUtama,
-                itemBuilder: (index) {
-                  final pageNumber = startPageKontruksi + index;
-                  return GambarSyncedRow(
-                    index: index,
-                    title: 'Gambar Kontruksi',
-                    transaksi: transaksi,
-                    totalHalaman: totalHalaman,
-                    jumlahGambarUtama: jumlahGambarUtama,
-                    pageNumber: pageNumber,
-                    onPreviewPressed: () => onPreviewPressed(pageNumber),
+              Builder(
+                builder: (context) {
+                  final items = finalPages
+                      .where((e) => e['type'] == 'kontruksi')
+                      .toList();
+
+                  // JIKA KOSONG, HIDDEN TOTAL
+                  if (items.isEmpty) return const SizedBox.shrink();
+
+                  return Column(
+                    children: [
+                      const Divider(height: 10),
+                      _buildSection(
+                        title: 'Gambar Kontruksi',
+                        items: items,
+                        itemBuilder: (item) => GambarSyncedRow(
+                          index: item['index'],
+                          title: 'Gambar Kontruksi',
+                          transaksi: transaksi,
+                          totalHalaman: totalHalaman,
+                          jumlahGambarUtama: jumlahGambarUtama,
+                          pageNumber: item['page'], // Halaman dinamis
+                          onPreviewPressed: () =>
+                              onPreviewPressed(item['page']),
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),
@@ -144,12 +254,13 @@ class GambarMainForm extends ConsumerWidget {
                   return Column(
                     children: [
                       const Divider(height: 10),
-                      _buildSection(
+                      _buildSectionManual(
                         title: 'Gambar Optional Paket',
                         itemCount: items.length,
                         itemBuilder: (index) {
                           final item = items[index];
-                          final pageNumber = startPagePaket + index;
+                          final pageNumber =
+                              startPagePaket + index; // Lanjutkan counter
                           final isLoading = ref.watch(isProcessingProvider);
                           return Row(
                             children: [
@@ -214,7 +325,6 @@ class GambarMainForm extends ConsumerWidget {
                 error: (err, stack) => Text('Error: $err'),
               ),
 
-              // 5. Gambar Optional Independen
               // 5. Gambar Optional Independen
               independentStateAsync.when(
                 data: (independentState) {
@@ -293,6 +403,7 @@ class GambarMainForm extends ConsumerWidget {
                           },
                           itemBuilder: (context, index) {
                             final item = activeItems[index];
+                            // Hitung halaman: Lanjutkan dari startPageIndependen
                             final pageNumber = startPageIndependen + index;
                             final isPreviewEnabled =
                                 ref.watch(pemeriksaIdProvider) != null;
@@ -344,7 +455,6 @@ class GambarMainForm extends ConsumerWidget {
                                             const SizedBox(width: 12),
 
                                             // 2. Label "Optional Independen X"
-                                            // Lebar fix agar sejajar vertikal
                                             SizedBox(
                                               width: 140,
                                               child: Text(
@@ -459,7 +569,6 @@ class GambarMainForm extends ConsumerWidget {
                                 ref.watch(pemeriksaIdProvider) != null;
                             final isLoading = ref.watch(isProcessingProvider);
 
-                            // Penomoran Dinamis Read Only
                             final labelNumber = index + 1;
 
                             return Container(
@@ -481,14 +590,12 @@ class GambarMainForm extends ConsumerWidget {
                                       ),
                                       child: Row(
                                         children: [
-                                          // Label Statis
                                           SizedBox(
                                             width: 140,
                                             child: Text(
                                               'Optional \nIndependen $labelNumber:',
                                             ),
                                           ),
-                                          // Nama Item
                                           Expanded(
                                             child: Container(
                                               padding: const EdgeInsets.all(8),
@@ -546,7 +653,7 @@ class GambarMainForm extends ConsumerWidget {
                           },
                         ),
 
-                      // --- BAGIAN 2: LIST HIDDEN (Sama seperti sebelumnya) ---
+                      // --- BAGIAN 2: LIST HIDDEN ---
                       if (isEditMode && hiddenItems.isNotEmpty) ...[
                         const SizedBox(height: 24),
                         Container(
@@ -772,7 +879,39 @@ class GambarMainForm extends ConsumerWidget {
     );
   }
 
+  // Helper _buildSection Baru (Menerima List Map untuk Logic)
   Widget _buildSection({
+    required String title,
+    required List<Map<String, dynamic>> items,
+    required Widget Function(Map<String, dynamic> item) itemBuilder,
+  }) {
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: items.length,
+          itemBuilder: (context, index) => itemBuilder(items[index]),
+          separatorBuilder: (context, index) => const SizedBox(height: 8),
+        ),
+      ],
+    );
+  }
+
+  // Helper Manual untuk Paket Optional (karena struktur data beda)
+  Widget _buildSectionManual({
     required String title,
     required int itemCount,
     required Widget Function(int index) itemBuilder,

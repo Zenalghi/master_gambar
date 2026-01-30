@@ -45,6 +45,14 @@ class OptionItem {
     );
   }
 
-  /// Helper: apakah item memiliki gambar?
+  /// Helper: apakah item memiliki gambar utama?
   bool get hasGambar => data?['has_gambar'] == true || data?['has_gambar'] == 1;
+
+  /// Helper Baru: Cek Terurai
+  bool get hasTerurai =>
+      data?['has_terurai'] == true || data?['has_terurai'] == 1;
+
+  /// Helper Baru: Cek Kontruksi
+  bool get hasKontruksi =>
+      data?['has_kontruksi'] == true || data?['has_kontruksi'] == 1;
 }
