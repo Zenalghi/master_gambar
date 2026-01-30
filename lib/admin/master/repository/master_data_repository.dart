@@ -247,13 +247,22 @@ class MasterDataRepository {
   }
 
   // == TYPE CHASSIS RECYCLE BIN ==
-  Future<List<TypeChassis>> getDeletedTypeChassis() async {
+  getDeletedTypeChassis({String search = ''}) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .get('/admin/type-chassis/trash');
+        .get('/admin/type-chassis/trash', queryParameters: {'search': search});
     final List<dynamic> data = response.data;
     return data.map((item) => TypeChassis.fromJson(item)).toList();
+  }
+
+  // Method Baru: Kosongkan Sampah
+  Future<Map<String, dynamic>> emptyTrashTypeChassis() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/type-chassis/trash/empty');
+    return response.data;
   }
 
   Future<void> restoreTypeChassis(int id) async {
