@@ -340,13 +340,27 @@ class MasterDataRepository {
   }
 
   // == JENIS KENDARAAN RECYCLE BIN ==
-  Future<List<JenisKendaraan>> getDeletedJenisKendaraan() async {
+  Future<List<JenisKendaraan>> getDeletedJenisKendaraan({
+    String search = '',
+  }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .get('/admin/jenis-kendaraan/trash');
+        .get(
+          '/admin/jenis-kendaraan/trash',
+          queryParameters: {'search': search},
+        );
     final List<dynamic> data = response.data;
     return data.map((item) => JenisKendaraan.fromJson(item)).toList();
+  }
+
+  // Method Baru: Kosongkan Sampah
+  Future<Map<String, dynamic>> emptyTrashJenisKendaraan() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/jenis-kendaraan/trash/empty');
+    return response.data;
   }
 
   Future<void> restoreJenisKendaraan(int id) async {
