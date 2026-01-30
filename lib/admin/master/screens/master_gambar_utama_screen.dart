@@ -44,50 +44,61 @@ class _MasterGambarUtamaScreenState
   }
 
   // --- LOGIKA MEMUAT DATA LAMA (PREVIEW & RE-UPLOAD) ---
+  // --- LOGIKA MEMUAT DATA LAMA (PREVIEW & RE-UPLOAD) ---
   Future<void> _loadExistingData(GGambarUtama gambarUtama) async {
     setState(() => _isLoading = true);
 
     try {
       final repo = ref.read(masterDataRepositoryProvider);
 
-      // 1. Dapatkan Path dari Server
+      // 1. Dapatkan Path dari Server (Sekarang bisa jadi 'terurai'/'kontruksi' tidak ada di Map)
       final paths = await repo.getGambarUtamaPaths(gambarUtama.id);
 
-      // 2. Helper: Download PDF ke Temp agar dianggap sebagai "File yang dipilih"
-      Future<File> downloadToTemp(String path, String filename) async {
-        final bytes = await repo.getPdfFromPath(path);
-        final tempDir = await getTemporaryDirectory();
-        final file = File('${tempDir.path}/$filename');
-        await file.writeAsBytes(bytes);
-        return file;
+      // 2. Helper: Download PDF ke Temp (Hanya jika path valid)
+      Future<File?> downloadIfExist(String key, String filename) async {
+        if (!paths.containsKey(key) || paths[key] == null) return null;
+
+        try {
+          final bytes = await repo.getPdfFromPath(paths[key]!);
+          final tempDir = await getTemporaryDirectory();
+          final file = File('${tempDir.path}/$filename');
+          await file.writeAsBytes(bytes);
+          return file;
+        } catch (e) {
+          debugPrint('Gagal download $filename: $e');
+          return null;
+        }
       }
 
-      // 3. Download 3 Gambar Utama secara paralel
+      // 3. Download Gambar Utama, Terurai, dan Kontruksi secara paralel
+      //    (Function downloadIfExist akan return null jika key tidak ada)
       final results = await Future.wait([
-        downloadToTemp(paths['utama']!, 'gambar_utama.pdf'),
-        downloadToTemp(paths['terurai']!, 'gambar_terurai.pdf'),
-        downloadToTemp(paths['kontruksi']!, 'gambar_kontruksi.pdf'),
+        downloadIfExist('utama', 'gambar_utama.pdf'),
+        downloadIfExist('terurai', 'gambar_terurai.pdf'),
+        downloadIfExist('kontruksi', 'gambar_kontruksi.pdf'),
       ]);
 
-      // 4. Isi Provider File (Otomatis akan mentrigger Preview di Card)
+      // 4. Isi Provider File (Null jika tidak ada)
       ref.read(mguGambarUtamaFileProvider.notifier).state = results[0];
       ref.read(mguGambarTeruraiFileProvider.notifier).state = results[1];
       ref.read(mguGambarKontruksiFileProvider.notifier).state = results[2];
 
       // 5. Cek Gambar Paket Optional
-      final paketOptional = gambarUtama.gambarOptionals
-          .where((g) => g.tipe == 'paket')
-          .firstOrNull;
-
-      if (paketOptional != null) {
+      //    (Kita bisa pakai logika yang sama: cek key 'paket' dari paths yang dikirim controller)
+      if (paths.containsKey('paket')) {
         ref.read(mguShowDependentOptionalProvider.notifier).state = true;
-        _deskripsiController.text = paketOptional.deskripsi;
 
-        final optBytes = await repo.getPdfFromPath(paketOptional.path);
-        final tempDir = await getTemporaryDirectory();
-        final optFile = File('${tempDir.path}/gambar_paket.pdf');
-        await optFile.writeAsBytes(optBytes);
+        // Cari deskripsi dari object gambarUtama yang dipassing (karena paths cuma string url)
+        final paketOptional = gambarUtama.gambarOptionals
+            .where((g) => g.tipe == 'paket')
+            .firstOrNull;
 
+        if (paketOptional != null) {
+          _deskripsiController.text = paketOptional.deskripsi;
+        }
+
+        // Download file paket
+        final optFile = await downloadIfExist('paket', 'gambar_paket.pdf');
         ref.read(mguDependentFileProvider.notifier).state = optFile;
       } else {
         ref.read(mguShowDependentOptionalProvider.notifier).state = false;

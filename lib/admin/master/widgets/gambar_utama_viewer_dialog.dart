@@ -30,9 +30,6 @@ class _GambarUtamaViewerDialogState
   @override
   void initState() {
     super.initState();
-    // Kita tidak perlu fetch lagi ke server jika object GGambarUtama sudah membawa path-nya.
-    // Tapi jika repository Anda `getGambarUtamaPaths` melakukan sesuatu yang spesial (seperti resolve URL paket),
-    // kita tetap pakai fetch. Asumsi saya: kita perlu fetch untuk dapat path 'paket' juga.
     _initTabs();
   }
 

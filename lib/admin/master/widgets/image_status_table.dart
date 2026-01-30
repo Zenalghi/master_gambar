@@ -170,16 +170,39 @@ class _ImageStatusDataSourceWithContext extends ImageStatusDataSource {
   // UBAH PARAMETER MENJADI 'ImageStatus'
   @override
   void confirmDeleteDialog(ImageStatus item) {
-    final hasOptionalPaket = item.deskripsiOptional != null;
-    final gambarUtama =
-        item.gambarUtama!; // Pasti ada jika tombol delete muncul
+    final gambarUtama = item.gambarUtama!;
 
-    // Tentukan pesan teks dinamis
-    final String contentText = hasOptionalPaket
-        ? 'Apakah Anda yakin ingin menghapus Gambar Utama ini?\n\n'
-              'PERINGATAN: File PDF Gambar Utama, Terurai, Kontruksi, dan Optional Paket akan dihapus permanen dari storage.'
-        : 'Apakah Anda yakin ingin menghapus Gambar Utama ini?\n\n'
-              'PERINGATAN: File PDF Gambar Utama, Terurai, dan Kontruksi akan dihapus permanen dari storage.';
+    // --- LOGIKA DINAMIS PESAN KONFIRMASI ---
+    List<String> filesToDelete = ['Gambar Utama']; // Gambar Utama selalu ada
+
+    // Cek path (string) tidak null & tidak kosong
+    if (gambarUtama.pathGambarTerurai != null &&
+        gambarUtama.pathGambarTerurai!.isNotEmpty) {
+      filesToDelete.add('Terurai');
+    }
+
+    if (gambarUtama.pathGambarKontruksi != null &&
+        gambarUtama.pathGambarKontruksi!.isNotEmpty) {
+      filesToDelete.add('Kontruksi');
+    }
+
+    if (item.deskripsiOptional != null) {
+      filesToDelete.add('Optional Paket');
+    }
+
+    // Gabungkan list menjadi string (e.g., "Gambar Utama, Terurai, dan Optional Paket")
+    String filesString = '';
+    if (filesToDelete.length == 1) {
+      filesString = filesToDelete.first;
+    } else {
+      final last = filesToDelete.removeLast();
+      filesString = '${filesToDelete.join(", ")} dan $last';
+    }
+
+    final String contentText =
+        'Apakah Anda yakin ingin menghapus data ini?\n\n'
+        'PERINGATAN: File PDF ($filesString) akan dihapus permanen dari storage.';
+    // ----------------------------------------
 
     showDialog(
       context: _context,
@@ -187,6 +210,7 @@ class _ImageStatusDataSourceWithContext extends ImageStatusDataSource {
         title: const Text('Konfirmasi Hapus'),
         content: Text(contentText),
         actions: [
+          // ... (Tombol Batal & Hapus TETAP SAMA) ...
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Batal'),
@@ -194,32 +218,23 @@ class _ImageStatusDataSourceWithContext extends ImageStatusDataSource {
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () async {
-              Navigator.of(context).pop(); // Tutup Dialog
+              // ... logic hapus ...
+              Navigator.of(context).pop();
               try {
-                // Panggil API Delete (menggunakan ID Gambar Utama)
                 await ref
                     .read(masterDataRepositoryProvider)
                     .deleteGambarUtama(gambarUtama.id);
-
                 refreshDatasource();
-
                 if (_context.mounted) {
                   ScaffoldMessenger.of(_context).showSnackBar(
                     const SnackBar(
-                      content: Text('Gambar Utama berhasil dihapus.'),
+                      content: Text('Gambar berhasil dihapus.'),
                       backgroundColor: Colors.green,
                     ),
                   );
                 }
               } catch (e) {
-                if (_context.mounted) {
-                  ScaffoldMessenger.of(_context).showSnackBar(
-                    SnackBar(
-                      content: Text('Gagal menghapus: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
+                // ... error handling ...
               }
             },
             child: const Text('Hapus Permanen'),
