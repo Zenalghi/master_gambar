@@ -155,13 +155,24 @@ class MasterDataRepository {
     await _ref.read(apiClientProvider).dio.delete('/merks/$id');
   }
 
-  Future<List<Merk>> getDeletedMerks() async {
+  // Update method ini: tambahkan parameter search
+  Future<List<Merk>> getDeletedMerks({String search = ''}) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .get('/admin/merks/trash');
+        .get('/admin/merks/trash', queryParameters: {'search': search});
+
     final List<dynamic> data = response.data;
     return data.map((item) => Merk.fromJson(item)).toList();
+  }
+
+  // Method Baru: Kosongkan Sampah
+  Future<Map<String, dynamic>> emptyTrashMerk() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/merks/trash/empty');
+    return response.data;
   }
 
   Future<void> restoreMerk(int id) async {

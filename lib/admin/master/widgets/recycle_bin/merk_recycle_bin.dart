@@ -18,6 +18,8 @@ class MerkRecycleBin extends ConsumerStatefulWidget {
 class _MerkRecycleBinState extends ConsumerState<MerkRecycleBin> {
   bool _isLoading = true;
   List<Merk> _deletedItems = [];
+  String _searchQuery = ''; // State untuk pencarian
+  final _searchController = TextEditingController(); // Controller text field
 
   @override
   void initState() {
@@ -25,11 +27,20 @@ class _MerkRecycleBinState extends ConsumerState<MerkRecycleBin> {
     _fetchTrash();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _fetchTrash() async {
+    setState(() => _isLoading = true);
     try {
+      // Kirim parameter search ke repository
       final data = await ref
           .read(masterDataRepositoryProvider)
-          .getDeletedMerks();
+          .getDeletedMerks(search: _searchQuery);
+
       if (mounted) {
         setState(() {
           _deletedItems = data;
@@ -41,13 +52,67 @@ class _MerkRecycleBinState extends ConsumerState<MerkRecycleBin> {
     }
   }
 
+  // --- LOGIKA KOSONGKAN SAMPAH ---
+  Future<void> _emptyTrash() async {
+    // Konfirmasi dulu
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Kosongkan Sampah?'),
+        content: const Text(
+          'Semua data di recycle bin akan dihapus permanen.\n'
+          'Data yang masih digunakan di Master Data tidak akan dihapus.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus Semua'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final result = await ref
+          .read(masterDataRepositoryProvider)
+          .emptyTrashMerk();
+
+      await _fetchTrash(); // Refresh list
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Sampah dikosongkan'),
+            backgroundColor: (result['skipped'] ?? 0) > 0
+                ? Colors.orange
+                : Colors.green,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   Future<void> _restore(int id) async {
     try {
       await ref.read(masterDataRepositoryProvider).restoreMerk(id);
-      await _fetchTrash(); // Refresh list sampah
-      ref.invalidate(
-        merkFilterProvider,
-      ); // Refresh tabel utama di layar belakang
+      await _fetchTrash();
+      ref.invalidate(merkFilterProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -82,7 +147,6 @@ class _MerkRecycleBinState extends ConsumerState<MerkRecycleBin> {
       }
     } on DioException catch (e) {
       if (mounted) {
-        // Menangkap pesan error validasi dari backend (misal: masih dipakai di Master Data)
         final message =
             e.response?.data['errors']?['general']?[0] ??
             'Gagal menghapus data';
@@ -96,26 +160,62 @@ class _MerkRecycleBinState extends ConsumerState<MerkRecycleBin> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Recycle Bin - Merk'),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text('Recycle Bin - Merk'),
+          // Field Pencarian di Header
+          SizedBox(
+            width: 200,
+            height: 35,
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Cari Merk...',
+                prefixIcon: const Icon(Icons.search, size: 18),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 16),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                          _fetchTrash();
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (val) {
+                // Debounce sederhana bisa ditambahkan jika perlu
+                setState(() => _searchQuery = val);
+                _fetchTrash();
+              },
+            ),
+          ),
+        ],
+      ),
       content: SizedBox(
-        width: 600,
+        width: 700, // Lebar sedikit ditambah agar muat
         height: 400,
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _deletedItems.isEmpty
-            ? const Center(child: Text('Sampah kosong'))
+            ? const Center(child: Text('Sampah kosong / Tidak ditemukan'))
             : ListView.separated(
                 itemCount: _deletedItems.length,
                 separatorBuilder: (_, __) => const Divider(),
                 itemBuilder: (context, index) {
                   final item = _deletedItems[index];
                   final dateStr = DateFormat(
-                    'dd/MM/yyyy HH:mm:ss',
+                    'dd/MM/yyyy HH:mm',
                   ).format(item.updatedAt.toLocal());
 
                   return ListTile(
                     title: Text(item.name),
-                    subtitle: Text('Dihapus (terakhir update): $dateStr'),
+                    subtitle: Text('Dihapus: $dateStr'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -138,7 +238,18 @@ class _MerkRecycleBinState extends ConsumerState<MerkRecycleBin> {
                 },
               ),
       ),
+      actionsAlignment:
+          MainAxisAlignment.spaceBetween, // Agar tombol menyebar kiri-kanan
       actions: [
+        // KIRI: Tombol Kosongkan Sampah
+        TextButton.icon(
+          onPressed: _deletedItems.isEmpty ? null : _emptyTrash,
+          icon: const Icon(Icons.delete_sweep, size: 18),
+          label: const Text('Kosongkan Sampah'),
+          style: TextButton.styleFrom(foregroundColor: Colors.red),
+        ),
+
+        // KANAN: Tombol Tutup
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Tutup'),
