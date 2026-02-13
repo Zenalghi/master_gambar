@@ -1094,14 +1094,23 @@ class MasterDataRepository {
   }
 
   // --- RECYCLE BIN MASTER DATA ---
-  Future<List<MasterData>> getDeletedMasterData() async {
+  Future<List<MasterData>> getDeletedMasterData({String search = ''}) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .get('/admin/master-data/trash');
+        .get('/admin/master-data/trash', queryParameters: {'search': search});
     return (response.data as List)
         .map((item) => MasterData.fromJson(item))
         .toList();
+  }
+
+  // Method Baru: Kosongkan Sampah
+  Future<Map<String, dynamic>> emptyTrashMasterData() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/master-data/trash/empty');
+    return response.data;
   }
 
   Future<void> restoreMasterData(int id) async {
