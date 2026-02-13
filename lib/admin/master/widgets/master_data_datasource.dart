@@ -44,10 +44,18 @@ class MasterDataDataSource extends AsyncDataTableSource {
               DataCell(SelectableText(item.typeChassis.name)),
               DataCell(SelectableText(item.jenisKendaraan.name)),
               DataCell(
-                SelectableText(dateFormat.format(item.createdAt!.toLocal())),
+                SelectableText(
+                  item.createdAt != null
+                      ? dateFormat.format(item.createdAt!.toLocal())
+                      : '',
+                ),
               ),
               DataCell(
-                SelectableText(dateFormat.format(item.updatedAt!.toLocal())),
+                SelectableText(
+                  item.updatedAt != null
+                      ? dateFormat.format(item.updatedAt!.toLocal())
+                      : '',
+                ),
               ),
               DataCell(
                 Row(
@@ -101,7 +109,6 @@ class MasterDataDataSource extends AsyncDataTableSource {
   }
 
   Widget _buildKelistrikanCell(MasterData item) {
-    // KASUS 1: Belum ada file fisik (Upload dulu)
     if (item.fileKelistrikanId == null) {
       return Center(
         child: IconButton(
@@ -116,8 +123,6 @@ class MasterDataDataSource extends AsyncDataTableSource {
       );
     }
 
-    // KASUS 2: File ada, tapi belum ada deskripsi satupun
-    // (Asumsi: kelistrikanId null berarti belum ada row deskripsi)
     if (item.kelistrikanId == null) {
       return Row(
         children: [
@@ -140,13 +145,9 @@ class MasterDataDataSource extends AsyncDataTableSource {
       );
     }
 
-    // KASUS 3: Ada Deskripsi (Bisa 1 atau Lebih)
-    // Kita gunakan kelistrikanCount jika ada (dari update backend),
-    // atau fallback logika lama jika belum update backend.
     final int count = item.kelistrikanCount ?? 1;
 
     if (count > 1) {
-      // --- SUB-KASUS: BANYAK OPSI ---
       return Row(
         children: [
           IconButton(
@@ -174,7 +175,6 @@ class MasterDataDataSource extends AsyncDataTableSource {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  // Tooltip Indikator
                   Tooltip(
                     message: "Data ini memiliki $count variasi deskripsi.",
                     child: Icon(
@@ -190,7 +190,6 @@ class MasterDataDataSource extends AsyncDataTableSource {
         ],
       );
     } else {
-      // --- SUB-KASUS: SINGLE OPSI (Normal) ---
       return Row(
         children: [
           IconButton(
@@ -204,7 +203,6 @@ class MasterDataDataSource extends AsyncDataTableSource {
               style: const TextStyle(fontSize: 11),
               maxLines: 2,
               minLines: 1,
-              // Jika terlalu panjang, text akan terpotong rapi (ellipsis handled by table cell)
             ),
           ),
         ],
@@ -233,7 +231,6 @@ class MasterDataDataSource extends AsyncDataTableSource {
     };
 
     _ref.read(initialKelistrikanDataProvider.notifier).state = initialData;
-
     _ref.read(adminSidebarIndexProvider.notifier).state = 10;
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -255,24 +252,19 @@ class MasterDataDataSource extends AsyncDataTableSource {
           TextButton(
             onPressed: () async {
               try {
-                // 1. Panggil API Delete
                 await _ref
                     .read(masterDataRepositoryProvider)
                     .deleteMasterData(id: item.id);
 
-                // 2. TUTUP DIALOG DULU (PENTING!)
-                // Agar fokus UI lepas dari tombol delete dan overlay hilang
                 if (context.mounted) {
                   Navigator.pop(context);
                 }
 
-                // 3. BARU REFRESH DATA SETELAHNYA
-                // Gunakan Future.microtask atau delayed agar aman dari error layout
-                Future.delayed(Duration.zero, () {
+                // PERBAIKAN: Gunakan post frame callback untuk refresh setelah dialog tertutup sempurna
+                WidgetsBinding.instance.addPostFrameCallback((_) {
                   refreshDatasource();
                 });
 
-                // Tampilkan snackbar sukses (opsional)
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -282,11 +274,8 @@ class MasterDataDataSource extends AsyncDataTableSource {
                   );
                 }
               } catch (e) {
-                // Jika error, jangan tutup dialog, tapi kasih tahu user
                 if (context.mounted) {
-                  Navigator.pop(
-                    context,
-                  ); // Tutup dialog jika error parah, atau biarkan terbuka
+                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Error menghapus data: $e'),

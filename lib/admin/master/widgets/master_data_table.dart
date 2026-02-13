@@ -17,22 +17,25 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
   int _sortColumnIndex = 6;
   bool _sortAscending = false;
 
-  // Instance DataSource disimpan di state agar persisten
   late final MasterDataDataSource _dataSource;
 
   @override
   void initState() {
     super.initState();
-    // Inisialisasi hanya SEKALI saat widget dibuat
     _dataSource = MasterDataDataSource(ref, context);
   }
 
   @override
   Widget build(BuildContext context) {
     final rowsPerPage = ref.watch(masterDataRowsPerPageProvider);
+
     ref.listen(masterDataFilterProvider, (_, __) {
-      Future.microtask(() {
-        _dataSource.refreshDatasource();
+      // PERBAIKAN UTAMA: Gunakan addPostFrameCallback alih-alih Future.microtask
+      // Ini menjamin tabel tidak di-refresh saat sedang me-layout panah sorting
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _dataSource.refreshDatasource();
+        }
       });
     });
 
@@ -51,7 +54,6 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
       sortAscending: _sortAscending,
       columns: _createColumns(),
       source: _dataSource,
-
       empty: const Center(child: Text('Tidak ada data ditemukan')),
     );
   }

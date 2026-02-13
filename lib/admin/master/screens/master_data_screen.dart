@@ -20,28 +20,27 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.invalidate(masterDataFilterProvider));
+    // PERBAIKAN: Gunakan addPostFrameCallback agar aman dari build mutation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(masterDataFilterProvider);
+    });
   }
 
   void _handleReload() {
-    // Trigger update untuk tabel
     ref
         .read(masterDataFilterProvider.notifier)
         .update(
           (state) => {
             ...state,
-            'last_update': DateTime.now().millisecondsSinceEpoch
-                .toString(), // Trigger paksa
+            'last_update': DateTime.now().millisecondsSinceEpoch.toString(),
           },
         );
 
-    // Bersihkan cache dropdown
     ref.invalidate(mdTypeEngineOptionsProvider);
     ref.invalidate(mdMerkOptionsProvider);
     ref.invalidate(mdTypeChassisOptionsProvider);
     ref.invalidate(mdJenisKendaraanOptionsProvider);
 
-    // Reset Form Input
     if (mounted) {
       setState(() {
         _formResetKey++;
@@ -92,15 +91,12 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
                 icon: const Icon(Icons.delete_outline, color: Colors.orange),
                 tooltip: 'Lihat Data Terhapus (Trash)',
                 onPressed: () async {
-                  // Tunggu sampai dialog ditutup
                   await showDialog(
                     context: context,
                     builder: (_) => const MasterDataRecycleBin(),
                     barrierDismissible: true,
                   );
 
-                  // SETELAH DIALOG TUTUP, REFRESH TABEL UTAMA
-                  // Ini penting agar data yang di-restore muncul kembali
                   ref
                       .read(masterDataFilterProvider.notifier)
                       .update(
@@ -111,7 +107,6 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
                         },
                       );
 
-                  // Invalidate cache dropdown juga jika perlu
                   ref.invalidate(mdTypeEngineOptionsProvider);
                 },
               ),
