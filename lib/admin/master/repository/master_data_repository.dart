@@ -455,14 +455,22 @@ class MasterDataRepository {
     await _ref.read(apiClientProvider).dio.delete('/varian-body/$id');
   }
 
-  // == VARIAN BODY RECYCLE BIN ==
-  Future<List<VarianBody>> getDeletedVarianBodies() async {
+  Future<List<VarianBody>> getDeletedVarianBodies({String search = ''}) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .get('/admin/varian-body/trash');
+        .get('/admin/varian-body/trash', queryParameters: {'search': search});
     final List<dynamic> data = response.data;
     return data.map((item) => VarianBody.fromJson(item)).toList();
+  }
+
+  // Method Baru: Kosongkan Sampah
+  Future<Map<String, dynamic>> emptyTrashVarianBody() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/varian-body/trash/empty');
+    return response.data;
   }
 
   Future<void> restoreVarianBody(int id) async {

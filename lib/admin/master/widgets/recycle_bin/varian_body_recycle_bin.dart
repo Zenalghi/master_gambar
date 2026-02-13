@@ -19,6 +19,8 @@ class VarianBodyRecycleBin extends ConsumerStatefulWidget {
 class _VarianBodyRecycleBinState extends ConsumerState<VarianBodyRecycleBin> {
   bool _isLoading = true;
   List<VarianBody> _deletedItems = [];
+  String _searchQuery = ''; // State pencarian
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -26,11 +28,18 @@ class _VarianBodyRecycleBinState extends ConsumerState<VarianBodyRecycleBin> {
     _fetchTrash();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _fetchTrash() async {
+    setState(() => _isLoading = true);
     try {
       final data = await ref
           .read(masterDataRepositoryProvider)
-          .getDeletedVarianBodies();
+          .getDeletedVarianBodies(search: _searchQuery);
       if (mounted) {
         setState(() {
           _deletedItems = data;
@@ -42,11 +51,66 @@ class _VarianBodyRecycleBinState extends ConsumerState<VarianBodyRecycleBin> {
     }
   }
 
+  // --- LOGIKA KOSONGKAN SAMPAH ---
+  Future<void> _emptyTrash() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Kosongkan Sampah?'),
+        content: const Text(
+          'Semua data Varian Body di recycle bin akan dihapus permanen.\n'
+          'Data yang memiliki Gambar Utama atau Optional tidak akan dihapus.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus Semua'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final result = await ref
+          .read(masterDataRepositoryProvider)
+          .emptyTrashVarianBody();
+
+      await _fetchTrash();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Sampah dikosongkan'),
+            backgroundColor: (result['skipped'] ?? 0) > 0
+                ? Colors.orange
+                : Colors.green,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   Future<void> _restore(int id) async {
     try {
       await ref.read(masterDataRepositoryProvider).restoreVarianBody(id);
       await _fetchTrash();
-      ref.invalidate(varianBodyFilterProvider); // Refresh tabel utama
+      ref.invalidate(varianBodyFilterProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -87,26 +151,69 @@ class _VarianBodyRecycleBinState extends ConsumerState<VarianBodyRecycleBin> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Recycle Bin - Varian Body'),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text('Recycle Bin - Varian Body'),
+          // --- SEARCH BAR ---
+          SizedBox(
+            width: 250,
+            height: 35,
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Cari Varian / Info Kendaraan...',
+                prefixIcon: const Icon(Icons.search, size: 18),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 16),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                          _fetchTrash();
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (val) {
+                setState(() => _searchQuery = val);
+                _fetchTrash();
+              },
+            ),
+          ),
+        ],
+      ),
       content: SizedBox(
-        width: 700, // Lebih lebar karena info master data
+        width: 700,
         height: 400,
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _deletedItems.isEmpty
-            ? const Center(child: Text('Sampah kosong'))
+            ? const Center(child: Text('Sampah kosong / Tidak ditemukan'))
             : ListView.separated(
                 itemCount: _deletedItems.length,
                 separatorBuilder: (_, __) => const Divider(),
                 itemBuilder: (context, index) {
                   final item = _deletedItems[index];
                   final md = item.masterData;
-                  final dateStr = DateFormat(
-                    'dd/MM/yyyy HH:mm',
-                  ).format(item.updatedAt!.toLocal());
+                  final dateStr = item.updatedAt != null
+                      ? DateFormat(
+                          'dd/MM/yyyy HH:mm:ss',
+                        ).format(item.updatedAt!.toLocal())
+                      : 'Unknown';
 
                   return ListTile(
-                    title: Text(item.name),
+                    title: Text(
+                      item.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -144,7 +251,16 @@ class _VarianBodyRecycleBinState extends ConsumerState<VarianBodyRecycleBin> {
                 },
               ),
       ),
+      actionsAlignment: MainAxisAlignment.spaceBetween,
       actions: [
+        // TOMBOL KOSONGKAN SAMPAH
+        TextButton.icon(
+          onPressed: _deletedItems.isEmpty ? null : _emptyTrash,
+          icon: const Icon(Icons.delete_sweep, size: 18),
+          label: const Text('Kosongkan Sampah'),
+          style: TextButton.styleFrom(foregroundColor: Colors.red),
+        ),
+
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Tutup'),
