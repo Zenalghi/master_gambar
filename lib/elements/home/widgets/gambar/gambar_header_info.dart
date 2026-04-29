@@ -12,6 +12,7 @@ class GambarHeaderInfo extends ConsumerWidget {
   void _resetAndRefresh(BuildContext context, WidgetRef ref) {
     ref.read(isProcessingProvider.notifier).state = false;
     ref.read(deskripsiOptionalProvider.notifier).state = '';
+    ref.read(descSpaceProvider.notifier).state = 0;
     ref.read(jumlahGambarProvider.notifier).state = 1;
     ref.invalidate(gambarUtamaSelectionProvider);
     ref.invalidate(varianBodyStatusOptionsProvider);

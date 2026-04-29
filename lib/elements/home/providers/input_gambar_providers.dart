@@ -7,8 +7,6 @@ import 'package:master_gambar/data/providers/api_endpoints.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../repository/options_repository.dart';
 
-// import 'package:equatable/equatable.dart';
-
 class VarianFilterParams {
   final String search;
   final int? masterDataId;
@@ -32,6 +30,9 @@ final isProcessingProvider = StateProvider<bool>((ref) => false);
 
 // === State untuk Pilihan Utama ===
 final deskripsiOptionalProvider = StateProvider<String>((ref) => '');
+
+// State baru untuk Space/Jarak baris
+final descSpaceProvider = StateProvider<int>((ref) => 0);
 
 final jumlahGambarProvider = StateProvider<int>((ref) => 1);
 

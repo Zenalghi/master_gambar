@@ -23,6 +23,7 @@ class ProsesTransaksiRepository {
     required List<Map<String, dynamic>> dataGambarUtama,
     List<int>? orderedIndependentIds,
     String? deskripsiOptional,
+    int descSpace = 0,
     int? iGambarKelistrikanId,
   }) async {
     final kelistrikanId = _ref.read(selectedKelistrikanIdProvider);
@@ -39,6 +40,7 @@ class ProsesTransaksiRepository {
               'data_gambar_utama': dataGambarUtama,
               'ordered_independent_ids': orderedIndependentIds,
               'deskripsi_optional': deskripsiOptional,
+              'desc_space': descSpace, // <--- TAMBAHKAN INI
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
             },
           );
@@ -57,6 +59,7 @@ class ProsesTransaksiRepository {
     required List<int>? hGambarOptionalIds,
     required int pageNumber,
     String? deskripsiOptional,
+    int descSpace = 0,
     required List<int> orderedIndependentIds,
     int? iGambarKelistrikanId,
   }) async {
@@ -75,6 +78,7 @@ class ProsesTransaksiRepository {
               'aksi': 'preview',
               'preview_page': pageNumber,
               'deskripsi_optional': deskripsiOptional,
+              'desc_space': descSpace,
               'ordered_independent_ids': orderedIndependentIds,
             },
             options: Options(responseType: ResponseType.bytes),
@@ -94,6 +98,7 @@ class ProsesTransaksiRepository {
     required List<int> judulGambarIds,
     required List<int>? hGambarOptionalIds,
     String? deskripsiOptional,
+    int descSpace = 0,
     List<int>? orderedIndependentIds,
     int? iGambarKelistrikanId,
   }) async {
@@ -122,6 +127,7 @@ class ProsesTransaksiRepository {
               'aksi': 'proses',
               'ordered_independent_ids': orderedIndependentIds,
               'deskripsi_optional': deskripsiOptional,
+              'desc_space': descSpace,
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
             },
             options: Options(

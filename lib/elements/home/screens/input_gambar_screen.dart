@@ -78,6 +78,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     ref.read(jumlahGambarProvider.notifier).state = 1;
     ref.invalidate(gambarUtamaSelectionProvider);
     ref.read(deskripsiOptionalProvider.notifier).state = '';
+    ref.read(descSpaceProvider.notifier).state = 0;
     _deskripsiOptionalController.text = '';
     ref.invalidate(varianBodyStatusOptionsProvider);
     ref.invalidate(dependentOptionalOptionsProvider);
@@ -131,6 +132,10 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       ref.read(deskripsiOptionalProvider.notifier).state =
           detail.deskripsiOptional!;
       _deskripsiOptionalController.text = detail.deskripsiOptional!;
+    }
+
+    if (detail.descSpace != null) {
+      ref.read(descSpaceProvider.notifier).state = detail.descSpace!;
     }
     if (detail.iGambarKelistrikanId != null) {
       ref.read(selectedKelistrikanIdProvider.notifier).state =
@@ -250,6 +255,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             hGambarOptionalIds: dependentOptionalIds,
             pageNumber: finalPageNumber,
             deskripsiOptional: deskripsiOptional,
+            descSpace: ref.read(descSpaceProvider),
             iGambarKelistrikanId: kelistrikanId,
           );
 
@@ -329,6 +335,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             iGambarKelistrikanId: kelistrikanId,
             orderedIndependentIds: orderedIndependentIds,
             deskripsiOptional: deskripsiOptional,
+            descSpace: ref.read(descSpaceProvider),
           );
 
       if (context.mounted) {
@@ -384,6 +391,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             dataGambarUtama: dataGambarUtama,
             orderedIndependentIds: currentOrderedIds,
             deskripsiOptional: ref.read(deskripsiOptionalProvider),
+            descSpace: ref.read(descSpaceProvider),
             iGambarKelistrikanId: kelistrikanId,
           );
 

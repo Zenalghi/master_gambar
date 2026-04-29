@@ -852,13 +852,33 @@ class GambarMainForm extends ConsumerWidget {
             // --- 7. Deskripsi Optional (Kondisional) ---
             if (showDeskripsiOptional) ...[
               const Divider(height: 10),
-              const Text(
-                'Deskripsi Optional',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Deskripsi Optional',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      const Text(
+                        'Posisikan Teks Naik (Baris):',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Widget Counter Baru
+                      DescSpaceCounterWidget(isEditMode: isEditMode),
+                    ],
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               TextFormField(
@@ -936,6 +956,118 @@ class GambarMainForm extends ConsumerWidget {
           separatorBuilder: (context, index) => const SizedBox(height: 8),
         ),
       ],
+    );
+  }
+}
+
+// === WIDGET KHUSUS UNTUK COUNTER DESC SPACE ===
+class DescSpaceCounterWidget extends ConsumerStatefulWidget {
+  final bool isEditMode;
+  const DescSpaceCounterWidget({super.key, required this.isEditMode});
+
+  @override
+  ConsumerState<DescSpaceCounterWidget> createState() =>
+      _DescSpaceCounterWidgetState();
+}
+
+class _DescSpaceCounterWidgetState
+    extends ConsumerState<DescSpaceCounterWidget> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialVal = ref.read(descSpaceProvider);
+    _controller = TextEditingController(text: initialVal.toString());
+  }
+
+  // Sinkronisasi jika data berubah dari luar (misal diload dari DB)
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final val = ref.watch(descSpaceProvider);
+    if (_controller.text != val.toString()) {
+      _controller.text = val.toString();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _updateValue(int newValue) {
+    if (!widget.isEditMode) return;
+    if (newValue < 0) newValue = 0; // Tidak boleh minus
+    ref.read(descSpaceProvider.notifier).state = newValue;
+    _controller.text = newValue.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade400),
+        borderRadius: BorderRadius.circular(4),
+        color: widget.isEditMode ? Colors.white : Colors.grey.shade100,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Tombol Minus (-)
+          InkWell(
+            onTap: widget.isEditMode
+                ? () {
+                    final current = ref.read(descSpaceProvider);
+                    _updateValue(current - 1);
+                  }
+                : null,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Icon(Icons.remove, size: 18),
+            ),
+          ),
+
+          // Kolom Input Angka
+          SizedBox(
+            width: 35,
+            child: TextField(
+              controller: _controller,
+              enabled: widget.isEditMode,
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 4),
+              ),
+              onSubmitted: (val) {
+                _updateValue(int.tryParse(val) ?? 0);
+              },
+              onEditingComplete: () {
+                _updateValue(int.tryParse(_controller.text) ?? 0);
+                FocusScope.of(context).unfocus(); // Lepas fokus keyboard
+              },
+            ),
+          ),
+
+          // Tombol Plus (+)
+          InkWell(
+            onTap: widget.isEditMode
+                ? () {
+                    final current = ref.read(descSpaceProvider);
+                    _updateValue(current + 1);
+                  }
+                : null,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Icon(Icons.add, size: 18),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
