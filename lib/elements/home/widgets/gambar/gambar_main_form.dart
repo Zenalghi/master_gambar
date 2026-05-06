@@ -977,18 +977,9 @@ class _DescSpaceCounterWidgetState
   @override
   void initState() {
     super.initState();
+    // Inisialisasi awal saat widget pertama kali dibuat
     final initialVal = ref.read(descSpaceProvider);
     _controller = TextEditingController(text: initialVal.toString());
-  }
-
-  // Sinkronisasi jika data berubah dari luar (misal diload dari DB)
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final val = ref.watch(descSpaceProvider);
-    if (_controller.text != val.toString()) {
-      _controller.text = val.toString();
-    }
   }
 
   @override
@@ -998,19 +989,38 @@ class _DescSpaceCounterWidgetState
   }
 
   void _updateValue(int newValue) {
-    if (!widget.isEditMode) return;
+    if (!widget.isEditMode) return; // Proteksi ganda
     if (newValue < 0) newValue = 0; // Tidak boleh minus
+
+    // Update State Riverpod
     ref.read(descSpaceProvider.notifier).state = newValue;
-    _controller.text = newValue.toString();
+
+    // Update Text Controller (agar kursor tidak lari ke kiri saat diketik)
+    _controller.value = TextEditingValue(
+      text: newValue.toString(),
+      selection: TextSelection.collapsed(offset: newValue.toString().length),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // --- KUNCI REAKTIVITAS DI SINI ---
+    // Pantau perubahan descSpaceProvider secara terus-menerus.
+    // Jika provider berubah (karena load transaksi baru dari _loadSavedState),
+    // paksa TextEditingController untuk update isinya.
+    ref.listen<int>(descSpaceProvider, (previous, next) {
+      if (_controller.text != next.toString()) {
+        _controller.text = next.toString();
+      }
+    });
+    // ---------------------------------
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade400),
         borderRadius: BorderRadius.circular(4),
-        color: widget.isEditMode ? Colors.white : Colors.grey.shade100,
+        // Warna background beda antara Edit vs Read-Only
+        color: widget.isEditMode ? Colors.white : Colors.grey.shade200,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1022,10 +1032,15 @@ class _DescSpaceCounterWidgetState
                     final current = ref.read(descSpaceProvider);
                     _updateValue(current - 1);
                   }
-                : null,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Icon(Icons.remove, size: 18),
+                : null, // Null = Disable klik saat read-only
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Icon(
+                Icons.remove,
+                size: 18,
+                // Warna pudar jika read-only
+                color: widget.isEditMode ? Colors.black87 : Colors.grey,
+              ),
             ),
           ),
 
@@ -1034,10 +1049,15 @@ class _DescSpaceCounterWidgetState
             width: 35,
             child: TextField(
               controller: _controller,
-              enabled: widget.isEditMode,
+              enabled: widget.isEditMode, // Kunci input jika read-only
+              readOnly: !widget.isEditMode,
               textAlign: TextAlign.center,
               keyboardType: TextInputType.number,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: widget.isEditMode ? Colors.black : Colors.grey.shade600,
+              ),
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 isDense: true,
@@ -1046,9 +1066,10 @@ class _DescSpaceCounterWidgetState
               onSubmitted: (val) {
                 _updateValue(int.tryParse(val) ?? 0);
               },
+              // Update saat user selesai ngetik dan klik area lain
               onEditingComplete: () {
                 _updateValue(int.tryParse(_controller.text) ?? 0);
-                FocusScope.of(context).unfocus(); // Lepas fokus keyboard
+                FocusScope.of(context).unfocus();
               },
             ),
           ),
@@ -1060,10 +1081,15 @@ class _DescSpaceCounterWidgetState
                     final current = ref.read(descSpaceProvider);
                     _updateValue(current + 1);
                   }
-                : null,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Icon(Icons.add, size: 18),
+                : null, // Null = Disable klik saat read-only
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Icon(
+                Icons.add,
+                size: 18,
+                // Warna pudar jika read-only
+                color: widget.isEditMode ? Colors.black87 : Colors.grey,
+              ),
             ),
           ),
         ],
