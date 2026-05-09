@@ -257,6 +257,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             deskripsiOptional: deskripsiOptional,
             descSpace: ref.read(descSpaceProvider),
             iGambarKelistrikanId: kelistrikanId,
+            isEditMode: ref.read(isEditModeProvider),
           );
 
       if (context.mounted) {

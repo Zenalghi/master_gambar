@@ -62,6 +62,7 @@ class ProsesTransaksiRepository {
     int descSpace = 0,
     required List<int> orderedIndependentIds,
     int? iGambarKelistrikanId,
+    required bool isEditMode,
   }) async {
     try {
       final response = await _ref
@@ -80,6 +81,7 @@ class ProsesTransaksiRepository {
               'deskripsi_optional': deskripsiOptional,
               'desc_space': descSpace,
               'ordered_independent_ids': orderedIndependentIds,
+              'is_edit_mode': isEditMode,
             },
             options: Options(responseType: ResponseType.bytes),
           );
