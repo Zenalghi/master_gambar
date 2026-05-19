@@ -1,3 +1,5 @@
+// File: lib/elements/home/widgets/gambar/gambar_header_info.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
@@ -9,11 +11,13 @@ class GambarHeaderInfo extends ConsumerWidget {
   final Transaksi transaksi;
 
   const GambarHeaderInfo({super.key, required this.transaksi});
+
   void _resetAndRefresh(BuildContext context, WidgetRef ref) {
     ref.read(isProcessingProvider.notifier).state = false;
     ref.read(deskripsiOptionalProvider.notifier).state = '';
     ref.read(descSpaceProvider.notifier).state = 0;
     ref.read(jumlahGambarProvider.notifier).state = 1;
+    ref.read(pihakPenyetujuanProvider.notifier).state = 'vendor';
     ref.invalidate(gambarUtamaSelectionProvider);
     ref.invalidate(varianBodyStatusOptionsProvider);
     ref.read(refreshNotifierProvider.notifier).refresh();
@@ -31,6 +35,9 @@ class GambarHeaderInfo extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isEditMode = ref.watch(isEditModeProvider);
+    final pihakPenyetujuan = ref.watch(pihakPenyetujuanProvider);
+    final isCustomerPenyetuju = pihakPenyetujuan == 'customer';
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -64,23 +71,39 @@ class GambarHeaderInfo extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 _buildInfoField('Customer', transaksi.customer.namaPt),
-
                 const SizedBox(width: 16),
                 _buildInfoField(
                   'Jenis Pengajuan',
                   transaksi.fPengajuan.jenisPengajuan,
                 ),
                 const SizedBox(width: 16),
+
                 Expanded(
                   child: IgnorePointer(
                     ignoring: !isEditMode, // Kunci jika bukan edit mode
                     child: Opacity(
-                      opacity: isEditMode ? 1.0 : 0.6, // Visual cue
-                      child: _buildPemeriksaDropdown(ref),
+                      opacity: isEditMode ? 1.0 : 0.6,
+                      child: _buildPihakPenyetujuanDropdown(ref),
                     ),
                   ),
                 ),
                 const SizedBox(width: 16),
+
+                // --- DROPDOWN LAMA: PEMERIKSA ---
+                Expanded(
+                  child: IgnorePointer(
+                    // Kunci jika bukan edit mode ATAU jika pihak penyetujuan = customer
+                    ignoring: !isEditMode || isCustomerPenyetuju,
+                    child: Opacity(
+                      // Redupkan jika dikunci
+                      opacity: (isEditMode && !isCustomerPenyetuju) ? 1.0 : 0.4,
+                      child: _buildPemeriksaDropdown(ref, isCustomerPenyetuju),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+
+                // --- DROPDOWN JUMLAH GAMBAR & REFRESH ---
                 Expanded(
                   flex: 1,
                   child: Row(
@@ -142,16 +165,49 @@ class GambarHeaderInfo extends ConsumerWidget {
     );
   }
 
+  // --- WIDGET BARU: DROPDOWN PIHAK PENYETUJUAN ---
+  Widget _buildPihakPenyetujuanDropdown(WidgetRef ref) {
+    final selectedValue = ref.watch(pihakPenyetujuanProvider);
+
+    return DropdownButtonFormField<String>(
+      value: selectedValue,
+      itemHeight: 30,
+      style: const TextStyle(fontSize: 13, color: Colors.black),
+      decoration: const InputDecoration(
+        labelStyle: TextStyle(fontSize: 13),
+        labelText: 'Pihak Penyetujuan',
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+      ),
+      items: const [
+        DropdownMenuItem(value: 'vendor', child: Text('Internal (Vendor)')),
+        DropdownMenuItem(
+          value: 'customer',
+          child: Text('Eksternal (Customer)'),
+        ),
+      ],
+      onChanged: (value) {
+        if (value != null) {
+          ref.read(pihakPenyetujuanProvider.notifier).state = value;
+
+          // Opsional: Jika user pilih 'customer', kita hapus (null-kan) pilihan pemeriksa internalnya.
+          // Jika mau dibiarkan tetap ada (meski gak dipakai) ya tidak apa-apa, tapi lebih bersih jika di-null-kan.
+          if (value == 'customer') {
+            ref.read(pemeriksaIdProvider.notifier).state = null;
+          }
+        }
+      },
+    );
+  }
+
   Widget _buildJumlahGambarDropdown(WidgetRef ref) {
     final selectedJumlah = ref.watch(jumlahGambarProvider);
-    // --- LOGIKA BARU: TENTUKAN OPSI BERDASARKAN JENIS PENGAJUAN ---
     final jenisPengajuan = transaksi.fPengajuan.jenisPengajuan.toUpperCase();
     List<int> options = [1, 2, 3, 4];
     if (jenisPengajuan == 'VARIAN') {
       options = [1, 2, 3];
     }
     if (!options.contains(selectedJumlah)) {
-      // Kita gunakan Future.microtask karena tidak boleh setState saat build
       Future.microtask(() {
         ref.read(jumlahGambarProvider.notifier).state = options.last;
       });
@@ -179,18 +235,22 @@ class GambarHeaderInfo extends ConsumerWidget {
   }
 }
 
-Widget _buildPemeriksaDropdown(WidgetRef ref) {
+// PERHATIKAN: Widget ini saya ubah agar menerima param `isCustomerPenyetuju`
+Widget _buildPemeriksaDropdown(WidgetRef ref, bool isCustomerPenyetuju) {
   final pemeriksaOptionsAsync = ref.watch(pemeriksaOptionsProvider);
   final selectedId = ref.watch(pemeriksaIdProvider);
+
   ref.listen<AsyncValue<List<OptionItem>>>(pemeriksaOptionsProvider, (
     previous,
     next,
   ) {
     if (next is AsyncData && !(previous is AsyncData)) {
       final options = next.value;
+      // Jangan set otomatis jika pihak penyetujuannya adalah customer
       if (options != null &&
           options.isNotEmpty &&
-          ref.read(pemeriksaIdProvider) == null) {
+          ref.read(pemeriksaIdProvider) == null &&
+          !isCustomerPenyetuju) {
         ref.read(pemeriksaIdProvider.notifier).state = options.first.id as int?;
       }
     }
@@ -198,7 +258,7 @@ Widget _buildPemeriksaDropdown(WidgetRef ref) {
 
   return pemeriksaOptionsAsync.when(
     data: (items) {
-      if (items.isNotEmpty && selectedId == null) {
+      if (items.isNotEmpty && selectedId == null && !isCustomerPenyetuju) {
         Future.microtask(() {
           if (ref.read(pemeriksaIdProvider) == null) {
             ref.read(pemeriksaIdProvider.notifier).state =
@@ -208,13 +268,13 @@ Widget _buildPemeriksaDropdown(WidgetRef ref) {
       }
 
       return DropdownButtonFormField<int>(
-        value: selectedId,
+        value: selectedId, // Jika null, akan menampilkan 'hint'
         itemHeight: 30,
         style: const TextStyle(fontSize: 13, color: Colors.black),
-        hint: const Text('Pemeriksa', style: TextStyle(fontSize: 13)),
+        hint: const Text('Pilih Pemeriksa', style: TextStyle(fontSize: 13)),
         decoration: const InputDecoration(
           labelStyle: TextStyle(fontSize: 13),
-          labelText: 'Pemeriksa',
+          labelText: 'Pemeriksa Internal',
           border: OutlineInputBorder(),
           contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
         ),
@@ -229,7 +289,14 @@ Widget _buildPemeriksaDropdown(WidgetRef ref) {
         onChanged: (value) {
           ref.read(pemeriksaIdProvider.notifier).state = value;
         },
-        validator: (value) => value == null ? 'Wajib dipilih' : null,
+        // LOGIKA BARU VALIDASI:
+        // Wajib dipilih HANYA jika pihak penyetujuan BUKAN customer
+        validator: (value) {
+          if (!isCustomerPenyetuju && value == null) {
+            return 'Wajib dipilih';
+          }
+          return null;
+        },
       );
     },
     loading: () => const Center(child: CircularProgressIndicator()),

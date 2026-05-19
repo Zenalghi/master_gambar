@@ -55,7 +55,7 @@ class ProsesTransaksiRepository {
 
   Future<Uint8List> getPreviewPdf({
     required String transaksiId,
-    required int pemeriksaId,
+    int? pemeriksaId,
     required String pihakPenyetujuan,
     required List<int> varianBodyIds,
     required List<int> judulGambarIds,
@@ -75,7 +75,7 @@ class ProsesTransaksiRepository {
             '${ApiEndpoints.transaksi}/$transaksiId/proses',
             data: {
               'pemeriksa_id': pemeriksaId,
-              'pihak_penyetujuan': pihakPenyetujuan, 
+              'pihak_penyetujuan': pihakPenyetujuan,
               'varian_body_ids': varianBodyIds,
               'judul_gambar_ids': judulGambarIds,
               'h_gambar_optional_ids': hGambarOptionalIds,
@@ -99,7 +99,7 @@ class ProsesTransaksiRepository {
     required String transaksiId,
     required String suggestedFileName,
     required String extension,
-    required int pemeriksaId,
+    int? pemeriksaId,
     required String pihakPenyetujuan,
     required List<int> varianBodyIds,
     required List<int> judulGambarIds,

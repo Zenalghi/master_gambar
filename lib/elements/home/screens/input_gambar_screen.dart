@@ -75,6 +75,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
   void _resetInputGambarState() {
     ref.read(isProcessingProvider.notifier).state = false;
     ref.read(pemeriksaIdProvider.notifier).state = null;
+    ref.read(pihakPenyetujuanProvider.notifier).state = 'vendor';
     ref.read(jumlahGambarProvider.notifier).state = 1;
     ref.invalidate(gambarUtamaSelectionProvider);
     ref.read(deskripsiOptionalProvider.notifier).state = '';
@@ -88,6 +89,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
 
   void _loadSavedState(TransaksiDetail detail) {
     ref.read(pemeriksaIdProvider.notifier).state = detail.pemeriksaId;
+    ref.read(pihakPenyetujuanProvider.notifier).state = detail.pihakPenyetujuan;
     ref.read(jumlahGambarProvider.notifier).state = detail.jumlahGambar;
     ref.read(gambarUtamaSelectionProvider.notifier).resize(detail.jumlahGambar);
     final jenisPengajuan = widget.transaksi.fPengajuan.jenisPengajuan
@@ -111,14 +113,9 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             varianBodyId: item['varian_id'],
           );
     }
-    // TransaksiDetail model sudah punya field 'orderedIndependentIds' (List<int>)
 
     if (detail.orderedIndependentIds != null &&
         detail.orderedIndependentIds!.isNotEmpty) {
-      // Kita panggil applySavedOrder.
-      // Note: Ini mungkin perlu delay sedikit agar fetchByMasterData selesai dulu,
-      // atau panggil di dalam callback 'whenData' di provider.
-      // Cara aman sederhana:
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
           ref
@@ -170,26 +167,29 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     ref.read(isProcessingProvider.notifier).state = true;
     try {
       final pemeriksaId = ref.read(pemeriksaIdProvider);
+      final pihakPenyetujuan = ref.read(
+        pihakPenyetujuanProvider,
+      ); // <-- AMBIL PIHAK PENYETUJUAN
       final selections = ref.read(gambarUtamaSelectionProvider);
       final deskripsiOptional = ref.read(deskripsiOptionalProvider);
       final independentAsync = ref.read(independentListNotifierProvider);
       List<int> orderedIndependentIds = [];
 
       independentAsync.whenData((state) {
-        // HANYA AMBIL YANG ACTIVE
         orderedIndependentIds = state.activeItems
             .map((e) => e.id as int)
             .toList();
       });
-      // --- Info Kelistrikan ---
+
       final kelistrikanInfo = ref.read(kelistrikanInfoProvider);
       final statusKelistrikan = kelistrikanInfo?['status_code'];
       final kelistrikanId = ref.read(selectedKelistrikanIdProvider);
       final bool isKelistrikanReady =
           statusKelistrikan == 'ready' && kelistrikanId != null;
 
-      // --- Validasi Pemeriksa ---
-      if (pemeriksaId == null) {
+      // --- PERBAIKAN VALIDASI PEMERIKSA ---
+      // Hanya wajib jika pihak penyetujuan adalah vendor
+      if (pihakPenyetujuan == 'vendor' && pemeriksaId == null) {
         _showSnackBar('Pilih pemeriksa terlebih dahulu.', Colors.orange);
         return;
       }
@@ -206,7 +206,6 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
         return;
       }
 
-      // --- Ambil Data ID ---
       final varianBodyIds = selections
           .where((s) => s.varianBodyId != null && s.judulId != null)
           .map((s) => s.varianBodyId!)
@@ -219,7 +218,6 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
 
       final bool hasVarianBody = varianBodyIds.isNotEmpty;
 
-      // --- Validasi Minimal Konten ---
       if (!hasVarianBody && !isKelistrikanReady) {
         _showSnackBar(
           'Pilih setidaknya satu Varian Body ATAU pastikan Kelistrikan tersedia.',
@@ -228,29 +226,24 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
         return;
       }
 
-      // --- Ambil Data Paket (Dependent) ---
-      // Penting: Backend butuh ini untuk memvalidasi Paket Optional mana yang dicentang
       final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
 
-      // --- Logika Smart Page Number ---
       int finalPageNumber = pageNumber;
       if (!hasVarianBody) {
         final jumlahGambarUtama = ref.read(jumlahGambarProvider);
-        // Skip halaman Utama, Terurai, Kontruksi, dan Paket
         final int skippedPages =
             (jumlahGambarUtama * 3) + dependentOptionalIds.length;
         finalPageNumber = pageNumber - skippedPages;
         if (finalPageNumber < 1) finalPageNumber = 1;
       }
 
-      // --- Kirim ke Backend ---
       final pdfData = await ref
           .read(prosesTransaksiRepositoryProvider)
           .getPreviewPdf(
-            pihakPenyetujuan: '',
+            pihakPenyetujuan: pihakPenyetujuan, // <-- KIRIM PIHAK PENYETUJUAN
             orderedIndependentIds: orderedIndependentIds,
             transaksiId: widget.transaksi.id,
-            pemeriksaId: pemeriksaId,
+            pemeriksaId: pemeriksaId, // Sekarang boleh null
             varianBodyIds: varianBodyIds,
             judulGambarIds: judulGambarIds,
             hGambarOptionalIds: dependentOptionalIds,
@@ -286,12 +279,13 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final bool isGambarTU = jenisPengajuan == 'GAMBAR TU';
       final String extension = isGambarTU ? 'pdf' : 'zip';
       final pemeriksaId = ref.read(pemeriksaIdProvider);
+      final pihakPenyetujuan = ref.read(
+        pihakPenyetujuanProvider,
+      ); // <-- AMBIL PIHAK PENYETUJUAN
       final selections = ref.read(gambarUtamaSelectionProvider);
       final deskripsiOptional = ref.read(deskripsiOptionalProvider);
-      // --- Info Kelistrikan ---
       final kelistrikanId = ref.read(selectedKelistrikanIdProvider);
 
-      // Filter Data Valid
       final varianBodyIds = selections
           .where((s) => s.varianBodyId != null && s.judulId != null)
           .map((s) => s.varianBodyId!)
@@ -302,13 +296,11 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
           .map((s) => s.judulId!)
           .toList();
 
-      // WAJIB: Ambil Paket Optional (Dependent)
       final dependentOptionalIds = ref.read(activeDependentOptionalIdsProvider);
       final independentAsync = ref.read(independentListNotifierProvider);
       List<int> orderedIndependentIds = [];
 
       independentAsync.whenData((state) {
-        // HANYA AMBIL YANG ACTIVE
         orderedIndependentIds = state.activeItems
             .map((e) => e.id as int)
             .toList();
@@ -327,11 +319,11 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       await ref
           .read(prosesTransaksiRepositoryProvider)
           .downloadProcessedPdfs(
-            pihakPenyetujuan: '',
+            pihakPenyetujuan: pihakPenyetujuan, // <-- KIRIM PIHAK PENYETUJUAN
             transaksiId: widget.transaksi.id,
             suggestedFileName: suggestedFileName,
             extension: extension,
-            pemeriksaId: pemeriksaId!,
+            pemeriksaId: pemeriksaId, // HAPUS TANDA SERU (!), karna boleh null
             varianBodyIds: varianBodyIds,
             judulGambarIds: judulGambarIds,
             hGambarOptionalIds: dependentOptionalIds,
@@ -369,10 +361,19 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
 
   Future<void> _handleSave(BuildContext context) async {
     final pemeriksaId = ref.read(pemeriksaIdProvider);
-    if (pemeriksaId == null) {
-      _showSnackBar('Pilih pemeriksa untuk menyimpan draft.', Colors.orange);
+    final pihakPenyetujuan = ref.read(
+      pihakPenyetujuanProvider,
+    ); // <-- AMBIL PIHAK PENYETUJUAN
+
+    // --- PERBAIKAN VALIDASI SIMPAN ---
+    if (pihakPenyetujuan == 'vendor' && pemeriksaId == null) {
+      _showSnackBar(
+        'Pilih pemeriksa internal untuk menyimpan draft.',
+        Colors.orange,
+      );
       return;
     }
+
     final kelistrikanId = ref.read(selectedKelistrikanIdProvider);
     final selections = ref.read(gambarUtamaSelectionProvider);
     List<Map<String, dynamic>> dataGambarUtama = selections
@@ -388,9 +389,9 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       await ref
           .read(prosesTransaksiRepositoryProvider)
           .saveDraft(
-            pihakPenyetujuan: '',
+            pihakPenyetujuan: pihakPenyetujuan, // <-- KIRIM PIHAK PENYETUJUAN
             transaksiId: widget.transaksi.id,
-            pemeriksaId: pemeriksaId,
+            pemeriksaId: pemeriksaId, // Sekarang boleh null
             jumlahGambar: ref.read(jumlahGambarProvider),
             dataGambarUtama: dataGambarUtama,
             orderedIndependentIds: currentOrderedIds,
@@ -401,7 +402,6 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
 
       if (mounted) {
         _showSnackBar('Draft berhasil disimpan!', Colors.green);
-        // SETELAH SIMPAN -> MATIKAN MODE EDIT
         setState(() {
           _hasSavedData = true;
         });
@@ -413,7 +413,6 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
   }
 
   Future<void> _handleDelete(BuildContext context) async {
-    // Tampilkan Dialog Konfirmasi
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -439,11 +438,10 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       try {
         await ref
             .read(prosesTransaksiRepositoryProvider)
-            .deleteTransaksi(widget.transaksi.id); // Panggil API Delete
+            .deleteTransaksi(widget.transaksi.id);
 
         if (mounted) {
           _showSnackBar('Data berhasil dihapus.', Colors.green);
-          // Kembali ke halaman list transaksi
           ref.read(pageStateProvider.notifier).state = PageState(pageIndex: 0);
         }
       } catch (e) {
@@ -455,17 +453,12 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
   void _toggleEditMode() {
     final isEditMode = ref.read(isEditModeProvider);
     if (isEditMode) {
-      // Jika user menekan "Batal Edit"
-      // Revert data ke kondisi awal (load ulang dari widget.transaksi jika detail tidak null,
-      // tapi idealnya fetch ulang detail terbaru dari API.
-      // Sederhananya, kita reset dan load saved state yang ada di memory)
       if (widget.transaksi.detail != null) {
         _loadSavedState(widget.transaksi.detail!);
       }
       ref.read(isEditModeProvider.notifier).state = false;
       _showSnackBar('Edit dibatalkan.', Colors.blue);
     } else {
-      // Jika user menekan "Edit"
       ref.read(isEditModeProvider.notifier).state = true;
     }
   }
@@ -476,36 +469,32 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
         content: Text(message),
         backgroundColor: color,
         duration: const Duration(seconds: 4),
-        behavior: SnackBarBehavior.floating, // Agar melayang
-        margin: const EdgeInsets.only(
-          bottom: 50, // Angkat setinggi 80px (sesuaikan tinggi tombol Anda)
-          left: 50,
-          right: 50,
-        ),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(bottom: 50, left: 50, right: 50),
       ),
     );
   }
 
   Widget _buildAksiButton(BuildContext context) {
     final pemeriksaId = ref.watch(pemeriksaIdProvider);
+    final pihakPenyetujuan = ref.watch(pihakPenyetujuanProvider);
     final selections = ref.watch(gambarUtamaSelectionProvider);
     final isEditMode = ref.watch(isEditModeProvider);
     final isLoading = ref.watch(isProcessingProvider);
 
+    // --- LOGIKA VALIDASI BUTTON BARU ---
+    final isCustomerPenyetuju = pihakPenyetujuan == 'customer';
     final bool areSelectionsValid =
         selections.isNotEmpty &&
         selections.every((s) => s.judulId != null && s.varianBodyId != null);
-    final bool isFormValid = pemeriksaId != null && areSelectionsValid;
+
+    // Valid jika customer, ATAU jika vendor maka pemeriksaId harus terisi
+    final bool isPemeriksaValid = isCustomerPenyetuju || pemeriksaId != null;
+    final bool isFormValid = isPemeriksaValid && areSelectionsValid;
 
     // CASE 1: Belum ada data tersimpan (New Data) -> [Simpan] [Proses]
     if (!_hasSavedData) {
-      return Row(
-        children: [
-          Expanded(child: _btnSimpan(context)),
-          // const SizedBox(width: 10),
-          // Expanded(flex: 2, child: _btnProses(context, isFormValid, isLoading)),
-        ],
-      );
+      return Row(children: [Expanded(child: _btnSimpan(context))]);
     }
 
     // CASE 2: Ada data & Mode Edit Aktif -> [Batal Edit] [Hapus] [Simpan]
