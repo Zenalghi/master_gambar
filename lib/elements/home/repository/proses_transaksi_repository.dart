@@ -1,4 +1,4 @@
-//lib\elements\home\repository\proses_transaksi_repository.dart
+// File: lib/elements/home/repository/proses_transaksi_repository.dart
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
@@ -19,6 +19,7 @@ class ProsesTransaksiRepository {
   Future<void> saveDraft({
     required String transaksiId,
     required int? pemeriksaId,
+    required String pihakPenyetujuan,
     required int jumlahGambar,
     required List<Map<String, dynamic>> dataGambarUtama,
     List<int>? orderedIndependentIds,
@@ -36,11 +37,12 @@ class ProsesTransaksiRepository {
             '${ApiEndpoints.transaksi}/$transaksiId/save',
             data: {
               'pemeriksa_id': pemeriksaId,
+              'pihak_penyetujuan': pihakPenyetujuan,
               'jumlah_gambar': jumlahGambar,
               'data_gambar_utama': dataGambarUtama,
               'ordered_independent_ids': orderedIndependentIds,
               'deskripsi_optional': deskripsiOptional,
-              'desc_space': descSpace, // <--- TAMBAHKAN INI
+              'desc_space': descSpace,
               'i_gambar_kelistrikan_id': iGambarKelistrikanId,
             },
           );
@@ -54,6 +56,7 @@ class ProsesTransaksiRepository {
   Future<Uint8List> getPreviewPdf({
     required String transaksiId,
     required int pemeriksaId,
+    required String pihakPenyetujuan,
     required List<int> varianBodyIds,
     required List<int> judulGambarIds,
     required List<int>? hGambarOptionalIds,
@@ -72,6 +75,7 @@ class ProsesTransaksiRepository {
             '${ApiEndpoints.transaksi}/$transaksiId/proses',
             data: {
               'pemeriksa_id': pemeriksaId,
+              'pihak_penyetujuan': pihakPenyetujuan, 
               'varian_body_ids': varianBodyIds,
               'judul_gambar_ids': judulGambarIds,
               'h_gambar_optional_ids': hGambarOptionalIds,
@@ -96,6 +100,7 @@ class ProsesTransaksiRepository {
     required String suggestedFileName,
     required String extension,
     required int pemeriksaId,
+    required String pihakPenyetujuan,
     required List<int> varianBodyIds,
     required List<int> judulGambarIds,
     required List<int>? hGambarOptionalIds,
@@ -123,6 +128,7 @@ class ProsesTransaksiRepository {
             '${ApiEndpoints.transaksi}/$transaksiId/proses',
             data: {
               'pemeriksa_id': pemeriksaId,
+              'pihak_penyetujuan': pihakPenyetujuan,
               'varian_body_ids': varianBodyIds,
               'judul_gambar_ids': judulGambarIds,
               'h_gambar_optional_ids': hGambarOptionalIds,

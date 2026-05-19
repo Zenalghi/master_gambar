@@ -1,4 +1,4 @@
-//lib\elements\home\providers\input_gambar_providers.dart
+// File: lib/elements/home/providers/input_gambar_providers.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:master_gambar/app/core/providers.dart';
@@ -38,6 +38,9 @@ final jumlahGambarProvider = StateProvider<int>((ref) => 1);
 
 // Menyimpan ID pemeriksa yang dipilih
 final pemeriksaIdProvider = StateProvider<int?>((ref) => null);
+
+// State untuk menyimpan pilihan dropdown Pihak Penyetujuan ('vendor' atau 'customer')
+final pihakPenyetujuanProvider = StateProvider<String>((ref) => 'vendor');
 
 class GambarOptionalSelection {
   final int? gambarOptionalId;
@@ -141,9 +144,6 @@ class IndependentListNotifier
       final newHidden = List<OptionItem>.from(currentState.hiddenItems)
         ..add(item);
 
-      // Opsional: Sort hidden items by name agar rapi
-      // newHidden.sort((a, b) => a.name.compareTo(b.name));
-
       state = AsyncValue.data(
         currentState.copyWith(activeItems: newActive, hiddenItems: newHidden),
       );
@@ -226,7 +226,6 @@ class GambarUtamaSelection {
   }
 }
 
-// --- PERBAIKAN DI SINI ---
 // Provider ini tidak lagi me-watch provider lain. Ia akan dimulai dengan
 // ukuran default dan diubah ukurannya oleh UI.
 final gambarUtamaSelectionProvider =
@@ -237,7 +236,6 @@ final gambarUtamaSelectionProvider =
       // Mulai dengan ukuran default 1.
       return GambarUtamaSelectionNotifier(1);
     });
-// -------------------------
 
 class GambarUtamaSelectionNotifier
     extends StateNotifier<List<GambarUtamaSelection>> {
@@ -298,13 +296,8 @@ final pemeriksaOptionsProvider = FutureProvider<List<OptionItem>>((ref) async {
 });
 
 final varianBodyOptionsFamilyProvider =
-    FutureProvider.family<List<OptionItem>, int>((
-      // <-- Ganti String ke int
-      ref,
-      masterDataId, // <-- Parameter sekarang masterDataId
-    ) async {
+    FutureProvider.family<List<OptionItem>, int>((ref, masterDataId) async {
       ref.watch(refreshNotifierProvider);
-      // Kirim masterDataId ke endpoint
       final response = await ref
           .watch(apiClientProvider)
           .dio
@@ -328,7 +321,7 @@ final gambarOptionalOptionsProvider = FutureProvider<List<OptionItem>>((
   final selectedVarianIds = utamaSelections
       .map((s) => s.varianBodyId)
       .where((id) => id != null)
-      .toSet() // toSet() secara otomatis menghapus duplikat
+      .toSet()
       .toList();
 
   // 3. Jika tidak ada Varian Body yang dipilih, kembalikan daftar kosong.
@@ -337,21 +330,13 @@ final gambarOptionalOptionsProvider = FutureProvider<List<OptionItem>>((
   }
 
   // 4. Panggil endpoint BARU dengan membawa daftar ID sebagai parameter query
-  // File: lib/elements/home/providers/input_gambar_providers.dart
-
-  // ...
   final response = await ref
       .watch(apiClientProvider)
       .dio
       .post(
-        // <-- Ubah ke .post
         ApiEndpoints.gambarOptionalByVarian,
-        data: {
-          // <-- Ubah ke data
-          'varian_ids': selectedVarianIds,
-        },
+        data: {'varian_ids': selectedVarianIds},
       );
-  // ...
 
   final List<dynamic> data = response.data;
   return data
@@ -418,10 +403,7 @@ final dependentOptionalOptionsProvider = FutureProvider<List<OptionItem>>((
       .dio
       .post(
         '/options/dependent-optionals',
-        data: {
-          'varian_ids': varianIds,
-          'judul_ids': judulIds, // Kirim ini
-        },
+        data: {'varian_ids': varianIds, 'judul_ids': judulIds},
       );
 
   final List<dynamic> data = response.data;

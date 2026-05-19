@@ -1,3 +1,4 @@
+// File: lib/admin/management/providers/customer_providers.dart
 import 'dart:async';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

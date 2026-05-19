@@ -59,12 +59,8 @@ class Transaksi {
         user: User.fromJson(json['user'] ?? {}),
         createdAt: DateTime.parse(json['created_at']),
         updatedAt: DateTime.parse(json['updated_at']),
-
-        // --- PERBAIKAN UTAMA DI SINI ---
         // Ambil langsung dari root JSON dengan nama key yang benar dari Laravel
         judulGambarString: json['judul_gambar_string']?.toString(),
-
-        // -------------------------------
         detail: json['detail'] != null
             ? TransaksiDetail.fromJson(json['detail'])
             : null,
@@ -85,12 +81,20 @@ class Customer {
   final String namaPt;
   final String pj;
   final String? signaturePj;
+  final String? namaDrafter;
+  final String? signatureDrafter;
+  final String? namaPemeriksa;
+  final String? signaturePemeriksa;
 
   Customer({
     required this.id,
     required this.namaPt,
     required this.pj,
     this.signaturePj,
+    this.namaDrafter,
+    this.signatureDrafter,
+    this.namaPemeriksa,
+    this.signaturePemeriksa,
   });
 
   factory Customer.fromJson(Map<String, dynamic> json) => Customer(
@@ -99,6 +103,10 @@ class Customer {
     namaPt: json['nama_pt'].toString(),
     pj: (json['pj'] ?? '').toString(),
     signaturePj: json['signature_pj'],
+    namaDrafter: json['nama_drafter'],
+    signatureDrafter: json['signature_drafter'],
+    namaPemeriksa: json['nama_pemeriksa'],
+    signaturePemeriksa: json['signature_pemeriksa'],
   );
 }
 
@@ -183,6 +191,7 @@ class User {
 
 class TransaksiDetail {
   final int pemeriksaId;
+  final String pihakPenyetujuan; // <--- TAMBAHAN BARU
   final int jumlahGambar;
   final List<Map<String, dynamic>> dataGambarUtama;
   final List<int> optionalIndependenIds;
@@ -193,6 +202,7 @@ class TransaksiDetail {
 
   TransaksiDetail({
     required this.pemeriksaId,
+    required this.pihakPenyetujuan,
     required this.jumlahGambar,
     required this.dataGambarUtama,
     required this.optionalIndependenIds,
@@ -205,6 +215,7 @@ class TransaksiDetail {
   factory TransaksiDetail.fromJson(Map<String, dynamic> json) {
     return TransaksiDetail(
       pemeriksaId: json['pemeriksa_id'],
+      pihakPenyetujuan: json['pihak_penyetujuan'] ?? 'vendor', // Nilai default
       jumlahGambar: json['jumlah_gambar'],
       dataGambarUtama: List<Map<String, dynamic>>.from(
         json['data_gambar_utama'] ?? [],

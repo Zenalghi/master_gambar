@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:master_gambar/admin/management/providers/customer_providers.dart';
-import 'package:master_gambar/admin/management/widgets/customer/add_customer_form.dart';
-import 'package:master_gambar/admin/management/widgets/customer/customer_data_table.dart';
+import 'providers/customer_providers.dart';
+import 'widgets/customer/add_customer_form.dart';
+import 'widgets/customer/customer_data_table.dart';
 
 class CustomerManagementScreen extends ConsumerWidget {
   const CustomerManagementScreen({super.key});

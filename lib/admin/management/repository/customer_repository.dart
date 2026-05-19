@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../data/models/paginated_response.dart';
-import '../../../app/core/providers.dart';
-import '../../../data/models/customer.dart';
 import 'package:http_parser/http_parser.dart';
+import '../../../data/models/customer.dart';
+import '../../../app/core/providers.dart';
+import '../../../data/models/paginated_response.dart';
 
 final customerRepositoryProvider = Provider((ref) => CustomerRepository(ref));
 
