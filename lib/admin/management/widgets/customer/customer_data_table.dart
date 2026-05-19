@@ -1,7 +1,8 @@
+//lib/admin/management/widgets/customer/customer_data_table.dart
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:master_gambar/admin/management/providers/customer_providers.dart';
+import '../../providers/customer_providers.dart';
 import 'customer_data_source.dart';
 
 class CustomerDataTable extends ConsumerStatefulWidget {
@@ -138,7 +139,31 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
         size: ColumnSize.L,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Paraf'), size: ColumnSize.S, onSort: null),
+      DataColumn2(
+        label: const Text('Drafter'),
+        size: ColumnSize.L,
+        onSort: _onSort,
+      ),
+      DataColumn2(
+        label: const Text('Pemeriksa'),
+        size: ColumnSize.L,
+        onSort: _onSort,
+      ),
+      const DataColumn2(
+        label: Text('Paraf PJ'),
+        size: ColumnSize.S,
+        onSort: null,
+      ),
+      const DataColumn2(
+        label: Text('Paraf Drafter'),
+        size: ColumnSize.S,
+        onSort: null,
+      ),
+      const DataColumn2(
+        label: Text('Paraf Pemeriksa'),
+        size: ColumnSize.S,
+        onSort: null,
+      ),
       DataColumn2(
         label: const Text('Created At'),
         fixedWidth: 115,
@@ -167,9 +192,15 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
         newSortBy = 'pj';
         break;
       case 3:
-        newSortBy = 'created_at';
+        newSortBy = 'drafter';
         break;
       case 4:
+        newSortBy = 'pemeriksa';
+        break;
+      case 5:
+        newSortBy = 'created_at';
+        break;
+      case 6:
         newSortBy = 'updated_at';
         break;
       default:

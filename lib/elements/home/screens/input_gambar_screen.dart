@@ -247,6 +247,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       final pdfData = await ref
           .read(prosesTransaksiRepositoryProvider)
           .getPreviewPdf(
+            pihakPenyetujuan: '',
             orderedIndependentIds: orderedIndependentIds,
             transaksiId: widget.transaksi.id,
             pemeriksaId: pemeriksaId,
@@ -326,6 +327,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       await ref
           .read(prosesTransaksiRepositoryProvider)
           .downloadProcessedPdfs(
+            pihakPenyetujuan: '',
             transaksiId: widget.transaksi.id,
             suggestedFileName: suggestedFileName,
             extension: extension,
@@ -386,6 +388,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       await ref
           .read(prosesTransaksiRepositoryProvider)
           .saveDraft(
+            pihakPenyetujuan: '',
             transaksiId: widget.transaksi.id,
             pemeriksaId: pemeriksaId,
             jumlahGambar: ref.read(jumlahGambarProvider),

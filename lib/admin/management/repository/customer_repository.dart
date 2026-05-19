@@ -1,3 +1,4 @@
+// lib/admin/management/repository/customer_repository.dart
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,8 +29,7 @@ class CustomerRepository {
             'page': page,
             'per_page': rowsPerPage,
             'sort_by': sortBy,
-            'sort_asc': sortAscending
-                .toString(), // Kirim sebagai string 'true'/'false'
+            'sort_asc': sortAscending.toString(),
             if (searchQuery != null && searchQuery.isNotEmpty)
               'search': searchQuery,
           },
@@ -37,9 +37,7 @@ class CustomerRepository {
     // Parse response menggunakan PaginatedResponse
     return PaginatedResponse.fromJson(response.data, Customer.fromJson);
   }
-  // --- AKHIR PERUBAHAN ---
 
-  // POST a new customer
   Future<Customer> addCustomer({
     required String namaPt,
     required String pj,
@@ -51,16 +49,26 @@ class CustomerRepository {
     return Customer.fromJson(response.data);
   }
 
-  // PUT an existing customer
+  // --- PERUBAHAN: Tambah parameter drafter & pemeriksa ---
   Future<Customer> updateCustomer({
     required int id,
     required String namaPt,
     required String pj,
+    String? namaDrafter,
+    String? namaPemeriksa,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .put('/admin/customers/$id', data: {'nama_pt': namaPt, 'pj': pj});
+        .put(
+          '/admin/customers/$id',
+          data: {
+            'nama_pt': namaPt,
+            'pj': pj,
+            'nama_drafter': namaDrafter,
+            'nama_pemeriksa': namaPemeriksa,
+          },
+        );
     return Customer.fromJson(response.data);
   }
 
@@ -69,7 +77,7 @@ class CustomerRepository {
     await _ref.read(apiClientProvider).dio.delete('/admin/customers/$id');
   }
 
-  // POST signature file
+  // Upload Paraf PJ
   Future<Customer> uploadSignature({
     required int customerId,
     required File signatureFile,
@@ -83,6 +91,50 @@ class CustomerRepository {
       ),
     });
 
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/customers/$customerId/paraf', data: formData);
+    return Customer.fromJson(response.data);
+  }
+
+  // --- TAMBAHAN: Upload Paraf Drafter ---
+  Future<Customer> uploadSignatureDrafter({
+    required int customerId,
+    required File signatureFile,
+  }) async {
+    final fileName = signatureFile.path.split(Platform.pathSeparator).last;
+    final formData = FormData.fromMap({
+      'paraf_drafter': await MultipartFile.fromFile(
+        signatureFile.path,
+        filename: fileName,
+        contentType: MediaType('image', 'png'),
+      ),
+    });
+
+    // PERBAIKAN: Gunakan endpoint /paraf
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/customers/$customerId/paraf', data: formData);
+    return Customer.fromJson(response.data);
+  }
+
+  // --- TAMBAHAN: Upload Paraf Pemeriksa ---
+  Future<Customer> uploadSignaturePemeriksa({
+    required int customerId,
+    required File signatureFile,
+  }) async {
+    final fileName = signatureFile.path.split(Platform.pathSeparator).last;
+    final formData = FormData.fromMap({
+      'paraf_pemeriksa': await MultipartFile.fromFile(
+        signatureFile.path,
+        filename: fileName,
+        contentType: MediaType('image', 'png'),
+      ),
+    });
+
+    // PERBAIKAN: Gunakan endpoint /paraf
     final response = await _ref
         .read(apiClientProvider)
         .dio

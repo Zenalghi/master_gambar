@@ -1,10 +1,10 @@
+//lib/admin/management/widgets/customer/customer_data_source.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:master_gambar/admin/management/widgets/customer/edit_customer_dialog.dart';
 import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/customer.dart';
-// import 'package:master_gambar/data/providers/api_client.dart'; // Tidak perlu import ini untuk static baseUrl lagi
 
 class CustomerDataSource extends DataTableSource {
   final List<Customer> customers;
@@ -44,6 +44,8 @@ class CustomerDataSource extends DataTableSource {
       cells: [
         DataCell(SelectableText(customer.namaPt)),
         DataCell(SelectableText(customer.pj)),
+        DataCell(SelectableText(customer.namaDrafter ?? '-')),
+        DataCell(SelectableText(customer.namaPemeriksa ?? '-')),
         DataCell(
           (customer.signaturePj != null &&
                   customer.signaturePj!.isNotEmpty &&
@@ -53,6 +55,62 @@ class CustomerDataSource extends DataTableSource {
                   child: Image.network(
                     // Gunakan baseUrl dari Dio. Kita asumsikan baseUrl Dio sudah termasuk '/api'
                     '$baseUrl/admin/customers/${customer.id}/paraf?v=${customer.updatedAt.millisecondsSinceEpoch}',
+                    headers: {'Authorization': 'Bearer $authToken'},
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, progress) =>
+                        progress == null
+                        ? child
+                        : const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.error, color: Colors.orange),
+                  ),
+                )
+              : const Icon(
+                  Icons.cancel,
+                  size: 15,
+                  color: Colors.red,
+                  semanticLabel: 'Tidak Ada',
+                ),
+        ),
+        DataCell(
+          (customer.signatureDrafter != null &&
+                  customer.signatureDrafter!.isNotEmpty &&
+                  authToken != null)
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                  child: Image.network(
+                    // Gunakan baseUrl dari Dio. Kita asumsikan baseUrl Dio sudah termasuk '/api'
+                    '$baseUrl/admin/customers/${customer.id}/paraf-drafter?v=${customer.updatedAt.millisecondsSinceEpoch}',
+                    headers: {'Authorization': 'Bearer $authToken'},
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, progress) =>
+                        progress == null
+                        ? child
+                        : const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.error, color: Colors.orange),
+                  ),
+                )
+              : const Icon(
+                  Icons.cancel,
+                  size: 15,
+                  color: Colors.red,
+                  semanticLabel: 'Tidak Ada',
+                ),
+        ),
+        DataCell(
+          (customer.signaturePemeriksa != null &&
+                  customer.signaturePemeriksa!.isNotEmpty &&
+                  authToken != null)
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                  child: Image.network(
+                    // Gunakan baseUrl dari Dio. Kita asumsikan baseUrl Dio sudah termasuk '/api'
+                    '$baseUrl/admin/customers/${customer.id}/paraf-pemeriksa?v=${customer.updatedAt.millisecondsSinceEpoch}',
                     headers: {'Authorization': 'Bearer $authToken'},
                     fit: BoxFit.contain,
                     loadingBuilder: (context, child, progress) =>
