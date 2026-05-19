@@ -190,7 +190,7 @@ class User {
 }
 
 class TransaksiDetail {
-  final int pemeriksaId;
+  final int? pemeriksaId;
   final String pihakPenyetujuan; // <--- TAMBAHAN BARU
   final int jumlahGambar;
   final List<Map<String, dynamic>> dataGambarUtama;
@@ -201,11 +201,11 @@ class TransaksiDetail {
   final List<int>? orderedIndependentIds;
 
   TransaksiDetail({
-    required this.pemeriksaId,
     required this.pihakPenyetujuan,
     required this.jumlahGambar,
     required this.dataGambarUtama,
     required this.optionalIndependenIds,
+    this.pemeriksaId,
     this.orderedIndependentIds,
     this.deskripsiOptional,
     this.descSpace,

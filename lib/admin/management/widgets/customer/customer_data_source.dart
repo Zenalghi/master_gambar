@@ -1,4 +1,4 @@
-//lib/admin/management/widgets/customer/customer_data_source.dart
+// lib/admin/management/widgets/customer/customer_data_source.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -35,10 +35,8 @@ class CustomerDataSource extends DataTableSource {
     final dateFormat = DateFormat('yyyy.MM.dd HH:mm');
     final authToken = ref.read(authTokenProvider);
 
-    // --- PERUBAHAN DI SINI ---
     // Ambil base URL dari instance Dio yang aktif
     final baseUrl = ref.read(apiClientProvider).dio.options.baseUrl;
-    // ------------------------
 
     return DataRow(
       cells: [
@@ -53,7 +51,6 @@ class CustomerDataSource extends DataTableSource {
               ? Padding(
                   padding: const EdgeInsets.symmetric(vertical: 2.0),
                   child: Image.network(
-                    // Gunakan baseUrl dari Dio. Kita asumsikan baseUrl Dio sudah termasuk '/api'
                     '$baseUrl/admin/customers/${customer.id}/paraf?v=${customer.updatedAt.millisecondsSinceEpoch}',
                     headers: {'Authorization': 'Bearer $authToken'},
                     fit: BoxFit.contain,
@@ -63,8 +60,11 @@ class CustomerDataSource extends DataTableSource {
                         : const Center(
                             child: CircularProgressIndicator(strokeWidth: 2),
                           ),
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error, color: Colors.orange),
+                    // Tambahkan Tooltip di sini
+                    errorBuilder: (context, error, stackTrace) => Tooltip(
+                      message: 'Error: ${error.toString()}',
+                      child: const Icon(Icons.error, color: Colors.orange),
+                    ),
                   ),
                 )
               : const Icon(
@@ -81,7 +81,6 @@ class CustomerDataSource extends DataTableSource {
               ? Padding(
                   padding: const EdgeInsets.symmetric(vertical: 2.0),
                   child: Image.network(
-                    // Gunakan baseUrl dari Dio. Kita asumsikan baseUrl Dio sudah termasuk '/api'
                     '$baseUrl/admin/customers/${customer.id}/paraf-drafter?v=${customer.updatedAt.millisecondsSinceEpoch}',
                     headers: {'Authorization': 'Bearer $authToken'},
                     fit: BoxFit.contain,
@@ -91,8 +90,11 @@ class CustomerDataSource extends DataTableSource {
                         : const Center(
                             child: CircularProgressIndicator(strokeWidth: 2),
                           ),
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error, color: Colors.orange),
+                    // Tambahkan Tooltip di sini
+                    errorBuilder: (context, error, stackTrace) => Tooltip(
+                      message: 'Error: ${error.toString()}',
+                      child: const Icon(Icons.error, color: Colors.orange),
+                    ),
                   ),
                 )
               : const Icon(
@@ -109,7 +111,6 @@ class CustomerDataSource extends DataTableSource {
               ? Padding(
                   padding: const EdgeInsets.symmetric(vertical: 2.0),
                   child: Image.network(
-                    // Gunakan baseUrl dari Dio. Kita asumsikan baseUrl Dio sudah termasuk '/api'
                     '$baseUrl/admin/customers/${customer.id}/paraf-pemeriksa?v=${customer.updatedAt.millisecondsSinceEpoch}',
                     headers: {'Authorization': 'Bearer $authToken'},
                     fit: BoxFit.contain,
@@ -119,8 +120,10 @@ class CustomerDataSource extends DataTableSource {
                         : const Center(
                             child: CircularProgressIndicator(strokeWidth: 2),
                           ),
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error, color: Colors.orange),
+                    errorBuilder: (context, error, stackTrace) => Tooltip(
+                      message: 'Error: ${error.toString()}',
+                      child: const Icon(Icons.error, color: Colors.orange),
+                    ),
                   ),
                 )
               : const Icon(
@@ -130,6 +133,7 @@ class CustomerDataSource extends DataTableSource {
                   semanticLabel: 'Tidak Ada',
                 ),
         ),
+
         DataCell(
           SelectableText(dateFormat.format(customer.createdAt.toLocal())),
         ),

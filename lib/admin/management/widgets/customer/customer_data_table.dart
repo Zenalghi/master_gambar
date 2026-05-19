@@ -121,9 +121,9 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
       case 'pemeriksa':
         return 3;
       case 'created_at':
-        return 4;
+        return 7;
       case 'updated_at':
-        return 5;
+        return 8;
       default:
         return 0;
     }
@@ -199,10 +199,10 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
       case 3:
         newSortBy = 'pemeriksa';
         break;
-      case 4:
+      case 7:
         newSortBy = 'created_at';
         break;
-      case 5:
+      case 8:
         newSortBy = 'updated_at';
         break;
       default:
