@@ -23,25 +23,29 @@ class GambarKelistrikanSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final kelistrikanInfo = ref.watch(kelistrikanInfoProvider);
     final isLoadingData = ref.watch(isLoadingKelistrikanProvider);
-    final selectedId = ref.watch(
-      selectedKelistrikanIdProvider,
-    ); // ID Pilihan User
+    final selectedId = ref.watch(selectedKelistrikanIdProvider);
+
+    final pihakPenyetujuan = ref.watch(pihakPenyetujuanProvider);
+    final bool isPemeriksaValid =
+        pihakPenyetujuan == 'customer' ||
+        ref.watch(pemeriksaIdProvider) != null;
 
     final String statusCode = kelistrikanInfo?['status_code'] ?? 'loading';
     final String displayText = kelistrikanInfo?['display_text'] ?? 'Memuat...';
-
-    // Ambil list options (jika ada)
     final List<dynamic> options = kelistrikanInfo?['options'] ?? [];
 
     final bool isReady =
         !isLoadingData &&
         (statusCode == 'ready' || statusCode == 'multiple_options');
-    final bool isPreviewEnabled =
-        isReady && selectedId != null && ref.watch(pemeriksaIdProvider) != null;
-    final bool isProcessing = ref.watch(isProcessingProvider);
-    final bool isEditMode = ref.watch(isEditModeProvider); // Cek mode edit
 
-    // Container Style
+    // --- UPDATE LOGIKA ENABLE BUTTON ---
+    final bool isPreviewEnabled =
+        isReady && selectedId != null && isPemeriksaValid;
+    // -----------------------------------
+
+    final bool isProcessing = ref.watch(isProcessingProvider);
+    final bool isEditMode = ref.watch(isEditModeProvider);
+
     final bgColor = isReady
         ? Colors.grey.shade200
         : (isLoadingData ? Colors.grey.shade100 : Colors.red.shade50);
@@ -62,20 +66,15 @@ class GambarKelistrikanSection extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         Row(
-          crossAxisAlignment:
-              CrossAxisAlignment.start, // Align top agar rapi jika list panjang
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(
               width: 150,
               child: Padding(
-                padding: EdgeInsets.only(
-                  top: 12.0,
-                ), // Sejajarkan dengan baris pertama
+                padding: EdgeInsets.only(top: 12.0),
                 child: Text('Gambar Kelistrikan:'),
               ),
             ),
-
-            // BAGIAN TENGAH (Konten Dinamis)
             Expanded(
               flex: 6,
               child: Container(
@@ -111,13 +110,9 @@ class GambarKelistrikanSection extends ConsumerWidget {
                       ),
               ),
             ),
-
             const SizedBox(width: 10),
-
-            // BAGIAN KANAN (Nomor & Preview)
             Row(
               children: [
-                // Indikator Halaman
                 SizedBox(
                   width: 70,
                   child: Container(
@@ -137,7 +132,6 @@ class GambarKelistrikanSection extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Tombol Preview
                 SizedBox(
                   width: 170,
                   child: ElevatedButton(
@@ -163,18 +157,13 @@ class GambarKelistrikanSection extends ConsumerWidget {
     int? selectedId,
     bool isEditMode,
   ) {
-    // KASUS 1: Single Option (Ready)
     if (statusCode == 'ready') {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: Text(
-          displayText,
-          // style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        child: Text(displayText),
       );
     }
 
-    // KASUS 2: Multiple Options (Radio Button)
     if (statusCode == 'multiple_options') {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,7 +171,7 @@ class GambarKelistrikanSection extends ConsumerWidget {
           Row(
             children: [
               Text(
-                displayText, // "Pilih Opsi Kelistrikan"
+                displayText,
                 style: const TextStyle(
                   fontStyle: FontStyle.italic,
                   color: Colors.grey,
@@ -190,7 +179,7 @@ class GambarKelistrikanSection extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              Tooltip(
+              const Tooltip(
                 message: 'Pilih salah satu deskripsi kelistrikan yang sesuai',
                 triggerMode: TooltipTriggerMode.tap,
                 child: Icon(
@@ -202,7 +191,6 @@ class GambarKelistrikanSection extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 4),
-          // List Radio Buttons
           ...options.map((opt) {
             final int optId = opt['id'];
             final String optDesc = opt['deskripsi'];
@@ -220,7 +208,6 @@ class GambarKelistrikanSection extends ConsumerWidget {
               contentPadding: EdgeInsets.zero,
               visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
               activeColor: Colors.blue,
-              // Disable radio jika mode read-only
               onChanged: isEditMode
                   ? (val) {
                       ref.read(selectedKelistrikanIdProvider.notifier).state =
@@ -233,7 +220,6 @@ class GambarKelistrikanSection extends ConsumerWidget {
       );
     }
 
-    // KASUS 3: Error / Missing
     return Text(
       displayText,
       style: TextStyle(color: Colors.red.shade900, fontStyle: FontStyle.italic),

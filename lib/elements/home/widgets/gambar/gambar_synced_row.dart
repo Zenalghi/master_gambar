@@ -28,6 +28,12 @@ class GambarSyncedRow extends ConsumerWidget {
     final pemeriksaId = ref.watch(pemeriksaIdProvider);
     final isLoading = ref.watch(isProcessingProvider);
 
+    // --- LOGIKA PIHAK PENYETUJUAN ---
+    final pihakPenyetujuan = ref.watch(pihakPenyetujuanProvider);
+    final bool isPemeriksaValid =
+        pihakPenyetujuan == 'customer' || pemeriksaId != null;
+    // --------------------------------
+
     if (index >= selections.length) {
       return const SizedBox.shrink();
     }
@@ -38,10 +44,12 @@ class GambarSyncedRow extends ConsumerWidget {
     );
     final judulOptions = ref.watch(judulGambarOptionsProvider);
 
+    // --- UPDATE VALIDASI ROW ---
     final bool isRowComplete =
         selection.judulId != null &&
         selection.varianBodyId != null &&
-        pemeriksaId != null;
+        isPemeriksaValid;
+    // ---------------------------
 
     String judulName = '...';
     judulOptions.whenData((items) {

@@ -405,7 +405,11 @@ class GambarMainForm extends ConsumerWidget {
                             final item = activeItems[index];
                             // Hitung halaman: Lanjutkan dari startPageIndependen
                             final pageNumber = startPageIndependen + index;
+                            final pihakPenyetujuan = ref.watch(
+                              pihakPenyetujuanProvider,
+                            );
                             final isPreviewEnabled =
+                                pihakPenyetujuan == 'customer' ||
                                 ref.watch(pemeriksaIdProvider) != null;
                             final isLoading = ref.watch(isProcessingProvider);
 
@@ -565,7 +569,11 @@ class GambarMainForm extends ConsumerWidget {
                           itemBuilder: (context, index) {
                             final item = activeItems[index];
                             final pageNumber = startPageIndependen + index;
+                            final pihakPenyetujuan = ref.watch(
+                              pihakPenyetujuanProvider,
+                            );
                             final isPreviewEnabled =
+                                pihakPenyetujuan == 'customer' ||
                                 ref.watch(pemeriksaIdProvider) != null;
                             final isLoading = ref.watch(isProcessingProvider);
 

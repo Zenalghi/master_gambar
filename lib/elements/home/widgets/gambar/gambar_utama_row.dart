@@ -30,13 +30,17 @@ class GambarUtamaRow extends ConsumerWidget {
     final selection = selections[index];
     final judulOptions = ref.watch(judulGambarOptionsProvider);
 
-    // 1. Siapkan Parameter Default (Search Kosong)
+    // --- LOGIKA PIHAK PENYETUJUAN ---
+    final pihakPenyetujuan = ref.watch(pihakPenyetujuanProvider);
+    final bool isPemeriksaValid =
+        pihakPenyetujuan == 'customer' || pemeriksaId != null;
+    // --------------------------------
+
     final defaultParams = VarianFilterParams(
       search: '',
       masterDataId: transaksi.masterDataId,
     );
 
-    // 2. Watch provider dengan parameter default untuk menangani state Loading saat Refresh
     final varianBodyOptionsAsync = ref.watch(
       varianBodyStatusOptionsProvider(defaultParams),
     );
@@ -44,9 +48,8 @@ class GambarUtamaRow extends ConsumerWidget {
     final bool isRowComplete =
         selection.judulId != null &&
         selection.varianBodyId != null &&
-        pemeriksaId != null;
+        isPemeriksaValid;
     final isLoading = ref.watch(isProcessingProvider);
-
     final isEditMode = ref.watch(isEditModeProvider);
 
     return Row(
@@ -61,13 +64,11 @@ class GambarUtamaRow extends ConsumerWidget {
               opacity: isEditMode ? 1.0 : 0.6,
               child: judulOptions.when(
                 data: (items) {
-                  // Cari object OptionItem yang sesuai dengan ID yang tersimpan
                   final selectedOption = items
                       .where((e) => e.id == selection.judulId)
                       .firstOrNull;
 
                   return DropdownSearch<OptionItem>(
-                    // Data sudah diload oleh provider di atas, jadi langsung pakai list 'items'
                     items: (filter, _) => items
                         .where(
                           (e) => e.name.toLowerCase().contains(
@@ -75,26 +76,20 @@ class GambarUtamaRow extends ConsumerWidget {
                           ),
                         )
                         .toList(),
-
                     itemAsString: (OptionItem item) => item.name,
                     compareFn: (i1, i2) => i1.id == i2.id,
                     selectedItem: selectedOption,
-
                     onChanged: (OptionItem? item) {
                       ref
                           .read(gambarUtamaSelectionProvider.notifier)
                           .updateSelection(index, judulId: item?.id as int?);
                     },
-
-                    // TAMPILAN FIELD (Kecil & Padat)
                     decoratorProps: const DropDownDecoratorProps(
                       baseStyle: TextStyle(fontSize: 13, height: 1.0),
                       decoration: InputDecoration(
                         hintText: 'Pilih Judul',
                         border: OutlineInputBorder(),
-                        constraints: BoxConstraints(
-                          maxHeight: 32,
-                        ), // Tinggi Field 32px
+                        constraints: BoxConstraints(maxHeight: 32),
                         contentPadding: EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 0,
@@ -102,8 +97,6 @@ class GambarUtamaRow extends ConsumerWidget {
                         isDense: true,
                       ),
                     ),
-
-                    // TAMPILAN POPUP (Custom Item Builder untuk tinggi 30px)
                     popupProps: PopupProps.menu(
                       showSearchBox: true,
                       searchFieldProps: const TextFieldProps(
@@ -119,10 +112,9 @@ class GambarUtamaRow extends ConsumerWidget {
                           prefixIcon: Icon(Icons.search, size: 18),
                         ),
                       ),
-                      // --- INI KUNCINYA UNTUK LIST ITEM PENDEK ---
                       itemBuilder: (context, item, isSelected, isDisabled) {
                         return Container(
-                          height: 30, // Paksa tinggi item jadi 30px
+                          height: 30,
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           alignment: Alignment.centerLeft,
                           color: isSelected
@@ -144,12 +136,10 @@ class GambarUtamaRow extends ConsumerWidget {
                           ),
                         );
                       },
-                      // -------------------------------------------
                       menuProps: const MenuProps(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
                       ),
                     ),
-
                     validator: (item) =>
                         item == null && selection.judulId == null
                         ? 'Wajib'
@@ -175,7 +165,7 @@ class GambarUtamaRow extends ConsumerWidget {
         ),
 
         const SizedBox(width: 10),
-        // 2. Dropdown Varian Body (DIBUNGKUS .when)
+
         Expanded(
           flex: 4,
           child: IgnorePointer(
@@ -185,13 +175,11 @@ class GambarUtamaRow extends ConsumerWidget {
               child: varianBodyOptionsAsync.when(
                 skipLoadingOnRefresh: false,
                 data: (defaultItems) {
-                  // Cari item yang sedang dipilih dari daftar yang baru dimuat agar tampilannya persisten
                   final selectedOption = defaultItems
                       .where((e) => e.id == selection.varianBodyId)
                       .firstOrNull;
 
                   return DropdownSearch<OptionItem>(
-                    // Async Items (tetap dipanggil saat user mengetik)
                     items: (String filter, _) {
                       final params = VarianFilterParams(
                         search: filter,
@@ -201,13 +189,9 @@ class GambarUtamaRow extends ConsumerWidget {
                         varianBodyStatusOptionsProvider(params).future,
                       );
                     },
-
                     itemAsString: (OptionItem item) => item.name,
                     compareFn: (i1, i2) => i1.id == i2.id,
-
-                    // Pasang item yang ditemukan (atau null jika tidak ada di list default)
                     selectedItem: selectedOption,
-
                     onChanged: (OptionItem? item) {
                       ref
                           .read(gambarUtamaSelectionProvider.notifier)
@@ -216,7 +200,6 @@ class GambarUtamaRow extends ConsumerWidget {
                             varianBodyId: item?.id as int?,
                           );
                     },
-
                     decoratorProps: const DropDownDecoratorProps(
                       baseStyle: TextStyle(fontSize: 13, height: 1.0),
                       decoration: InputDecoration(
@@ -230,7 +213,6 @@ class GambarUtamaRow extends ConsumerWidget {
                         hintText: 'Pilih Varian',
                       ),
                     ),
-
                     popupProps: PopupProps.menu(
                       showSearchBox: true,
                       searchFieldProps: const TextFieldProps(
@@ -254,12 +236,11 @@ class GambarUtamaRow extends ConsumerWidget {
                             horizontal: 10,
                             vertical: 0,
                           ),
-                          height: 30, // tinggi item
+                          height: 30,
                           alignment: Alignment.centerLeft,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              // NAMA ITEM
                               Expanded(
                                 child: Text(
                                   item.name,
@@ -281,8 +262,6 @@ class GambarUtamaRow extends ConsumerWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-
-                              // TRAILING (ICON / TEKS)
                               hasGambar
                                   ? const Icon(
                                       Icons.check_circle,
@@ -303,9 +282,8 @@ class GambarUtamaRow extends ConsumerWidget {
                     ),
                   );
                 },
-                // TAMPILAN SAAT LOADING (Saat tombol Refresh ditekan)
                 loading: () => const SizedBox(
-                  height: 48, // Tinggi standar input field
+                  height: 48,
                   child: Center(child: CircularProgressIndicator()),
                 ),
                 error: (err, stack) => const SizedBox(
@@ -324,7 +302,6 @@ class GambarUtamaRow extends ConsumerWidget {
 
         const SizedBox(width: 10),
 
-        // 3. Indikator Halaman
         SizedBox(
           width: 70,
           child: Container(
@@ -340,7 +317,6 @@ class GambarUtamaRow extends ConsumerWidget {
 
         const SizedBox(width: 10),
 
-        // 4. Tombol Preview
         SizedBox(
           width: 170,
           child: ElevatedButton(
