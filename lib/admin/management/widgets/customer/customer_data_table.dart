@@ -110,18 +110,20 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
     );
   }
 
-  // ... (Sisa file _createColumns dan _onSort tidak berubah) ...
-
   int _getSortColumnIndex() {
     switch (_sortBy) {
       case 'nama_pt':
         return 0;
       case 'pj':
         return 1;
-      case 'created_at':
+      case 'drafter':
+        return 2;
+      case 'pemeriksa':
         return 3;
-      case 'updated_at':
+      case 'created_at':
         return 4;
+      case 'updated_at':
+        return 5;
       default:
         return 0;
     }
@@ -191,16 +193,16 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
       case 1:
         newSortBy = 'pj';
         break;
-      case 3:
+      case 2:
         newSortBy = 'drafter';
         break;
-      case 4:
+      case 3:
         newSortBy = 'pemeriksa';
         break;
-      case 5:
+      case 4:
         newSortBy = 'created_at';
         break;
-      case 6:
+      case 5:
         newSortBy = 'updated_at';
         break;
       default:

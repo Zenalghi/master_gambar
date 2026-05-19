@@ -142,7 +142,51 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
 
   // (Method _submitDelete tetap sama seperti sebelumnya)
   Future<void> _submitDelete() async {
-    // ... [Kode konfirmasi delete sama seperti yang ada sebelumnya]
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content: Text(
+          'Anda yakin ingin menghapus customer: ${widget.customer.namaPt}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Hapus'),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() => _isLoading = true);
+      try {
+        await ref
+            .read(customerRepositoryProvider)
+            .deleteCustomer(id: widget.customer.id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Customer berhasil dihapus!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        ref.read(customerInvalidator.notifier).state++;
+        Navigator.of(context).pop();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    }
   }
 
   Widget _buildParafUpload({

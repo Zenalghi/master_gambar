@@ -41,11 +41,21 @@ class CustomerRepository {
   Future<Customer> addCustomer({
     required String namaPt,
     required String pj,
+    String? namaDrafter,
+    String? namaPemeriksa,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .post('/admin/customers', data: {'nama_pt': namaPt, 'pj': pj});
+        .post(
+          '/admin/customers',
+          data: {
+            'nama_pt': namaPt,
+            'pj': pj,
+            'nama_drafter': namaDrafter,
+            'nama_pemeriksa': namaPemeriksa,
+          },
+        );
     return Customer.fromJson(response.data);
   }
 
