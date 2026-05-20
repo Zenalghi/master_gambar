@@ -136,9 +136,8 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                     TextFormField(
                       controller: _drafterController,
                       decoration: const InputDecoration(
-                        labelText: 'Nama Drafter',
+                        labelText: 'Nama Drafter (Opsional)',
                       ),
-                      validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
                     ),
                   ],
                 ),
@@ -159,9 +158,8 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                     TextFormField(
                       controller: _pemeriksaController,
                       decoration: const InputDecoration(
-                        labelText: 'Nama Pemeriksa',
+                        labelText: 'Nama Pemeriksa (Opsional)',
                       ),
-                      validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
                     ),
                   ],
                 ),
