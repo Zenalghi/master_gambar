@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http_parser/http_parser.dart';
@@ -100,12 +101,13 @@ class UserRepository {
   // POST user signature file
   Future<AppUser> uploadSignature({
     required int userId,
-    required File signatureFile,
+    required Uint8List bytes, // Ubah dari File menjadi Uint8List
+    required String fileName, // Tambahkan parameter fileName
   }) async {
-    final fileName = signatureFile.path.split(Platform.pathSeparator).last;
     final formData = FormData.fromMap({
-      'paraf': await MultipartFile.fromFile(
-        signatureFile.path,
+      'paraf': MultipartFile.fromBytes(
+        // Ubah dari fromFile menjadi fromBytes
+        bytes,
         filename: fileName,
         contentType: MediaType('image', 'png'),
       ),

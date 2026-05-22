@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/management/providers/user_providers.dart';
@@ -20,7 +22,8 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
   final _passwordConfirmationController = TextEditingController();
   final _hintController = TextEditingController();
   int? _selectedRoleId;
-  File? _signatureFile;
+  Uint8List? _signatureBytes;
+  String? _signatureName;
   bool _isLoading = false;
   bool _isDragging = false;
 
@@ -37,9 +40,22 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
   Future<void> _pickImage() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.image,
+      withData: true, // Wajib true untuk Web
     );
     if (result != null) {
-      setState(() => _signatureFile = File(result.files.single.path!));
+      final file = result.files.single;
+
+      Uint8List? fileBytes = file.bytes;
+      if (fileBytes == null && !kIsWeb && file.path != null) {
+        fileBytes = File(file.path!).readAsBytesSync();
+      }
+
+      if (fileBytes != null) {
+        setState(() {
+          _signatureBytes = fileBytes;
+          _signatureName = file.name;
+        });
+      }
     }
   }
 
@@ -65,10 +81,11 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
           hint: _hintController.text,
         );
 
-        if (_signatureFile != null) {
+        if (_signatureBytes != null) {
           await repo.uploadSignature(
             userId: newUser.id,
-            signatureFile: _signatureFile!,
+            bytes: _signatureBytes!,
+            fileName: _signatureName ?? 'paraf.png',
           );
         }
 
@@ -85,7 +102,8 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
         _passwordConfirmationController.clear();
         _hintController.clear();
         setState(() {
-          _signatureFile = null;
+          _signatureBytes = null;
+          _signatureName = null;
           _selectedRoleId = null;
         });
         ref.read(userInvalidator.notifier).state++;
@@ -260,12 +278,15 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
                             // KOTAK PREVIEW
                             Expanded(
                               child: DropTarget(
-                                onDragDone: (details) {
+                                onDragDone: (details) async {
+                                  // Tambahkan async
                                   if (details.files.isNotEmpty) {
+                                    final file = details.files.first;
+                                    final bytes = await file
+                                        .readAsBytes(); // Baca file sebagai bytes
                                     setState(() {
-                                      _signatureFile = File(
-                                        details.files.first.path,
-                                      );
+                                      _signatureBytes = bytes;
+                                      _signatureName = file.name;
                                     });
                                   }
                                 },
@@ -284,9 +305,9 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
                                     ),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
-                                  child: _signatureFile != null
-                                      ? Image.file(
-                                          _signatureFile!,
+                                  child: _signatureBytes != null
+                                      ? Image.memory(
+                                          _signatureBytes!,
                                           fit: BoxFit.contain,
                                         )
                                       : const Center(

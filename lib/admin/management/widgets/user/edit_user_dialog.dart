@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/management/providers/user_providers.dart';
@@ -25,7 +26,8 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
   final _passwordConfirmationController = TextEditingController();
   late final TextEditingController _hintController;
   int? _selectedRoleId;
-  File? _signatureFile;
+  Uint8List? _signatureBytes;
+  String? _signatureName;
   bool _isLoading = false;
   String? _authToken;
   late AppUser _currentUser;
@@ -60,9 +62,22 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
   Future<void> _pickImage() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.image,
+      withData: true,
     );
     if (result != null) {
-      setState(() => _signatureFile = File(result.files.single.path!));
+      final file = result.files.single;
+
+      Uint8List? fileBytes = file.bytes;
+      if (fileBytes == null && !kIsWeb && file.path != null) {
+        fileBytes = File(file.path!).readAsBytesSync();
+      }
+
+      if (fileBytes != null) {
+        setState(() {
+          _signatureBytes = fileBytes;
+          _signatureName = file.name;
+        });
+      }
     }
   }
 
@@ -93,15 +108,13 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
         );
         setState(() => _currentUser = updatedUser);
 
-        if (_signatureFile != null) {
+        if (_signatureBytes != null) {
           final userWithNewSignature = await repo.uploadSignature(
             userId: _currentUser.id,
-            signatureFile: _signatureFile!,
+            bytes: _signatureBytes!,
+            fileName: _signatureName ?? 'paraf.png',
           );
-          setState(() {
-            _currentUser = userWithNewSignature;
-            _signatureFile = null;
-          });
+          setState(() => _currentUser = userWithNewSignature);
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -266,10 +279,13 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
                 Row(
                   children: [
                     DropTarget(
-                      onDragDone: (details) {
+                      onDragDone: (details) async {
                         if (details.files.isNotEmpty) {
+                          final file = details.files.first;
+                          final bytes = await file.readAsBytes();
                           setState(() {
-                            _signatureFile = File(details.files.first.path);
+                            _signatureBytes = bytes;
+                            _signatureName = file.name;
                           });
                         }
                       },
@@ -289,8 +305,11 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
                           ),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: _signatureFile != null
-                            ? Image.file(_signatureFile!, fit: BoxFit.contain)
+                        child: _signatureBytes != null
+                            ? Image.memory(
+                                _signatureBytes!,
+                                fit: BoxFit.contain,
+                              )
                             : (imageUrl != null
                                   ? Image.network(
                                       imageUrl,
