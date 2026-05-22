@@ -1,7 +1,9 @@
 // lib/admin/management/widgets/customer/edit_customer_dialog.dart
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/management/providers/customer_providers.dart';
@@ -28,9 +30,14 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
   late final TextEditingController _namaPemeriksaController;
 
   // Files
-  File? _signaturePjFile;
-  File? _signatureDrafterFile;
-  File? _signaturePemeriksaFile;
+  Uint8List? _signaturePjBytes;
+  String? _signaturePjName;
+
+  Uint8List? _signatureDrafterBytes;
+  String? _signatureDrafterName;
+
+  Uint8List? _signaturePemeriksaBytes;
+  String? _signaturePemeriksaName;
 
   // Drag States
   bool _isDraggingPj = false;
@@ -75,15 +82,31 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
   Future<void> _pickImage(String type) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.image,
+      withData: true,
     );
     if (result != null) {
-      setState(() {
-        if (type == 'pj') _signaturePjFile = File(result.files.single.path!);
-        if (type == 'drafter')
-          _signatureDrafterFile = File(result.files.single.path!);
-        if (type == 'pemeriksa')
-          _signaturePemeriksaFile = File(result.files.single.path!);
-      });
+      final file = result.files.single;
+      Uint8List? fileBytes = file.bytes;
+      if (fileBytes == null && !kIsWeb && file.path != null) {
+        fileBytes = File(file.path!).readAsBytesSync();
+      }
+
+      if (fileBytes != null) {
+        setState(() {
+          if (type == 'pj') {
+            _signaturePjBytes = fileBytes;
+            _signaturePjName = file.name;
+          }
+          if (type == 'drafter') {
+            _signatureDrafterBytes = fileBytes;
+            _signatureDrafterName = file.name;
+          }
+          if (type == 'pemeriksa') {
+            _signaturePemeriksaBytes = fileBytes;
+            _signaturePemeriksaName = file.name;
+          }
+        });
+      }
     }
   }
 
@@ -103,22 +126,25 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
         );
 
         // Upload files if changed
-        if (_signaturePjFile != null) {
+        if (_signaturePjBytes != null) {
           updatedCustomer = await repo.uploadSignature(
             customerId: _currentCustomer.id,
-            signatureFile: _signaturePjFile!,
+            bytes: _signaturePjBytes!,
+            fileName: _signaturePjName ?? 'pj.png',
           );
         }
-        if (_signatureDrafterFile != null) {
+        if (_signatureDrafterBytes != null) {
           updatedCustomer = await repo.uploadSignatureDrafter(
             customerId: _currentCustomer.id,
-            signatureFile: _signatureDrafterFile!,
+            bytes: _signatureDrafterBytes!,
+            fileName: _signatureDrafterName ?? 'drafter.png',
           );
         }
-        if (_signaturePemeriksaFile != null) {
+        if (_signaturePemeriksaBytes != null) {
           updatedCustomer = await repo.uploadSignaturePemeriksa(
             customerId: _currentCustomer.id,
-            signatureFile: _signaturePemeriksaFile!,
+            bytes: _signaturePemeriksaBytes!,
+            fileName: _signaturePemeriksaName ?? 'pemeriksa.png',
           );
         }
 
@@ -191,10 +217,10 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
 
   Widget _buildParafUpload({
     required String label,
-    required File? currentFile,
+    required Uint8List? currentBytes, // Ubah dari File?
     required String? imageUrl,
     required bool isDragging,
-    required Function(File) onFileDropped,
+    required Function(Uint8List, String) onFileDropped, // Ubah fungsi callback
     required Function(bool) onDragUpdate,
     required VoidCallback onPick,
     required String? signatureKey,
@@ -210,9 +236,14 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
         Row(
           children: [
             DropTarget(
-              onDragDone: (details) {
-                if (details.files.isNotEmpty)
-                  onFileDropped(File(details.files.first.path));
+              onDragDone: (details) async {
+                // Ubah jadi async
+                if (details.files.isNotEmpty) {
+                  final file = details.files.first;
+                  final bytes = await file
+                      .readAsBytes(); // Ambil bytes langsung dari XFile
+                  onFileDropped(bytes, file.name);
+                }
               },
               onDragEntered: (_) => onDragUpdate(true),
               onDragExited: (_) => onDragUpdate(false),
@@ -228,8 +259,8 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
                   ),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: currentFile != null
-                    ? Image.file(currentFile, fit: BoxFit.contain)
+                child: currentBytes != null
+                    ? Image.memory(currentBytes, fit: BoxFit.contain)
                     : (imageUrl != null
                           ? Image.network(
                               imageUrl,
@@ -318,10 +349,13 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
                 const SizedBox(height: 8),
                 _buildParafUpload(
                   label: 'Paraf PJ',
-                  currentFile: _signaturePjFile,
+                  currentBytes: _signaturePjBytes,
                   imageUrl: pjImageUrl,
                   isDragging: _isDraggingPj,
-                  onFileDropped: (f) => setState(() => _signaturePjFile = f),
+                  onFileDropped: (bytes, name) => setState(() {
+                    _signaturePjBytes = bytes;
+                    _signaturePjName = name;
+                  }),
                   onDragUpdate: (val) => setState(() => _isDraggingPj = val),
                   onPick: () => _pickImage('pj'),
                   signatureKey: _currentCustomer.signaturePj,
@@ -336,11 +370,13 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
                 const SizedBox(height: 8),
                 _buildParafUpload(
                   label: 'Paraf Drafter',
-                  currentFile: _signatureDrafterFile,
+                  currentBytes: _signatureDrafterBytes,
                   imageUrl: drafterImageUrl,
                   isDragging: _isDraggingDrafter,
-                  onFileDropped: (f) =>
-                      setState(() => _signatureDrafterFile = f),
+                  onFileDropped: (bytes, name) => setState(() {
+                    _signatureDrafterBytes = bytes;
+                    _signatureDrafterName = name;
+                  }),
                   onDragUpdate: (val) =>
                       setState(() => _isDraggingDrafter = val),
                   onPick: () => _pickImage('drafter'),
@@ -358,11 +394,13 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
                 const SizedBox(height: 8),
                 _buildParafUpload(
                   label: 'Paraf Pemeriksa',
-                  currentFile: _signaturePemeriksaFile,
+                  currentBytes: _signaturePemeriksaBytes,
                   imageUrl: pemeriksaImageUrl,
                   isDragging: _isDraggingPemeriksa,
-                  onFileDropped: (f) =>
-                      setState(() => _signaturePemeriksaFile = f),
+                  onFileDropped: (bytes, name) => setState(() {
+                    _signaturePemeriksaBytes = bytes;
+                    _signaturePemeriksaName = name;
+                  }),
                   onDragUpdate: (val) =>
                       setState(() => _isDraggingPemeriksa = val),
                   onPick: () => _pickImage('pemeriksa'),

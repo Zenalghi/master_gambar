@@ -1,11 +1,13 @@
 // lib/admin/management/repository/customer_repository.dart
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http_parser/http_parser.dart';
 import '../../../data/models/customer.dart';
 import '../../../app/core/providers.dart';
 import '../../../data/models/paginated_response.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 final customerRepositoryProvider = Provider((ref) => CustomerRepository(ref));
 
@@ -90,12 +92,13 @@ class CustomerRepository {
   // Upload Paraf PJ
   Future<Customer> uploadSignature({
     required int customerId,
-    required File signatureFile,
+    required Uint8List bytes, // Ubah parameter ini
+    required String fileName, // Tambah parameter ini
   }) async {
-    final fileName = signatureFile.path.split(Platform.pathSeparator).last;
     final formData = FormData.fromMap({
-      'paraf_pj': await MultipartFile.fromFile(
-        signatureFile.path,
+      'paraf_pj': MultipartFile.fromBytes(
+        // Ubah dari fromFile menjadi fromBytes
+        bytes,
         filename: fileName,
         contentType: MediaType('image', 'png'),
       ),
@@ -108,21 +111,20 @@ class CustomerRepository {
     return Customer.fromJson(response.data);
   }
 
-  // --- TAMBAHAN: Upload Paraf Drafter ---
+  // --- LAKUKAN HAL YANG SAMA UNTUK DRAFTER ---
   Future<Customer> uploadSignatureDrafter({
     required int customerId,
-    required File signatureFile,
+    required Uint8List bytes,
+    required String fileName,
   }) async {
-    final fileName = signatureFile.path.split(Platform.pathSeparator).last;
     final formData = FormData.fromMap({
-      'paraf_drafter': await MultipartFile.fromFile(
-        signatureFile.path,
+      'paraf_drafter': MultipartFile.fromBytes(
+        bytes,
         filename: fileName,
         contentType: MediaType('image', 'png'),
       ),
     });
 
-    // PERBAIKAN: Gunakan endpoint /paraf
     final response = await _ref
         .read(apiClientProvider)
         .dio
@@ -130,21 +132,20 @@ class CustomerRepository {
     return Customer.fromJson(response.data);
   }
 
-  // --- TAMBAHAN: Upload Paraf Pemeriksa ---
+  // --- LAKUKAN HAL YANG SAMA UNTUK PEMERIKSA ---
   Future<Customer> uploadSignaturePemeriksa({
     required int customerId,
-    required File signatureFile,
+    required Uint8List bytes,
+    required String fileName,
   }) async {
-    final fileName = signatureFile.path.split(Platform.pathSeparator).last;
     final formData = FormData.fromMap({
-      'paraf_pemeriksa': await MultipartFile.fromFile(
-        signatureFile.path,
+      'paraf_pemeriksa': MultipartFile.fromBytes(
+        bytes,
         filename: fileName,
         contentType: MediaType('image', 'png'),
       ),
     });
 
-    // PERBAIKAN: Gunakan endpoint /paraf
     final response = await _ref
         .read(apiClientProvider)
         .dio

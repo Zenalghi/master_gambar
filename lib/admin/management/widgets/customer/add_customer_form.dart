@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/customer_providers.dart';
@@ -19,9 +21,15 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
   final _drafterController = TextEditingController();
   final _pemeriksaController = TextEditingController();
 
-  File? _signatureFilepj;
-  File? _signatureFiledrafter;
-  File? _signatureFilepemeriksa;
+  // 1. Ubah definisi state File menjadi Uint8List dan String (untuk nama)
+  Uint8List? _signatureBytespj;
+  String? _signatureNamepj;
+
+  Uint8List? _signatureBytesdrafter;
+  String? _signatureNamedrafter;
+
+  Uint8List? _signatureBytespemeriksa;
+  String? _signatureNamepemeriksa;
   bool _isLoading = false;
   bool _isDragging = false; // State untuk feedback visual
 
@@ -37,15 +45,34 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
   Future<void> _pickImage(String type) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.image,
+      withData: true, // WAJIB TRUE AGAR JALAN DI WEB
     );
+
     if (result != null) {
-      setState(() {
-        if (type == 'pj') _signatureFilepj = File(result.files.single.path!);
-        if (type == 'drafter')
-          _signatureFiledrafter = File(result.files.single.path!);
-        if (type == 'pemeriksa')
-          _signatureFilepemeriksa = File(result.files.single.path!);
-      });
+      final file = result.files.single;
+
+      // Ambil bytes. Gunakan fallback path jika bytes kosong (biasanya aman untuk Desktop)
+      Uint8List? fileBytes = file.bytes;
+      if (fileBytes == null && !kIsWeb && file.path != null) {
+        fileBytes = File(file.path!).readAsBytesSync();
+      }
+
+      if (fileBytes != null) {
+        setState(() {
+          if (type == 'pj') {
+            _signatureBytespj = fileBytes;
+            _signatureNamepj = file.name;
+          }
+          if (type == 'drafter') {
+            _signatureBytesdrafter = fileBytes;
+            _signatureNamedrafter = file.name;
+          }
+          if (type == 'pemeriksa') {
+            _signatureBytespemeriksa = fileBytes;
+            _signatureNamepemeriksa = file.name;
+          }
+        });
+      }
     }
   }
 
@@ -65,22 +92,25 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
               : null,
         );
 
-        if (_signatureFilepj != null) {
+        if (_signatureBytespj != null) {
           await repo.uploadSignature(
             customerId: newCustomer.id,
-            signatureFile: _signatureFilepj!,
+            bytes: _signatureBytespj!,
+            fileName: _signatureNamepj ?? 'paraf_pj.png',
           );
         }
-        if (_signatureFiledrafter != null) {
+        if (_signatureBytesdrafter != null) {
           await repo.uploadSignatureDrafter(
             customerId: newCustomer.id,
-            signatureFile: _signatureFiledrafter!,
+            bytes: _signatureBytesdrafter!,
+            fileName: _signatureNamedrafter ?? 'paraf_drafter.png',
           );
         }
-        if (_signatureFilepemeriksa != null) {
+        if (_signatureBytespemeriksa != null) {
           await repo.uploadSignaturePemeriksa(
             customerId: newCustomer.id,
-            signatureFile: _signatureFilepemeriksa!,
+            bytes: _signatureBytespemeriksa!,
+            fileName: _signatureNamepemeriksa ?? 'paraf_pemeriksa.png',
           );
         }
 
@@ -95,9 +125,9 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
         _pjController.clear();
         _drafterController.clear();
         _pemeriksaController.clear();
-        setState(() => _signatureFilepj = null);
-        setState(() => _signatureFiledrafter = null);
-        setState(() => _signatureFilepemeriksa = null);
+        setState(() => _signatureBytespj = null);
+        setState(() => _signatureBytesdrafter = null);
+        setState(() => _signatureBytespemeriksa = null);
         ref.read(customerInvalidator.notifier).state++;
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -176,12 +206,14 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                     Row(
                       children: [
                         DropTarget(
-                          onDragDone: (details) {
+                          onDragDone: (details) async {
                             if (details.files.isNotEmpty) {
+                              final file = details.files.first;
+                              final bytes = await file
+                                  .readAsBytes(); // Mendukung Web dan Desktop
                               setState(() {
-                                _signatureFilepj = File(
-                                  details.files.first.path,
-                                );
+                                _signatureBytespj = bytes;
+                                _signatureNamepj = file.name;
                               });
                             }
                           },
@@ -204,9 +236,9 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                                 Container(
                                   width: 100,
                                   height: 50,
-                                  child: _signatureFilepj != null
-                                      ? Image.file(
-                                          _signatureFilepj!,
+                                  child: _signatureBytespj != null
+                                      ? Image.memory(
+                                          _signatureBytespj!,
                                           fit: BoxFit.contain,
                                         )
                                       : const Center(
@@ -249,12 +281,14 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                     Row(
                       children: [
                         DropTarget(
-                          onDragDone: (details) {
+                          onDragDone: (details) async {
                             if (details.files.isNotEmpty) {
+                              final file = details.files.first;
+                              final bytes = await file
+                                  .readAsBytes(); // Mendukung Web dan Desktop
                               setState(() {
-                                _signatureFiledrafter = File(
-                                  details.files.first.path,
-                                );
+                                _signatureBytesdrafter = bytes;
+                                _signatureNamedrafter = file.name;
                               });
                             }
                           },
@@ -277,9 +311,9 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                                 Container(
                                   width: 100,
                                   height: 50,
-                                  child: _signatureFiledrafter != null
-                                      ? Image.file(
-                                          _signatureFiledrafter!,
+                                  child: _signatureBytesdrafter != null
+                                      ? Image.memory(
+                                          _signatureBytesdrafter!,
                                           fit: BoxFit.contain,
                                         )
                                       : const Center(
@@ -325,12 +359,14 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                     Row(
                       children: [
                         DropTarget(
-                          onDragDone: (details) {
+                          onDragDone: (details) async {
                             if (details.files.isNotEmpty) {
+                              final file = details.files.first;
+                              final bytes = await file
+                                  .readAsBytes(); // Mendukung Web dan Desktop
                               setState(() {
-                                _signatureFilepemeriksa = File(
-                                  details.files.first.path,
-                                );
+                                _signatureBytespemeriksa = bytes;
+                                _signatureNamepemeriksa = file.name;
                               });
                             }
                           },
@@ -353,9 +389,9 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                                 Container(
                                   width: 100,
                                   height: 50,
-                                  child: _signatureFilepemeriksa != null
-                                      ? Image.file(
-                                          _signatureFilepemeriksa!,
+                                  child: _signatureBytespemeriksa != null
+                                      ? Image.memory(
+                                          _signatureBytespemeriksa!,
                                           fit: BoxFit.contain,
                                         )
                                       : const Center(
