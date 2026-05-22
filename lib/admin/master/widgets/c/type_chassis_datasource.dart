@@ -3,9 +3,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../models/type_chassis.dart';
-import '../providers/master_data_providers.dart';
-import '../repository/master_data_repository.dart';
+import '../../models/type_chassis.dart';
+import '../../providers/master_data_providers.dart';
+import '../../repository/master_data_repository.dart';
 
 class TypeChassisDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;

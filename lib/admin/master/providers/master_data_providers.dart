@@ -168,7 +168,6 @@ final gambarOptionalFilterProvider = StateProvider<Map<String, String>>((ref) {
   return {'search': '', 'sortBy': 'updated_at', 'sortDirection': 'desc'};
 });
 
-
 // State untuk checkbox "Tambahkan Gambar Optional Dependen"
 final mguShowDependentOptionalProvider = StateProvider<bool>((ref) => false);
 

@@ -7,7 +7,7 @@ import 'package:master_gambar/admin/master/providers/master_data_providers.dart'
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:dio/dio.dart';
 
-import '../../../app/core/providers.dart';
+import '../../../../app/core/providers.dart';
 
 class KelistrikanDeskripsiDialog extends ConsumerStatefulWidget {
   final MasterData masterData;

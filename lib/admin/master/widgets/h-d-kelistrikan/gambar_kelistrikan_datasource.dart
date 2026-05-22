@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:master_gambar/admin/master/models/master_kelistrikan_file.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
-import 'pdf_viewer_dialog.dart';
+import '../pdf_viewer_dialog.dart';
 
 class GambarKelistrikanDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;

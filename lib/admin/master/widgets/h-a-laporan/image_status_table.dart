@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/models/g_gambar_utama.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import '../models/image_status.dart';
-import '../repository/master_data_repository.dart';
+import '../../models/image_status.dart';
+import '../../repository/master_data_repository.dart';
 import 'image_status_datasource.dart';
 import 'gambar_utama_viewer_dialog.dart';
 

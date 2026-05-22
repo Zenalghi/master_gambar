@@ -5,7 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdfx/pdfx.dart';
-import '../providers/master_data_providers.dart';
+import '../../providers/master_data_providers.dart';
 
 class DependentOptionalFormCard extends ConsumerStatefulWidget {
   final TextEditingController deskripsiController;

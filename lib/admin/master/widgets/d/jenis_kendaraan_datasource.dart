@@ -1,27 +1,27 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
-import '../models/merk.dart';
-import '../providers/master_data_providers.dart';
-import '../repository/master_data_repository.dart';
+import 'package:intl/intl.dart';
+import '../../models/jenis_kendaraan.dart';
+import '../../providers/master_data_providers.dart';
+import '../../repository/master_data_repository.dart';
 
-class MerkDataSource extends AsyncDataTableSource {
+class JenisKendaraanDataSource extends AsyncDataTableSource {
   final WidgetRef _ref;
   final BuildContext context;
 
-  MerkDataSource(this._ref, this.context) {
-    _ref.listen(merkFilterProvider, (_, __) => refreshDatasource());
+  JenisKendaraanDataSource(this._ref, this.context) {
+    _ref.listen(jenisKendaraanFilterProvider, (_, __) => refreshDatasource());
   }
 
   @override
   Future<AsyncRowsResponse> getRows(int startIndex, int count) async {
-    final filters = _ref.read(merkFilterProvider);
+    final filters = _ref.read(jenisKendaraanFilterProvider);
     try {
       final response = await _ref
           .read(masterDataRepositoryProvider)
-          .getMerksPaginated(
+          .getJenisKendaraanListPaginated(
             perPage: count,
             page: (startIndex ~/ count) + 1,
             search: filters['search']!,
@@ -58,8 +58,8 @@ class MerkDataSource extends AsyncDataTableSource {
                     IconButton(
                       icon: const Icon(
                         Icons.delete,
-                        color: Colors.red,
                         size: 15,
+                        color: Colors.red,
                       ),
                       onPressed: () => _showDeleteDialog(item),
                     ),
@@ -71,22 +71,21 @@ class MerkDataSource extends AsyncDataTableSource {
         }).toList(),
       );
     } catch (e) {
-      debugPrint('Error fetching merks: $e');
+      debugPrint('Error fetching Jenis Kendaraan: $e');
       return AsyncRowsResponse(0, []);
     }
   }
 
-  // Method _showEditDialog dan _showDeleteDialog bisa dipindahkan ke sini
-  void _showEditDialog(Merk item) {
+  void _showEditDialog(JenisKendaraan item) {
     final controller = TextEditingController(text: item.name);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Merk: ${item.id}'),
+        title: Text('Edit Jenis Kendaraan: ${item.id}'),
         content: TextFormField(
           controller: controller,
           textCapitalization: TextCapitalization.characters,
-          decoration: const InputDecoration(labelText: 'Nama Merk'),
+          decoration: const InputDecoration(labelText: 'Nama Jenis Kendaraan'),
         ),
         actions: [
           TextButton(
@@ -98,7 +97,10 @@ class MerkDataSource extends AsyncDataTableSource {
               try {
                 await _ref
                     .read(masterDataRepositoryProvider)
-                    .updateMerk(id: item.id, merk: controller.text);
+                    .updateJenisKendaraan(
+                      id: item.id,
+                      jenisKendaraan: controller.text,
+                    );
                 refreshDatasource();
                 if (context.mounted) Navigator.of(context).pop();
               } on DioException catch (e) {
@@ -119,7 +121,7 @@ class MerkDataSource extends AsyncDataTableSource {
     );
   }
 
-  void _showDeleteDialog(Merk item) {
+  void _showDeleteDialog(JenisKendaraan item) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -136,13 +138,13 @@ class MerkDataSource extends AsyncDataTableSource {
               try {
                 await _ref
                     .read(masterDataRepositoryProvider)
-                    .deleteMerk(id: item.id);
+                    .deleteJenisKendaraan(id: item.id);
                 refreshDatasource();
                 if (context.mounted) {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Text('Merk berhasil dihapus'),
+                      content: const Text('Jenis Kendaraan berhasil dihapus'),
                       backgroundColor: Colors.orange[400],
                     ),
                   );

@@ -1,64 +1,68 @@
-// File: lib/admin/master/widgets/type_engine_table.dart
+//lib\admin\master\widgets\jenis_varian_table.dart
 
-import 'package:dio/dio.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/type_engine.dart';
-import '../providers/master_data_providers.dart';
-import '../repository/master_data_repository.dart';
+import 'package:intl/intl.dart';
+import 'package:master_gambar/admin/master/models/jenis_varian.dart';
+import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
+import '../../repository/master_data_repository.dart';
 
-class TypeEngineTable extends ConsumerStatefulWidget {
-  const TypeEngineTable({super.key});
-
+class JenisVarianTable extends ConsumerStatefulWidget {
+  const JenisVarianTable({super.key});
   @override
-  ConsumerState<TypeEngineTable> createState() => _TypeEngineTableState();
+  ConsumerState<JenisVarianTable> createState() => _JenisVarianTableState();
 }
 
-class _TypeEngineTableState extends ConsumerState<TypeEngineTable> {
-  int _sortColumnIndex = 0; // Default sort: ID
-  bool _sortAscending = true; // Default: A-Z (asc)
+class _JenisVarianTableState extends ConsumerState<JenisVarianTable> {
+  int? _sortColumnIndex = 0; // Default sort by ID
+  bool _sortAscending = true;
 
   @override
   Widget build(BuildContext context) {
-    final asyncData = ref.watch(typeEngineListProvider);
-    final searchQuery = ref.watch(typeEngineSearchQueryProvider);
+    final asyncData = ref.watch(jenisVarianListProvider);
+    final rowsPerPage = ref.watch(jenisVarianRowsPerPageProvider);
+    final searchQuery = ref.watch(jenisVarianSearchQueryProvider);
 
     return asyncData.when(
       data: (data) {
-        // --- Logika Filter Client-Side ---
         final filteredData = data.where((item) {
           final query = searchQuery.toLowerCase();
           return item.name.toLowerCase().contains(query) ||
-              item.id.toString().toLowerCase().contains(
-                query,
-              ) || // <-- Ubah ke toString()
-              item.createdAt.toString().toLowerCase().contains(query) ||
-              item.updatedAt.toString().toLowerCase().contains(query);
+              item.id.toString().contains(query);
         }).toList();
 
-        // --- Logika Sorting Client-Side ---
-        final sortedData = List<TypeEngine>.from(filteredData);
-        sortedData.sort((a, b) {
-          int result = 0;
-          switch (_sortColumnIndex) {
-            case 0:
-              result = a.id.compareTo(b.id);
-              break;
-            case 1:
-              result = a.name.compareTo(b.name);
-              break;
-            case 2:
-              result = a.createdAt.compareTo(b.createdAt);
-              break;
-            case 3:
-              result = a.updatedAt.compareTo(b.updatedAt);
-              break;
-          }
-          return _sortAscending ? result : -result;
-        });
-        // ---------------------------------
+        final sortedData = List<JenisVarian>.from(filteredData);
+        if (_sortColumnIndex != null) {
+          sortedData.sort((a, b) {
+            late final Comparable<Object> cellA;
+            late final Comparable<Object> cellB;
+            switch (_sortColumnIndex!) {
+              case 0:
+                cellA = a.id;
+                cellB = b.id;
+                break;
+              case 1:
+                cellA = a.name.toLowerCase();
+                cellB = b.name.toLowerCase();
+                break;
+              case 2:
+                cellA = a.createdAt;
+                cellB = b.createdAt;
+                break;
+              case 3:
+                cellA = a.updatedAt;
+                cellB = b.updatedAt;
+                break;
+              default:
+                return 0;
+            }
+            return _sortAscending
+                ? cellA.compareTo(cellB)
+                : cellB.compareTo(cellA);
+          });
+        }
 
         return PaginatedDataTable2(
           columnSpacing: 3,
@@ -66,12 +70,14 @@ class _TypeEngineTableState extends ConsumerState<TypeEngineTable> {
           minWidth: 900,
           headingRowHeight: 35,
           dataRowHeight: 30,
+          rowsPerPage: rowsPerPage,
+          availableRowsPerPage: const [50, 100],
+          onRowsPerPageChanged: (value) =>
+              ref.read(jenisVarianRowsPerPageProvider.notifier).state = value!,
           sortColumnIndex: _sortColumnIndex,
           sortAscending: _sortAscending,
           columns: _createColumns(),
-          source: _TypeEngineDataSource(sortedData, context, ref),
-          // loading:  Center(child: CircularProgressIndicator()),
-          empty: const Center(child: Text('Tidak ada data ditemukan')),
+          source: _JenisVarianDataSource(sortedData, context, ref),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -79,20 +85,11 @@ class _TypeEngineTableState extends ConsumerState<TypeEngineTable> {
     );
   }
 
-  // Method untuk menangani event klik sort
-  void _onSort(int columnIndex, bool ascending) {
-    setState(() {
-      _sortColumnIndex = columnIndex;
-      _sortAscending = ascending;
-    });
-  }
-
-  // Method untuk membuat header kolom
   List<DataColumn2> _createColumns() {
     return [
       DataColumn2(label: const Text('ID'), fixedWidth: 40, onSort: _onSort),
       DataColumn2(
-        label: const Text('Type Engine'),
+        label: const Text('Jenis Varian'),
         size: ColumnSize.L,
         onSort: _onSort,
       ),
@@ -109,28 +106,31 @@ class _TypeEngineTableState extends ConsumerState<TypeEngineTable> {
       const DataColumn2(label: Text('Options'), fixedWidth: 120),
     ];
   }
+
+  void _onSort(int columnIndex, bool ascending) {
+    setState(() {
+      _sortColumnIndex = columnIndex;
+      _sortAscending = ascending;
+    });
+  }
 }
 
-// --- DATA SOURCE ---
-class _TypeEngineDataSource extends DataTableSource {
-  final List<TypeEngine> data;
+class _JenisVarianDataSource extends DataTableSource {
+  final List<JenisVarian> data;
   final BuildContext context;
   final WidgetRef ref;
-  final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
-
-  _TypeEngineDataSource(this.data, this.context, this.ref);
+  _JenisVarianDataSource(this.data, this.context, this.ref);
 
   @override
   DataRow? getRow(int index) {
-    if (index >= data.length) return null;
     final item = data[index];
-
+    final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
     return DataRow(
       cells: [
-        DataCell(SelectableText(item.id.toString())), // <-- Ubah ke toString()
-        DataCell(SelectableText(item.name)),
-        DataCell(SelectableText(dateFormat.format(item.createdAt.toLocal()))),
-        DataCell(SelectableText(dateFormat.format(item.updatedAt.toLocal()))),
+        DataCell(Text(item.id.toString())),
+        DataCell(Text(item.name)),
+        DataCell(Text(dateFormat.format(item.createdAt.toLocal()))),
+        DataCell(Text(dateFormat.format(item.updatedAt.toLocal()))),
         DataCell(
           Row(
             children: [
@@ -149,16 +149,16 @@ class _TypeEngineDataSource extends DataTableSource {
     );
   }
 
-  void _showEditDialog(TypeEngine item) {
+  void _showEditDialog(JenisVarian item) {
     final controller = TextEditingController(text: item.name);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Type Engine: ${item.id}'),
+        title: Text('Edit Jenis Varian: ${item.id}'),
         content: TextFormField(
           controller: controller,
           textCapitalization: TextCapitalization.characters,
-          decoration: const InputDecoration(labelText: 'Nama Type Engine'),
+          decoration: const InputDecoration(labelText: 'Nama Jenis Varian'),
         ),
         actions: [
           TextButton(
@@ -170,11 +170,11 @@ class _TypeEngineDataSource extends DataTableSource {
               try {
                 await ref
                     .read(masterDataRepositoryProvider)
-                    .updateTypeEngine(
+                    .updateJenisVarian(
                       id: item.id,
-                      typeEngine: controller.text,
+                      namaJudul: controller.text,
                     ); // <-- ID sudah int
-                ref.invalidate(typeEngineListProvider);
+                ref.invalidate(jenisVarianListProvider);
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -198,7 +198,7 @@ class _TypeEngineDataSource extends DataTableSource {
     );
   }
 
-  void _showDeleteDialog(TypeEngine item) {
+  void _showDeleteDialog(JenisVarian item) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -215,20 +215,21 @@ class _TypeEngineDataSource extends DataTableSource {
               try {
                 await ref
                     .read(masterDataRepositoryProvider)
-                    .deleteTypeEngine(id: item.id); // <-- ID sudah int
-                ref.invalidate(typeEngineListProvider);
+                    .deleteJenisVarian(id: item.id); // <-- GANTI DENGAN INI
+
+                ref.invalidate(jenisVarianListProvider);
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: const Text('Data berhasil dihapus'),
-                    backgroundColor: Colors.orange[400],
+                    backgroundColor: Colors.redAccent[400],
                   ),
                 );
               } on DioException catch (e) {
                 final errorMessages = e.response?.data['errors'];
                 final message = errorMessages != null
                     ? errorMessages['general'][0]
-                    : 'Terjadi kesalahan.';
+                    : 'Terjadi kesalahan. $e';
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(message), backgroundColor: Colors.red),
                 );

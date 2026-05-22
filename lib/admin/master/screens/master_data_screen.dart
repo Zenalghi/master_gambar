@@ -3,8 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import '../widgets/add_master_data_form.dart';
-import '../widgets/master_data_table.dart';
+import '../widgets/e/add_master_data_form.dart';
+import '../widgets/e/master_data_table.dart';
 import '../widgets/recycle_bin/master_data_recycle_bin.dart';
 
 class MasterDataScreen extends ConsumerStatefulWidget {
