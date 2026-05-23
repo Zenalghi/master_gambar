@@ -44,6 +44,10 @@ class _AddMasterVarianFormState extends ConsumerState<AddMasterVarianForm> {
       ref
           .read(masterVarianFilterProvider.notifier)
           .update((state) => Map.from(state));
+      ref.invalidate(varianBodyFilterProvider);
+      ref.invalidate(masterVarianOptionsFamilyProvider);
+      ref.invalidate(masterDataOptionsProvider);
+      ref.read(selectedMasterDataFilterProvider.notifier).state = null;
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
