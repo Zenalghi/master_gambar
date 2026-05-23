@@ -1,6 +1,6 @@
 // lib\admin\master\providers\master_data_providers.dart
 
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:master_gambar/admin/master/models/type_engine.dart';
@@ -9,7 +9,6 @@ import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/data/providers/api_endpoints.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
-// import '../models/gambar_optional.dart';
 import '../models/gambar_optional.dart';
 import '../models/jenis_varian.dart';
 import '../models/master_data.dart';
@@ -135,10 +134,21 @@ final mguSelectedJenisKendaraanIdProvider = StateProvider<String?>(
 );
 final mguSelectedVarianBodyIdProvider = StateProvider<int?>((ref) => null);
 
+class PdfFileData {
+  final String name;
+  final Uint8List bytes;
+  final int size;
+
+  PdfFileData({required this.name, required this.bytes, required this.size});
+}
+
 // State untuk menyimpan file-file yang dipilih
-final mguGambarUtamaFileProvider = StateProvider<File?>((ref) => null);
-final mguGambarTeruraiFileProvider = StateProvider<File?>((ref) => null);
-final mguGambarKontruksiFileProvider = StateProvider<File?>((ref) => null);
+final mguGambarUtamaFileProvider = StateProvider<PdfFileData?>((ref) => null);
+final mguGambarTeruraiFileProvider = StateProvider<PdfFileData?>((ref) => null);
+final mguGambarKontruksiFileProvider = StateProvider<PdfFileData?>(
+  (ref) => null,
+);
+final mguDependentFileProvider = StateProvider<PdfFileData?>((ref) => null);
 
 // Provider untuk dropdown Varian Body (berdasarkan Jenis Kendaraan)
 // Kita menggunakan OptionItem karena hanya butuh ID dan nama
@@ -170,9 +180,6 @@ final gambarOptionalFilterProvider = StateProvider<Map<String, String>>((ref) {
 
 // State untuk checkbox "Tambahkan Gambar Optional Dependen"
 final mguShowDependentOptionalProvider = StateProvider<bool>((ref) => false);
-
-// State untuk file PDF opsional dependen yang dipilih
-final mguDependentFileProvider = StateProvider<File?>((ref) => null);
 
 // Provider ini akan melakukan pengecekan ke backend saat Varian Body dipilih
 final hasExistingPaketOptionalProvider = FutureProvider<bool>((ref) async {

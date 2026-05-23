@@ -2,6 +2,7 @@
 
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
@@ -26,17 +27,18 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
   // State untuk mode tampilan: True = Horizontal (3 Kolom), False = Vertical (List ke bawah)
   bool _isHorizontalView = true;
 
-  Future<File?> _pickPdfFile() async {
+  Future<PdfFileData?> _pickPdfFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
+      withData: true, // WAJIB TRUE AGAR JALAN DI WEB
     );
 
-    if (result != null && result.files.single.path != null) {
-      final file = File(result.files.single.path!);
+    if (result != null) {
+      final file = result.files.single;
 
       // --- VALIDASI UKURAN FILE (Max 1 MB) ---
-      final int sizeInBytes = await file.length();
+      final int sizeInBytes = file.size; // Ambil size langsung dari FilePicker
       const int maxBytes = 1024 * 1024; // 1 MB
 
       if (sizeInBytes > maxBytes) {
@@ -49,10 +51,22 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
             ),
           );
         }
-        return null; // Return null agar state tidak berubah
+        return null;
       }
 
-      return file;
+      // Ambil bytes untuk Web dan Desktop
+      Uint8List? fileBytes = file.bytes;
+      if (fileBytes == null && !kIsWeb && file.path != null) {
+        fileBytes = File(file.path!).readAsBytesSync();
+      }
+
+      if (fileBytes != null) {
+        return PdfFileData(
+          name: file.name,
+          bytes: fileBytes,
+          size: sizeInBytes,
+        );
+      }
     }
     return null;
   }
@@ -165,9 +179,9 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
   // === LAYOUT 1: HORIZONTAL (YANG BARU) ===
   Widget _buildHorizontalLayout(
     bool enabled,
-    File? fUtama,
-    File? fTerurai,
-    File? fKontruksi,
+    PdfFileData? fUtama,
+    PdfFileData? fTerurai,
+    PdfFileData? fKontruksi,
   ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,9 +238,9 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
   // === LAYOUT 2: VERTICAL (YANG LAMA - DITUMPUK) ===
   Widget _buildVerticalLayout(
     bool enabled,
-    File? fUtama,
-    File? fTerurai,
-    File? fKontruksi,
+    PdfFileData? fUtama,
+    PdfFileData? fTerurai,
+    PdfFileData? fKontruksi,
   ) {
     return Column(
       children: [
@@ -275,7 +289,7 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
   // --- ITEM WIDGET UTK HORIZONTAL (Input ATAS, Preview BAWAH) ---
   Widget _buildHorizontalItem({
     required String label,
-    File? file,
+    PdfFileData? file,
     VoidCallback? onPressed,
   }) {
     return Column(
@@ -288,8 +302,7 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
-            file?.path.split(Platform.pathSeparator).last ??
-                'Belum ada file...',
+            file?.name ?? 'Belum ada file...',
             style: TextStyle(
               color: file != null ? Colors.black : Colors.grey,
               fontStyle: FontStyle.italic,
@@ -333,7 +346,7 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
   // --- ITEM WIDGET UTK VERTICAL (Input KIRI, Preview KANAN) ---
   Widget _buildVerticalItem({
     required String label,
-    File? file,
+    PdfFileData? file,
     VoidCallback? onPressed,
   }) {
     return Row(
@@ -353,8 +366,7 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  file?.path.split(Platform.pathSeparator).last ??
-                      'Belum ada file dipilih...',
+                  file?.name ?? 'Belum ada file dipilih...',
                   style: TextStyle(
                     color: file != null ? Colors.black : Colors.grey,
                     fontStyle: FontStyle.italic,
@@ -398,9 +410,9 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
   }
 }
 
-// --- CLASS PDF PREVIEWER TETAP SAMA ---
+// Widget khusus untuk preview PDF, menggunakan pdfx
 class _PdfPreviewer extends StatefulWidget {
-  final File file;
+  final PdfFileData file;
   const _PdfPreviewer({required this.file});
   @override
   State<_PdfPreviewer> createState() => _PdfPreviewerState();
@@ -412,19 +424,23 @@ class _PdfPreviewerState extends State<_PdfPreviewer> {
   @override
   void initState() {
     super.initState();
-    _pdfController = PdfController(
-      document: PdfDocument.openFile(widget.file.path),
-    );
+    // COPY BYTES: Cegah buffer asli 'dimakan' oleh Web Engine
+    final bytesCopy = Uint8List.fromList(widget.file.bytes);
+
+    _pdfController = PdfController(document: PdfDocument.openData(bytesCopy));
   }
 
   @override
   void didUpdateWidget(covariant _PdfPreviewer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.file.path != oldWidget.file.path) {
+    if (widget.file.name != oldWidget.file.name ||
+        widget.file.size != oldWidget.file.size) {
       _pdfController.dispose();
-      _pdfController = PdfController(
-        document: PdfDocument.openFile(widget.file.path),
-      );
+
+      // COPY BYTES: Cegah buffer asli 'dimakan' oleh Web Engine
+      final bytesCopy = Uint8List.fromList(widget.file.bytes);
+
+      _pdfController = PdfController(document: PdfDocument.openData(bytesCopy));
     }
   }
 
@@ -436,6 +452,6 @@ class _PdfPreviewerState extends State<_PdfPreviewer> {
 
   @override
   Widget build(BuildContext context) {
-    return PdfView(key: ValueKey(widget.file.path), controller: _pdfController);
+    return PdfView(key: ValueKey(widget.file.name), controller: _pdfController);
   }
 }

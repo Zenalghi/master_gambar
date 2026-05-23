@@ -1,13 +1,11 @@
 // File: lib/admin/master/screens/master_gambar_utama_screen.dart
 
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:master_gambar/admin/master/models/g_gambar_utama.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
-import 'package:path_provider/path_provider.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../widgets/h-b-utama/pilih_file_pdf_card.dart';
 import '../widgets/h-b-utama/pilih_varian_body_card.dart';
@@ -55,15 +53,13 @@ class _MasterGambarUtamaScreenState
       final paths = await repo.getGambarUtamaPaths(gambarUtama.id);
 
       // 2. Helper: Download PDF ke Temp (Hanya jika path valid)
-      Future<File?> downloadIfExist(String key, String filename) async {
+      Future<PdfFileData?> downloadIfExist(String key, String filename) async {
         if (!paths.containsKey(key) || paths[key] == null) return null;
 
         try {
           final bytes = await repo.getPdfFromPath(paths[key]!);
-          final tempDir = await getTemporaryDirectory();
-          final file = File('${tempDir.path}/$filename');
-          await file.writeAsBytes(bytes);
-          return file;
+          // Langsung jadikan PdfFileData tanpa perlu nyimpan ke Temporary Directory
+          return PdfFileData(name: filename, bytes: bytes, size: bytes.length);
         } catch (e) {
           debugPrint('Gagal download $filename: $e');
           return null;
@@ -295,23 +291,20 @@ class _MasterGambarUtamaScreenState
       );
     }
 
-    if (await gambarUtamaFile.length() > maxFileSize) {
+    if (gambarUtamaFile.size > maxFileSize) {
       showSizeError('Gambar Utama');
       return;
     }
-    // Cek ukuran hanya jika file ada
-    if (gambarTeruraiFile != null &&
-        await gambarTeruraiFile.length() > maxFileSize) {
+    if (gambarTeruraiFile != null && gambarTeruraiFile.size > maxFileSize) {
       showSizeError('Gambar Terurai');
       return;
     }
-    if (gambarKontruksiFile != null &&
-        await gambarKontruksiFile.length() > maxFileSize) {
+    if (gambarKontruksiFile != null && gambarKontruksiFile.size > maxFileSize) {
       showSizeError('Gambar Kontruksi');
       return;
     }
     if (showDependent && dependentFile != null) {
-      if (await dependentFile.length() > maxFileSize) {
+      if (dependentFile.size > maxFileSize) {
         showSizeError('Gambar Optional Paket');
         return;
       }

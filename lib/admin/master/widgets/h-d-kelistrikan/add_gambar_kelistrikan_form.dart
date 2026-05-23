@@ -1,6 +1,7 @@
 // File: lib/admin/master/widgets/add_gambar_kelistrikan_form.dart
 
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
@@ -42,7 +43,7 @@ class _AddGambarKelistrikanFormState
   OptionItem? _initialMerkObj;
   OptionItem? _initialChassisObj;
 
-  File? _selectedFile;
+  PdfFileData? _selectedFile;
   PdfController? _pdfController;
   bool _isUploading = false;
   static const int _maxFileSize = 1024 * 1024;
@@ -125,14 +126,13 @@ class _AddGambarKelistrikanFormState
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
+      withData: true,
     );
 
-    if (result != null && result.files.single.path != null) {
-      final file = File(result.files.single.path!);
+    if (result != null) {
+      final file = result.files.single;
 
-      // Cek Ukuran
-      final size = await file.length();
-      if (size > _maxFileSize) {
+      if (file.size > _maxFileSize) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -143,16 +143,31 @@ class _AddGambarKelistrikanFormState
             ),
           );
         }
-        return; // Jangan update state
+        return;
       }
 
-      setState(() {
-        _selectedFile = file;
-        _pdfController?.dispose();
-        _pdfController = PdfController(
-          document: PdfDocument.openFile(_selectedFile!.path),
-        );
-      });
+      Uint8List? fileBytes = file.bytes;
+      if (fileBytes == null && !kIsWeb && file.path != null) {
+        fileBytes = File(file.path!).readAsBytesSync();
+      }
+
+      if (fileBytes != null) {
+        setState(() {
+          _selectedFile = PdfFileData(
+            name: file.name,
+            bytes: fileBytes!,
+            size: file.size,
+          );
+          _pdfController?.dispose();
+
+          // --- PERBAIKAN FLUTTER WEB: COPY BYTES ---
+          final bytesCopy = Uint8List.fromList(fileBytes!);
+
+          _pdfController = PdfController(
+            document: PdfDocument.openData(bytesCopy),
+          );
+        });
+      }
     }
   }
 
@@ -166,8 +181,7 @@ class _AddGambarKelistrikanFormState
       return;
     }
     // --- VALIDASI SAAT SUBMIT (DOUBLE CHECK) ---
-    final size = await _selectedFile!.length();
-    if (size > _maxFileSize) {
+    if (_selectedFile!.size > _maxFileSize) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -182,8 +196,6 @@ class _AddGambarKelistrikanFormState
     setState(() => _isUploading = true);
 
     try {
-      // Backend kita sudah "Pintar": Jika 3 ID ini sudah ada di DB, dia akan UPDATE file-nya.
-      // Jadi kita pakai method upload yang sama.
       await ref
           .read(masterDataRepositoryProvider)
           .uploadKelistrikanFile(
@@ -315,7 +327,7 @@ class _AddGambarKelistrikanFormState
                           Padding(
                             padding: const EdgeInsets.only(top: 8.0),
                             child: Text(
-                              'File Baru: ${_selectedFile!.path.split(Platform.pathSeparator).last}',
+                              'File Baru: ${_selectedFile!.name}',
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),

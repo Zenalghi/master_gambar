@@ -2,6 +2,7 @@
 
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdfx/pdfx.dart';
@@ -27,13 +28,14 @@ class _DependentOptionalFormCardState
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
+      withData: true, // Wajib true untuk Web
     );
 
-    if (result != null && result.files.single.path != null) {
-      final file = File(result.files.single.path!);
+    if (result != null) {
+      final file = result.files.single;
 
       // --- VALIDASI UKURAN FILE (Max 1 MB) ---
-      final int sizeInBytes = await file.length();
+      final int sizeInBytes = file.size;
       const int maxBytes = 1024 * 1024; // 1 MB
 
       if (sizeInBytes > maxBytes) {
@@ -49,8 +51,20 @@ class _DependentOptionalFormCardState
         return;
       }
 
-      // Update provider jika lolos validasi
-      ref.read(mguDependentFileProvider.notifier).state = file;
+      // Ekstrak Bytes
+      Uint8List? fileBytes = file.bytes;
+      if (fileBytes == null && !kIsWeb && file.path != null) {
+        fileBytes = File(file.path!).readAsBytesSync();
+      }
+
+      // Update provider menggunakan PdfFileData
+      if (fileBytes != null) {
+        ref.read(mguDependentFileProvider.notifier).state = PdfFileData(
+          name: file.name,
+          bytes: fileBytes,
+          size: sizeInBytes,
+        );
+      }
     }
   }
 
@@ -99,7 +113,8 @@ class _DependentOptionalFormCardState
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
-                          'File: ${dependentFile.path.split(Platform.pathSeparator).last}',
+                          // 2. UBAH CARA PANGGIL NAMA FILE
+                          'File: ${dependentFile.name}',
                           style: Theme.of(context).textTheme.bodySmall,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -138,9 +153,9 @@ class _DependentOptionalFormCardState
   }
 }
 
-// --- WIDGET PREVIEWER REAKTIF ---
+// --- WIDGET PREVIEWER REAKTIF (DIPERBAIKI UNTUK WEB) ---
 class _PdfPreviewer extends StatefulWidget {
-  final File file;
+  final PdfFileData file;
   const _PdfPreviewer({required this.file});
 
   @override
@@ -153,20 +168,23 @@ class _PdfPreviewerState extends State<_PdfPreviewer> {
   @override
   void initState() {
     super.initState();
-    _pdfController = PdfController(
-      document: PdfDocument.openFile(widget.file.path),
-    );
+    // COPY BYTES
+    final bytesCopy = Uint8List.fromList(widget.file.bytes);
+
+    _pdfController = PdfController(document: PdfDocument.openData(bytesCopy));
   }
 
   @override
   void didUpdateWidget(covariant _PdfPreviewer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Jika file berubah, reset controller
-    if (widget.file.path != oldWidget.file.path) {
+    if (widget.file.name != oldWidget.file.name ||
+        widget.file.size != oldWidget.file.size) {
       _pdfController.dispose();
-      _pdfController = PdfController(
-        document: PdfDocument.openFile(widget.file.path),
-      );
+
+      // COPY BYTES
+      final bytesCopy = Uint8List.fromList(widget.file.bytes);
+
+      _pdfController = PdfController(document: PdfDocument.openData(bytesCopy));
     }
   }
 
@@ -178,7 +196,6 @@ class _PdfPreviewerState extends State<_PdfPreviewer> {
 
   @override
   Widget build(BuildContext context) {
-    // Beri Key unik agar flutter tahu harus render ulang jika path berubah
-    return PdfView(key: ValueKey(widget.file.path), controller: _pdfController);
+    return PdfView(key: ValueKey(widget.file.name), controller: _pdfController);
   }
 }

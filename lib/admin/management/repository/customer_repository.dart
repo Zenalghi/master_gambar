@@ -1,5 +1,4 @@
 // lib/admin/management/repository/customer_repository.dart
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,7 +6,6 @@ import 'package:http_parser/http_parser.dart';
 import '../../../data/models/customer.dart';
 import '../../../app/core/providers.dart';
 import '../../../data/models/paginated_response.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 final customerRepositoryProvider = Provider((ref) => CustomerRepository(ref));
 

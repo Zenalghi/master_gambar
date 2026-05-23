@@ -1,6 +1,5 @@
-//lib\admin\master\repository\master_data_repository.dart
+// lib/admin/master/repository/master_data_repository.dart
 
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,17 +18,34 @@ import '../models/jenis_varian.dart';
 import '../models/gambar_optional.dart';
 import '../models/gambar_kelistrikan.dart';
 import '../models/g_gambar_utama.dart';
+import '../providers/master_data_providers.dart';
+import 'package:http_parser/http_parser.dart';
 
 final masterDataRepositoryProvider = Provider(
   (ref) => MasterDataRepository(ref),
 );
 
 class MasterDataRepository {
-  final Ref _ref; // Ini adalah _ref yang digunakan di seluruh class
+  final Ref _ref;
   MasterDataRepository(this._ref);
 
+  MultipartFile _buildPdfMultipart(PdfFileData fileData, String fallbackName) {
+    String fileName = fileData.name;
+
+    // Pastikan nama file punya ekstensi .pdf
+    if (!fileName.toLowerCase().endsWith('.pdf')) {
+      fileName = '$fileName.pdf';
+    }
+
+    // --- KEMBALIKAN KE Uint8List MURNI ---
+    return MultipartFile.fromBytes(
+      fileData.bytes,
+      filename: fileName,
+      contentType: MediaType('application', 'pdf'),
+    );
+  }
+
   // --- METODE BARU YANG ANDA BUTUHKAN ---
-  // Method ini harus berada DI DALAM kurung kurawal class MasterDataRepository
   Future<List<OptionItem>> getMasterDataOptions(String search) async {
     final response = await _ref
         .read(apiClientProvider)
@@ -80,10 +96,7 @@ class MasterDataRepository {
         .read(apiClientProvider)
         .dio
         .get('/admin/type-engines/trash');
-    // Karena trash mengembalikan list objek juga, kita parsing manual
     final List<dynamic> data = response.data;
-    // Perlu sedikit trik karena model TypeEngine mungkin tidak menghandle deletedAt di fromJson standar
-    // Tapi untuk list sederhana ID & Nama, fromJson biasa sudah cukup.
     return data.map((item) => TypeEngine.fromJson(item)).toList();
   }
 
@@ -126,16 +139,12 @@ class MasterDataRepository {
   }
 
   Future<List<Merk>> getMerks() async {
-    // Method lama untuk dropdown biasa (jika masih dipakai)
     final response = await _ref.read(apiClientProvider).dio.get('/merks');
     final List<dynamic> data = response.data;
     return data.map((item) => Merk.fromJson(item)).toList();
   }
 
-  Future<Merk> addMerk({
-    // typeEngineId dihapus karena independen
-    required String merk,
-  }) async {
+  Future<Merk> addMerk({required String merk}) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
@@ -155,7 +164,6 @@ class MasterDataRepository {
     await _ref.read(apiClientProvider).dio.delete('/merks/$id');
   }
 
-  // Update method ini: tambahkan parameter search
   Future<List<Merk>> getDeletedMerks({String search = ''}) async {
     final response = await _ref
         .read(apiClientProvider)
@@ -166,7 +174,6 @@ class MasterDataRepository {
     return data.map((item) => Merk.fromJson(item)).toList();
   }
 
-  // Method Baru: Kosongkan Sampah
   Future<Map<String, dynamic>> emptyTrashMerk() async {
     final response = await _ref
         .read(apiClientProvider)
@@ -211,7 +218,6 @@ class MasterDataRepository {
   }
 
   Future<List<TypeChassis>> getTypeChassis() async {
-    // Method lama (jika masih dipakai)
     final response = await _ref
         .read(apiClientProvider)
         .dio
@@ -220,10 +226,7 @@ class MasterDataRepository {
     return data.map((item) => TypeChassis.fromJson(item)).toList();
   }
 
-  Future<TypeChassis> addTypeChassis({
-    // merkId dihapus karena independen
-    required String typeChassis,
-  }) async {
+  Future<TypeChassis> addTypeChassis({required String typeChassis}) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
@@ -246,7 +249,6 @@ class MasterDataRepository {
     await _ref.read(apiClientProvider).dio.delete('/type-chassis/$id');
   }
 
-  // == TYPE CHASSIS RECYCLE BIN ==
   getDeletedTypeChassis({String search = ''}) async {
     final response = await _ref
         .read(apiClientProvider)
@@ -256,7 +258,6 @@ class MasterDataRepository {
     return data.map((item) => TypeChassis.fromJson(item)).toList();
   }
 
-  // Method Baru: Kosongkan Sampah
   Future<Map<String, dynamic>> emptyTrashTypeChassis() async {
     final response = await _ref
         .read(apiClientProvider)
@@ -304,7 +305,6 @@ class MasterDataRepository {
   }
 
   Future<List<JenisKendaraan>> getJenisKendaraanList() async {
-    // Method lama
     final response = await _ref
         .read(apiClientProvider)
         .dio
@@ -314,7 +314,6 @@ class MasterDataRepository {
   }
 
   Future<JenisKendaraan> addJenisKendaraan({
-    // typeChassisId dihapus karena independen
     required String jenisKendaraan,
   }) async {
     final response = await _ref
@@ -339,7 +338,6 @@ class MasterDataRepository {
     await _ref.read(apiClientProvider).dio.delete('/jenis-kendaraan/$id');
   }
 
-  // == JENIS KENDARAAN RECYCLE BIN ==
   Future<List<JenisKendaraan>> getDeletedJenisKendaraan({
     String search = '',
   }) async {
@@ -354,7 +352,6 @@ class MasterDataRepository {
     return data.map((item) => JenisKendaraan.fromJson(item)).toList();
   }
 
-  // Method Baru: Kosongkan Sampah
   Future<Map<String, dynamic>> emptyTrashJenisKendaraan() async {
     final response = await _ref
         .read(apiClientProvider)
@@ -384,9 +381,8 @@ class MasterDataRepository {
     String sortBy = 'updated_at',
     String sortDirection = 'desc',
     String search = '',
-    int? masterDataId, // <-- TAMBAHKAN PARAMETER INI
+    int? masterDataId,
   }) async {
-    // Siapkan query parameters dasar
     final queryParams = {
       'page': page,
       'perPage': perPage,
@@ -395,7 +391,6 @@ class MasterDataRepository {
       'search': search,
     };
 
-    // Jika ada filter master_data_id, tambahkan ke query
     if (masterDataId != null) {
       queryParams['master_data_id'] = masterDataId;
     }
@@ -408,29 +403,20 @@ class MasterDataRepository {
   }
 
   Future<List<VarianBody>> getVarianBodyList() async {
-    final response = await _ref
-        .read(apiClientProvider)
-        .dio
-        .get(
-          '/varian-body',
-        ); // Endpoint index biasa (jika controller support all)
-    // Jika controller sudah diubah ke paginate, method ini akan error karena struktur JSON beda.
-    // Sebaiknya hapus atau sesuaikan jika controller hanya return paginate.
-    // Untuk keamanan, saya komen dulu.
-    final List<dynamic> data = response.data; //ku unkomen
+    final response = await _ref.read(apiClientProvider).dio.get('/varian-body');
+    final List<dynamic> data = response.data;
     return data.map((item) => VarianBody.fromJson(item)).toList();
-    // return [];
   }
 
   Future<VarianBody> addVarianBody({
-    required int masterDataId, // <-- Pakai masterDataId
+    required int masterDataId,
     required String varianBody,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
         .post(
-          '/varian-body', // Endpoint resource
+          '/varian-body',
           data: {'master_data_id': masterDataId, 'varian_body': varianBody},
         );
     return VarianBody.fromJson(response.data);
@@ -464,7 +450,6 @@ class MasterDataRepository {
     return data.map((item) => VarianBody.fromJson(item)).toList();
   }
 
-  // Method Baru: Kosongkan Sampah
   Future<Map<String, dynamic>> emptyTrashVarianBody() async {
     final response = await _ref
         .read(apiClientProvider)
@@ -520,108 +505,172 @@ class MasterDataRepository {
     await _ref.read(apiClientProvider).dio.delete('/admin/jenis-varian/$id');
   }
 
-  // == MASTER GAMBAR UTAMA ==
-  // == MASTER GAMBAR UTAMA ==
-  Future<void> uploadGambarUtama({
+  Future<GGambarUtama> uploadGambarUtamaWithResult({
     required int masterDataId,
     required String varianBodyName,
-    required File gambarUtama,
-    required File gambarTerurai,
-    required File gambarKontruksi,
+    required PdfFileData gambarUtama,
+    PdfFileData? gambarTerurai,
+    PdfFileData? gambarKontruksi,
   }) async {
-    // --- VALIDASI UKURAN FILE (MAX 1 MB) ---
-    final int sizeUtama = await gambarUtama.length();
-    final int sizeTerurai = await gambarTerurai.length();
-    final int sizeKontruksi = await gambarKontruksi.length();
-    const int maxBytes = 1024 * 1024; // 1 MB
+    const int maxBytes = 1024 * 1024;
+    if (gambarUtama.size > maxBytes)
+      throw Exception('Gambar Utama melebihi 1 MB.');
 
-    if (sizeUtama > maxBytes ||
-        sizeTerurai > maxBytes ||
-        sizeKontruksi > maxBytes) {
-      throw Exception('File PDF lebih dari 1 MB!!!');
-    }
-    // ----------------------------------------
-
-    final formData = FormData.fromMap({
+    final Map<String, dynamic> mapData = {
       'master_data_id': masterDataId,
       'varian_body': varianBodyName,
-      'gambar_utama': await MultipartFile.fromFile(
-        gambarUtama.path,
-        filename: gambarUtama.path.split(Platform.pathSeparator).last,
+      'gambar_utama': _buildPdfMultipart(gambarUtama, 'gambar_utama.pdf'),
+    };
+
+    if (gambarTerurai != null) {
+      mapData['gambar_terurai'] = _buildPdfMultipart(
+        gambarTerurai,
+        'gambar_terurai.pdf',
+      );
+    }
+
+    if (gambarKontruksi != null) {
+      mapData['gambar_kontruksi'] = _buildPdfMultipart(
+        gambarKontruksi,
+        'gambar_kontruksi.pdf',
+      );
+    }
+
+    final formData = FormData.fromMap(mapData);
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/gambar-master/utama', data: formData);
+    return GGambarUtama.fromJson(response.data);
+  }
+
+  Future<void> addGambarOptional({
+    String tipe = 'independen',
+    String deskripsi = '',
+    required PdfFileData gambarOptionalFile,
+    int? masterDataId,
+    int? gambarUtamaId,
+  }) async {
+    if (gambarOptionalFile.size > (1024 * 1024)) {
+      throw Exception(
+        'Ukuran file melebihi 1 MB. Harap kompres file PDF Anda.',
+      );
+    }
+
+    final Map<String, dynamic> dataMap = {
+      'tipe': tipe,
+      'deskripsi': deskripsi,
+      'gambar_optional': _buildPdfMultipart(
+        gambarOptionalFile,
+        'gambar_optional.pdf',
       ),
-      'gambar_terurai': await MultipartFile.fromFile(
-        gambarTerurai.path,
-        filename: gambarTerurai.path.split(Platform.pathSeparator).last,
-      ),
-      'gambar_kontruksi': await MultipartFile.fromFile(
-        gambarKontruksi.path,
-        filename: gambarKontruksi.path.split(Platform.pathSeparator).last,
-      ),
+    };
+
+    if (tipe == 'independen') {
+      dataMap['master_data_id'] = masterDataId;
+    } else {
+      dataMap['g_gambar_utama_id'] = gambarUtamaId;
+    }
+
+    final formData = FormData.fromMap(dataMap);
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/gambar-optional', data: formData);
+  }
+
+  Future<void> updateGambarOptional({
+    required int id,
+    String? deskripsi,
+    PdfFileData? file,
+  }) async {
+    if (file != null && file.size > (1024 * 1024)) {
+      throw Exception(
+        'Ukuran file melebihi 1 MB. Harap kompres file PDF Anda.',
+      );
+    }
+
+    final Map<String, dynamic> mapData = {};
+    if (deskripsi != null && deskripsi.isNotEmpty) {
+      mapData['deskripsi'] = deskripsi;
+    }
+
+    final formData = FormData.fromMap(mapData);
+
+    if (file != null) {
+      formData.files.add(
+        MapEntry(
+          'gambar_optional',
+          _buildPdfMultipart(file, 'gambar_optional.pdf'),
+        ),
+      );
+    }
+
+    if (mapData.isEmpty && file == null) return;
+
+    try {
+      await _ref
+          .read(apiClientProvider)
+          .dio
+          .post(
+            '/admin/master-data/gambar-optional/$id/update-file',
+            data: formData,
+          );
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data['message'] ?? 'Gagal update gambar optional',
+      );
+    }
+  }
+
+  Future<void> addGambarKelistrikan({
+    required int masterDataId,
+    required String deskripsi,
+    PdfFileData? gambarKelistrikanFile,
+  }) async {
+    final Map<String, dynamic> dataMap = {
+      'master_data_id': masterDataId,
+      'deskripsi': deskripsi,
+    };
+
+    if (gambarKelistrikanFile != null) {
+      if (gambarKelistrikanFile.size > (1024 * 1024)) {
+        throw Exception('Ukuran file kelistrikan melebihi 1 MB.');
+      }
+      dataMap['gambar_kelistrikan'] = _buildPdfMultipart(
+        gambarKelistrikanFile,
+        'gambar_kelistrikan.pdf',
+      );
+    }
+
+    final formData = FormData.fromMap(dataMap);
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/gambar-kelistrikan', data: formData);
+  }
+
+  Future<void> uploadKelistrikanFile({
+    required int typeEngineId,
+    required int merkId,
+    required int typeChassisId,
+    required PdfFileData file,
+  }) async {
+    if (file.size > (1024 * 1024)) {
+      throw Exception('Ukuran file kelistrikan melebihi 1 MB.');
+    }
+
+    final formData = FormData.fromMap({
+      'a_type_engine_id': typeEngineId,
+      'b_merk_id': merkId,
+      'c_type_chassis_id': typeChassisId,
+      'gambar_kelistrikan': _buildPdfMultipart(file, 'gambar_kelistrikan.pdf'),
     });
 
     await _ref
         .read(apiClientProvider)
         .dio
-        .post('/admin/gambar-master/utama', data: formData);
-  }
-
-  // Untuk Gambar Utama, kita butuh return objeknya untuk dapat ID-nya (dipakai di UI)
-  // Jadi sebaiknya uploadGambarUtama di atas return GGambarUtama, bukan void.
-  // Mari kita perbaiki sekalian:
-  Future<GGambarUtama> uploadGambarUtamaWithResult({
-    required int masterDataId,
-    required String varianBodyName,
-    required File gambarUtama,
-    File? gambarTerurai, // Ubah jadi Nullable
-    File? gambarKontruksi, // Ubah jadi Nullable
-  }) async {
-    const int maxBytes = 1024 * 1024;
-
-    // Validasi Ukuran (Hanya jika file ada)
-    if (await gambarUtama.length() > maxBytes) {
-      throw Exception('Gambar Utama melebihi 1 MB.');
-    }
-    if (gambarTerurai != null && await gambarTerurai.length() > maxBytes) {
-      throw Exception('Gambar Terurai melebihi 1 MB.');
-    }
-    if (gambarKontruksi != null && await gambarKontruksi.length() > maxBytes) {
-      throw Exception('Gambar Kontruksi melebihi 1 MB.');
-    }
-
-    // Bangun Map Dasar
-    final Map<String, dynamic> mapData = {
-      'master_data_id': masterDataId,
-      'varian_body': varianBodyName,
-      'gambar_utama': await MultipartFile.fromFile(
-        gambarUtama.path,
-        filename: gambarUtama.path.split(Platform.pathSeparator).last,
-      ),
-    };
-
-    // Tambahkan Terurai Jika Ada
-    if (gambarTerurai != null) {
-      mapData['gambar_terurai'] = await MultipartFile.fromFile(
-        gambarTerurai.path,
-        filename: gambarTerurai.path.split(Platform.pathSeparator).last,
-      );
-    }
-
-    // Tambahkan Kontruksi Jika Ada
-    if (gambarKontruksi != null) {
-      mapData['gambar_kontruksi'] = await MultipartFile.fromFile(
-        gambarKontruksi.path,
-        filename: gambarKontruksi.path.split(Platform.pathSeparator).last,
-      );
-    }
-
-    final formData = FormData.fromMap(mapData);
-
-    final response = await _ref
-        .read(apiClientProvider)
-        .dio
-        .post('/admin/gambar-master/utama', data: formData);
-
-    return GGambarUtama.fromJson(response.data);
+        .post('/admin/gambar-kelistrikan/files', data: formData);
   }
 
   // == GAMBAR OPTIONAL ==
@@ -646,99 +695,6 @@ class MasterDataRepository {
           },
         );
     return PaginatedResponse.fromJson(response.data, GambarOptional.fromJson);
-  }
-
-  // Method lama (hapus jika tidak dipakai)
-  Future<List<GambarOptional>> getGambarOptionalList() async {
-    // ... (sama seperti varian body, kemungkinan error jika controller pagination)
-    return [];
-  }
-
-  Future<void> addGambarOptional({
-    String tipe = 'independen',
-    String deskripsi = '',
-    required File gambarOptionalFile,
-    int? masterDataId, // GANTI: Dulu varianBodyId, sekarang masterDataId
-    int? gambarUtamaId,
-  }) async {
-    final int fileSizeInBytes = await gambarOptionalFile.length();
-    if (fileSizeInBytes > (1024 * 1024)) {
-      throw Exception(
-        'Ukuran file melebihi 1 MB. Harap kompres file PDF Anda.',
-      );
-    }
-    final fileName = gambarOptionalFile.path.split(Platform.pathSeparator).last;
-
-    // Bangun map data
-    final Map<String, dynamic> dataMap = {
-      'tipe': tipe,
-      'deskripsi': deskripsi,
-      'gambar_optional': await MultipartFile.fromFile(
-        gambarOptionalFile.path,
-        filename: fileName,
-      ),
-    };
-
-    // 2. Tambahkan ID yang relevan secara kondisional
-    if (tipe == 'independen') {
-      // PERBAIKAN: Gunakan key 'master_data_id'
-      dataMap['master_data_id'] = masterDataId;
-    } else {
-      // tipe == 'paket'
-      dataMap['g_gambar_utama_id'] = gambarUtamaId;
-    }
-
-    final formData = FormData.fromMap(dataMap);
-
-    await _ref
-        .read(apiClientProvider)
-        .dio
-        .post('/admin/gambar-optional', data: formData);
-  }
-
-  Future<void> updateGambarOptional({
-    required int id,
-    String? deskripsi,
-    File? file,
-  }) async {
-    if (file != null) {
-      final int fileSizeInBytes = await file.length();
-      if (fileSizeInBytes > (1024 * 1024)) {
-        throw Exception(
-          'Ukuran file melebihi 1 MB. Harap kompres file PDF Anda.',
-        );
-      }
-    }
-    final Map<String, dynamic> mapData = {};
-
-    if (deskripsi != null && deskripsi.isNotEmpty) {
-      mapData['deskripsi'] = deskripsi;
-    }
-
-    final formData = FormData.fromMap(mapData);
-
-    if (file != null) {
-      formData.files.add(
-        MapEntry('gambar_optional', await MultipartFile.fromFile(file.path)),
-      );
-    }
-
-    if (mapData.isEmpty && file == null) return;
-
-    try {
-      await _ref
-          .read(apiClientProvider)
-          .dio
-          // PERBAIKAN: Tambahkan '/admin' di depan URL
-          .post(
-            '/admin/master-data/gambar-optional/$id/update-file',
-            data: formData,
-          );
-    } on DioException catch (e) {
-      throw Exception(
-        e.response?.data['message'] ?? 'Gagal update gambar optional',
-      );
-    }
   }
 
   Future<void> deleteGambarOptional({required int id}) async {
@@ -794,43 +750,6 @@ class MasterDataRepository {
       response.data,
       GambarKelistrikan.fromJson,
     );
-  }
-
-  Future<void> addGambarKelistrikan({
-    required int masterDataId,
-    required String deskripsi,
-    File? gambarKelistrikanFile,
-  }) async {
-    // Bangun Map data dasar
-    final Map<String, dynamic> dataMap = {
-      'master_data_id': masterDataId,
-      'deskripsi': deskripsi,
-    };
-
-    // Hanya kirim file jika user memilih file baru
-    if (gambarKelistrikanFile != null) {
-      // --- VALIDASI UKURAN FILE (MAX 1 MB) ---
-      final int fileSizeInBytes = await gambarKelistrikanFile.length();
-      if (fileSizeInBytes > (1024 * 1024)) {
-        throw Exception('Ukuran file kelistrikan melebihi 1 MB.');
-      }
-      // ----------------------------------------
-
-      final fileName = gambarKelistrikanFile.path
-          .split(Platform.pathSeparator)
-          .last;
-      dataMap['gambar_kelistrikan'] = await MultipartFile.fromFile(
-        gambarKelistrikanFile.path,
-        filename: fileName,
-      );
-    }
-
-    final formData = FormData.fromMap(dataMap);
-
-    await _ref
-        .read(apiClientProvider)
-        .dio
-        .post('/admin/gambar-kelistrikan', data: formData);
   }
 
   Future<Uint8List> getGambarKelistrikanPdf(int id) async {
@@ -902,38 +821,6 @@ class MasterDataRepository {
     );
   }
 
-  // 2. Upload File Baru (Sesuai Backend storeFile)
-  Future<void> uploadKelistrikanFile({
-    required int typeEngineId,
-    required int merkId,
-    required int typeChassisId,
-    required File file,
-  }) async {
-    // --- VALIDASI UKURAN FILE (MAX 1 MB) ---
-    final int fileSizeInBytes = await file.length();
-    if (fileSizeInBytes > (1024 * 1024)) {
-      throw Exception('Ukuran file kelistrikan melebihi 1 MB.');
-    }
-    // ----------------------------------------
-
-    final fileName = file.path.split(Platform.pathSeparator).last;
-
-    final formData = FormData.fromMap({
-      'a_type_engine_id': typeEngineId,
-      'b_merk_id': merkId,
-      'c_type_chassis_id': typeChassisId,
-      'gambar_kelistrikan': await MultipartFile.fromFile(
-        file.path,
-        filename: fileName,
-      ),
-    });
-
-    await _ref
-        .read(apiClientProvider)
-        .dio
-        .post('/admin/gambar-kelistrikan/files', data: formData);
-  }
-
   // 3. Hapus File Fisik
   Future<void> deleteKelistrikanFile({required int id}) async {
     await _ref
@@ -942,16 +829,10 @@ class MasterDataRepository {
         .delete('/admin/gambar-kelistrikan/files/$id');
   }
 
-  // Helper untuk View PDF (Endpoint ini tetap bisa dipakai karena pathnya valid)
-  // Anda mungkin perlu endpoint khusus jika ingin lebih rapi, tapi showPdf lama bisa dipakai
-  // jika Anda mengirimkan path-nya atau membuat endpoint view by file ID.
-  // SEMENTARA: Kita gunakan endpoint general viewPdf yang menerima PATH.
-
-  // 3. Simpan Deskripsi (Dari Master Data Screen)
   Future<void> saveDeskripsiKelistrikan({
     required int masterDataId,
     required String deskripsi,
-    int? id, // Parameter Tambahan (Nullable)
+    int? id,
   }) async {
     final Map<String, dynamic> data = {
       'master_data_id': masterDataId,
@@ -1059,10 +940,10 @@ class MasterDataRepository {
   }
 
   Future<MasterData> addMasterData({
-    required int typeEngineId, // <-- GANTI KE INT
-    required int merkId, // <-- GANTI KE INT
-    required int typeChassisId, // <-- GANTI KE INT
-    required int jenisKendaraanId, // <-- GANTI KE INT
+    required int typeEngineId,
+    required int merkId,
+    required int typeChassisId,
+    required int jenisKendaraanId,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
@@ -1081,10 +962,10 @@ class MasterDataRepository {
 
   Future<MasterData> updateMasterData({
     required int id,
-    required int typeEngineId, // <-- GANTI KE INT
-    required int merkId, // <-- GANTI KE INT
-    required int typeChassisId, // <-- GANTI KE INT
-    required int jenisKendaraanId, // <-- GANTI KE INT
+    required int typeEngineId,
+    required int merkId,
+    required int typeChassisId,
+    required int jenisKendaraanId,
   }) async {
     final response = await _ref
         .read(apiClientProvider)

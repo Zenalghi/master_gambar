@@ -217,7 +217,7 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
 
   Widget _buildParafUpload({
     required String label,
-    required Uint8List? currentBytes, // Ubah dari File?
+    required Uint8List? currentBytes,
     required String? imageUrl,
     required bool isDragging,
     required Function(Uint8List, String) onFileDropped, // Ubah fungsi callback

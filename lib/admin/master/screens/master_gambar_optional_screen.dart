@@ -2,6 +2,7 @@
 
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
@@ -27,7 +28,7 @@ class _MasterGambarOptionalScreenState
     extends ConsumerState<MasterGambarOptionalScreen> {
   bool _isLoading = false;
   final _deskripsiController = TextEditingController();
-  File? _selectedFile;
+  PdfFileData? _selectedFile;
   PdfController? _pdfController;
 
   final ExpansionTileController _expansionController =
@@ -105,8 +106,10 @@ class _MasterGambarOptionalScreenState
       if (!mounted) return;
 
       setState(() {
+        final bytesCopy = Uint8List.fromList(pdfBytes);
+
         _pdfController = PdfController(
-          document: PdfDocument.openFile(tempFile.path),
+          document: PdfDocument.openData(bytesCopy),
         );
       });
 
@@ -158,30 +161,44 @@ class _MasterGambarOptionalScreenState
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
+      withData: true,
     );
 
-    if (result != null && result.files.single.path != null) {
-      final file = File(result.files.single.path!);
+    if (result != null) {
+      final file = result.files.single;
 
-      // CEK UKURAN
-      final size = await file.length();
-      if (size > _maxFileSize) {
+      if (file.size > _maxFileSize) {
         if (mounted) {
           _showSnackBar(
             'Ukuran file melebihi 1 MB. Harap kompres file PDF Anda.',
             Colors.red,
           );
         }
-        return; // Jangan set file jika terlalu besar
+        return;
       }
 
-      setState(() {
-        _selectedFile = file;
-        _pdfController?.dispose();
-        _pdfController = PdfController(
-          document: PdfDocument.openFile(file.path),
-        );
-      });
+      Uint8List? fileBytes = file.bytes;
+      if (fileBytes == null && !kIsWeb && file.path != null) {
+        fileBytes = File(file.path!).readAsBytesSync();
+      }
+
+      if (fileBytes != null) {
+        setState(() {
+          _selectedFile = PdfFileData(
+            name: file.name,
+            bytes: fileBytes!,
+            size: file.size,
+          );
+          _pdfController?.dispose();
+
+          // --- PERBAIKAN FLUTTER WEB: COPY BYTES ---
+          final bytesCopy = Uint8List.fromList(fileBytes!);
+
+          _pdfController = PdfController(
+            document: PdfDocument.openData(bytesCopy),
+          );
+        });
+      }
     }
   }
 
@@ -220,8 +237,7 @@ class _MasterGambarOptionalScreenState
 
     // --- 2. VALIDASI UKURAN FILE (DOUBLE CHECK SAAT SUBMIT) ---
     if (_selectedFile != null) {
-      final size = await _selectedFile!.length();
-      if (size > _maxFileSize) {
+      if (_selectedFile!.size > _maxFileSize) {
         _showSnackBar(
           'Ukuran file melebihi 1 MB. Harap kompres file PDF Anda.',
           Colors.red,
@@ -229,7 +245,6 @@ class _MasterGambarOptionalScreenState
         return;
       }
     }
-    // ---------------------------------------------------------
 
     setState(() => _isLoading = true);
 
@@ -469,7 +484,7 @@ class _MasterGambarOptionalScreenState
                                           top: 8.0,
                                         ),
                                         child: Text(
-                                          'File Baru: ${_selectedFile!.path.split(Platform.pathSeparator).last}',
+                                          'File Baru: ${_selectedFile!.name}',
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.blue,
@@ -546,8 +561,9 @@ class _MasterGambarOptionalScreenState
                               ? const Center(child: CircularProgressIndicator())
                               : _pdfController != null
                               ? PdfView(
+                                  // 6. UBAH VALUE KEY
                                   key: ValueKey(
-                                    _selectedFile?.path ?? 'server_file',
+                                    _selectedFile?.name ?? 'server_file',
                                   ),
                                   controller: _pdfController!,
                                 )
