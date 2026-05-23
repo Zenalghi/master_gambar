@@ -95,7 +95,7 @@ class _MasterJenisVarianScreenState
                       ),
                       //tambahkan validator jika perlu
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.trim().isEmpty) {
                           return 'Nama Jenis Varian tidak boleh kosong';
                         }
                         return null;
@@ -113,7 +113,7 @@ class _MasterJenisVarianScreenState
                       ),
                     ),
                     onPressed: () async {
-                      if (_controller.text.isEmpty) return;
+                      if (_controller.text.trim().isEmpty) return;
                       try {
                         await ref
                             .read(masterDataRepositoryProvider)

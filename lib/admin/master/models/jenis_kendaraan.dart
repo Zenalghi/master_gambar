@@ -3,7 +3,6 @@
 class JenisKendaraan {
   final int id; // <-- BERUBAH: int
   final String name;
-  // final TypeChassis typeChassis; <-- DIHAPUS (Independen)
   final DateTime createdAt;
   final DateTime updatedAt;
 

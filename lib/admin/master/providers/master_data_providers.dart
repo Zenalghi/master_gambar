@@ -14,6 +14,7 @@ import '../models/jenis_varian.dart';
 import '../models/master_data.dart';
 import '../models/g_gambar_utama.dart';
 import '../models/master_kelistrikan_file.dart';
+import '../models/master_varian.dart';
 
 // == PROVIDER UNTUK MENGAMBIL DATA LIST LENGKAP ==
 final typeEngineListProvider = FutureProvider<List<TypeEngine>>((ref) {
@@ -280,3 +281,99 @@ final adminSidebarIndexProvider = StateProvider<int>((ref) => 0);
 final selectedMasterDataFilterProvider = StateProvider<OptionItem?>(
   (ref) => null,
 );
+
+// ==========================================
+// == PROVIDERS MASTER VARIAN (BARU) ==
+// ==========================================
+
+// Filter Provider
+final masterVarianFilterProvider = StateProvider<Map<String, dynamic>>((ref) {
+  return {
+    'search': '',
+    'sortBy': 'updated_at',
+    'sortDirection': 'desc',
+    'jenisKendaraanId': null, // Untuk filter berdasarkan JK
+  };
+});
+
+final masterVarianRowsPerPageProvider = StateProvider<int>((ref) => 50);
+
+// Provider Data Tabel
+class MasterVarianDataTableState {
+  final bool isLoading;
+  final List<MasterVarian> masterVarians;
+  final int totalRecords;
+  final String? error;
+
+  MasterVarianDataTableState({
+    this.isLoading = true,
+    this.masterVarians = const [],
+    this.totalRecords = 0,
+    this.error,
+  });
+
+  MasterVarianDataTableState copyWith({
+    bool? isLoading,
+    List<MasterVarian>? masterVarians,
+    int? totalRecords,
+    String? error,
+  }) {
+    return MasterVarianDataTableState(
+      isLoading: isLoading ?? this.isLoading,
+      masterVarians: masterVarians ?? this.masterVarians,
+      totalRecords: totalRecords ?? this.totalRecords,
+      error: error ?? this.error,
+    );
+  }
+}
+
+class MasterVarianNotifier extends StateNotifier<MasterVarianDataTableState> {
+  final Ref _ref;
+
+  MasterVarianNotifier(this._ref) : super(MasterVarianDataTableState());
+
+  Future<void> fetchMasterVarians() async {
+    if (state.masterVarians.isEmpty) {
+      state = state.copyWith(isLoading: true, error: null);
+    }
+    try {
+      final filters = _ref.read(masterVarianFilterProvider);
+      final perPage = _ref.read(masterVarianRowsPerPageProvider);
+      // Kita asumsikan page diatur oleh UI (DataTable2) via startIndex
+      final response = await _ref
+          .read(masterDataRepositoryProvider)
+          .getMasterVarianPaginated(
+            page:
+                1, // Di-handle terpisah di DataSource jika pakai AsyncDataTableSource
+            perPage: perPage,
+            search: filters['search'],
+            sortBy: filters['sortBy'],
+            sortDirection: filters['sortDirection'],
+            jenisKendaraanId: filters['jenisKendaraanId'],
+          );
+
+      state = state.copyWith(
+        isLoading: false,
+        masterVarians: response.data,
+        totalRecords: response.total,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+}
+
+final masterVarianNotifierProvider =
+    StateNotifierProvider<MasterVarianNotifier, MasterVarianDataTableState>((
+      ref,
+    ) {
+      return MasterVarianNotifier(ref);
+    });
+
+// Dropdown Multi-Select Provider
+final masterVarianOptionsFamilyProvider =
+    FutureProvider.family<List<OptionItem>, int>((ref, jenisKendaraanId) async {
+      return ref
+          .read(masterDataRepositoryProvider)
+          .getMasterVarianOptions(jenisKendaraanId);
+    });

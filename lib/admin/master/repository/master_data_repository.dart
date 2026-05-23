@@ -9,6 +9,7 @@ import '../../../data/models/paginated_response.dart';
 import '../models/image_status.dart';
 import '../models/master_data.dart';
 import '../models/master_kelistrikan_file.dart';
+import '../models/master_varian.dart';
 import '../models/type_engine.dart';
 import '../models/merk.dart';
 import '../models/type_chassis.dart';
@@ -24,6 +25,48 @@ import 'package:http_parser/http_parser.dart';
 final masterDataRepositoryProvider = Provider(
   (ref) => MasterDataRepository(ref),
 );
+
+class AddVarianBodyResult {
+  final List<VarianBody> created;
+  final List<String> skipped;
+
+  const AddVarianBodyResult({required this.created, required this.skipped});
+
+  factory AddVarianBodyResult.fromResponse(dynamic responseData) {
+    if (responseData is List) {
+      final created = responseData
+          .whereType<Map>()
+          .map((item) => VarianBody.fromJson(Map<String, dynamic>.from(item)))
+          .toList();
+      return AddVarianBodyResult(created: created, skipped: const []);
+    }
+
+    if (responseData is Map<String, dynamic>) {
+      final createdData = responseData['created'];
+      final skippedData = responseData['skipped'];
+
+      final created = createdData is List
+          ? createdData
+                .whereType<Map>()
+                .map(
+                  (item) =>
+                      VarianBody.fromJson(Map<String, dynamic>.from(item)),
+                )
+                .toList()
+          : <VarianBody>[];
+
+      final skipped = skippedData is List
+          ? skippedData.whereType<String>().toList()
+          : skippedData is List
+          ? skippedData.map((item) => item.toString()).toList()
+          : <String>[];
+
+      return AddVarianBodyResult(created: created, skipped: skipped);
+    }
+
+    return const AddVarianBodyResult(created: [], skipped: []);
+  }
+}
 
 class MasterDataRepository {
   final Ref _ref;
@@ -374,6 +417,93 @@ class MasterDataRepository {
         .delete('/admin/jenis-kendaraan/$id/force-delete');
   }
 
+  // ==========================================
+  // == REPOSITORY MASTER VARIAN (BARU) ==
+  // ==========================================
+
+  Future<PaginatedResponse<MasterVarian>> getMasterVarianPaginated({
+    int page = 1,
+    int perPage = 50,
+    String sortBy = 'updated_at',
+    String sortDirection = 'desc',
+    String search = '',
+    int? jenisKendaraanId,
+  }) async {
+    final queryParams = {
+      'page': page,
+      'perPage': perPage,
+      'sortBy': sortBy,
+      'sortDirection': sortDirection,
+      'search': search,
+    };
+
+    if (jenisKendaraanId != null) {
+      queryParams['d_jenis_kendaraan_id'] = jenisKendaraanId;
+    }
+
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/admin/master-varian', queryParameters: queryParams);
+    return PaginatedResponse.fromJson(response.data, MasterVarian.fromJson);
+  }
+
+  Future<MasterVarian> addMasterVarian({
+    required int jenisKendaraanId,
+    required String namaVarian,
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .post(
+          '/admin/master-varian',
+          data: {
+            'd_jenis_kendaraan_id': jenisKendaraanId,
+            'nama_varian': namaVarian,
+          },
+        );
+    return MasterVarian.fromJson(response.data);
+  }
+
+  Future<MasterVarian> updateMasterVarian({
+    required int id,
+    required int jenisKendaraanId,
+    required String namaVarian,
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .put(
+          '/admin/master-varian/$id',
+          data: {
+            'd_jenis_kendaraan_id': jenisKendaraanId,
+            'nama_varian': namaVarian,
+          },
+        );
+    return MasterVarian.fromJson(response.data);
+  }
+
+  Future<void> deleteMasterVarian({required int id}) async {
+    await _ref.read(apiClientProvider).dio.delete('/admin/master-varian/$id');
+  }
+
+  // Opsi Dropdown Checkbox berdasarkan Jenis Kendaraan
+  Future<List<OptionItem>> getMasterVarianOptions(
+    int jenisKendaraanId, {
+    String search = '',
+  }) async {
+    // Path yang benar: /admin/options/master-varian/...
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          '/admin/options/master-varian/$jenisKendaraanId',
+          queryParameters: {'search': search},
+        );
+    final List<dynamic> data = response.data;
+    return data.map((e) => OptionItem.fromJson(e, nameKey: 'name')).toList();
+  }
+
   // == VARIAN BODY (PAGINATED) ==
   Future<PaginatedResponse<VarianBody>> getVarianBodyListPaginated({
     int page = 1,
@@ -408,18 +538,19 @@ class MasterDataRepository {
     return data.map((item) => VarianBody.fromJson(item)).toList();
   }
 
-  Future<VarianBody> addVarianBody({
+  Future<AddVarianBodyResult> addVarianBody({
     required int masterDataId,
-    required String varianBody,
+    required List<String> varianBodies,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
         .post(
-          '/varian-body',
-          data: {'master_data_id': masterDataId, 'varian_body': varianBody},
+          '/admin/varian-body',
+          data: {'master_data_id': masterDataId, 'varian_bodies': varianBodies},
         );
-    return VarianBody.fromJson(response.data);
+
+    return AddVarianBodyResult.fromResponse(response.data);
   }
 
   Future<VarianBody> updateVarianBody({

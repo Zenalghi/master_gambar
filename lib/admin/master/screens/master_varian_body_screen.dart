@@ -17,6 +17,8 @@ class MasterVarianBodyScreen extends ConsumerStatefulWidget {
 
 class _MasterVarianBodyScreenState
     extends ConsumerState<MasterVarianBodyScreen> {
+  int _refreshToken = 0;
+
   @override
   void initState() {
     super.initState();
@@ -73,7 +75,9 @@ class _MasterVarianBodyScreenState
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data',
                 onPressed: () {
+                  setState(() => _refreshToken++);
                   ref.invalidate(varianBodyFilterProvider);
+                  ref.invalidate(masterVarianOptionsFamilyProvider);
                   ref.invalidate(masterDataOptionsProvider);
                   ref.read(selectedMasterDataFilterProvider.notifier).state =
                       null;
@@ -99,7 +103,7 @@ class _MasterVarianBodyScreenState
           const SizedBox(height: 1),
 
           // Widget Form Tambah
-          const AddVarianBodyForm(),
+          AddVarianBodyForm(refreshToken: _refreshToken),
 
           const SizedBox(height: 5),
 

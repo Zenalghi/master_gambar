@@ -16,6 +16,8 @@ import 'package:master_gambar/admin/master/widgets/master_sidebar.dart';
 import 'package:master_gambar/admin/master/screens/master_data_screen.dart';
 import 'package:master_gambar/admin/master/screens/image_status_screen.dart';
 
+import '../master/screens/master_varian_screen.dart';
+
 class MasterScreen extends ConsumerWidget {
   const MasterScreen({super.key});
 
@@ -26,12 +28,13 @@ class MasterScreen extends ConsumerWidget {
     MasterTypeChassisScreen(), // 2
     MasterJenisKendaraanScreen(), // 3
     MasterDataScreen(), // 4
-    MasterVarianBodyScreen(), // 5
-    MasterJenisVarianScreen(), // 6
-    ImageStatusScreen(), // 7
-    MasterGambarUtamaScreen(), // 8
-    MasterGambarOptionalScreen(), // 9
-    MasterGambarKelistrikanScreen(), // 10
+    MasterVarianScreen(), // 5
+    MasterVarianBodyScreen(), // 6
+    MasterJenisVarianScreen(), // 7
+    ImageStatusScreen(), // 8
+    MasterGambarUtamaScreen(), // 9
+    MasterGambarOptionalScreen(), // 10
+    MasterGambarKelistrikanScreen(), // 11
   ];
 
   @override
