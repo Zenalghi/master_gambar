@@ -1,4 +1,4 @@
-//lib/admin/master/widgets/add_varian_body_form.dart
+// lib/admin/master/widgets/add_varian_body_form.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:master_gambar/data/models/option_item.dart';
+import 'package:master_gambar/app/core/providers.dart';
 
 class AddVarianBodyForm extends ConsumerStatefulWidget {
   const AddVarianBodyForm({super.key, required this.refreshToken});
@@ -27,6 +28,32 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.refreshToken != widget.refreshToken) {
       setState(() => _selectedMasterVarians = []);
+    }
+  }
+
+  // --- FUNGSI BARU: Ambil Data Existing dari Database ---
+  Future<void> _fetchExistingVarians(int masterDataId) async {
+    setState(() => _isLoading = true);
+    try {
+      // Panggil endpoint /options/varian-body/{masterDataId} untuk mengambil list Varian Body yang sudah tersimpan
+      final response = await ref
+          .read(apiClientProvider)
+          .dio
+          .get('/options/varian-body/$masterDataId');
+
+      final List<dynamic> data = response.data;
+
+      // Mapping respon menjadi OptionItem agar bisa dibaca oleh DropdownSearch
+      final existingVarians = data.map((e) => OptionItem.fromJson(e)).toList();
+
+      setState(() {
+        _selectedMasterVarians = existingVarians;
+      });
+    } catch (e) {
+      debugPrint('Error fetching existing varians: $e');
+      setState(() => _selectedMasterVarians = []);
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -57,9 +84,8 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
             varianBodies: varianBodies,
           );
 
-      setState(() {
-        _selectedMasterVarians = [];
-      });
+      // Setelah simpan, refresh datanya (agar state tetap relevan dengan DB terbaru)
+      await _fetchExistingVarians(selectedMasterData.id);
 
       ref
           .read(varianBodyFilterProvider.notifier)
@@ -130,17 +156,22 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
                   itemAsString: (OptionItem item) => item.name,
                   compareFn: (item1, item2) => item1.id == item2.id,
                   selectedItem: selectedMasterData,
-                  onChanged: (OptionItem? item) {
+                  // --- PERUBAHAN: onChanged menjadi async ---
+                  onChanged: (OptionItem? item) async {
                     ref.read(selectedMasterDataFilterProvider.notifier).state =
                         item;
-                    // Reset varian saat master data berubah
-                    setState(() => _selectedMasterVarians = []);
+                    if (item != null) {
+                      // Panggil API untuk nge-set checkbox yang sudah ada
+                      await _fetchExistingVarians(item.id as int);
+                    } else {
+                      setState(() => _selectedMasterVarians = []);
+                    }
                   },
                   decoratorProps: const DropDownDecoratorProps(
                     baseStyle: TextStyle(fontSize: 13),
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.symmetric(
-                        vertical: 0,
+                        vertical: 8,
                         horizontal: 10,
                       ),
                       labelStyle: TextStyle(fontSize: 12),
@@ -157,7 +188,7 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
                       autofocus: true,
                       style: TextStyle(fontSize: 13, height: 1.0),
                       decoration: InputDecoration(
-                        constraints: BoxConstraints(maxHeight: 42),
+                        constraints: BoxConstraints(maxHeight: 32),
                         contentPadding: EdgeInsets.symmetric(
                           vertical: 0,
                           horizontal: 10,
@@ -176,8 +207,7 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
                           horizontal: 10,
                           vertical: 0,
                         ),
-                        height:
-                            30, // Paksa tinggi item menjadi 30px (atau lebih kecil sesuai selera)
+                        height: 30,
                         alignment: Alignment.centerLeft,
                         child: Text(
                           item.name,
@@ -206,27 +236,11 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
 
               const SizedBox(width: 16),
 
-              // 2. Dropdown Checkbox Master Varian (Enabled jika Master Data dipilih)
+              // 2. Dropdown Checkbox Master Varian
               Expanded(
                 flex: 3,
                 child: Builder(
                   builder: (context) {
-                    final double chipSpacing = 8;
-                    final double maxWidth =
-                        MediaQuery.of(context).size.width * 0.38;
-                    double currentRowWidth = 0;
-                    int rowCount = 1;
-                    for (final item in _selectedMasterVarians) {
-                      final text = item.name;
-                      final textWidth = (text.length * 8.5) + 32 + 24;
-                      if (currentRowWidth + textWidth > maxWidth) {
-                        rowCount++;
-                        currentRowWidth = textWidth;
-                      } else {
-                        currentRowWidth += textWidth + chipSpacing;
-                      }
-                    }
-                    final double maxHeight = rowCount * 32.0;
                     return DropdownSearch<OptionItem>.multiSelection(
                       enabled: selectedMasterData != null,
                       items: (String filter, _) async {
@@ -236,25 +250,32 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
                         );
                       },
                       itemAsString: (OptionItem item) => item.name,
-                      compareFn: (item1, item2) => item1.id == item2.id,
+
+                      // --- PERUBAHAN KRUSIAL ---
+                      // Karena ID dari Master Varian (kamus) dan Varian Body (tersimpan) berbeda,
+                      // Kita bandingkan berdasarkan NAMA (teksnya) dengan Uppercase agar seragam.
+                      compareFn: (item1, item2) =>
+                          item1.name.toUpperCase() == item2.name.toUpperCase(),
+
+                      // -------------------------
                       selectedItems: _selectedMasterVarians,
                       onChanged: (List<OptionItem> items) {
                         setState(() => _selectedMasterVarians = items);
                       },
-                      selectedItemsScrollProps: ScrollProps(
-                        physics: const BouncingScrollPhysics(),
+                      selectedItemsScrollProps: const ScrollProps(
+                        physics: BouncingScrollPhysics(),
                       ),
-                      decoratorProps: DropDownDecoratorProps(
-                        baseStyle: const TextStyle(fontSize: 13),
+                      decoratorProps: const DropDownDecoratorProps(
+                        baseStyle: TextStyle(fontSize: 13),
                         decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 0,
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 8,
                             horizontal: 10,
                           ),
-                          labelStyle: const TextStyle(fontSize: 12),
+                          labelStyle: TextStyle(fontSize: 12),
                           labelText: 'Pilih Varian Body',
                           isDense: true,
-                          border: const OutlineInputBorder(),
+                          border: OutlineInputBorder(),
                         ),
                       ),
                       popupProps: PopupPropsMultiSelection.menu(
@@ -269,11 +290,11 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
                                 ),
                               );
                             },
-                        searchFieldProps: TextFieldProps(
+                        searchFieldProps: const TextFieldProps(
                           autofocus: true,
                           style: TextStyle(fontSize: 13, height: 1.0),
                           decoration: InputDecoration(
-                            constraints: BoxConstraints(maxHeight: 42),
+                            constraints: BoxConstraints(maxHeight: 32),
                             contentPadding: EdgeInsets.symmetric(
                               vertical: 0,
                               horizontal: 10,
@@ -319,7 +340,8 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
                   },
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
+
               // 3. Tombol Tambah
               ElevatedButton.icon(
                 icon: _isLoading
@@ -332,7 +354,7 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
                         ),
                       )
                     : const Icon(Icons.add),
-                label: const Text('Tambah'),
+                label: const Text('Simpan Pilihan'),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     vertical: 14,
