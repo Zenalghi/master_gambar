@@ -231,7 +231,7 @@ class MasterDataDataSource extends AsyncDataTableSource {
     };
 
     _ref.read(initialKelistrikanDataProvider.notifier).state = initialData;
-    _ref.read(adminSidebarIndexProvider.notifier).state = 10;
+    _ref.read(adminSidebarIndexProvider.notifier).state = 11;
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Silakan upload file untuk data ini.')),

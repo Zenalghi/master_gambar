@@ -185,7 +185,7 @@ class ImageStatusDataSource extends AsyncDataTableSource {
     _ref.read(mguGambarKontruksiFileProvider.notifier).state = null;
 
     // 5. Navigasi ke Tab Gambar Utama
-    _ref.read(adminSidebarIndexProvider.notifier).state = 8;
+    _ref.read(adminSidebarIndexProvider.notifier).state = 9;
   }
 
   // --- LOGIKA TOMBOL EDIT (PERBAIKAN) ---
@@ -211,7 +211,7 @@ class ImageStatusDataSource extends AsyncDataTableSource {
     _ref.read(mguEditingGambarProvider.notifier).state = item.gambarUtama;
 
     // 4. Navigasi ke Tab Gambar Utama
-    _ref.read(adminSidebarIndexProvider.notifier).state = 8;
+    _ref.read(adminSidebarIndexProvider.notifier).state = 9;
   }
 
   void confirmDeleteDialog(ImageStatus item) {}

@@ -163,7 +163,7 @@ class _MasterGambarUtamaScreenState
                   ),
                   onPressed: () {
                     _resetAndRefresh();
-                    ref.read(adminSidebarIndexProvider.notifier).state = 7;
+                    ref.read(adminSidebarIndexProvider.notifier).state = 8;
                   },
                 ),
 
@@ -345,7 +345,7 @@ class _MasterGambarUtamaScreenState
       }
 
       _resetForm();
-      ref.read(adminSidebarIndexProvider.notifier).state = 7;
+      ref.read(adminSidebarIndexProvider.notifier).state = 8;
     } on DioException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

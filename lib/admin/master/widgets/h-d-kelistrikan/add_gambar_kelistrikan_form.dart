@@ -161,7 +161,7 @@ class _AddGambarKelistrikanFormState
           _pdfController?.dispose();
 
           // --- PERBAIKAN FLUTTER WEB: COPY BYTES ---
-          final bytesCopy = Uint8List.fromList(fileBytes!);
+          final bytesCopy = Uint8List.fromList(fileBytes);
 
           _pdfController = PdfController(
             document: PdfDocument.openData(bytesCopy),
