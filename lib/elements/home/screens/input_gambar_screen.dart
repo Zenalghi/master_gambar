@@ -90,11 +90,17 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
   void _loadSavedState(TransaksiDetail detail) {
     ref.read(pemeriksaIdProvider.notifier).state = detail.pemeriksaId;
     ref.read(pihakPenyetujuanProvider.notifier).state = detail.pihakPenyetujuan;
-    ref.read(jumlahGambarProvider.notifier).state = detail.jumlahGambar;
-    ref.read(gambarUtamaSelectionProvider.notifier).resize(detail.jumlahGambar);
+
+    int fallbackJumlah = (detail.jumlahGambar > 0)
+        ? detail.jumlahGambar
+        : detail.dataGambarUtama.length;
+
+    // Pastikan minimal ada 1 gambar yang dimuat
+    if (fallbackJumlah == 0) fallbackJumlah = 1;
+
     final jenisPengajuan = widget.transaksi.fPengajuan.jenisPengajuan
         .toUpperCase();
-    int jumlahLoad = detail.jumlahGambar;
+    int jumlahLoad = fallbackJumlah;
 
     // Jika saved data isinya 4 tapi jenisnya VARIAN, paksa jadi 3
     if (jenisPengajuan == 'VARIAN' && jumlahLoad > 3) {
@@ -103,7 +109,10 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
 
     ref.read(jumlahGambarProvider.notifier).state = jumlahLoad;
     ref.read(gambarUtamaSelectionProvider.notifier).resize(jumlahLoad);
+
     for (int i = 0; i < detail.dataGambarUtama.length; i++) {
+      if (i >= jumlahLoad) break;
+
       final item = detail.dataGambarUtama[i];
       ref
           .read(gambarUtamaSelectionProvider.notifier)
