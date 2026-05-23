@@ -175,7 +175,7 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
                   decoratorProps: const DropDownDecoratorProps(
                     baseStyle: TextStyle(fontSize: 13, height: 1.0),
                     decoration: InputDecoration(
-                      constraints: BoxConstraints(maxHeight: 32),
+                      constraints: BoxConstraints(maxHeight: 42),
                       contentPadding: EdgeInsets.symmetric(
                         vertical: 0,
                         horizontal: 10,
@@ -192,7 +192,7 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
                       autofocus: true,
                       style: TextStyle(fontSize: 13, height: 1.0),
                       decoration: InputDecoration(
-                        constraints: BoxConstraints(maxHeight: 32),
+                        constraints: BoxConstraints(maxHeight: 42),
                         contentPadding: EdgeInsets.symmetric(
                           vertical: 0,
                           horizontal: 10,
@@ -250,7 +250,7 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
                   decoratorProps: const DropDownDecoratorProps(
                     baseStyle: TextStyle(fontSize: 13, height: 1.0),
                     decoration: InputDecoration(
-                      constraints: BoxConstraints(maxHeight: 32),
+                      constraints: BoxConstraints(maxHeight: 42),
                       contentPadding: EdgeInsets.symmetric(
                         vertical: 0,
                         horizontal: 10,
@@ -267,7 +267,7 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
                       autofocus: true,
                       style: TextStyle(fontSize: 13, height: 1.0),
                       decoration: InputDecoration(
-                        constraints: BoxConstraints(maxHeight: 32),
+                        constraints: BoxConstraints(maxHeight: 42),
                         contentPadding: EdgeInsets.symmetric(
                           vertical: 0,
                           horizontal: 10,
@@ -383,7 +383,7 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
               labelText: label,
               labelStyle: const TextStyle(fontSize: 12),
               border: const OutlineInputBorder(),
-              constraints: const BoxConstraints(maxHeight: 32),
+              constraints: const BoxConstraints(maxHeight: 42),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 10,
                 vertical: 0,

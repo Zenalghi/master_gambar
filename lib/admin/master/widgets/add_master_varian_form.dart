@@ -91,7 +91,7 @@ class _AddMasterVarianFormState extends ConsumerState<AddMasterVarianForm> {
                   decoratorProps: const DropDownDecoratorProps(
                     baseStyle: TextStyle(fontSize: 13, height: 1.0),
                     decoration: InputDecoration(
-                      constraints: BoxConstraints(maxHeight: 32),
+                      constraints: BoxConstraints(maxHeight: 42),
                       contentPadding: EdgeInsets.symmetric(
                         vertical: 0,
                         horizontal: 10,
@@ -101,6 +101,7 @@ class _AddMasterVarianFormState extends ConsumerState<AddMasterVarianForm> {
                       hintText: 'Ketik untuk mencari...',
                       isDense: true,
                       border: OutlineInputBorder(),
+                      errorStyle: TextStyle(height: 0.8),
                     ),
                   ),
                   popupProps: PopupProps.menu(
@@ -109,7 +110,7 @@ class _AddMasterVarianFormState extends ConsumerState<AddMasterVarianForm> {
                       autofocus: true,
                       style: TextStyle(fontSize: 13, height: 1.0),
                       decoration: InputDecoration(
-                        constraints: BoxConstraints(maxHeight: 32),
+                        constraints: BoxConstraints(maxHeight: 42),
                         contentPadding: EdgeInsets.symmetric(
                           vertical: 0,
                           horizontal: 10,

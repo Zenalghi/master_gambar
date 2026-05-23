@@ -194,7 +194,7 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
         decoratorProps: DropDownDecoratorProps(
           baseStyle: const TextStyle(fontSize: 13, height: 1.0),
           decoration: InputDecoration(
-            constraints: const BoxConstraints(maxHeight: 32),
+            constraints: const BoxConstraints(maxHeight: 42),
             contentPadding: const EdgeInsets.symmetric(
               vertical: 0,
               horizontal: 10,
@@ -212,7 +212,7 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
             autofocus: true,
             style: TextStyle(fontSize: 13, height: 1.0),
             decoration: InputDecoration(
-              constraints: BoxConstraints(maxHeight: 32),
+              constraints: BoxConstraints(maxHeight: 42),
               contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
               hintStyle: TextStyle(fontSize: 13, height: 1.0),
               hintText: "Cari...",
