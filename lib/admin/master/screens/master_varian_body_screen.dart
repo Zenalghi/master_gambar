@@ -18,6 +18,7 @@ class MasterVarianBodyScreen extends ConsumerStatefulWidget {
 class _MasterVarianBodyScreenState
     extends ConsumerState<MasterVarianBodyScreen> {
   int _refreshToken = 0;
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -30,7 +31,22 @@ class _MasterVarianBodyScreenState
       // 2. Reset Cache Dropdown Master Data (agar data baru dari menu Master Data masuk)
       ref.invalidate(masterDataOptionsProvider);
       ref.read(selectedMasterDataFilterProvider.notifier).state = null;
+      _searchController.clear();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _resetSearchAndRefresh() {
+    _searchController.clear();
+    ref.invalidate(varianBodyFilterProvider);
+    ref.invalidate(masterVarianOptionsFamilyProvider);
+    ref.invalidate(masterDataOptionsProvider);
+    ref.read(selectedMasterDataFilterProvider.notifier).state = null;
   }
 
   @override
@@ -55,6 +71,7 @@ class _MasterVarianBodyScreenState
                 width: 250,
                 height: 31,
                 child: TextField(
+                  controller: _searchController,
                   decoration: const InputDecoration(
                     labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Search Varian...',
@@ -76,11 +93,7 @@ class _MasterVarianBodyScreenState
                 tooltip: 'Refresh Data',
                 onPressed: () {
                   setState(() => _refreshToken++);
-                  ref.invalidate(varianBodyFilterProvider);
-                  ref.invalidate(masterVarianOptionsFamilyProvider);
-                  ref.invalidate(masterDataOptionsProvider);
-                  ref.read(selectedMasterDataFilterProvider.notifier).state =
-                      null;
+                  _resetSearchAndRefresh();
                 },
               ),
 

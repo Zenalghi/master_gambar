@@ -18,19 +18,31 @@ class MasterJenisVarianScreen extends ConsumerStatefulWidget {
 class _MasterJenisVarianScreenState
     extends ConsumerState<MasterJenisVarianScreen> {
   final _controller = TextEditingController();
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     // --- RESET OTOMATIS SAAT MASUK HALAMAN ---
     // Mereset search query agar tabel kembali menampilkan semua data
-    Future.microtask(() => ref.invalidate(jenisVarianSearchQueryProvider));
+    Future.microtask(() {
+      ref.read(jenisVarianSearchQueryProvider.notifier).state = '';
+      _searchController.clear();
+      ref.invalidate(jenisVarianListProvider);
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  void _refreshJenisVarian() {
+    _searchController.clear();
+    ref.read(jenisVarianSearchQueryProvider.notifier).state = '';
+    ref.invalidate(jenisVarianListProvider);
   }
 
   @override
@@ -52,9 +64,10 @@ class _MasterJenisVarianScreenState
                 width: 250,
                 height: 31,
                 child: TextField(
+                  controller: _searchController,
                   style: const TextStyle(fontSize: 14),
                   decoration: InputDecoration(
-                    labelStyle: TextStyle(fontSize: 14),
+                    labelStyle: const TextStyle(fontSize: 14),
                     labelText: 'Search...',
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
@@ -70,7 +83,7 @@ class _MasterJenisVarianScreenState
               IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data',
-                onPressed: () => ref.invalidate(jenisVarianListProvider),
+                onPressed: _refreshJenisVarian,
               ),
             ],
           ),

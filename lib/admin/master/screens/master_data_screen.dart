@@ -16,6 +16,7 @@ class MasterDataScreen extends ConsumerStatefulWidget {
 
 class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
   int _formResetKey = 0;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -26,15 +27,21 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   void _handleReload() {
-    ref
-        .read(masterDataFilterProvider.notifier)
-        .update(
-          (state) => {
-            ...state,
-            'last_update': DateTime.now().millisecondsSinceEpoch.toString(),
-          },
-        );
+    _searchController.clear();
+
+    final current = ref.read(masterDataFilterProvider);
+    ref.read(masterDataFilterProvider.notifier).state = {
+      ...current,
+      'search': '',
+      'last_update': DateTime.now().millisecondsSinceEpoch.toString(),
+    };
 
     ref.invalidate(mdTypeEngineOptionsProvider);
     ref.invalidate(mdMerkOptionsProvider);
@@ -67,6 +74,7 @@ class _MasterDataScreenState extends ConsumerState<MasterDataScreen> {
                 width: 250,
                 height: 31,
                 child: TextField(
+                  controller: _searchController,
                   decoration: const InputDecoration(
                     labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Search...',

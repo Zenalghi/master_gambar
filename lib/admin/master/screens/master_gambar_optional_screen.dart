@@ -10,7 +10,6 @@ import 'package:master_gambar/admin/master/providers/master_data_providers.dart'
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfx/pdfx.dart';
-import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../../../data/models/option_item.dart';
 import '../models/gambar_optional.dart';
 import '../widgets/h-c-optional/pilih_master_data_card.dart';
@@ -28,6 +27,7 @@ class _MasterGambarOptionalScreenState
     extends ConsumerState<MasterGambarOptionalScreen> {
   bool _isLoading = false;
   final _deskripsiController = TextEditingController();
+  final _searchController = TextEditingController();
   PdfFileData? _selectedFile;
   PdfController? _pdfController;
 
@@ -37,6 +37,7 @@ class _MasterGambarOptionalScreenState
   @override
   void dispose() {
     _deskripsiController.dispose();
+    _searchController.dispose();
     _pdfController?.dispose();
     super.dispose();
   }
@@ -148,13 +149,23 @@ class _MasterGambarOptionalScreenState
     });
   }
 
+  void _triggerGambarOptionalRefresh({bool resetSearch = false}) {
+    final current = ref.read(gambarOptionalFilterProvider);
+
+    ref.read(gambarOptionalFilterProvider.notifier).state = {
+      ...current,
+      'search': resetSearch ? '' : (current['search'] ?? ''),
+      'sortBy': current['sortBy'] ?? 'updated_at',
+      'sortDirection': current['sortDirection'] ?? 'desc',
+      'refreshToken': DateTime.now().millisecondsSinceEpoch.toString(),
+    };
+  }
+
   void _resetAndRefresh() {
     ref.read(editingGambarOptionalProvider.notifier).state = null;
+    _searchController.clear();
     _resetForm();
-    ref
-        .read(gambarOptionalFilterProvider.notifier)
-        .update((state) => Map.from(state));
-    ref.read(refreshNotifierProvider.notifier).refresh();
+    _triggerGambarOptionalRefresh(resetSearch: true);
   }
 
   Future<void> _pickFile() async {
@@ -287,9 +298,7 @@ class _MasterGambarOptionalScreenState
       }
 
       // Refresh Tabel
-      ref
-          .read(gambarOptionalFilterProvider.notifier)
-          .update((state) => Map.from(state));
+      _triggerGambarOptionalRefresh();
     } on DioException catch (e) {
       _showSnackBar(
         'Error: ${e.response?.data['message'] ?? e.message}',
@@ -375,6 +384,7 @@ class _MasterGambarOptionalScreenState
                 width: 250,
                 height: 31,
                 child: TextField(
+                  controller: _searchController,
                   decoration: const InputDecoration(
                     labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Search...',

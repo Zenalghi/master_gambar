@@ -2,6 +2,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:master_gambar/app/core/notifiers/refresh_notifier.dart';
 import '../widgets/a/type_engine_table.dart';
 import '../providers/master_data_providers.dart';
 import '../repository/master_data_repository.dart';
@@ -19,16 +20,30 @@ class _MasterTypeEngineScreenState
     extends ConsumerState<MasterTypeEngineScreen> {
   final _controller = TextEditingController();
   final _formKey = GlobalKey<FormState>(); // Kunci Validasi
+  final _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.invalidate(typeEngineSearchQueryProvider));
+    Future.microtask(() {
+      ref.read(typeEngineSearchQueryProvider.notifier).state = '';
+      _searchController.clear();
+      ref.invalidate(typeEngineListProvider);
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  void _refreshTypeEngine() {
+    _searchController.clear();
+    ref.read(typeEngineSearchQueryProvider.notifier).state = '';
+    ref.invalidate(typeEngineListProvider);
+    ref.read(refreshNotifierProvider.notifier).refresh();
   }
 
   void _submit() async {
@@ -85,6 +100,7 @@ class _MasterTypeEngineScreenState
                 width: 250,
                 height: 31,
                 child: TextField(
+                  controller: _searchController,
                   decoration: const InputDecoration(
                     labelStyle: TextStyle(fontSize: 14),
                     labelText: 'Search Type Engine...',
@@ -102,7 +118,7 @@ class _MasterTypeEngineScreenState
               IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh Data',
-                onPressed: () => ref.invalidate(typeEngineListProvider),
+                onPressed: _refreshTypeEngine,
               ),
               const SizedBox(width: 8),
               IconButton(

@@ -4,11 +4,31 @@ import 'package:master_gambar/admin/management/providers/user_providers.dart';
 import 'package:master_gambar/admin/management/widgets/user/add_user_form.dart';
 import 'package:master_gambar/admin/management/widgets/user/user_data_table.dart';
 
-class UserManagementScreen extends ConsumerWidget {
+class UserManagementScreen extends ConsumerStatefulWidget {
   const UserManagementScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<UserManagementScreen> createState() =>
+      _UserManagementScreenState();
+}
+
+class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _refreshUsers() {
+    _searchController.clear();
+    ref.read(userSearchQueryProvider.notifier).state = '';
+    ref.read(userInvalidator.notifier).state++;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Column(
@@ -16,8 +36,8 @@ class UserManagementScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SizedBox(width: 10),
-              Text(
+              const SizedBox(width: 10),
+              const Text(
                 'Manajemen User',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
@@ -26,8 +46,9 @@ class UserManagementScreen extends ConsumerWidget {
                 width: 250,
                 height: 31,
                 child: TextField(
+                  controller: _searchController,
                   decoration: InputDecoration(
-                    labelStyle: TextStyle(fontSize: 14),
+                    labelStyle: const TextStyle(fontSize: 14),
                     labelText: 'Search User...',
                     prefixIcon: const Icon(Icons.search),
                     isDense: true,
@@ -44,9 +65,7 @@ class UserManagementScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Muat Ulang Data',
-                onPressed: () {
-                  ref.read(userInvalidator.notifier).state++;
-                },
+                onPressed: _refreshUsers,
               ),
             ],
           ),

@@ -17,6 +17,7 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
   int _currentPage = 1;
   String _sortBy = 'updated_at';
   bool _sortAscending = false;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
@@ -24,9 +25,15 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _fetchData());
   }
 
-  void _fetchData() {
+  Future<void> _fetchData({bool showLoading = false}) async {
     final searchQuery = ref.read(customerSearchQueryProvider);
-    ref
+
+    if (showLoading) {
+      setState(() => _isRefreshing = true);
+    }
+
+    final start = DateTime.now();
+    await ref
         .read(customerNotifierProvider.notifier)
         .getCustomers(
           page: _currentPage,
@@ -35,6 +42,22 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
           sortAscending: _sortAscending,
           searchQuery: searchQuery,
         );
+
+    if (showLoading) {
+      final elapsed = DateTime.now().difference(start);
+      final remaining = const Duration(milliseconds: 500) - elapsed;
+      if (remaining.isNegative) {
+        if (mounted) {
+          setState(() => _isRefreshing = false);
+        }
+        return;
+      }
+
+      await Future.delayed(remaining);
+      if (mounted) {
+        setState(() => _isRefreshing = false);
+      }
+    }
   }
 
   @override
@@ -48,7 +71,7 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
 
     ref.listen<int>(customerInvalidator, (previous, next) {
       if (previous != next) {
-        _fetchData();
+        _fetchData(showLoading: true);
       }
     });
 
@@ -64,49 +87,60 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
       ref: ref,
     );
 
-    return Card(
-      child: PaginatedDataTable2(
-        headingRowHeight: 36,
-        columnSpacing: 12,
-        horizontalMargin: 12,
-        minWidth: 900,
-        rowsPerPage: _rowsPerPage,
+    return Stack(
+      children: [
+        Card(
+          child: PaginatedDataTable2(
+            headingRowHeight: 36,
+            columnSpacing: 12,
+            horizontalMargin: 12,
+            minWidth: 900,
+            rowsPerPage: _rowsPerPage,
 
-        // PERMINTAAN ANDA
-        availableRowsPerPage: const [50, 100],
+            // PERMINTAAN ANDA
+            availableRowsPerPage: const [50, 100],
 
-        onRowsPerPageChanged: (value) {
-          if (value != null) {
-            setState(() {
-              _rowsPerPage = value;
-              _currentPage = 1;
-            });
-            _fetchData();
-          }
-        },
-        sortColumnIndex: _getSortColumnIndex(),
-        sortAscending: _sortAscending,
+            onRowsPerPageChanged: (value) {
+              if (value != null) {
+                setState(() {
+                  _rowsPerPage = value;
+                  _currentPage = 1;
+                });
+                _fetchData();
+              }
+            },
+            sortColumnIndex: _getSortColumnIndex(),
+            sortAscending: _sortAscending,
 
-        // HAPUS BARIS INI KARENA INI YANG MENYEBABKAN ERROR
-        // total: state.totalRecords,
-        initialFirstRowIndex: (_currentPage - 1) * _rowsPerPage,
-        onPageChanged: (pageIndex) {
-          int newPage = (pageIndex / _rowsPerPage).floor() + 1;
-          if (newPage != _currentPage) {
-            setState(() {
-              _currentPage = newPage;
-            });
-            _fetchData();
-          }
-        },
-        empty: state.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : (state.error != null
-                  ? Center(child: Text('Error: ${state.error}'))
-                  : const Center(child: Text('Tidak ada data'))),
-        columns: _createColumns(),
-        source: dataSource,
-      ),
+            // HAPUS BARIS INI KARENA INI YANG MENYEBABKAN ERROR
+            // total: state.totalRecords,
+            initialFirstRowIndex: (_currentPage - 1) * _rowsPerPage,
+            onPageChanged: (pageIndex) {
+              int newPage = (pageIndex / _rowsPerPage).floor() + 1;
+              if (newPage != _currentPage) {
+                setState(() {
+                  _currentPage = newPage;
+                });
+                _fetchData();
+              }
+            },
+            empty: state.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : (state.error != null
+                      ? Center(child: Text('Error: ${state.error}'))
+                      : const Center(child: Text('Tidak ada data'))),
+            columns: _createColumns(),
+            source: dataSource,
+          ),
+        ),
+        if (_isRefreshing)
+          Positioned.fill(
+            child: Container(
+              color: Colors.black12,
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+          ),
+      ],
     );
   }
 

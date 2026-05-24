@@ -4,11 +4,32 @@ import 'providers/customer_providers.dart';
 import 'widgets/customer/add_customer_form.dart';
 import 'widgets/customer/customer_data_table.dart';
 
-class CustomerManagementScreen extends ConsumerWidget {
+class CustomerManagementScreen extends ConsumerStatefulWidget {
   const CustomerManagementScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CustomerManagementScreen> createState() =>
+      _CustomerManagementScreenState();
+}
+
+class _CustomerManagementScreenState
+    extends ConsumerState<CustomerManagementScreen> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _refreshCustomers() {
+    _searchController.clear();
+    ref.read(customerSearchQueryProvider.notifier).state = '';
+    ref.read(customerInvalidator.notifier).state++;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10),
       child: Column(
@@ -16,7 +37,7 @@ class CustomerManagementScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               const Text(
                 'Manajemen Customer',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -26,8 +47,9 @@ class CustomerManagementScreen extends ConsumerWidget {
                 width: 250,
                 height: 31,
                 child: TextField(
+                  controller: _searchController,
                   decoration: InputDecoration(
-                    labelStyle: TextStyle(fontSize: 14),
+                    labelStyle: const TextStyle(fontSize: 14),
                     labelText: 'Search Customer...',
                     prefixIcon: const Icon(Icons.search),
                     isDense: true,
@@ -44,9 +66,7 @@ class CustomerManagementScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Muat Ulang Data',
-                onPressed: () {
-                  ref.read(customerInvalidator.notifier).state++;
-                },
+                onPressed: _refreshCustomers,
               ),
             ],
           ),
