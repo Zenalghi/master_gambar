@@ -46,21 +46,24 @@ class GambarHeaderInfo extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoField('No. ID', transaksi.id),
+                _buildInfoField(context, 'No. ID', transaksi.id),
                 const SizedBox(width: 16),
                 _buildInfoField(
+                  context,
                   'Type Engine',
                   transaksi.aTypeEngine.typeEngine,
                 ),
                 const SizedBox(width: 16),
-                _buildInfoField('Merk', transaksi.bMerk.merk),
+                _buildInfoField(context, 'Merk', transaksi.bMerk.merk),
                 const SizedBox(width: 16),
                 _buildInfoField(
+                  context,
                   'Type Chassis',
                   transaksi.cTypeChassis.typeChassis,
                 ),
                 const SizedBox(width: 16),
                 _buildInfoField(
+                  context,
                   'Jenis Kendaraan',
                   transaksi.dJenisKendaraan.jenisKendaraan,
                 ),
@@ -70,9 +73,10 @@ class GambarHeaderInfo extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _buildInfoField('Customer', transaksi.customer.namaPt),
+                _buildInfoField(context, 'Customer', transaksi.customer.namaPt),
                 const SizedBox(width: 16),
                 _buildInfoField(
+                  context,
                   'Jenis Pengajuan',
                   transaksi.fPengajuan.jenisPengajuan,
                 ),
@@ -83,7 +87,7 @@ class GambarHeaderInfo extends ConsumerWidget {
                     ignoring: !isEditMode, // Kunci jika bukan edit mode
                     child: Opacity(
                       opacity: isEditMode ? 1.0 : 0.6,
-                      child: _buildPihakPenyetujuanDropdown(ref),
+                      child: _buildPihakPenyetujuanDropdown(context, ref),
                     ),
                   ),
                 ),
@@ -97,7 +101,11 @@ class GambarHeaderInfo extends ConsumerWidget {
                     child: Opacity(
                       // Redupkan jika dikunci
                       opacity: (isEditMode && !isCustomerPenyetuju) ? 1.0 : 0.4,
-                      child: _buildPemeriksaDropdown(ref, isCustomerPenyetuju),
+                      child: _buildPemeriksaDropdown(
+                        context,
+                        ref,
+                        isCustomerPenyetuju,
+                      ),
                     ),
                   ),
                 ),
@@ -116,7 +124,7 @@ class GambarHeaderInfo extends ConsumerWidget {
                           ignoring: !isEditMode,
                           child: Opacity(
                             opacity: isEditMode ? 1.0 : 0.6,
-                            child: _buildJumlahGambarDropdown(ref),
+                            child: _buildJumlahGambarDropdown(context, ref),
                           ),
                         ),
                       ),
@@ -139,7 +147,9 @@ class GambarHeaderInfo extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoField(String label, String value) {
+  Widget _buildInfoField(BuildContext context, String label, String value) {
+    final theme = Theme.of(context);
+
     return Expanded(
       flex: 1,
       child: Column(
@@ -147,7 +157,11 @@ class GambarHeaderInfo extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+              color: theme.colorScheme.onSurface,
+            ),
           ),
           const SizedBox(height: 4),
           Container(
@@ -155,35 +169,58 @@ class GambarHeaderInfo extends ConsumerWidget {
             height: 32,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
+              color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(4),
             ),
-            child: SelectableText(value, style: const TextStyle(fontSize: 13)),
+            child: SelectableText(
+              value,
+              style: TextStyle(
+                fontSize: 13,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
+  TextStyle _dropdownTextStyle(BuildContext context) {
+    final theme = Theme.of(context);
+    return TextStyle(fontSize: 13, color: theme.colorScheme.onSurface);
+  }
+
   // --- WIDGET BARU: DROPDOWN PIHAK PENYETUJUAN ---
-  Widget _buildPihakPenyetujuanDropdown(WidgetRef ref) {
+  Widget _buildPihakPenyetujuanDropdown(BuildContext context, WidgetRef ref) {
     final selectedValue = ref.watch(pihakPenyetujuanProvider);
+    final textStyle = _dropdownTextStyle(context);
 
     return DropdownButtonFormField<String>(
+      // ignore: deprecated_member_use
       value: selectedValue,
       itemHeight: 30,
-      style: const TextStyle(fontSize: 13, color: Colors.black),
-      decoration: const InputDecoration(
-        labelStyle: TextStyle(fontSize: 13),
+      style: textStyle,
+      dropdownColor: Theme.of(context).colorScheme.surface,
+      decoration: InputDecoration(
+        labelStyle: TextStyle(
+          fontSize: 13,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
         labelText: 'Pihak Penyetujuan',
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        border: const OutlineInputBorder(),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 11,
+        ),
       ),
-      items: const [
-        DropdownMenuItem(value: 'vendor', child: Text('Internal (Vendor)')),
+      items: [
+        DropdownMenuItem(
+          value: 'vendor',
+          child: Text('Internal (Vendor)', style: textStyle),
+        ),
         DropdownMenuItem(
           value: 'customer',
-          child: Text('Eksternal (Customer)'),
+          child: Text('Eksternal (Customer)', style: textStyle),
         ),
       ],
       onChanged: (value) {
@@ -200,9 +237,10 @@ class GambarHeaderInfo extends ConsumerWidget {
     );
   }
 
-  Widget _buildJumlahGambarDropdown(WidgetRef ref) {
+  Widget _buildJumlahGambarDropdown(BuildContext context, WidgetRef ref) {
     final selectedJumlah = ref.watch(jumlahGambarProvider);
     final jenisPengajuan = transaksi.fPengajuan.jenisPengajuan.toUpperCase();
+    final textStyle = _dropdownTextStyle(context);
     List<int> options = [1, 2, 3, 4];
     if (jenisPengajuan == 'VARIAN') {
       options = [1, 2, 3];
@@ -213,17 +251,29 @@ class GambarHeaderInfo extends ConsumerWidget {
       });
     }
     return DropdownButtonFormField<int>(
+      // ignore: deprecated_member_use
       value: options.contains(selectedJumlah) ? selectedJumlah : options.last,
       itemHeight: 30,
-      decoration: const InputDecoration(
-        labelStyle: TextStyle(fontSize: 13),
+      style: textStyle,
+      dropdownColor: Theme.of(context).colorScheme.surface,
+      decoration: InputDecoration(
+        labelStyle: TextStyle(
+          fontSize: 13,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
         labelText: 'Jumlah Gambar',
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        border: const OutlineInputBorder(),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 11,
+        ),
       ),
       items: options
           .map(
-            (e) => DropdownMenuItem<int>(value: e, child: Text(e.toString())),
+            (e) => DropdownMenuItem<int>(
+              value: e,
+              child: Text(e.toString(), style: textStyle),
+            ),
           )
           .toList(),
       onChanged: (value) {
@@ -233,76 +283,96 @@ class GambarHeaderInfo extends ConsumerWidget {
       },
     );
   }
-}
 
-// PERHATIKAN: Widget ini saya ubah agar menerima param `isCustomerPenyetuju`
-Widget _buildPemeriksaDropdown(WidgetRef ref, bool isCustomerPenyetuju) {
-  final pemeriksaOptionsAsync = ref.watch(pemeriksaOptionsProvider);
-  final selectedId = ref.watch(pemeriksaIdProvider);
-
-  ref.listen<AsyncValue<List<OptionItem>>>(pemeriksaOptionsProvider, (
-    previous,
-    next,
+  Widget _buildPemeriksaDropdown(
+    BuildContext context,
+    WidgetRef ref,
+    bool isCustomerPenyetuju,
   ) {
-    if (next is AsyncData && !(previous is AsyncData)) {
-      final options = next.value;
-      // Jangan set otomatis jika pihak penyetujuannya adalah customer
-      if (options != null &&
-          options.isNotEmpty &&
-          ref.read(pemeriksaIdProvider) == null &&
-          !isCustomerPenyetuju) {
-        ref.read(pemeriksaIdProvider.notifier).state = options.first.id as int?;
-      }
-    }
-  });
+    final pemeriksaOptionsAsync = ref.watch(pemeriksaOptionsProvider);
+    final selectedId = ref.watch(pemeriksaIdProvider);
 
-  return pemeriksaOptionsAsync.when(
-    data: (items) {
-      if (items.isNotEmpty && selectedId == null && !isCustomerPenyetuju) {
-        Future.microtask(() {
-          if (ref.read(pemeriksaIdProvider) == null) {
-            ref.read(pemeriksaIdProvider.notifier).state =
-                items.first.id as int?;
-          }
-        });
+    ref.listen<AsyncValue<List<OptionItem>>>(pemeriksaOptionsProvider, (
+      previous,
+      next,
+    ) {
+      if (next is AsyncData && previous is! AsyncData) {
+        final options = next.value;
+        // Jangan set otomatis jika pihak penyetujuannya adalah customer
+        if (options != null &&
+            options.isNotEmpty &&
+            ref.read(pemeriksaIdProvider) == null &&
+            !isCustomerPenyetuju) {
+          ref.read(pemeriksaIdProvider.notifier).state =
+              options.first.id as int?;
+        }
       }
+    });
 
-      return DropdownButtonFormField<int>(
-        value: selectedId, // Jika null, akan menampilkan 'hint'
-        itemHeight: 30,
-        style: const TextStyle(fontSize: 13, color: Colors.black),
-        hint: const Text('Pilih Pemeriksa', style: TextStyle(fontSize: 13)),
-        decoration: const InputDecoration(
-          labelStyle: TextStyle(fontSize: 13),
-          labelText: 'Pemeriksa Internal',
-          border: OutlineInputBorder(),
-          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-        ),
-        items: items
-            .map(
-              (e) => DropdownMenuItem<int>(
-                value: e.id as int,
-                child: Text(e.name, style: const TextStyle(fontSize: 13)),
-              ),
-            )
-            .toList(),
-        onChanged: (value) {
-          ref.read(pemeriksaIdProvider.notifier).state = value;
-        },
-        // LOGIKA BARU VALIDASI:
-        // Wajib dipilih HANYA jika pihak penyetujuan BUKAN customer
-        validator: (value) {
-          if (!isCustomerPenyetuju && value == null) {
-            return 'Wajib dipilih';
-          }
-          return null;
-        },
-      );
-    },
-    loading: () => const Center(child: CircularProgressIndicator()),
-    error: (err, stack) => const Tooltip(
-      message: 'Error memuat pemeriksa',
-      child: Icon(Icons.error),
-    ),
-  );
+    return pemeriksaOptionsAsync.when(
+      data: (items) {
+        if (items.isNotEmpty && selectedId == null && !isCustomerPenyetuju) {
+          Future.microtask(() {
+            if (ref.read(pemeriksaIdProvider) == null) {
+              ref.read(pemeriksaIdProvider.notifier).state =
+                  items.first.id as int?;
+            }
+          });
+        }
+
+        final textStyle = _dropdownTextStyle(context);
+
+        return DropdownButtonFormField<int>(
+          // ignore: deprecated_member_use
+          value: selectedId, // Jika null, akan menampilkan 'hint'
+          itemHeight: 30,
+          style: textStyle,
+          dropdownColor: Theme.of(context).colorScheme.surface,
+          hint: Text(
+            'Pilih Pemeriksa',
+            style: TextStyle(
+              fontSize: 13,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          decoration: InputDecoration(
+            labelStyle: TextStyle(
+              fontSize: 13,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            labelText: 'Pemeriksa Internal',
+            border: const OutlineInputBorder(),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 11,
+            ),
+          ),
+          items: items
+              .map(
+                (e) => DropdownMenuItem<int>(
+                  value: e.id as int,
+                  child: Text(e.name, style: textStyle),
+                ),
+              )
+              .toList(),
+          onChanged: (value) {
+            ref.read(pemeriksaIdProvider.notifier).state = value;
+          },
+          // LOGIKA BARU VALIDASI:
+          // Wajib dipilih HANYA jika pihak penyetujuan BUKAN customer
+          validator: (value) {
+            if (!isCustomerPenyetuju && value == null) {
+              return 'Wajib dipilih';
+            }
+            return null;
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => const Tooltip(
+        message: 'Error memuat pemeriksa',
+        child: Icon(Icons.error),
+      ),
+    );
+  }
 }

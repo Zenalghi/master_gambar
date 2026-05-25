@@ -45,21 +45,28 @@ class GambarKelistrikanSection extends ConsumerWidget {
 
     final bool isProcessing = ref.watch(isProcessingProvider);
     final bool isEditMode = ref.watch(isEditModeProvider);
+    final scheme = Theme.of(context).colorScheme;
+    final badgeContainerColor = scheme.brightness == Brightness.dark
+        ? const Color(0xFF5A4700)
+        : const Color(0xFFFFF3B0);
+    final badgeTextColor = scheme.brightness == Brightness.dark
+        ? const Color(0xFFFFF4C7)
+        : Colors.black87;
 
     final bgColor = isReady
-        ? Colors.grey.shade200
-        : (isLoadingData ? Colors.grey.shade100 : Colors.red.shade50);
+        ? scheme.surfaceContainerHighest
+        : (isLoadingData ? scheme.surfaceContainerLow : scheme.errorContainer);
 
     return Column(
       children: [
         Row(
           children: [
-            const Text(
+            Text(
               'Gambar Kelistrikan',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: scheme.primary,
               ),
             ),
           ],
@@ -68,11 +75,14 @@ class GambarKelistrikanSection extends ConsumerWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(
+            SizedBox(
               width: 150,
               child: Padding(
-                padding: EdgeInsets.only(top: 12.0),
-                child: Text('Gambar Kelistrikan:'),
+                padding: const EdgeInsets.only(top: 12.0),
+                child: Text(
+                  'Gambar Kelistrikan:',
+                  style: TextStyle(color: scheme.onSurface),
+                ),
               ),
             ),
             Expanded(
@@ -86,8 +96,8 @@ class GambarKelistrikanSection extends ConsumerWidget {
                   color: bgColor,
                   borderRadius: BorderRadius.circular(4),
                   border: isReady
-                      ? null
-                      : Border.all(color: Colors.red.shade200),
+                      ? Border.all(color: scheme.outlineVariant)
+                      : Border.all(color: scheme.error),
                 ),
                 child: isLoadingData
                     ? const SizedBox(
@@ -101,6 +111,7 @@ class GambarKelistrikanSection extends ConsumerWidget {
                         ),
                       )
                     : _buildContent(
+                        context,
                         ref,
                         statusCode,
                         displayText,
@@ -119,14 +130,19 @@ class GambarKelistrikanSection extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
                       color: isReady
-                          ? Colors.yellow.shade200
-                          : Colors.grey.shade300,
+                          ? badgeContainerColor
+                          : scheme.surfaceContainerHigh,
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.grey),
+                      border: Border.all(color: scheme.outlineVariant),
                     ),
                     child: Center(
                       child: Text(
                         isReady ? '$pageNumber/$totalHalaman' : '-/-',
+                        style: TextStyle(
+                          color: isReady
+                              ? badgeTextColor
+                              : scheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   ),
@@ -150,6 +166,7 @@ class GambarKelistrikanSection extends ConsumerWidget {
   }
 
   Widget _buildContent(
+    BuildContext context,
     WidgetRef ref,
     String statusCode,
     String displayText,
@@ -157,10 +174,12 @@ class GambarKelistrikanSection extends ConsumerWidget {
     int? selectedId,
     bool isEditMode,
   ) {
+    final scheme = Theme.of(context).colorScheme;
+
     if (statusCode == 'ready') {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: Text(displayText),
+        child: Text(displayText, style: TextStyle(color: scheme.onSurface)),
       );
     }
 
@@ -172,57 +191,69 @@ class GambarKelistrikanSection extends ConsumerWidget {
             children: [
               Text(
                 displayText,
-                style: const TextStyle(
+                style: TextStyle(
                   fontStyle: FontStyle.italic,
-                  color: Colors.grey,
+                  color: scheme.onSurfaceVariant,
                   fontSize: 12,
                 ),
               ),
               const SizedBox(width: 10),
-              const Tooltip(
+              Tooltip(
                 message: 'Pilih salah satu deskripsi kelistrikan yang sesuai',
                 triggerMode: TooltipTriggerMode.tap,
                 child: Icon(
                   Icons.info_outline,
                   size: 16,
-                  color: Colors.lightBlueAccent,
+                  color: scheme.primary,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          ...options.map((opt) {
-            final int optId = opt['id'];
-            final String optDesc = opt['deskripsi'];
+          RadioGroup<int>(
+            groupValue: selectedId,
+            onChanged: (val) {
+              if (!isEditMode) return;
+              ref.read(selectedKelistrikanIdProvider.notifier).state = val;
+            },
+            child: Column(
+              children: options.map((opt) {
+                final int optId = opt['id'];
+                final String optDesc = opt['deskripsi'];
 
-            return RadioListTile<int>(
-              title: Text(
-                optDesc,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              value: optId,
-              groupValue: selectedId,
-              contentPadding: EdgeInsets.zero,
-              visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-              activeColor: Colors.blue,
-              onChanged: isEditMode
-                  ? (val) {
-                      ref.read(selectedKelistrikanIdProvider.notifier).state =
-                          val;
-                    }
-                  : null,
-            );
-          }),
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  visualDensity: const VisualDensity(
+                    horizontal: -4,
+                    vertical: -4,
+                  ),
+                  leading: Radio<int>(
+                    value: optId,
+                    activeColor: scheme.primary,
+                  ),
+                  title: Text(
+                    optDesc,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: scheme.onSurface,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
         ],
       );
     }
 
     return Text(
       displayText,
-      style: TextStyle(color: Colors.red.shade900, fontStyle: FontStyle.italic),
+      style: TextStyle(
+        color: scheme.onErrorContainer,
+        fontStyle: FontStyle.italic,
+      ),
     );
   }
 }

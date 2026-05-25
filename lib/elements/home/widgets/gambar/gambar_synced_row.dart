@@ -43,6 +43,13 @@ class GambarSyncedRow extends ConsumerWidget {
       varianBodyOptionsFamilyProvider(transaksi.masterDataId),
     );
     final judulOptions = ref.watch(judulGambarOptionsProvider);
+    final scheme = Theme.of(context).colorScheme;
+    final badgeContainerColor = scheme.brightness == Brightness.dark
+        ? const Color(0xFF5A4700)
+        : const Color(0xFFFFF3B0);
+    final badgeTextColor = scheme.brightness == Brightness.dark
+        ? const Color(0xFFFFF4C7)
+        : Colors.black87;
 
     // --- UPDATE VALIDASI ROW ---
     final bool isRowComplete =
@@ -73,16 +80,22 @@ class GambarSyncedRow extends ConsumerWidget {
 
     return Row(
       children: [
-        SizedBox(width: 150, child: Text('$title ${index + 1}:')),
+        SizedBox(
+          width: 150,
+          child: Text(
+            '$title ${index + 1}:',
+            style: TextStyle(color: scheme.onSurface),
+          ),
+        ),
         Expanded(
           flex: 2,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
+              color: scheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Text(judulName),
+            child: Text(judulName, style: TextStyle(color: scheme.onSurface)),
           ),
         ),
         const SizedBox(width: 10),
@@ -91,10 +104,13 @@ class GambarSyncedRow extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
+              color: scheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Text(varianBodyName),
+            child: Text(
+              varianBodyName,
+              style: TextStyle(color: scheme.onSurface),
+            ),
           ),
         ),
         const SizedBox(width: 10),
@@ -103,11 +119,16 @@ class GambarSyncedRow extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.yellow.shade200,
+              color: badgeContainerColor,
               borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: Colors.grey),
+              border: Border.all(color: scheme.outlineVariant),
             ),
-            child: Center(child: Text('$pageNumber/$totalHalaman')),
+            child: Center(
+              child: Text(
+                '$pageNumber/$totalHalaman',
+                style: TextStyle(color: badgeTextColor),
+              ),
+            ),
           ),
         ),
         const SizedBox(width: 10),

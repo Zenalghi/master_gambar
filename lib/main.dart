@@ -78,32 +78,19 @@ void main() async {
     });
   }
 
-  runApp(
-    ProviderScope(
-      overrides: [baseUrlProvider.overrideWithValue(baseUrl)],
-      child: MyApp(initialDarkMode: isDarkMode),
-    ),
+  final container = ProviderContainer(
+    overrides: [baseUrlProvider.overrideWithValue(baseUrl)],
   );
+  container.read(darkModeProvider.notifier).state = isDarkMode;
+
+  runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
 }
 
-class MyApp extends ConsumerStatefulWidget {
-  const MyApp({super.key, required this.initialDarkMode});
-
-  final bool initialDarkMode;
+class MyApp extends ConsumerWidget {
+  const MyApp({super.key});
 
   @override
-  ConsumerState<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends ConsumerState<MyApp> {
-  @override
-  void initState() {
-    super.initState();
-    ref.read(darkModeProvider.notifier).state = widget.initialDarkMode;
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDarkMode = ref.watch(darkModeProvider);
 
     return MaterialApp(

@@ -51,6 +51,14 @@ class GambarMainForm extends ConsumerWidget {
 
     // --- LOGIKA PERHITUNGAN HALAMAN DINAMIS ---
 
+    final scheme = Theme.of(context).colorScheme;
+    final badgeContainerColor = scheme.brightness == Brightness.dark
+        ? const Color(0xFF5A4700)
+        : const Color(0xFFFFF3B0);
+    final badgeTextColor = scheme.brightness == Brightness.dark
+        ? const Color(0xFFFFF4C7)
+        : Colors.black87;
+
     // Struktur Data untuk menyimpan konfigurasi halaman setiap baris
     List<Map<String, dynamic>> finalPages = [];
     int currentPage = 1;
@@ -167,6 +175,7 @@ class GambarMainForm extends ConsumerWidget {
           children: [
             // --- 1. Gambar Utama (SELALU ADA) ---
             _buildSection(
+              context: context,
               title: 'Gambar Utama',
               items: finalPages.where((e) => e['type'] == 'utama').toList(),
               itemBuilder: (item) {
@@ -197,6 +206,7 @@ class GambarMainForm extends ConsumerWidget {
                     children: [
                       const Divider(height: 10),
                       _buildSection(
+                        context: context,
                         title: 'Gambar Terurai',
                         items: items,
                         itemBuilder: (item) => GambarSyncedRow(
@@ -229,6 +239,7 @@ class GambarMainForm extends ConsumerWidget {
                     children: [
                       const Divider(height: 10),
                       _buildSection(
+                        context: context,
                         title: 'Gambar Kontruksi',
                         items: items,
                         itemBuilder: (item) => GambarSyncedRow(
@@ -255,6 +266,7 @@ class GambarMainForm extends ConsumerWidget {
                     children: [
                       const Divider(height: 10),
                       _buildSectionManual(
+                        context: context,
                         title: 'Gambar Optional Paket',
                         itemCount: items.length,
                         itemBuilder: (index) {
@@ -276,10 +288,13 @@ class GambarMainForm extends ConsumerWidget {
                                     vertical: 12,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.grey.shade200,
+                                    color: scheme.surfaceContainerHighest,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
-                                  child: Text(item.name),
+                                  child: Text(
+                                    item.name,
+                                    style: TextStyle(color: scheme.onSurface),
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 10),
@@ -290,12 +305,17 @@ class GambarMainForm extends ConsumerWidget {
                                     vertical: 8,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.yellow.shade200,
+                                    color: badgeContainerColor,
                                     borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(color: Colors.grey),
+                                    border: Border.all(
+                                      color: scheme.outlineVariant,
+                                    ),
                                   ),
                                   child: Center(
-                                    child: Text('$pageNumber/$totalHalaman'),
+                                    child: Text(
+                                      '$pageNumber/$totalHalaman',
+                                      style: TextStyle(color: badgeTextColor),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -343,12 +363,12 @@ class GambarMainForm extends ConsumerWidget {
                       // --- HEADER ---
                       Row(
                         children: [
-                          const Text(
+                          Text(
                             'Gambar Optional Independen',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue,
+                              color: scheme.primary,
                             ),
                           ),
                           const SizedBox(width: 4),
@@ -360,7 +380,7 @@ class GambarMainForm extends ConsumerWidget {
                             child: Icon(
                               Icons.info_outline,
                               size: 16,
-                              color: Colors.lightBlueAccent,
+                              color: scheme.primary,
                             ),
                           ),
                         ],
@@ -374,16 +394,16 @@ class GambarMainForm extends ConsumerWidget {
                           padding: const EdgeInsets.all(12.0),
                           margin: const EdgeInsets.only(bottom: 8),
                           decoration: BoxDecoration(
-                            color: Colors.orange.shade50,
+                            color: badgeContainerColor,
                             borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.orange.shade200),
+                            border: Border.all(color: scheme.outlineVariant),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Tidak ada gambar optional yang dipilih untuk dicetak.\n'
                             'Buka menu "Gambar Disembunyikan" di bawah untuk menambahkan.',
                             style: TextStyle(
                               fontStyle: FontStyle.italic,
-                              color: Colors.brown,
+                              color: badgeTextColor,
                               fontSize: 12,
                             ),
                           ),
@@ -396,7 +416,7 @@ class GambarMainForm extends ConsumerWidget {
                           physics: const NeverScrollableScrollPhysics(),
                           buildDefaultDragHandles: false,
                           itemCount: activeItems.length,
-                          onReorder: (oldIndex, newIndex) {
+                          onReorderItem: (oldIndex, newIndex) {
                             ref
                                 .read(independentListNotifierProvider.notifier)
                                 .reorder(oldIndex, newIndex);
@@ -432,17 +452,17 @@ class GambarMainForm extends ConsumerWidget {
                                           vertical: 8,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Colors.white,
+                                          color: scheme.surface,
                                           border: Border.all(
-                                            color: Colors.grey.shade300,
+                                            color: scheme.outlineVariant,
                                           ),
                                           borderRadius: BorderRadius.circular(
                                             4,
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.grey.withOpacity(
-                                                0.1,
+                                              color: scheme.shadow.withValues(
+                                                alpha: 0.1,
                                               ),
                                               blurRadius: 2,
                                               offset: const Offset(0, 1),
@@ -452,9 +472,9 @@ class GambarMainForm extends ConsumerWidget {
                                         child: Row(
                                           children: [
                                             // 1. Icon Drag
-                                            const Icon(
+                                            Icon(
                                               Icons.drag_indicator,
-                                              color: Colors.grey,
+                                              color: scheme.onSurfaceVariant,
                                             ),
                                             const SizedBox(width: 12),
 
@@ -463,10 +483,12 @@ class GambarMainForm extends ConsumerWidget {
                                               width: 140,
                                               child: Text(
                                                 'Optional\nIndependen $labelNumber:',
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.w500,
-                                                  color: Colors.black87,
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).colorScheme.onSurface,
                                                 ),
                                               ),
                                             ),
@@ -480,18 +502,21 @@ class GambarMainForm extends ConsumerWidget {
                                                       vertical: 10,
                                                     ),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.grey.shade50,
+                                                  color: scheme
+                                                      .surfaceContainerLow,
                                                   border: Border.all(
-                                                    color: Colors.grey.shade200,
+                                                    color:
+                                                        scheme.outlineVariant,
                                                   ),
                                                   borderRadius:
                                                       BorderRadius.circular(4),
                                                 ),
                                                 child: Text(
                                                   item.name,
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontWeight: FontWeight.w600,
                                                     fontSize: 13,
+                                                    color: scheme.onSurface,
                                                   ),
                                                 ),
                                               ),
@@ -501,9 +526,9 @@ class GambarMainForm extends ConsumerWidget {
 
                                             // 4. Tombol Hide
                                             IconButton(
-                                              icon: const Icon(
+                                              icon: Icon(
                                                 Icons.visibility_off,
-                                                color: Colors.grey,
+                                                color: scheme.onSurfaceVariant,
                                               ),
                                               tooltip: 'Sembunyikan',
                                               padding: EdgeInsets.zero,
@@ -534,13 +559,18 @@ class GambarMainForm extends ConsumerWidget {
                                         vertical: 8,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.yellow.shade200,
+                                        color: badgeContainerColor,
                                         borderRadius: BorderRadius.circular(4),
-                                        border: Border.all(color: Colors.grey),
+                                        border: Border.all(
+                                          color: scheme.outlineVariant,
+                                        ),
                                       ),
                                       child: Center(
                                         child: Text(
                                           '$pageNumber/$totalHalaman',
+                                          style: TextStyle(
+                                            color: badgeTextColor,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -590,9 +620,9 @@ class GambarMainForm extends ConsumerWidget {
                                         vertical: 12,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color: scheme.surface,
                                         border: Border.all(
-                                          color: Colors.grey.shade300,
+                                          color: scheme.outlineVariant,
                                         ),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
@@ -608,14 +638,15 @@ class GambarMainForm extends ConsumerWidget {
                                             child: Container(
                                               padding: const EdgeInsets.all(8),
                                               decoration: BoxDecoration(
-                                                color: Colors.grey.shade100,
+                                                color:
+                                                    scheme.surfaceContainerLow,
                                                 borderRadius:
                                                     BorderRadius.circular(4),
                                               ),
                                               child: Text(
                                                 item.name,
-                                                style: const TextStyle(
-                                                  color: Colors.black87,
+                                                style: TextStyle(
+                                                  color: scheme.onSurface,
                                                   fontWeight: FontWeight.w600,
                                                   fontSize: 13,
                                                 ),
@@ -634,13 +665,18 @@ class GambarMainForm extends ConsumerWidget {
                                         vertical: 8,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.yellow.shade200,
+                                        color: badgeContainerColor,
                                         borderRadius: BorderRadius.circular(4),
-                                        border: Border.all(color: Colors.grey),
+                                        border: Border.all(
+                                          color: scheme.outlineVariant,
+                                        ),
                                       ),
                                       child: Center(
                                         child: Text(
                                           '$pageNumber/$totalHalaman',
+                                          style: TextStyle(
+                                            color: badgeTextColor,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -666,9 +702,9 @@ class GambarMainForm extends ConsumerWidget {
                         const SizedBox(height: 24),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
+                            color: scheme.surfaceContainerLow,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey.shade300),
+                            border: Border.all(color: scheme.outlineVariant),
                           ),
                           child: Theme(
                             data: Theme.of(
@@ -682,13 +718,13 @@ class GambarMainForm extends ConsumerWidget {
                               ),
                               leading: Icon(
                                 Icons.archive_outlined,
-                                color: Colors.grey.shade600,
+                                color: scheme.primary,
                               ),
                               title: Text(
                                 'Gambar Disembunyikan (${hiddenItems.length})',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey.shade800,
+                                  color: scheme.onSurface,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -700,7 +736,7 @@ class GambarMainForm extends ConsumerWidget {
                                 child: Icon(
                                   Icons.info_outline,
                                   size: 16,
-                                  color: Colors.lightBlueAccent,
+                                  color: scheme.primary,
                                 ),
                               ),
                               children: [
@@ -726,7 +762,7 @@ class GambarMainForm extends ConsumerWidget {
                                       title: Text(
                                         item.name,
                                         style: TextStyle(
-                                          color: Colors.grey.shade600,
+                                          color: scheme.onSurfaceVariant,
                                           fontSize: 13,
                                         ),
                                       ),
@@ -734,15 +770,15 @@ class GambarMainForm extends ConsumerWidget {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           TextButton.icon(
-                                            icon: const Icon(
+                                            icon: Icon(
                                               Icons.visibility,
                                               size: 16,
-                                              color: Colors.blue,
+                                              color: scheme.primary,
                                             ),
-                                            label: const Text(
+                                            label: Text(
                                               'Preview',
                                               style: TextStyle(
-                                                color: Colors.blue,
+                                                color: scheme.primary,
                                               ),
                                             ),
                                             style: TextButton.styleFrom(
@@ -782,9 +818,17 @@ class GambarMainForm extends ConsumerWidget {
                                                           SnackBar(
                                                             content: Text(
                                                               'Gagal preview: $e',
+                                                              style: TextStyle(
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: scheme
+                                                                    .onError,
+                                                              ),
                                                             ),
                                                             backgroundColor:
-                                                                Colors.red,
+                                                                scheme.error,
                                                           ),
                                                         );
                                                       }
@@ -793,15 +837,15 @@ class GambarMainForm extends ConsumerWidget {
                                           ),
                                           const SizedBox(width: 8),
                                           TextButton.icon(
-                                            icon: const Icon(
+                                            icon: Icon(
                                               Icons.add_circle,
                                               size: 16,
-                                              color: Colors.green,
+                                              color: scheme.tertiary,
                                             ),
-                                            label: const Text(
+                                            label: Text(
                                               'Pakai',
                                               style: TextStyle(
-                                                color: Colors.green,
+                                                color: scheme.tertiary,
                                               ),
                                             ),
                                             style: TextButton.styleFrom(
@@ -842,7 +886,7 @@ class GambarMainForm extends ConsumerWidget {
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
                     'Gagal memuat list optional: $err',
-                    style: const TextStyle(color: Colors.red),
+                    style: TextStyle(color: scheme.error),
                   ),
                 ),
               ),
@@ -863,22 +907,22 @@ class GambarMainForm extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Deskripsi Optional',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                      color: scheme.primary,
                     ),
                   ),
                   Row(
                     children: [
-                      const Text(
+                      Text(
                         'Posisikan Teks Naik (Baris):',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey,
+                          color: scheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -909,21 +953,24 @@ class GambarMainForm extends ConsumerWidget {
 
   // Helper _buildSection Baru (Menerima List Map untuk Logic)
   Widget _buildSection({
+    required BuildContext context,
     required String title,
     required List<Map<String, dynamic>> items,
     required Widget Function(Map<String, dynamic> item) itemBuilder,
   }) {
     if (items.isEmpty) return const SizedBox.shrink();
 
+    final scheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Colors.blue,
+            color: scheme.primary,
           ),
         ),
         const SizedBox(height: 8),
@@ -940,19 +987,22 @@ class GambarMainForm extends ConsumerWidget {
 
   // Helper Manual untuk Paket Optional (karena struktur data beda)
   Widget _buildSectionManual({
+    required BuildContext context,
     required String title,
     required int itemCount,
     required Widget Function(int index) itemBuilder,
   }) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Colors.blue,
+            color: scheme.primary,
           ),
         ),
         const SizedBox(height: 8),
@@ -1023,12 +1073,14 @@ class _DescSpaceCounterWidgetState
     });
     // ---------------------------------
 
+    final scheme = Theme.of(context).colorScheme;
+
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade400),
+        border: Border.all(color: scheme.outline),
         borderRadius: BorderRadius.circular(4),
         // Warna background beda antara Edit vs Read-Only
-        color: widget.isEditMode ? Colors.white : Colors.grey.shade200,
+        color: widget.isEditMode ? scheme.surface : scheme.surfaceContainerHigh,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1047,7 +1099,9 @@ class _DescSpaceCounterWidgetState
                 Icons.remove,
                 size: 18,
                 // Warna pudar jika read-only
-                color: widget.isEditMode ? Colors.black87 : Colors.grey,
+                color: widget.isEditMode
+                    ? scheme.onSurface
+                    : scheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -1064,7 +1118,9 @@ class _DescSpaceCounterWidgetState
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: widget.isEditMode ? Colors.black : Colors.grey.shade600,
+                color: widget.isEditMode
+                    ? scheme.onSurface
+                    : scheme.onSurfaceVariant,
               ),
               decoration: const InputDecoration(
                 border: InputBorder.none,
@@ -1096,7 +1152,9 @@ class _DescSpaceCounterWidgetState
                 Icons.add,
                 size: 18,
                 // Warna pudar jika read-only
-                color: widget.isEditMode ? Colors.black87 : Colors.grey,
+                color: widget.isEditMode
+                    ? scheme.onSurface
+                    : scheme.onSurfaceVariant,
               ),
             ),
           ),

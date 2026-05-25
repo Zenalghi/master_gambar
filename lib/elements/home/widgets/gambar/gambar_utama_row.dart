@@ -51,6 +51,13 @@ class GambarUtamaRow extends ConsumerWidget {
         isPemeriksaValid;
     final isLoading = ref.watch(isProcessingProvider);
     final isEditMode = ref.watch(isEditModeProvider);
+    final scheme = Theme.of(context).colorScheme;
+    final badgeContainerColor = scheme.brightness == Brightness.dark
+        ? const Color(0xFF5A4700)
+        : const Color(0xFFFFF3B0);
+    final badgeTextColor = scheme.brightness == Brightness.dark
+        ? const Color(0xFFFFF4C7)
+        : Colors.black87;
 
     return Row(
       children: [
@@ -118,15 +125,15 @@ class GambarUtamaRow extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           alignment: Alignment.centerLeft,
                           color: isSelected
-                              ? Theme.of(context).primaryColor.withOpacity(0.1)
+                              ? scheme.primary.withValues(alpha: 0.12)
                               : null,
                           child: Text(
                             item.name,
                             style: TextStyle(
                               fontSize: 12,
                               color: isSelected
-                                  ? Theme.of(context).primaryColor
-                                  : Colors.black87,
+                                  ? scheme.primary
+                                  : scheme.onSurface,
                               fontWeight: isSelected
                                   ? FontWeight.bold
                                   : FontWeight.normal,
@@ -150,12 +157,12 @@ class GambarUtamaRow extends ConsumerWidget {
                   height: 32,
                   child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (err, stack) => const SizedBox(
+                error: (err, stack) => SizedBox(
                   height: 32,
                   child: Center(
                     child: Text(
                       'Error',
-                      style: TextStyle(fontSize: 12, color: Colors.red),
+                      style: TextStyle(fontSize: 12, color: scheme.error),
                     ),
                   ),
                 ),
@@ -254,24 +261,24 @@ class GambarUtamaRow extends ConsumerWidget {
                                               : FontWeight.bold),
                                     color: hasGambar
                                         ? (isSelected
-                                              ? Theme.of(context).primaryColor
-                                              : Colors.black87)
-                                        : Colors.red,
+                                              ? scheme.primary
+                                              : scheme.onSurface)
+                                        : scheme.error,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               hasGambar
-                                  ? const Icon(
+                                  ? Icon(
                                       Icons.check_circle,
-                                      color: Colors.green,
+                                      color: scheme.tertiary,
                                       size: 14,
                                     )
-                                  : const Text(
+                                  : Text(
                                       "Belum Upload",
                                       style: TextStyle(
-                                        color: Colors.red,
+                                        color: scheme.error,
                                         fontSize: 10,
                                       ),
                                     ),
@@ -286,12 +293,12 @@ class GambarUtamaRow extends ConsumerWidget {
                   height: 48,
                   child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (err, stack) => const SizedBox(
+                error: (err, stack) => SizedBox(
                   height: 48,
                   child: Center(
                     child: Text(
                       'Error Varian',
-                      style: TextStyle(color: Colors.red),
+                      style: TextStyle(color: scheme.error),
                     ),
                   ),
                 ),
@@ -307,11 +314,16 @@ class GambarUtamaRow extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.yellow.shade200,
+              color: badgeContainerColor,
               borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: Colors.grey),
+              border: Border.all(color: scheme.outlineVariant),
             ),
-            child: Center(child: Text('$pageNumber/$totalHalaman')),
+            child: Center(
+              child: Text(
+                '$pageNumber/$totalHalaman',
+                style: TextStyle(color: badgeTextColor),
+              ),
+            ),
           ),
         ),
 
