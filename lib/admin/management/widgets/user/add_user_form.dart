@@ -129,6 +129,8 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
   @override
   Widget build(BuildContext context) {
     final roleOptions = ref.watch(roleOptionsProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(
@@ -304,12 +306,13 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
                                 onDragExited: (details) =>
                                     setState(() => _isDragging = false),
                                 child: Container(
-                                  height: 80, // Tinggi tetap
+                                  height: 80,
                                   decoration: BoxDecoration(
+                                    color: colorScheme.surfaceContainerLow,
                                     border: Border.all(
                                       color: _isDragging
-                                          ? Theme.of(context).primaryColor
-                                          : Colors.grey,
+                                          ? colorScheme.primary
+                                          : colorScheme.outline,
                                       width: _isDragging ? 3 : 1,
                                     ),
                                     borderRadius: BorderRadius.circular(4),
@@ -318,13 +321,16 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
                                       ? Image.memory(
                                           _signatureBytes!,
                                           fit: BoxFit.contain,
+                                          color: colorScheme.onSurface,
+                                          colorBlendMode: BlendMode.srcIn,
                                         )
-                                      : const Center(
+                                      : Center(
                                           child: Text(
                                             'Paraf Preview',
                                             style: TextStyle(
                                               fontSize: 10,
-                                              color: Colors.grey,
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
                                             ),
                                           ),
                                         ),

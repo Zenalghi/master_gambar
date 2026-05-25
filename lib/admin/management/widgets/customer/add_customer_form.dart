@@ -149,6 +149,8 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -229,10 +231,11 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                               setState(() => _isDragging = false),
                           child: Container(
                             decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerLow,
                               border: Border.all(
                                 color: _isDragging
-                                    ? Theme.of(context).primaryColor
-                                    : Colors.grey,
+                                    ? colorScheme.primary
+                                    : colorScheme.outline,
                                 width: _isDragging ? 3 : 1,
                               ),
                               borderRadius: BorderRadius.circular(4),
@@ -246,12 +249,15 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                                       ? Image.memory(
                                           _signatureBytespj!,
                                           fit: BoxFit.contain,
+                                          color: colorScheme.onSurface,
+                                          colorBlendMode: BlendMode.srcIn,
                                         )
-                                      : const Center(
+                                      : Center(
                                           child: Text(
                                             'PNG',
                                             style: TextStyle(
-                                              color: Colors.grey,
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
                                             ),
                                           ),
                                         ),
@@ -304,10 +310,11 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                               setState(() => _isDragging = false),
                           child: Container(
                             decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerLow,
                               border: Border.all(
                                 color: _isDragging
-                                    ? Theme.of(context).primaryColor
-                                    : Colors.grey,
+                                    ? colorScheme.primary
+                                    : colorScheme.outline,
                                 width: _isDragging ? 3 : 1,
                               ),
                               borderRadius: BorderRadius.circular(4),
@@ -321,12 +328,15 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                                       ? Image.memory(
                                           _signatureBytesdrafter!,
                                           fit: BoxFit.contain,
+                                          color: colorScheme.onSurface,
+                                          colorBlendMode: BlendMode.srcIn,
                                         )
-                                      : const Center(
+                                      : Center(
                                           child: Text(
                                             'PNG',
                                             style: TextStyle(
-                                              color: Colors.grey,
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
                                             ),
                                           ),
                                         ),
@@ -382,10 +392,11 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                               setState(() => _isDragging = false),
                           child: Container(
                             decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerLow,
                               border: Border.all(
                                 color: _isDragging
-                                    ? Theme.of(context).primaryColor
-                                    : Colors.grey,
+                                    ? colorScheme.primary
+                                    : colorScheme.outline,
                                 width: _isDragging ? 3 : 1,
                               ),
                               borderRadius: BorderRadius.circular(4),
@@ -399,12 +410,15 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
                                       ? Image.memory(
                                           _signatureBytespemeriksa!,
                                           fit: BoxFit.contain,
+                                          color: colorScheme.onSurface,
+                                          colorBlendMode: BlendMode.srcIn,
                                         )
-                                      : const Center(
+                                      : Center(
                                           child: Text(
                                             'PNG',
                                             style: TextStyle(
-                                              color: Colors.grey,
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
                                             ),
                                           ),
                                         ),
