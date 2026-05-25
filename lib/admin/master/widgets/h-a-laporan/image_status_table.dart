@@ -234,7 +234,20 @@ class _ImageStatusDataSourceWithContext extends ImageStatusDataSource {
                   );
                 }
               } catch (e) {
-                // ... error handling ...
+                if (_context.mounted) {
+                  ScaffoldMessenger.of(_context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Gagal menghapus gambar: $e',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               }
             },
             child: const Text('Hapus Permanen'),

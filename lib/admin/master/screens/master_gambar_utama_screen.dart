@@ -112,7 +112,10 @@ class _MasterGambarUtamaScreenState
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Gagal memuat gambar lama: $e'),
+          content: Text(
+            'Gagal memuat gambar lama: $e',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -148,7 +151,7 @@ class _MasterGambarUtamaScreenState
                 style: TextStyle(
                   fontSize: 21,
                   fontWeight: FontWeight.bold,
-                  color: isEditMode ? Colors.orange.shade800 : Colors.black,
+                  color: isEditMode ? Colors.orange.shade800 : Colors.blue,
                 ),
               ),
               const Spacer(),
@@ -257,7 +260,10 @@ class _MasterGambarUtamaScreenState
         gambarUtamaFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Data belum lengkap (Master Data / File Utama Wajib).'),
+          content: Text(
+            'Data belum lengkap (Master Data / File Utama Wajib).',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
           backgroundColor: Colors.orange,
         ),
       );
@@ -268,7 +274,10 @@ class _MasterGambarUtamaScreenState
         (_deskripsiController.text.isEmpty || dependentFile == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Data Optional Paket belum lengkap.'),
+          content: Text(
+            'Data Optional Paket belum lengkap.',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
           backgroundColor: Colors.orange,
         ),
       );

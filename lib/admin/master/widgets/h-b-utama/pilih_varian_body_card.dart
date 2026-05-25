@@ -221,7 +221,7 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard>
                                 : FontWeight.normal,
                             color: isSelected
                                 ? Theme.of(context).primaryColor
-                                : Colors.black87,
+                                : Theme.of(context).colorScheme.onSurface,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -318,7 +318,7 @@ class _PilihVarianBodyCardState extends ConsumerState<PilihVarianBodyCard>
                                 : FontWeight.normal,
                             color: isSelected
                                 ? Theme.of(context).primaryColor
-                                : Colors.black87,
+                                : Theme.of(context).colorScheme.onSurface,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

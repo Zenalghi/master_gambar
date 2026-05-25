@@ -132,7 +132,10 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal memuat PDF: $e'),
+            content: Text(
+              'Gagal memuat PDF: $e',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -163,7 +166,17 @@ class GambarKelistrikanDataSource extends AsyncDataTableSource {
                 refreshDatasource();
                 if (context.mounted) Navigator.of(context).pop();
               } catch (e) {
-                /* handle error */
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Gagal menghapus file: $e',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               }
             },
             child: const Text('Hapus'),

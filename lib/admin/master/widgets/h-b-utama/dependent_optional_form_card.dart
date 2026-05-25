@@ -42,7 +42,10 @@ class _DependentOptionalFormCardState
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Gagal: Ukuran file melebihi 1 MB.'),
+              content: Text(
+                'Gagal: Ukuran file melebihi 1 MB.',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 2),
             ),

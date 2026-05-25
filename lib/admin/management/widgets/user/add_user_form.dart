@@ -64,7 +64,10 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
       if (_passwordController.text != _passwordConfirmationController.text) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Konfirmasi password tidak cocok!'),
+            content: Text(
+              'Konfirmasi password tidak cocok!',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -109,7 +112,13 @@ class _AddUserFormState extends ConsumerState<AddUserForm> {
         ref.read(userInvalidator.notifier).state++;
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              'Error: $e',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       } finally {
         if (mounted) setState(() => _isLoading = false);

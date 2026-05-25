@@ -61,7 +61,10 @@ class _MasterMerkScreenState extends ConsumerState<MasterMerkScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.response?.data['message'] ?? e.message}'),
+            content: Text(
+              'Error: ${e.response?.data['message'] ?? e.message}',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             backgroundColor: Colors.red,
           ),
         );

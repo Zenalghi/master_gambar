@@ -107,7 +107,13 @@ class JenisKendaraanDataSource extends AsyncDataTableSource {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Error: ${e.response?.data['message']}'),
+                      content: Text(
+                        'Error: ${e.response?.data['message']}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -158,7 +164,13 @@ class JenisKendaraanDataSource extends AsyncDataTableSource {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(message),
+                      content: Text(
+                        message,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                       backgroundColor: Colors.red,
                     ),
                   );

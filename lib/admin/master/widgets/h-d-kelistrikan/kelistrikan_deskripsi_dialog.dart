@@ -127,7 +127,8 @@ class _KelistrikanDeskripsiDialogState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Gagal: ${e.toString().replaceAll('Exception: ', '')}',
+              'Gagal: ${e.toString().replaceAll('Exception: ', '')},',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             backgroundColor: Colors.red,
           ),
@@ -195,7 +196,10 @@ class _KelistrikanDeskripsiDialogState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.response?.data['message'] ?? e.message}'),
+            content: Text(
+              'Error: ${e.response?.data['message'] ?? e.message}',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             backgroundColor: Colors.red,
           ),
         );

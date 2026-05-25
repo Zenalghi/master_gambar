@@ -140,7 +140,13 @@ class VarianBodyDataSource extends AsyncDataTableSource {
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(message),
+                      content: Text(
+                        message,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                       backgroundColor: Colors.red,
                     ),
                   );

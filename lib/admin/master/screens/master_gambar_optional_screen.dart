@@ -119,13 +119,26 @@ class _MasterGambarOptionalScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Gagal memuat preview: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Gagal memuat preview: $e',
+              style: _snackBarTextStyle(Colors.red),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  TextStyle? _snackBarTextStyle(Color color) {
+    if (color == Colors.red) {
+      return const TextStyle(fontWeight: FontWeight.bold, fontSize: 16);
+    }
+    return null;
   }
 
   void _exitEditMode() {
@@ -310,9 +323,12 @@ class _MasterGambarOptionalScreenState
   }
 
   void _showSnackBar(String message, Color color) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message), backgroundColor: color));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: _snackBarTextStyle(color)),
+        backgroundColor: color,
+      ),
+    );
   }
 
   void _handleCopyAction() {
@@ -361,7 +377,7 @@ class _MasterGambarOptionalScreenState
     final isEditMode = editingItem != null;
 
     String formTitle = 'Tambah Gambar Optional Baru';
-    Color headerColor = Colors.black;
+    Color headerColor = Colors.blue;
     if (isEditMode) {
       formTitle = 'Edit Gambar Optional ${editingItem.tipe.toUpperCase()}';
       headerColor = Colors.orange;

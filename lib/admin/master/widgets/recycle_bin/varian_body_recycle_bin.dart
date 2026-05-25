@@ -100,7 +100,13 @@ class _VarianBodyRecycleBinState extends ConsumerState<VarianBodyRecycleBin> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              'Gagal: $e',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -142,7 +148,13 @@ class _VarianBodyRecycleBinState extends ConsumerState<VarianBodyRecycleBin> {
             e.response?.data['errors']?['general']?[0] ??
             'Gagal menghapus data $e';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              message,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

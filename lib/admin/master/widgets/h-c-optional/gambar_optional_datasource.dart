@@ -155,7 +155,10 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal memuat PDF: ${e.toString()}'),
+            content: Text(
+              'Gagal memuat PDF: ${e.toString()}',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             backgroundColor: Colors.red,
           ),
         );

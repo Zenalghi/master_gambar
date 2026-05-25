@@ -158,7 +158,13 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
         Navigator.of(context).pop();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              'Error: $e',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       } finally {
         if (mounted) setState(() => _isLoading = false);
@@ -205,7 +211,13 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
         Navigator.of(context).pop();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              'Error: $e',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       } finally {
         if (mounted) {

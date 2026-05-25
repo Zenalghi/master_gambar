@@ -278,7 +278,13 @@ class MasterDataDataSource extends AsyncDataTableSource {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Error menghapus data: $e'),
+                      content: Text(
+                        'Error menghapus data: $e',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                       backgroundColor: Colors.red,
                     ),
                   );

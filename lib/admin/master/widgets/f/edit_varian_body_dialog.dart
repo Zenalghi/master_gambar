@@ -79,6 +79,7 @@ class _EditVarianBodyDialogState extends ConsumerState<EditVarianBodyDialog> {
           SnackBar(
             content: Text(
               'Server Error: ${e.response?.data['message'] ?? e.message}',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             backgroundColor: Colors.red,
           ),
@@ -89,7 +90,13 @@ class _EditVarianBodyDialogState extends ConsumerState<EditVarianBodyDialog> {
       // Ini akan memberi tahu Anda jika Flutter gagal membaca respons dari server
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('App Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              'App Error: $e',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -168,7 +175,7 @@ class _EditVarianBodyDialogState extends ConsumerState<EditVarianBodyDialog> {
                                 : FontWeight.normal,
                             color: isSelected
                                 ? Theme.of(context).primaryColor
-                                : Colors.black87,
+                                : Theme.of(context).colorScheme.onSurface,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

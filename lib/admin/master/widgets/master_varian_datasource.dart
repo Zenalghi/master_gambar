@@ -135,7 +135,13 @@ class MasterVarianDataSource extends AsyncDataTableSource {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Gagal menghapus: ${e.message}'),
+                      content: Text(
+                        'Gagal menghapus: ${e.message}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                       backgroundColor: Colors.red,
                     ),
                   );

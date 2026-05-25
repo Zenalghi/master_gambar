@@ -45,7 +45,10 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Gagal: Ukuran file melebihi 1 MB.'),
+              content: Text(
+                'Gagal: Ukuran file melebihi 1 MB.',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 2),
             ),
@@ -304,7 +307,9 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
           child: Text(
             file?.name ?? 'Belum ada file...',
             style: TextStyle(
-              color: file != null ? Colors.black : Colors.grey,
+              color: file != null
+                  ? Theme.of(context).colorScheme.onSurface
+                  : Colors.grey,
               fontStyle: FontStyle.italic,
               fontSize: 12,
             ),
@@ -368,7 +373,9 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
                 child: Text(
                   file?.name ?? 'Belum ada file dipilih...',
                   style: TextStyle(
-                    color: file != null ? Colors.black : Colors.grey,
+                    color: file != null
+                        ? Theme.of(context).colorScheme.onSurface
+                        : Colors.grey,
                     fontStyle: FontStyle.italic,
                   ),
                   overflow: TextOverflow.ellipsis,

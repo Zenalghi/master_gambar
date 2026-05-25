@@ -87,10 +87,11 @@ class _MasterGambarKelistrikanScreenState
     final initialData = ref.watch(initialKelistrikanDataProvider);
     final editingItem = ref.watch(editingKelistrikanFileProvider);
     String formTitle = 'Upload File Kelistrikan Baru';
-    if (editingItem != null)
+    if (editingItem != null) {
       formTitle = 'Edit File Kelistrikan';
-    else if (initialData != null)
+    } else if (initialData != null) {
       formTitle = 'Upload File (Data Master)';
+    }
     return Padding(
       padding: const EdgeInsets.all(5.0),
       child: Column(
@@ -142,7 +143,9 @@ class _MasterGambarKelistrikanScreenState
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: _isExpanded ? Theme.of(context).primaryColor : null,
+                color: _isExpanded
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             children: [

@@ -136,7 +136,7 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
         if (_isRefreshing)
           Positioned.fill(
             child: Container(
-              color: Colors.black12,
+              color: Theme.of(context).colorScheme.onSurface,
               child: const Center(child: CircularProgressIndicator()),
             ),
           ),

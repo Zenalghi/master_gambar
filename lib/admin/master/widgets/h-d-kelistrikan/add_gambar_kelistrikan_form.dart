@@ -138,6 +138,7 @@ class _AddGambarKelistrikanFormState
             const SnackBar(
               content: Text(
                 'Ukuran file melebihi 1 MB. Harap kompres file PDF Anda.',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               backgroundColor: Colors.red,
             ),
@@ -186,6 +187,7 @@ class _AddGambarKelistrikanFormState
         const SnackBar(
           content: Text(
             'Ukuran file melebihi 1 MB. Harap kompres file PDF Anda.',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           backgroundColor: Colors.red,
         ),
@@ -224,7 +226,13 @@ class _AddGambarKelistrikanFormState
       if (mounted) {
         final msg = e.response?.data['message'] ?? e.message;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $msg'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              'Error: $msg',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -489,7 +497,7 @@ class _AddGambarKelistrikanFormState
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 color: isSelected
                     ? Theme.of(context).primaryColor
-                    : Colors.black87,
+                    : Theme.of(context).colorScheme.onSurface,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

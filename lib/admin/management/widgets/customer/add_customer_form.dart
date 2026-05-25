@@ -131,7 +131,13 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
         ref.read(customerInvalidator.notifier).state++;
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              'Error: $e',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       } finally {
         if (mounted) {

@@ -148,6 +148,10 @@ class _MasterJenisVarianScreenState
                             SnackBar(
                               content: Text(
                                 'Error: ${e.response?.data['message'] ?? e.message}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                               ),
                               backgroundColor: Colors.red,
                             ),

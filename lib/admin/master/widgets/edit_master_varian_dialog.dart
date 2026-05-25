@@ -6,6 +6,7 @@ import '../../../../data/models/option_item.dart';
 import '../models/master_varian.dart';
 import '../providers/master_data_providers.dart';
 import '../repository/master_data_repository.dart';
+
 class EditMasterVarianDialog extends ConsumerStatefulWidget {
   final MasterVarian masterVarian;
 
@@ -76,7 +77,10 @@ class _EditMasterVarianDialogState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.response?.data['message'] ?? e.message}'),
+            content: Text(
+              'Error: ${e.response?.data['message'] ?? e.message}',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             backgroundColor: Colors.red,
           ),
         );

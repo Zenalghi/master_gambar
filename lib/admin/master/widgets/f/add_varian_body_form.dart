@@ -64,7 +64,10 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
     if (selectedMasterData == null || _selectedMasterVarians.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Pilih Master Data dan minimal 1 Varian!'),
+          content: Text(
+            'Pilih Master Data dan minimal 1 Varian!',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
           backgroundColor: Colors.orange,
         ),
       );
@@ -101,7 +104,10 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Data sudah ada: $skippedText.$createdText'),
+            content: Text(
+              'Data sudah ada: $skippedText.$createdText',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             backgroundColor: result.created.isNotEmpty
                 ? const Color.fromARGB(255, 0, 51, 27)
                 : const Color.fromARGB(255, 163, 122, 0),
@@ -119,7 +125,10 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.response?.data['message'] ?? e.message}'),
+            content: Text(
+              'Error: ${e.response?.data['message'] ?? e.message}',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -219,7 +228,7 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
                                 : FontWeight.normal,
                             color: isSelected
                                 ? Theme.of(context).primaryColor
-                                : Colors.black87,
+                                : Theme.of(context).colorScheme.onSurface,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -322,7 +331,9 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
                                       height: 1.0,
                                       color: isDisabled
                                           ? Colors.grey
-                                          : Colors.black87,
+                                          : Theme.of(
+                                              context,
+                                            ).colorScheme.onSurface,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,

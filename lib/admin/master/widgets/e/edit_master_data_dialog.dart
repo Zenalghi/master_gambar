@@ -84,7 +84,10 @@ class _EditMasterDataDialogState extends ConsumerState<EditMasterDataDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.response?.data['message'] ?? e.message}'),
+            content: Text(
+              'Error: ${e.response?.data['message'] ?? e.message}',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -203,7 +206,7 @@ class _EditMasterDataDialogState extends ConsumerState<EditMasterDataDialog> {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 color: isSelected
                     ? Theme.of(context).primaryColor
-                    : Colors.black87,
+                    : Theme.of(context).colorScheme.onSurface,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

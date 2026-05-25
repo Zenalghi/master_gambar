@@ -86,7 +86,10 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal update: $e'),
+            content: Text(
+              'Gagal update: $e',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -138,7 +141,10 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Gagal menghapus transaksi: $e'),
+          content: Text(
+            'Gagal menghapus transaksi: $e',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -221,7 +227,7 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
                                 : FontWeight.normal,
                             color: isSelected
                                 ? Theme.of(context).primaryColor
-                                : Colors.black87,
+                                : Theme.of(context).colorScheme.onSurface,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -296,7 +302,7 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
                                 : FontWeight.normal,
                             color: isSelected
                                 ? Theme.of(context).primaryColor
-                                : Colors.black87,
+                                : Theme.of(context).colorScheme.onSurface,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -420,7 +426,7 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
                     fontSize: 12,
                     color: isSelected
                         ? Theme.of(context).primaryColor
-                        : Colors.black87,
+                        : Theme.of(context).colorScheme.onSurface,
                     fontWeight: isSelected
                         ? FontWeight.bold
                         : FontWeight.normal,

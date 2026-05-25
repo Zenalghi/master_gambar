@@ -57,7 +57,17 @@ class _TypeEngineRecycleBinState extends ConsumerState<TypeEngineRecycleBin> {
         );
       }
     } catch (e) {
-      // Handle error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Gagal memulihkan data $e',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -79,7 +89,13 @@ class _TypeEngineRecycleBinState extends ConsumerState<TypeEngineRecycleBin> {
             e.response?.data['errors']?['general']?[0] ??
             'Gagal menghapus data';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              message,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

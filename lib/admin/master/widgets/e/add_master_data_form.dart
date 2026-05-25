@@ -167,7 +167,10 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(errorMessage),
+            content: Text(
+              errorMessage,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             backgroundColor: Colors.red,
             duration: const Duration(
               seconds: 2,
@@ -232,7 +235,7 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   color: isSelected
                       ? Theme.of(context).primaryColor
-                      : Colors.black87,
+                      : Theme.of(context).colorScheme.onSurface,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

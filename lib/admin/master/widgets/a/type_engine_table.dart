@@ -185,7 +185,13 @@ class _TypeEngineDataSource extends DataTableSource {
               } on DioException catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Error: ${e.response?.data['message']}'),
+                    content: Text(
+                      'Error: ${e.response?.data['message']}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -230,7 +236,16 @@ class _TypeEngineDataSource extends DataTableSource {
                     ? errorMessages['general'][0]
                     : 'Terjadi kesalahan.';
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(message), backgroundColor: Colors.red),
+                  SnackBar(
+                    content: Text(
+                      message,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    backgroundColor: Colors.red,
+                  ),
                 );
               }
             },
