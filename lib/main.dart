@@ -7,10 +7,14 @@ import 'package:flutter/foundation.dart'; // Import ini penting untuk kIsWeb dan
 import 'dart:io';
 import 'dart:convert';
 import 'package:path/path.dart' as path;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'app/core/providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final prefs = await SharedPreferences.getInstance();
+  final isDarkMode = prefs.getBool('isDarkMode') ?? false;
 
   // 1. Set Default URL (Bisa untuk fallback)
   String baseUrl = 'http://master-gambar.test/api';
@@ -77,19 +81,36 @@ void main() async {
   runApp(
     ProviderScope(
       overrides: [baseUrlProvider.overrideWithValue(baseUrl)],
-      child: const MyApp(),
+      child: MyApp(initialDarkMode: isDarkMode),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends ConsumerStatefulWidget {
+  const MyApp({super.key, required this.initialDarkMode});
+
+  final bool initialDarkMode;
+
+  @override
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    ref.read(darkModeProvider.notifier).state = widget.initialDarkMode;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = ref.watch(darkModeProvider);
+
     return MaterialApp(
       title: 'Master Gambar App',
-      theme: createAppTheme(),
+      theme: createAppTheme(darkMode: false),
+      darkTheme: createAppTheme(darkMode: true),
+      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
         final mediaQueryData = MediaQuery.of(context);

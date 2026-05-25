@@ -1,6 +1,7 @@
 // File: lib/elements/home/widgets/custom_app_bar.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../auth/presentation/login_screen.dart';
 import '../../../app/core/providers.dart';
 // import 'global_refresh_button.dart';
@@ -10,17 +11,20 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1. Ganti userRoleProvider dengan authServiceProvider
     final authService = ref.watch(authServiceProvider);
     final userName = ref.watch(userNameProvider);
+    final isDarkMode = ref.watch(darkModeProvider);
 
     return AppBar(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       toolbarHeight: 40,
       automaticallyImplyLeading: false,
       title: TabBar(
         indicatorPadding: const EdgeInsets.only(bottom: 12),
         isScrollable: true,
+        labelColor: Theme.of(context).colorScheme.onSurface,
+        unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+        indicatorColor: Theme.of(context).colorScheme.primary,
         tabs: [
           const Tab(text: 'WORK AREA'),
           if (authService.canViewAdminTabs()) ...[
@@ -30,26 +34,43 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
         ],
       ),
       actions: [
-        // Cek jika nama tidak null sebelum menampilkannya
         if (userName != null)
           Center(
             child: Padding(
               padding: const EdgeInsets.only(right: 8.0),
-              child: Text(userName, style: const TextStyle(fontSize: 16)),
+              child: Text(
+                userName,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
             ),
           ),
-        const VerticalDivider(
-          thickness: 1,
-          width: 1, // Atur lebar divider
-          indent: 12, // Jarak dari atas AppBar
-          endIndent: 12, // Jarak dari bawah AppBar
-          color: Color.fromARGB(153, 0, 0, 0), // Warna agar sedikit transparan
-        ),
-        // -----------------------------------------
-
-        // Tombol Logout (tidak berubah)
         IconButton(
-          icon: const Icon(Icons.logout),
+          icon: Icon(
+            isDarkMode ? Icons.dark_mode : Icons.light_mode,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          tooltip: isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
+          onPressed: () async {
+            ref.read(darkModeProvider.notifier).state = !isDarkMode;
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setBool('isDarkMode', !isDarkMode);
+          },
+        ),
+        VerticalDivider(
+          thickness: 1,
+          width: 1,
+          indent: 12,
+          endIndent: 12,
+          color: Theme.of(context).dividerColor,
+        ),
+        IconButton(
+          icon: Icon(
+            Icons.logout,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           tooltip: 'Logout',
           onPressed: () async {
             await ref.read(authRepositoryProvider).logout(ref);

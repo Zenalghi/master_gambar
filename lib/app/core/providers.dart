@@ -60,3 +60,4 @@ final authServiceProvider = Provider<AuthService>((ref) {
 });
 final currentUserIdProvider = StateProvider<int?>((ref) => null);
 final authTokenProvider = StateProvider<String?>((ref) => null);
+final darkModeProvider = StateProvider<bool>((ref) => false);
