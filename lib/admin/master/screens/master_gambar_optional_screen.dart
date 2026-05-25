@@ -367,6 +367,8 @@ class _MasterGambarOptionalScreenState
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     _setupEditListener();
     ref.listen(copyGambarOptionalTriggerProvider, (previous, next) {
       if (next > 0) {
@@ -468,11 +470,20 @@ class _MasterGambarOptionalScreenState
                                           bottom: 10,
                                         ),
                                         padding: const EdgeInsets.all(8),
-                                        color: Colors.orange.shade50,
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.secondaryContainer,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          border: Border.all(
+                                            color: colorScheme.outline,
+                                          ),
+                                        ),
                                         child: Text(
                                           "Mode Edit: Anda mengedit data ID #${editingItem.id}. Upload file baru jika ingin mengganti file lama.",
                                           style: TextStyle(
-                                            color: Colors.orange.shade900,
+                                            color: colorScheme
+                                                .onSecondaryContainer,
                                             fontSize: 12,
                                           ),
                                         ),
@@ -582,7 +593,10 @@ class _MasterGambarOptionalScreenState
                       child: Card(
                         elevation: 2,
                         child: Container(
-                          color: Colors.grey.shade100,
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                           child: _isLoading
                               ? const Center(child: CircularProgressIndicator())
                               : _pdfController != null
@@ -593,10 +607,10 @@ class _MasterGambarOptionalScreenState
                                   ),
                                   controller: _pdfController!,
                                 )
-                              : const Center(
-                                  child: const Icon(
+                              : Center(
+                                  child: Icon(
                                     Icons.picture_as_pdf_outlined,
-                                    color: Colors.grey,
+                                    color: colorScheme.onSurfaceVariant,
                                     size: 60,
                                   ),
                                 ),

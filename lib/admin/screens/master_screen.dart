@@ -27,8 +27,8 @@ class MasterScreen extends ConsumerWidget {
     MasterMerkScreen(), // 1
     MasterTypeChassisScreen(), // 2
     MasterJenisKendaraanScreen(), // 3
-    MasterDataScreen(), // 4
-    MasterVarianScreen(), // 5
+    MasterVarianScreen(), // 4
+    MasterDataScreen(), // 5
     MasterVarianBodyScreen(), // 6
     MasterJenisVarianScreen(), // 7
     ImageStatusScreen(), // 8

@@ -89,7 +89,7 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
     return Card(
       color: isVarianBodySelected
           ? null
-          : Theme.of(context).cardColor.withOpacity(0.5),
+          : Theme.of(context).cardColor.withValues(alpha: 0.5),
       child: Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
@@ -295,21 +295,23 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
     PdfFileData? file,
     VoidCallback? onPressed,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
+            border: Border.all(color: colorScheme.outline),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
             file?.name ?? 'Belum ada file...',
             style: TextStyle(
               color: file != null
-                  ? Theme.of(context).colorScheme.onSurface
-                  : Colors.grey,
+                  ? colorScheme.onSurface
+                  : colorScheme.onSurfaceVariant,
               fontStyle: FontStyle.italic,
               fontSize: 12,
             ),
@@ -330,16 +332,16 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
         Container(
           height: 248,
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade400),
+            border: Border.all(color: colorScheme.outline),
             borderRadius: BorderRadius.circular(4),
-            color: Colors.grey.shade200,
+            color: colorScheme.surfaceContainerLow,
           ),
           child: file != null
               ? _PdfPreviewer(file: file)
-              : const Center(
+              : Center(
                   child: Icon(
                     Icons.picture_as_pdf_outlined,
-                    color: Colors.grey,
+                    color: colorScheme.onSurfaceVariant,
                     size: 32,
                   ),
                 ),
@@ -354,6 +356,8 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
     PdfFileData? file,
     VoidCallback? onPressed,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -367,15 +371,15 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
+                  border: Border.all(color: colorScheme.outline),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   file?.name ?? 'Belum ada file dipilih...',
                   style: TextStyle(
                     color: file != null
-                        ? Theme.of(context).colorScheme.onSurface
-                        : Colors.grey,
+                        ? colorScheme.onSurface
+                        : colorScheme.onSurfaceVariant,
                     fontStyle: FontStyle.italic,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -397,16 +401,16 @@ class _PilihFilePdfCardState extends ConsumerState<PilihFilePdfCard> {
           child: Container(
             height: 400, // Lebih tinggi untuk mode vertical
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade400),
+              border: Border.all(color: colorScheme.outline),
               borderRadius: BorderRadius.circular(4),
-              color: Colors.grey.shade200,
+              color: colorScheme.surfaceContainerLow,
             ),
             child: file != null
                 ? _PdfPreviewer(file: file)
-                : const Center(
+                : Center(
                     child: Icon(
                       Icons.picture_as_pdf_outlined,
-                      color: Colors.grey,
+                      color: colorScheme.onSurfaceVariant,
                       size: 40,
                     ),
                   ),

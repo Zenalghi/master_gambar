@@ -194,6 +194,7 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final roleOptions = ref.watch(roleOptionsProvider);
     final baseUrl = ref.read(apiClientProvider).dio.options.baseUrl;
 
@@ -312,10 +313,11 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
                         width: 100,
                         height: 50,
                         decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerLow,
                           border: Border.all(
                             color: _isDragging
-                                ? Theme.of(context).primaryColor
-                                : Colors.grey,
+                                ? colorScheme.primary
+                                : colorScheme.outline,
                             width: _isDragging ? 3 : 1,
                           ),
                           borderRadius: BorderRadius.circular(4),
@@ -324,6 +326,8 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
                             ? Image.memory(
                                 _signatureBytes!,
                                 fit: BoxFit.contain,
+                                color: colorScheme.onSurface,
+                                colorBlendMode: BlendMode.srcIn,
                               )
                             : (imageUrl != null
                                   ? Image.network(
@@ -333,10 +337,22 @@ class _EditUserDialogState extends ConsumerState<EditUserDialog> {
                                       headers: {
                                         'Authorization': 'Bearer $_authToken',
                                       },
-                                      errorBuilder: (c, e, st) =>
-                                          const Icon(Icons.error),
+                                      color: colorScheme.onSurface,
+                                      colorBlendMode: BlendMode.srcIn,
+                                      errorBuilder: (c, e, st) => Icon(
+                                        Icons.error,
+                                        color: colorScheme.error,
+                                      ),
                                     )
-                                  : const Center(child: Text('PNG'))),
+                                  : Center(
+                                      child: Text(
+                                        'PNG',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    )),
                       ),
                     ),
                     const SizedBox(width: 8),

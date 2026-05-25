@@ -73,7 +73,7 @@ class _DependentOptionalFormCardState
 
   @override
   Widget build(BuildContext context) {
-    // 1. Tonton Provider
+    final colorScheme = Theme.of(context).colorScheme;
     final dependentFile = ref.watch(mguDependentFileProvider);
 
     return Card(
@@ -133,16 +133,17 @@ class _DependentOptionalFormCardState
                   elevation: 2,
                   clipBehavior: Clip.antiAlias,
                   child: Container(
-                    color: Colors.grey.shade100,
-                    // 2. Gunakan Widget Previewer Khusus
-                    // Jika file ada (baik dari pick maupun dari load existing), widget ini akan muncul
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                     child: dependentFile != null
                         ? _PdfPreviewer(file: dependentFile)
-                        : const Center(
+                        : Center(
                             child: Icon(
                               Icons.picture_as_pdf_outlined,
                               size: 40,
-                              color: Colors.grey,
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                   ),

@@ -58,15 +58,13 @@ class _AddGambarKelistrikanFormState
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Kita baca provider di sini untuk inisialisasi ulang jika mode berubah
     final editingItem = ref.watch(editingKelistrikanFileProvider);
+
     if (editingItem != null) {
-      // Jika sedang mode edit, paksa isi form dengan data edit
       _selectedTypeEngineId = editingItem.typeEngineId;
       _selectedMerkId = editingItem.merkId;
       _selectedTypeChassisId = editingItem.typeChassisId;
 
-      // Buat objek dummy agar dropdown menampilkan nama yang benar
       _initialEngineObj = OptionItem(
         id: editingItem.typeEngineId,
         name: editingItem.engineName,
@@ -79,6 +77,15 @@ class _AddGambarKelistrikanFormState
         id: editingItem.typeChassisId,
         name: editingItem.chassisName,
       );
+
+      if (_loadedEditPdfId != editingItem.id && _selectedFile == null) {
+        _loadEditPreview(id: editingItem.id, pathFile: editingItem.pathFile);
+      }
+    } else {
+      _loadedEditPdfId = null;
+      _selectedFile = null;
+      _pdfController?.dispose();
+      _pdfController = null;
     }
   }
 
@@ -104,11 +111,11 @@ class _AddGambarKelistrikanFormState
     super.dispose();
   }
 
+  int? _loadedEditPdfId;
+
   void _cancelEdit() {
-    // Reset provider edit menjadi null
     ref.read(editingKelistrikanFileProvider.notifier).state = null;
 
-    // Reset form ke kosong
     setState(() {
       _selectedTypeEngineId = null;
       _selectedMerkId = null;
@@ -117,9 +124,57 @@ class _AddGambarKelistrikanFormState
       _initialMerkObj = null;
       _initialChassisObj = null;
       _selectedFile = null;
+      _loadedEditPdfId = null;
       _pdfController?.dispose();
       _pdfController = null;
     });
+  }
+
+  Future<void> _loadEditPreview({
+    required int id,
+    required String pathFile,
+  }) async {
+    if (_selectedFile != null || _loadedEditPdfId == id) {
+      return;
+    }
+
+    _loadedEditPdfId = id;
+
+    setState(() {
+      _pdfController?.dispose();
+      _pdfController = null;
+    });
+
+    try {
+      final pdfBytes = await ref
+          .read(masterDataRepositoryProvider)
+          .getPdfFromPath(pathFile);
+
+      if (!mounted || _loadedEditPdfId != id) {
+        return;
+      }
+
+      final bytesCopy = Uint8List.fromList(pdfBytes);
+      setState(() {
+        _pdfController = PdfController(
+          document: PdfDocument.openData(bytesCopy),
+        );
+      });
+    } catch (e) {
+      if (!mounted || _loadedEditPdfId != id) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Gagal memuat preview PDF: $e',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> _pickFile() async {
@@ -242,7 +297,7 @@ class _AddGambarKelistrikanFormState
 
   @override
   Widget build(BuildContext context) {
-    // Cek apakah sedang mode edit
+    final colorScheme = Theme.of(context).colorScheme;
     final editingItem = ref.watch(editingKelistrikanFileProvider);
     final bool isEditing = editingItem != null;
 
@@ -268,18 +323,24 @@ class _AddGambarKelistrikanFormState
                             padding: const EdgeInsets.all(12),
                             margin: const EdgeInsets.only(bottom: 16),
                             decoration: BoxDecoration(
-                              color: Colors.orange.shade50,
-                              border: Border.all(color: Colors.orange),
+                              color: colorScheme.secondaryContainer,
+                              border: Border.all(color: colorScheme.outline),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Row(
+                            child: Row(
                               children: [
-                                Icon(Icons.info_outline, color: Colors.orange),
-                                SizedBox(width: 8),
+                                Icon(
+                                  Icons.info_outline,
+                                  color: colorScheme.onSecondaryContainer,
+                                ),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     'Mode Edit: Anda tidak dapat mengubah Chassis.\nUpload file baru untuk mengganti file lama.',
-                                    style: TextStyle(fontSize: 12),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: colorScheme.onSecondaryContainer,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -324,10 +385,10 @@ class _AddGambarKelistrikanFormState
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             backgroundColor: isEditing
-                                ? Colors.orange.shade50
+                                ? colorScheme.secondaryContainer
                                 : null,
                             foregroundColor: isEditing
-                                ? Colors.orange.shade900
+                                ? colorScheme.onSecondaryContainer
                                 : null,
                           ),
                         ),
@@ -346,9 +407,9 @@ class _AddGambarKelistrikanFormState
                             child: Text(
                               'File Saat Ini: ${editingItem.pathFile.split('/').last}',
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey,
+                                color: colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ),
@@ -412,24 +473,31 @@ class _AddGambarKelistrikanFormState
                   elevation: 4.0,
                   clipBehavior: Clip.antiAlias,
                   child: Container(
-                    color: Colors.grey.shade100,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                     child: _pdfController != null
                         ? PdfView(controller: _pdfController!)
                         : Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.picture_as_pdf_outlined,
-                                  color: Colors.grey,
+                                  color: colorScheme.onSurfaceVariant,
                                   size: 60,
                                 ),
                                 if (isEditing)
-                                  const Padding(
-                                    padding: EdgeInsets.only(top: 16.0),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 16.0),
                                     child: Text(
-                                      "Preview file lama tidak ditampilkan.\nPilih file baru untuk preview.",
-                                      style: TextStyle(color: Colors.grey),
+                                      'Memuat preview PDF saat ini...',
+                                      style: TextStyle(
+                                        color: colorScheme.onSurfaceVariant,
+                                        fontSize: 12,
+                                      ),
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
                               ],

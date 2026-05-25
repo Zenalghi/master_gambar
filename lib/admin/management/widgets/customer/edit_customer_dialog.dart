@@ -263,33 +263,43 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
                 width: 100,
                 height: 50,
                 decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerLow,
                   border: Border.all(
                     color: isDragging
-                        ? Theme.of(context).primaryColor
-                        : Colors.grey,
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.outline,
                     width: isDragging ? 3 : 1,
                   ),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: currentBytes != null
-                    ? Image.memory(currentBytes, fit: BoxFit.contain)
+                    ? Image.memory(
+                        currentBytes,
+                        fit: BoxFit.contain,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        colorBlendMode: BlendMode.srcIn,
+                      )
                     : (imageUrl != null
                           ? Image.network(
                               imageUrl,
                               key: ValueKey(signatureKey),
                               fit: BoxFit.contain,
                               headers: {'Authorization': 'Bearer $_authToken'},
+                              color: Theme.of(context).colorScheme.onSurface,
+                              colorBlendMode: BlendMode.srcIn,
                               errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(
+                                  Icon(
                                     Icons.error_outline,
-                                    color: Colors.red,
+                                    color: Theme.of(context).colorScheme.error,
                                   ),
                             )
-                          : const Center(
+                          : Center(
                               child: Text(
                                 'PNG',
                                 style: TextStyle(
-                                  color: Colors.grey,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                   fontSize: 10,
                                 ),
                               ),

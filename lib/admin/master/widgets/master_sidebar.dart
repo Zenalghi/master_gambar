@@ -102,9 +102,9 @@ class MasterSidebar extends StatelessWidget {
                     vertical: 0,
                   ),
                   minLeadingWidth: 22,
-                  leading: const Icon(Icons.dataset_linked_rounded, size: 21),
+                  leading: const Icon(Icons.category_outlined, size: 21),
                   title: const Text(
-                    'Master Data',
+                    'Master Varian\nBody',
                     style: TextStyle(fontSize: 11),
                   ),
                   selected: selectedIndex == 4,
@@ -118,9 +118,9 @@ class MasterSidebar extends StatelessWidget {
                     vertical: 0,
                   ),
                   minLeadingWidth: 22,
-                  leading: const Icon(Icons.category_outlined, size: 21),
+                  leading: const Icon(Icons.dataset_linked_rounded, size: 21),
                   title: const Text(
-                    'Master Varian\nBody',
+                    'Master Data',
                     style: TextStyle(fontSize: 11),
                   ),
                   selected: selectedIndex == 5,
