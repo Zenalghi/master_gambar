@@ -75,6 +75,7 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
     });
 
     final state = ref.watch(userNotifierProvider);
+    final colorScheme = Theme.of(context).colorScheme;
 
     // PERBARUI CARA MEMBUAT DATA SOURCE
     final dataSource = UserDataSource(
@@ -89,6 +90,7 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
     return Stack(
       children: [
         Card(
+          color: colorScheme.surface,
           child: PaginatedDataTable2(
             headingRowHeight: 36,
             minWidth: 900,
@@ -122,7 +124,11 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
               }
             },
             empty: state.isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(
+                    child: CircularProgressIndicator(
+                      color: colorScheme.primary,
+                    ),
+                  )
                 : (state.error != null
                       ? Center(child: Text('Error: ${state.error}'))
                       : const Center(child: Text('Tidak ada data'))),
@@ -132,9 +138,11 @@ class _UserDataTableState extends ConsumerState<UserDataTable> {
         ),
         if (_isRefreshing)
           Positioned.fill(
-            child: Container(
-              color: Theme.of(context).colorScheme.onSurface,
-              child: const Center(child: CircularProgressIndicator()),
+            child: ColoredBox(
+              color: colorScheme.surface.withValues(alpha: 0.88),
+              child: Center(
+                child: CircularProgressIndicator(color: colorScheme.primary),
+              ),
             ),
           ),
       ],

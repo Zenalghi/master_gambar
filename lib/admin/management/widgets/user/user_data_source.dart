@@ -33,6 +33,7 @@ class UserDataSource extends DataTableSource {
     final user = users[localIndex];
     final dateFormat = DateFormat('yyyy.MM.dd HH:mm');
     final authToken = ref.read(authTokenProvider);
+    final colorScheme = Theme.of(context).colorScheme;
     final baseUrl = ref.read(apiClientProvider).dio.options.baseUrl;
 
     return DataRow(
@@ -52,14 +53,19 @@ class UserDataSource extends DataTableSource {
                     '$baseUrl/admin/users/${user.id}/paraf?v=${user.updatedAt.millisecondsSinceEpoch}',
                     headers: {'Authorization': 'Bearer $authToken'},
                     fit: BoxFit.contain,
+                    color: colorScheme.onSurface,
+                    colorBlendMode: BlendMode.srcIn,
                     loadingBuilder: (context, child, progress) =>
                         progress == null
                         ? child
-                        : const Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                        : Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.primary,
+                            ),
                           ),
                     errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error, color: Colors.orange),
+                        Icon(Icons.error, color: colorScheme.error),
                   ),
                 )
               : const Icon(

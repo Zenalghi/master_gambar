@@ -34,6 +34,7 @@ class CustomerDataSource extends DataTableSource {
     final customer = customers[localIndex];
     final dateFormat = DateFormat('yyyy.MM.dd HH:mm');
     final authToken = ref.read(authTokenProvider);
+    final colorScheme = Theme.of(context).colorScheme;
 
     // Ambil base URL dari instance Dio yang aktif
     final baseUrl = ref.read(apiClientProvider).dio.options.baseUrl;
@@ -54,16 +55,21 @@ class CustomerDataSource extends DataTableSource {
                     '$baseUrl/admin/customers/${customer.id}/paraf?v=${customer.updatedAt.millisecondsSinceEpoch}',
                     headers: {'Authorization': 'Bearer $authToken'},
                     fit: BoxFit.contain,
+                    color: colorScheme.onSurface,
+                    colorBlendMode: BlendMode.srcIn,
                     loadingBuilder: (context, child, progress) =>
                         progress == null
                         ? child
-                        : const Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                        : Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.primary,
+                            ),
                           ),
                     // Tambahkan Tooltip di sini
                     errorBuilder: (context, error, stackTrace) => Tooltip(
                       message: 'Error: ${error.toString()}',
-                      child: const Icon(Icons.error, color: Colors.orange),
+                      child: Icon(Icons.error, color: colorScheme.error),
                     ),
                   ),
                 )
@@ -84,16 +90,21 @@ class CustomerDataSource extends DataTableSource {
                     '$baseUrl/admin/customers/${customer.id}/paraf-drafter?v=${customer.updatedAt.millisecondsSinceEpoch}',
                     headers: {'Authorization': 'Bearer $authToken'},
                     fit: BoxFit.contain,
+                    color: colorScheme.onSurface,
+                    colorBlendMode: BlendMode.srcIn,
                     loadingBuilder: (context, child, progress) =>
                         progress == null
                         ? child
-                        : const Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                        : Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.primary,
+                            ),
                           ),
                     // Tambahkan Tooltip di sini
                     errorBuilder: (context, error, stackTrace) => Tooltip(
                       message: 'Error: ${error.toString()}',
-                      child: const Icon(Icons.error, color: Colors.orange),
+                      child: Icon(Icons.error, color: colorScheme.error),
                     ),
                   ),
                 )
@@ -114,15 +125,20 @@ class CustomerDataSource extends DataTableSource {
                     '$baseUrl/admin/customers/${customer.id}/paraf-pemeriksa?v=${customer.updatedAt.millisecondsSinceEpoch}',
                     headers: {'Authorization': 'Bearer $authToken'},
                     fit: BoxFit.contain,
+                    color: colorScheme.onSurface,
+                    colorBlendMode: BlendMode.srcIn,
                     loadingBuilder: (context, child, progress) =>
                         progress == null
                         ? child
-                        : const Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                        : Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.primary,
+                            ),
                           ),
                     errorBuilder: (context, error, stackTrace) => Tooltip(
                       message: 'Error: ${error.toString()}',
-                      child: const Icon(Icons.error, color: Colors.orange),
+                      child: Icon(Icons.error, color: colorScheme.error),
                     ),
                   ),
                 )
