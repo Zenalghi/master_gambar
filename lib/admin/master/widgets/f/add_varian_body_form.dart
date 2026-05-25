@@ -99,17 +99,17 @@ class _AddVarianBodyFormState extends ConsumerState<AddVarianBodyForm> {
       if (result.skipped.isNotEmpty) {
         final skippedText = result.skipped.join(', ');
         final createdText = result.created.isNotEmpty
-            ? ' ${result.created.length} varian baru berhasil disimpan.'
+            ? ' ${result.created.length} varian baru berhasil disimpan. '
             : '';
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Data sudah ada: $skippedText.$createdText',
+              '${createdText}Data sudah ada: $skippedText.',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             backgroundColor: result.created.isNotEmpty
-                ? const Color.fromARGB(255, 0, 51, 27)
+                ? const Color.fromARGB(255, 50, 174, 223)
                 : const Color.fromARGB(255, 163, 122, 0),
           ),
         );
