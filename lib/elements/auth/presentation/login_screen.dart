@@ -4,14 +4,37 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../home/home_screen.dart';
 import 'auth_provider.dart';
 
-class LoginScreen extends ConsumerWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final formKey = GlobalKey<FormState>();
-    final usernameController = TextEditingController();
-    final passwordController = TextEditingController();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  // Pindahkan inisialisasi Key dan Controller sebagai state dari class
+  final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  // Pisahkan fungsi submit agar bisa dipanggil dari Tombol & tombol Enter di keyboard
+  void _submitLogin() {
+    if (_formKey.currentState!.validate()) {
+      ref
+          .read(authNotifierProvider.notifier)
+          .login(_usernameController.text, _passwordController.text, ref);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final versionAsync = ref.watch(packageInfoProvider);
 
@@ -38,7 +61,7 @@ class LoginScreen extends ConsumerWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
             child: Form(
-              key: formKey,
+              key: _formKey,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -56,7 +79,11 @@ class LoginScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           TextFormField(
-                            controller: usernameController,
+                            controller: _usernameController,
+                            autofocus:
+                                true, // <-- BEST PRACTICE 1: Auto Focus langsung ke Username
+                            textInputAction: TextInputAction
+                                .next, // <-- Tombol enter di keyboard berubah fungsi untuk "Next" ke password
                             decoration: const InputDecoration(
                               labelText: 'Username',
                             ),
@@ -69,8 +96,12 @@ class LoginScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 16.0),
                           TextFormField(
-                            controller: passwordController,
+                            controller: _passwordController,
                             obscureText: true,
+                            textInputAction: TextInputAction
+                                .done, // <-- Tombol enter berubah fungsi untuk "Done/Submit"
+                            onFieldSubmitted: (_) =>
+                                _submitLogin(), // <-- BEST PRACTICE 2: Tekan enter langsung login
                             decoration: const InputDecoration(
                               labelText: 'Password',
                             ),
@@ -85,36 +116,23 @@ class LoginScreen extends ConsumerWidget {
                           authState.isLoading
                               ? const Center(child: CircularProgressIndicator())
                               : ElevatedButton(
-                                  onPressed: () {
-                                    if (formKey.currentState!.validate()) {
-                                      // Kirim 'ref' ke dalam fungsi login
-                                      ref
-                                          .read(authNotifierProvider.notifier)
-                                          .login(
-                                            usernameController.text,
-                                            passwordController.text,
-                                            ref, // Teruskan ref ke notifier
-                                          );
-                                    }
-                                  },
+                                  onPressed:
+                                      _submitLogin, // <-- Panggil fungsi yang sama
                                   child: const Text('Login'),
                                 ),
                         ],
                       ),
                     ),
                   ),
-                  SizedBox(height: 24.0),
+                  const SizedBox(height: 24.0),
                   versionAsync.when(
                     data: (packageInfo) {
-                      // packageInfo.version -> "1.0.0"
-                      // packageInfo.buildNumber -> "1" (dari +1)
                       return Text(
                         'Versi ${packageInfo.version} (${packageInfo.buildNumber})',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       );
                     },
-                    // Tampilkan text kosong saat memuat atau error
                     loading: () => const SizedBox.shrink(),
                     error: (err, stack) => const SizedBox.shrink(),
                   ),
