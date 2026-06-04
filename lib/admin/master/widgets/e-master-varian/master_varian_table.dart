@@ -15,8 +15,8 @@ class MasterVarianTable extends ConsumerStatefulWidget {
 }
 
 class _MasterVarianTableState extends ConsumerState<MasterVarianTable> {
-  int _sortColumnIndex = 4; // Default: updated_at
-  bool _sortAscending = false;
+  int _sortColumnIndex = 1; // <-- UBAH KE 1 (Jenis Kendaraan)
+  bool _sortAscending = true; // <-- UBAH KE TRUE (A-Z)
 
   void _onSort(int columnIndex, bool ascending) {
     setState(() {

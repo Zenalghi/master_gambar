@@ -290,9 +290,9 @@ final selectedMasterDataFilterProvider = StateProvider<OptionItem?>(
 final masterVarianFilterProvider = StateProvider<Map<String, dynamic>>((ref) {
   return {
     'search': '',
-    'sortBy': 'updated_at',
-    'sortDirection': 'desc',
-    'jenisKendaraanId': null, // Untuk filter berdasarkan JK
+    'sortBy': 'jenis_kendaraan', // <-- UBAH KE JENIS KENDARAAN
+    'sortDirection': 'asc', // <-- UBAH KE ASC
+    'jenisKendaraanId': null,
   };
 });
 

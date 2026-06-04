@@ -1,5 +1,7 @@
+//lib/admin/master/screens/master_varian_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:master_gambar/admin/master/widgets/recycle_bin/master_varian_recycle_bin.dart';
 import '../providers/master_data_providers.dart';
 import '../widgets/e-master-varian/add_master_varian_form.dart';
 import '../widgets/e-master-varian/master_varian_table.dart';
@@ -65,12 +67,11 @@ class _MasterVarianScreenState extends ConsumerState<MasterVarianScreen> {
               // Tombol Recycle Bin bisa ditambahkan nanti jika ada view khusus
               IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.orange),
-                tooltip: 'Recycle Bin (Segera Hadir)',
+                tooltip: 'Recycle Bin (Data Dihapus)',
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Fitur Recycle Bin menyusul!'),
-                    ),
+                  showDialog(
+                    context: context,
+                    builder: (_) => const MasterVarianRecycleBin(),
                   );
                 },
               ),

@@ -504,6 +504,40 @@ class MasterDataRepository {
     return data.map((e) => OptionItem.fromJson(e, nameKey: 'name')).toList();
   }
 
+  // --- RECYCLE BIN MASTER VARIAN ---
+  Future<List<MasterVarian>> getDeletedMasterVarians({
+    String search = '',
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get('/admin/master-varian-trash', queryParameters: {'search': search});
+    final List<dynamic> data = response.data;
+    return data.map((item) => MasterVarian.fromJson(item)).toList();
+  }
+
+  Future<Map<String, dynamic>> emptyTrashMasterVarian() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/master-varian-trash/empty');
+    return response.data;
+  }
+
+  Future<void> restoreMasterVarian(int id) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .post('/admin/master-varian-trash/$id/restore');
+  }
+
+  Future<void> forceDeleteMasterVarian(int id) async {
+    await _ref
+        .read(apiClientProvider)
+        .dio
+        .delete('/admin/master-varian-trash/$id/force-delete');
+  }
+
   // == VARIAN BODY (PAGINATED) ==
   Future<PaginatedResponse<VarianBody>> getVarianBodyListPaginated({
     int page = 1,
