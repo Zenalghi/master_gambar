@@ -117,7 +117,7 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
         final repo = ref.read(customerRepositoryProvider);
 
         // Update Text Data
-        Customer updatedCustomer = await repo.updateCustomer(
+        await repo.updateCustomer(
           id: _currentCustomer.id,
           namaPt: _namaPtController.text,
           pj: _pjController.text,
@@ -127,21 +127,21 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
 
         // Upload files if changed
         if (_signaturePjBytes != null) {
-          updatedCustomer = await repo.uploadSignature(
+          await repo.uploadSignature(
             customerId: _currentCustomer.id,
             bytes: _signaturePjBytes!,
             fileName: _signaturePjName ?? 'pj.png',
           );
         }
         if (_signatureDrafterBytes != null) {
-          updatedCustomer = await repo.uploadSignatureDrafter(
+          await repo.uploadSignatureDrafter(
             customerId: _currentCustomer.id,
             bytes: _signatureDrafterBytes!,
             fileName: _signatureDrafterName ?? 'drafter.png',
           );
         }
         if (_signaturePemeriksaBytes != null) {
-          updatedCustomer = await repo.uploadSignaturePemeriksa(
+          await repo.uploadSignaturePemeriksa(
             customerId: _currentCustomer.id,
             bytes: _signaturePemeriksaBytes!,
             fileName: _signaturePemeriksaName ?? 'pemeriksa.png',
