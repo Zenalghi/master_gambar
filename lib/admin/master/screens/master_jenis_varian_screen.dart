@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import 'package:dio/dio.dart';
-import '../widgets/g/jenis_varian_table.dart';
+import '../widgets/h-jenis_varian/jenis_varian_table.dart';
 
 class MasterJenisVarianScreen extends ConsumerStatefulWidget {
   const MasterJenisVarianScreen({super.key});

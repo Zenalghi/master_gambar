@@ -1,5 +1,4 @@
-// File: lib/admin/master/widgets/jenis_kendaraan_table.dart
-
+//lib/admin/master/widgets/d-vehicle/jenis_kendaraan_table.dart
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,7 +15,7 @@ class JenisKendaraanTable extends ConsumerStatefulWidget {
 
 class _JenisKendaraanTableState extends ConsumerState<JenisKendaraanTable> {
   // --- PERUBAHAN 2: Buat state lokal untuk sorting ---
-  int _sortColumnIndex = 0; // Default: ID
+  int _sortColumnIndex = 1; // Default: jenis_kendaraan
   bool _sortAscending = true; // Default: asc
 
   @override

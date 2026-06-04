@@ -7,9 +7,9 @@ import 'package:master_gambar/admin/master/models/g_gambar_utama.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/admin/master/repository/master_data_repository.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
-import '../widgets/h-b-utama/pilih_file_pdf_card.dart';
-import '../widgets/h-b-utama/pilih_varian_body_card.dart';
-import '../widgets/h-b-utama/dependent_optional_form_card.dart';
+import '../widgets/i-b-utama/pilih_file_pdf_card.dart';
+import '../widgets/i-b-utama/pilih_varian_body_card.dart';
+import '../widgets/i-b-utama/dependent_optional_form_card.dart';
 
 class MasterGambarUtamaScreen extends ConsumerStatefulWidget {
   const MasterGambarUtamaScreen({super.key});

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/master_data_providers.dart';
-import '../widgets/add_master_varian_form.dart';
-import '../widgets/master_varian_table.dart';
+import '../widgets/e-master-varian/add_master_varian_form.dart';
+import '../widgets/e-master-varian/master_varian_table.dart';
 
 class MasterVarianScreen extends ConsumerStatefulWidget {
   const MasterVarianScreen({super.key});

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../repository/master_data_repository.dart';
 import '../providers/master_data_providers.dart';
-import '../widgets/d/jenis_kendaraan_table.dart';
+import '../widgets/d-vehicle/jenis_kendaraan_table.dart';
 import '../widgets/recycle_bin/jenis_kendaraan_recycle_bin.dart';
 
 class MasterJenisKendaraanScreen extends ConsumerStatefulWidget {

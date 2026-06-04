@@ -3,8 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import '../widgets/f/varian_body_table.dart';
-import '../widgets/f/add_varian_body_form.dart';
+import '../widgets/g-varian/varian_body_table.dart';
+import '../widgets/g-varian/add_varian_body_form.dart';
 import '../widgets/recycle_bin/varian_body_recycle_bin.dart';
 
 class MasterVarianBodyScreen extends ConsumerStatefulWidget {

@@ -3,7 +3,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import '../widgets/c/type_chassis_table.dart';
+import '../widgets/c-chassis/type_chassis_table.dart';
 import '../providers/master_data_providers.dart';
 import '../repository/master_data_repository.dart';
 import '../widgets/recycle_bin/type_chassis_recycle_bin.dart';

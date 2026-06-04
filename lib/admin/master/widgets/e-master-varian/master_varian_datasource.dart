@@ -1,12 +1,14 @@
+//lib/admin/master/widgets/e-master-varian/master_varian_datasource.dart
+
 import 'package:data_table_2/data_table_2.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../models/master_varian.dart';
-import '../providers/master_data_providers.dart';
-import '../repository/master_data_repository.dart';
+import '../../models/master_varian.dart';
+import '../../providers/master_data_providers.dart';
+import '../../repository/master_data_repository.dart';
 import 'edit_master_varian_dialog.dart';
 
 class MasterVarianDataSource extends AsyncDataTableSource {

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:dio/dio.dart';
-import '../../../../data/models/option_item.dart';
-import '../models/master_varian.dart';
-import '../providers/master_data_providers.dart';
-import '../repository/master_data_repository.dart';
+import '../../../../../data/models/option_item.dart';
+import '../../models/master_varian.dart';
+import '../../providers/master_data_providers.dart';
+import '../../repository/master_data_repository.dart';
 
 class EditMasterVarianDialog extends ConsumerStatefulWidget {
   final MasterVarian masterVarian;

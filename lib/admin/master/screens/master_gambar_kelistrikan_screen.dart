@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import 'package:master_gambar/data/models/option_item.dart';
-import '../widgets/h-d-kelistrikan/add_gambar_kelistrikan_form.dart';
-import '../widgets/h-d-kelistrikan/gambar_kelistrikan_table.dart';
+import '../widgets/i-d-kelistrikan/add_gambar_kelistrikan_form.dart';
+import '../widgets/i-d-kelistrikan/gambar_kelistrikan_table.dart';
 
 class MasterGambarKelistrikanScreen extends ConsumerStatefulWidget {
   const MasterGambarKelistrikanScreen({super.key});

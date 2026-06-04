@@ -32,7 +32,7 @@ final typeChassisFilterProvider = StateProvider<Map<String, String>>((ref) {
 });
 
 final jenisKendaraanFilterProvider = StateProvider<Map<String, String>>((ref) {
-  return {'search': '', 'sortBy': 'id', 'sortDirection': 'asc'};
+  return {'search': '', 'sortBy': 'jenis_kendaraan', 'sortDirection': 'asc'};
 });
 
 // Provider untuk Varian Body

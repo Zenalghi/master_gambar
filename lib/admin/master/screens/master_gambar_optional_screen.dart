@@ -12,8 +12,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdfx/pdfx.dart';
 import '../../../data/models/option_item.dart';
 import '../models/gambar_optional.dart';
-import '../widgets/h-c-optional/pilih_master_data_card.dart';
-import '../widgets/h-c-optional/gambar_optional_table.dart';
+import '../widgets/i-c-optional/pilih_master_data_card.dart';
+import '../widgets/i-c-optional/gambar_optional_table.dart';
 
 class MasterGambarOptionalScreen extends ConsumerStatefulWidget {
   const MasterGambarOptionalScreen({super.key});

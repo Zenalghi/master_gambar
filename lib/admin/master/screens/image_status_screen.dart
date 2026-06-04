@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
-import '../widgets/h-a-laporan/image_status_table.dart';
+import '../widgets/i-a-laporan/image_status_table.dart';
 
 // 1. Ubah menjadi ConsumerStatefulWidget
 class ImageStatusScreen extends ConsumerStatefulWidget {
