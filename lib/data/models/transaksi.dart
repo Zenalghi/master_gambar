@@ -16,6 +16,7 @@ class Transaksi {
   final DateTime updatedAt;
   final String? judulGambarString;
   final TransaksiDetail? detail;
+  final String pdfDateType;
 
   Transaksi({
     required this.id,
@@ -31,6 +32,7 @@ class Transaksi {
     required this.updatedAt,
     this.judulGambarString,
     this.detail,
+    required this.pdfDateType,
   });
 
   factory Transaksi.fromJson(Map<String, dynamic> json) {
@@ -64,6 +66,7 @@ class Transaksi {
         detail: json['detail'] != null
             ? TransaksiDetail.fromJson(json['detail'])
             : null,
+        pdfDateType: json['pdf_date_type']?.toString() ?? 'today',
       );
     } catch (e, stack) {
       // Ini akan memunculkan error detail di Debug Console jika parsing gagal

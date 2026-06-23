@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:intl/intl.dart';
+import 'package:master_gambar/app/core/providers.dart';
 // import 'package:dio/dio.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
 import 'package:master_gambar/data/models/option_item.dart';
@@ -26,6 +28,8 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
   late int _selectedCustomerId;
   late int _selectedMasterDataId;
   late int _selectedJenisPengajuanId;
+  late String _selectedPdfDateType;
+  late DateTime _selectedCreatedAt;
 
   // Untuk tampilan awal dropdown Master Data
   late OptionItem _initialMasterDataOption;
@@ -37,6 +41,8 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
     _selectedCustomerId = widget.transaksi.customer.id;
     _selectedMasterDataId = widget.transaksi.masterDataId;
     _selectedJenisPengajuanId = widget.transaksi.fPengajuan.id;
+    _selectedPdfDateType = widget.transaksi.pdfDateType;
+    _selectedCreatedAt = widget.transaksi.createdAt.toLocal();
 
     // 2. Buat object OptionItem untuk tampilan awal DropdownSearch
     // Gabungkan nama A/B/C/D yang sudah ada di transaksi
@@ -66,6 +72,8 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
               customerId: _selectedCustomerId,
               masterDataId: _selectedMasterDataId, // Kirim ID Master Data
               jenisPengajuanId: _selectedJenisPengajuanId,
+              pdfDateType: _selectedPdfDateType,
+              createdAt: _selectedCreatedAt.toIso8601String(),
             );
 
         if (mounted) Navigator.of(context).pop();
@@ -153,6 +161,9 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = ref.watch(authServiceProvider);
+    final isAdmin = authService.canViewAdminTabs();
+
     return AlertDialog(
       title: Text('Edit Transaksi: ${widget.transaksi.id}'),
       content: SizedBox(
@@ -326,6 +337,10 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
                   onChanged: (val) =>
                       setState(() => _selectedJenisPengajuanId = val!),
                 ),
+
+                const SizedBox(height: 16),
+
+                _buildDateDropdown(),
               ],
             ),
           ),
@@ -339,6 +354,54 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
               onPressed: _showDeleteConfirmationDialog,
               child: const Text('Hapus'),
             ),
+            const SizedBox(width: 8),
+            if (isAdmin)
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                ),
+                icon: const Icon(Icons.edit_calendar, size: 14),
+                label: const Text(
+                  'Ubah Tanggal Pembuatan',
+                  style: TextStyle(fontSize: 12),
+                ),
+                onPressed: () async {
+                  final pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedCreatedAt,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                    initialEntryMode: DatePickerEntryMode.input,
+                    locale: const Locale('id', 'ID'),
+                  );
+                  if (pickedDate != null) {
+                    setState(() {
+                      _selectedCreatedAt = DateTime(
+                        pickedDate.year,
+                        pickedDate.month,
+                        pickedDate.day,
+                        _selectedCreatedAt.hour,
+                        _selectedCreatedAt.minute,
+                      );
+                    });
+                  }
+                },
+              )
+            else
+              const Padding(
+                padding: EdgeInsets.only(left: 8),
+                child: Text(
+                  '* Hubungi admin untuk ubah tanggal pembuatan',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
             const Spacer(),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -454,6 +517,73 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
             style: TextStyle(color: Colors.red, fontSize: 12),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDateDropdown() {
+    final todayStr = DateFormat('dd.MM.yy').format(DateTime.now());
+    final createdStr = DateFormat('dd.MM.yy').format(_selectedCreatedAt);
+
+    final items = ['today', 'created_at'];
+
+    return DropdownSearch<String>(
+      items: (filter, _) => items,
+      itemAsString: (String item) {
+        if (item == 'today') return 'Hari ini ($todayStr)';
+        return 'Tanggal Pembuatan ($createdStr)';
+      },
+      selectedItem: _selectedPdfDateType,
+      onChanged: (String? val) {
+        if (val != null) {
+          setState(() {
+            _selectedPdfDateType = val;
+          });
+        }
+      },
+      decoratorProps: const DropDownDecoratorProps(
+        baseStyle: TextStyle(fontSize: 13, height: 1.0),
+        decoration: InputDecoration(
+          labelText: 'Tanggal Cetak PDF',
+          labelStyle: TextStyle(fontSize: 12),
+          border: OutlineInputBorder(),
+          constraints: BoxConstraints(maxHeight: 42),
+          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+          isDense: true,
+        ),
+      ),
+      popupProps: PopupProps.menu(
+        showSearchBox: false,
+        fit: FlexFit.loose,
+        constraints: const BoxConstraints(maxHeight: 150),
+        menuProps: const MenuProps(
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+        ),
+        itemBuilder: (context, item, isSelected, isDisabled) {
+          final displayText = item == 'today'
+              ? 'Hari ini ($todayStr)'
+              : 'Tanggal Pembuatan ($createdStr)';
+          return Container(
+            height: 30,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            alignment: Alignment.centerLeft,
+            color: isSelected
+                ? Theme.of(context).primaryColor.withOpacity(0.1)
+                : null,
+            child: Text(
+              displayText,
+              style: TextStyle(
+                fontSize: 12,
+                color: isSelected
+                    ? Theme.of(context).primaryColor
+                    : Theme.of(context).colorScheme.onSurface,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          );
+        },
       ),
     );
   }

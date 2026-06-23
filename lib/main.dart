@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'app/theme/app_theme.dart';
 import 'app/core/auth_wrapper.dart';
 import 'package:flutter/foundation.dart'; // Import ini penting untuk kIsWeb dan kReleaseMode
@@ -99,6 +100,15 @@ class MyApp extends ConsumerWidget {
       darkTheme: createAppTheme(darkMode: true),
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('id', 'ID'),
+        Locale('en', 'US'),
+      ],
       builder: (context, child) {
         final mediaQueryData = MediaQuery.of(context);
         return MediaQuery(

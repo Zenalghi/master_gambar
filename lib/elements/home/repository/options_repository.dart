@@ -175,17 +175,24 @@ class TransaksiRepository {
     required int customerId,
     required int masterDataId, // <-- GANTI 4 parameter string menjadi 1 int ini
     required int jenisPengajuanId,
+    required String pdfDateType,
+    String? createdAt,
   }) async {
+    final payload = <String, dynamic>{
+      'customer_id': customerId,
+      'master_data_id': masterDataId, // Kirim ID Master Data
+      'f_pengajuan_id': jenisPengajuanId,
+      'pdf_date_type': pdfDateType,
+    };
+    if (createdAt != null) {
+      payload['created_at'] = createdAt;
+    }
     await _ref
         .read(apiClientProvider)
         .dio
         .put(
           '${ApiEndpoints.transaksi}/$transaksiId',
-          data: {
-            'customer_id': customerId,
-            'master_data_id': masterDataId, // Kirim ID Master Data
-            'f_pengajuan_id': jenisPengajuanId,
-          },
+          data: payload,
         );
   }
 
