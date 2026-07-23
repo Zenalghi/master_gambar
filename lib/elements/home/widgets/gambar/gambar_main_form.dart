@@ -134,7 +134,9 @@ class GambarMainForm extends ConsumerWidget {
     // untuk melanjutkan penomoran
 
     final dependentOptionals = ref.watch(dependentOptionalOptionsProvider);
-    final dependentCount = dependentOptionals.asData?.value.length ?? 0;
+    final dependentCount = !isGambarTU
+        ? dependentOptionals.asData?.value.length ?? 0
+        : 0;
 
     // Start page paket = halaman terakhir setelah kontruksi + 1
     // (currentPage saat ini sudah menunjuk ke next available page)
@@ -144,8 +146,9 @@ class GambarMainForm extends ConsumerWidget {
     currentPage += dependentCount;
 
     final independentStateAsync = ref.watch(independentListNotifierProvider);
-    final activeIndependentCount =
-        independentStateAsync.asData?.value.activeItems.length ?? 0;
+    final activeIndependentCount = !isGambarTU
+        ? independentStateAsync.asData?.value.activeItems.length ?? 0
+        : 0;
 
     final int startPageIndependen = currentPage;
 
@@ -157,6 +160,7 @@ class GambarMainForm extends ConsumerWidget {
 
     final kelistrikanInfo = ref.watch(kelistrikanInfoProvider);
     final hasKelistrikan =
+        !isGambarTU &&
         kelistrikanInfo != null &&
         (kelistrikanInfo['status_code'] == 'ready' ||
             kelistrikanInfo['status_code'] == 'multiple_options');
