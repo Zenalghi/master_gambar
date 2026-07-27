@@ -18,6 +18,7 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
   final _formKey = GlobalKey<FormState>();
   final _namaPtController = TextEditingController();
   final _pjController = TextEditingController();
+  final _jabatanController = TextEditingController();
   final _drafterController = TextEditingController();
   final _pemeriksaController = TextEditingController();
 
@@ -37,6 +38,7 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
   void dispose() {
     _namaPtController.dispose();
     _pjController.dispose();
+    _jabatanController.dispose();
     _drafterController.dispose();
     _pemeriksaController.dispose();
     super.dispose();
@@ -84,6 +86,9 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
         final newCustomer = await repo.addCustomer(
           namaPt: _namaPtController.text,
           pj: _pjController.text,
+          jabatan: _jabatanController.text.isNotEmpty
+              ? _jabatanController.text
+              : null,
           namaDrafter: _drafterController.text.isNotEmpty
               ? _drafterController.text
               : null,
@@ -123,6 +128,7 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
         _formKey.currentState?.reset();
         _namaPtController.clear();
         _pjController.clear();
+        _jabatanController.clear();
         _drafterController.clear();
         _pemeriksaController.clear();
         setState(() => _signatureBytespj = null);
@@ -147,303 +153,229 @@ class _AddCustomerFormState extends ConsumerState<AddCustomerForm> {
     }
   }
 
+  Widget _buildParafItem({
+    required String title,
+    required Uint8List? imageBytes,
+    required VoidCallback onPick,
+    required Function(DropDoneDetails) onDragDone,
+    required ColorScheme colorScheme,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DropTarget(
+              onDragDone: onDragDone,
+              onDragEntered: (details) => setState(() => _isDragging = true),
+              onDragExited: (details) => setState(() => _isDragging = false),
+              child: Container(
+                width: 100,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  border: Border.all(
+                    color: _isDragging
+                        ? colorScheme.primary
+                        : colorScheme.outline,
+                    width: _isDragging ? 2 : 1,
+                  ),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: imageBytes != null
+                    ? Padding(
+                        padding: const EdgeInsets.all(2.0),
+                        child: Image.memory(
+                          imageBytes,
+                          fit: BoxFit.contain,
+                          color: colorScheme.onSurface,
+                          colorBlendMode: BlendMode.srcIn,
+                        ),
+                      )
+                    : Center(
+                        child: Text(
+                          'PNG',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.upload_file, size: 16),
+              label: const Text(
+                'Pilih\nGambar',
+                style: TextStyle(fontSize: 12),
+              ),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 12,
+                ),
+                minimumSize: const Size(0, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+              onPressed: onPick,
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'Lebar ±500px',
+          style: TextStyle(fontSize: 10, color: Colors.grey),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(10.0),
+        padding: const EdgeInsets.all(12.0),
         child: Form(
           key: _formKey,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // Bagian Input Teks (Dibuat Grid 2 Baris agar Tidak Memanjang ke Bawah)
               Expanded(
                 flex: 1,
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextFormField(
-                      controller: _namaPtController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nama Customer',
-                      ),
-                      validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
-                    ),
-                    SizedBox(height: 10),
-                    TextFormField(
-                      controller: _drafterController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nama Drafter (Opsional)',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                flex: 1,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _pjController,
-                      decoration: const InputDecoration(
-                        labelText: 'Penanggung Jawab',
-                      ),
-                      validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
-                    ),
-                    SizedBox(height: 10),
-                    TextFormField(
-                      controller: _pemeriksaController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nama Pemeriksa (Opsional)',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                flex: 0,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Paraf PJ', style: TextStyle(fontSize: 12)),
-                    const SizedBox(height: 4),
-                    // --- BUNGKUS DENGAN DROPTARGET ---
                     Row(
                       children: [
-                        DropTarget(
-                          onDragDone: (details) async {
-                            if (details.files.isNotEmpty) {
-                              final file = details.files.first;
-                              final bytes = await file
-                                  .readAsBytes(); // Mendukung Web dan Desktop
-                              setState(() {
-                                _signatureBytespj = bytes;
-                                _signatureNamepj = file.name;
-                              });
-                            }
-                          },
-                          onDragEntered: (details) =>
-                              setState(() => _isDragging = true),
-                          onDragExited: (details) =>
-                              setState(() => _isDragging = false),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerLow,
-                              border: Border.all(
-                                color: _isDragging
-                                    ? colorScheme.primary
-                                    : colorScheme.outline,
-                                width: _isDragging ? 3 : 1,
-                              ),
-                              borderRadius: BorderRadius.circular(4),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _namaPtController,
+                            decoration: const InputDecoration(
+                              labelText: 'Nama Customer',
                             ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 100,
-                                  height: 50,
-                                  child: _signatureBytespj != null
-                                      ? Image.memory(
-                                          _signatureBytespj!,
-                                          fit: BoxFit.contain,
-                                          color: colorScheme.onSurface,
-                                          colorBlendMode: BlendMode.srcIn,
-                                        )
-                                      : Center(
-                                          child: Text(
-                                            'PNG',
-                                            style: TextStyle(
-                                              color:
-                                                  colorScheme.onSurfaceVariant,
-                                            ),
-                                          ),
-                                        ),
-                                ),
-                              ],
+                            validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _pjController,
+                            decoration: const InputDecoration(
+                              labelText: 'Penanggung Jawab',
+                            ),
+                            validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _jabatanController,
+                            decoration: const InputDecoration(
+                              labelText: 'Jabatan (Opsional)',
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.upload_file),
-                          label: const Text('Pilih Gambar'),
-                          onPressed: () => _pickImage('pj'),
-                        ),
                       ],
                     ),
-                    const Text(
-                      'Saran lebar gambar ± 500px',
-                      style: TextStyle(fontSize: 10, color: Colors.grey),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _drafterController,
+                            decoration: const InputDecoration(
+                              labelText: 'Nama Drafter (Opsional)',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _pemeriksaController,
+                            decoration: const InputDecoration(
+                              labelText: 'Nama Pemeriksa (Opsional)',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Expanded(child: SizedBox()),
+                      ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                flex: 0,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Paraf Drafter', style: TextStyle(fontSize: 12)),
-                    const SizedBox(height: 4),
-                    // --- BUNGKUS DENGAN DROPTARGET ---
-                    Row(
-                      children: [
-                        DropTarget(
-                          onDragDone: (details) async {
-                            if (details.files.isNotEmpty) {
-                              final file = details.files.first;
-                              final bytes = await file
-                                  .readAsBytes(); // Mendukung Web dan Desktop
-                              setState(() {
-                                _signatureBytesdrafter = bytes;
-                                _signatureNamedrafter = file.name;
-                              });
-                            }
-                          },
-                          onDragEntered: (details) =>
-                              setState(() => _isDragging = true),
-                          onDragExited: (details) =>
-                              setState(() => _isDragging = false),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerLow,
-                              border: Border.all(
-                                color: _isDragging
-                                    ? colorScheme.primary
-                                    : colorScheme.outline,
-                                width: _isDragging ? 3 : 1,
-                              ),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 100,
-                                  height: 50,
-                                  child: _signatureBytesdrafter != null
-                                      ? Image.memory(
-                                          _signatureBytesdrafter!,
-                                          fit: BoxFit.contain,
-                                          color: colorScheme.onSurface,
-                                          colorBlendMode: BlendMode.srcIn,
-                                        )
-                                      : Center(
-                                          child: Text(
-                                            'PNG',
-                                            style: TextStyle(
-                                              color:
-                                                  colorScheme.onSurfaceVariant,
-                                            ),
-                                          ),
-                                        ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.upload_file),
-                          label: const Text('Pilih Gambar'),
-                          onPressed: () => _pickImage('drafter'),
-                        ),
-                      ],
-                    ),
-                    const Text(
-                      'Saran lebar gambar ± 500px',
-                      style: TextStyle(fontSize: 10, color: Colors.grey),
-                    ),
-                  ],
-                ),
+              const SizedBox(width: 14),
+
+              // Bagian Upload Paraf (Dibuat lebih rapi dan ringkas)
+              _buildParafItem(
+                title: 'Paraf PJ',
+                imageBytes: _signatureBytespj,
+                onPick: () => _pickImage('pj'),
+                onDragDone: (details) async {
+                  if (details.files.isNotEmpty) {
+                    final file = details.files.first;
+                    final bytes = await file.readAsBytes();
+                    setState(() {
+                      _signatureBytespj = bytes;
+                      _signatureNamepj = file.name;
+                    });
+                  }
+                },
+                colorScheme: colorScheme,
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                flex: 0,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Paraf Pemeriksa',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    const SizedBox(height: 4),
-                    // --- BUNGKUS DENGAN DROPTARGET ---
-                    Row(
-                      children: [
-                        DropTarget(
-                          onDragDone: (details) async {
-                            if (details.files.isNotEmpty) {
-                              final file = details.files.first;
-                              final bytes = await file
-                                  .readAsBytes(); // Mendukung Web dan Desktop
-                              setState(() {
-                                _signatureBytespemeriksa = bytes;
-                                _signatureNamepemeriksa = file.name;
-                              });
-                            }
-                          },
-                          onDragEntered: (details) =>
-                              setState(() => _isDragging = true),
-                          onDragExited: (details) =>
-                              setState(() => _isDragging = false),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerLow,
-                              border: Border.all(
-                                color: _isDragging
-                                    ? colorScheme.primary
-                                    : colorScheme.outline,
-                                width: _isDragging ? 3 : 1,
-                              ),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 100,
-                                  height: 50,
-                                  child: _signatureBytespemeriksa != null
-                                      ? Image.memory(
-                                          _signatureBytespemeriksa!,
-                                          fit: BoxFit.contain,
-                                          color: colorScheme.onSurface,
-                                          colorBlendMode: BlendMode.srcIn,
-                                        )
-                                      : Center(
-                                          child: Text(
-                                            'PNG',
-                                            style: TextStyle(
-                                              color:
-                                                  colorScheme.onSurfaceVariant,
-                                            ),
-                                          ),
-                                        ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.upload_file),
-                          label: const Text('Pilih Gambar'),
-                          onPressed: () => _pickImage('pemeriksa'),
-                        ),
-                      ],
-                    ),
-                    const Text(
-                      'Saran lebar gambar ± 500px',
-                      style: TextStyle(fontSize: 10, color: Colors.grey),
-                    ),
-                  ],
-                ),
+              const SizedBox(width: 12),
+
+              _buildParafItem(
+                title: 'Paraf Drafter',
+                imageBytes: _signatureBytesdrafter,
+                onPick: () => _pickImage('drafter'),
+                onDragDone: (details) async {
+                  if (details.files.isNotEmpty) {
+                    final file = details.files.first;
+                    final bytes = await file.readAsBytes();
+                    setState(() {
+                      _signatureBytesdrafter = bytes;
+                      _signatureNamedrafter = file.name;
+                    });
+                  }
+                },
+                colorScheme: colorScheme,
+              ),
+              const SizedBox(width: 12),
+
+              _buildParafItem(
+                title: 'Paraf Pemeriksa',
+                imageBytes: _signatureBytespemeriksa,
+                onPick: () => _pickImage('pemeriksa'),
+                onDragDone: (details) async {
+                  if (details.files.isNotEmpty) {
+                    final file = details.files.first;
+                    final bytes = await file.readAsBytes();
+                    setState(() {
+                      _signatureBytespemeriksa = bytes;
+                      _signatureNamepemeriksa = file.name;
+                    });
+                  }
+                },
+                colorScheme: colorScheme,
               ),
               const SizedBox(width: 8),
-              SizedBox(
+
+              const SizedBox(
                 height: 80,
                 child: VerticalDivider(
                   color: Color(0xFF0D47A1),

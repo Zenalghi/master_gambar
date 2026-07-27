@@ -4,6 +4,7 @@ class Customer {
   final int id;
   final String namaPt;
   final String pj;
+  final String? jabatan;
   final String? signaturePj;
   final String? namaDrafter;
   final String? signatureDrafter;
@@ -16,6 +17,7 @@ class Customer {
     required this.id,
     required this.namaPt,
     required this.pj,
+    this.jabatan,
     this.signaturePj,
     this.namaDrafter,
     this.signatureDrafter,
@@ -30,6 +32,7 @@ class Customer {
       id: json['id'],
       namaPt: json['nama_pt'],
       pj: json['pj'],
+      jabatan: json['jabatan'],
       signaturePj: json['signature_pj'],
       namaDrafter: json['nama_drafter'],
       signatureDrafter: json['signature_drafter'],

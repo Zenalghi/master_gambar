@@ -26,6 +26,7 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
   // Controllers
   late final TextEditingController _namaPtController;
   late final TextEditingController _pjController;
+  late final TextEditingController _jabatanController;
   late final TextEditingController _namaDrafterController;
   late final TextEditingController _namaPemeriksaController;
 
@@ -54,6 +55,9 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
     _currentCustomer = widget.customer;
     _namaPtController = TextEditingController(text: _currentCustomer.namaPt);
     _pjController = TextEditingController(text: _currentCustomer.pj);
+    _jabatanController = TextEditingController(
+      text: _currentCustomer.jabatan ?? '',
+    );
     _namaDrafterController = TextEditingController(
       text: _currentCustomer.namaDrafter ?? '',
     );
@@ -74,6 +78,7 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
   void dispose() {
     _namaPtController.dispose();
     _pjController.dispose();
+    _jabatanController.dispose();
     _namaDrafterController.dispose();
     _namaPemeriksaController.dispose();
     super.dispose();
@@ -121,6 +126,9 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
           id: _currentCustomer.id,
           namaPt: _namaPtController.text,
           pj: _pjController.text,
+          jabatan: _jabatanController.text.isNotEmpty
+              ? _jabatanController.text
+              : null,
           namaDrafter: _namaDrafterController.text,
           namaPemeriksa: _namaPemeriksaController.text,
         );
@@ -367,6 +375,13 @@ class _EditCustomerDialogState extends ConsumerState<EditCustomerDialog> {
                     labelText: 'Penanggung Jawab (PJ)',
                   ),
                   validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _jabatanController,
+                  decoration: const InputDecoration(
+                    labelText: 'Jabatan (Opsional)',
+                  ),
                 ),
                 const SizedBox(height: 8),
                 _buildParafUpload(

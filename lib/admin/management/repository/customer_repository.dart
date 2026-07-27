@@ -41,6 +41,7 @@ class CustomerRepository {
   Future<Customer> addCustomer({
     required String namaPt,
     required String pj,
+    String? jabatan,
     String? namaDrafter,
     String? namaPemeriksa,
   }) async {
@@ -52,6 +53,7 @@ class CustomerRepository {
           data: {
             'nama_pt': namaPt,
             'pj': pj,
+            'jabatan': jabatan,
             'nama_drafter': namaDrafter,
             'nama_pemeriksa': namaPemeriksa,
           },
@@ -64,6 +66,7 @@ class CustomerRepository {
     required int id,
     required String namaPt,
     required String pj,
+    String? jabatan,
     String? namaDrafter,
     String? namaPemeriksa,
   }) async {
@@ -75,6 +78,7 @@ class CustomerRepository {
           data: {
             'nama_pt': namaPt,
             'pj': pj,
+            'jabatan': jabatan,
             'nama_drafter': namaDrafter,
             'nama_pemeriksa': namaPemeriksa,
           },
