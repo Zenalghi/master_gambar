@@ -15,12 +15,11 @@ class _MerkTableState extends ConsumerState<MerkTable> {
   // State untuk sorting di UI
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
+  int _rowsPerPage = 50;
 
   @override
   Widget build(BuildContext context) {
     final dataSource = MerkDataSource(ref, context);
-
-    final rowsPerPage = ref.watch(merkRowsPerPageProvider);
 
     return AsyncPaginatedDataTable2(
       columnSpacing: 3,
@@ -28,11 +27,16 @@ class _MerkTableState extends ConsumerState<MerkTable> {
       minWidth: 900,
       headingRowHeight: 35,
       dataRowHeight: 30,
-      rowsPerPage: rowsPerPage,
+      rowsPerPage: _rowsPerPage,
       availableRowsPerPage: const [25, 50, 100],
       onRowsPerPageChanged: (value) {
         if (value != null) {
-          ref.read(merkRowsPerPageProvider.notifier).state = value;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() {
+              _rowsPerPage = value;
+            });
+          });
         }
       },
       sortColumnIndex: _sortColumnIndex,

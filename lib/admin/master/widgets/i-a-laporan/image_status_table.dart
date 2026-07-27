@@ -21,6 +21,7 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
   // Sesuaikan default UI dengan Provider (ID Descending)
   int _sortColumnIndex = 0;
   bool _sortAscending = false;
+  int _rowsPerPage = 50;
   late final _ImageStatusDataSourceWithContext _dataSource;
 
   @override
@@ -34,8 +35,6 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
 
   @override
   Widget build(BuildContext context) {
-    final rowsPerPage = ref.watch(imageStatusRowsPerPageProvider);
-
     // PERBAIKAN: Pindahkan listen ke sini (di dalam build)
     ref.listen(imageStatusFilterProvider, (_, __) {
       _dataSource.refreshDatasource();
@@ -47,11 +46,16 @@ class _ImageStatusTableState extends ConsumerState<ImageStatusTable> {
       minWidth: 900,
       headingRowHeight: 35,
       dataRowHeight: 30,
-      rowsPerPage: rowsPerPage,
+      rowsPerPage: _rowsPerPage,
       availableRowsPerPage: const [50, 100],
       onRowsPerPageChanged: (value) {
         if (value != null) {
-          ref.read(imageStatusRowsPerPageProvider.notifier).state = value;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() {
+              _rowsPerPage = value;
+            });
+          });
         }
       },
       sortColumnIndex: _sortColumnIndex,

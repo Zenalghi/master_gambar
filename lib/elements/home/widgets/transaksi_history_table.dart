@@ -18,6 +18,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
   // Default sort updated_at desc (index 10)
   int _sortColumnIndex = 10;
   bool _sortAscending = false;
+  int _rowsPerPage = 50;
 
   @override
   void initState() {
@@ -27,8 +28,6 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
 
   @override
   Widget build(BuildContext context) {
-    final rowsPerPage = ref.watch(rowsPerPageProvider);
-
     ref.listen(transaksiFilterProvider, (_, __) {
       _dataSource.refreshDatasource();
     });
@@ -41,11 +40,16 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
       dataRowHeight: 30,
       sortColumnIndex: _sortColumnIndex,
       sortAscending: _sortAscending,
-      rowsPerPage: rowsPerPage,
+      rowsPerPage: _rowsPerPage,
       availableRowsPerPage: const [50, 100],
       onRowsPerPageChanged: (value) {
         if (value != null) {
-          ref.read(rowsPerPageProvider.notifier).state = value;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() {
+              _rowsPerPage = value;
+            });
+          });
         }
       },
       columns: _createColumns(),

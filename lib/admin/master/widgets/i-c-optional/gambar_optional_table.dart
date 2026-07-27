@@ -17,11 +17,11 @@ class GambarOptionalTable extends ConsumerStatefulWidget {
 class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
   int _sortColumnIndex = 7; // Default: updated_at (sesuaikan index kolom baru)
   bool _sortAscending = false;
+  int _rowsPerPage = 50;
 
   @override
   Widget build(BuildContext context) {
     final dataSource = GambarOptionalDataSource(ref, context);
-    final rowsPerPage = ref.watch(gambarOptionalRowsPerPageProvider);
 
     return AsyncPaginatedDataTable2(
       columnSpacing: 3,
@@ -29,11 +29,16 @@ class _GambarOptionalTableState extends ConsumerState<GambarOptionalTable> {
       minWidth: 900,
       headingRowHeight: 35,
       dataRowHeight: 30,
-      rowsPerPage: rowsPerPage,
+      rowsPerPage: _rowsPerPage,
       availableRowsPerPage: const [50, 100],
       onRowsPerPageChanged: (value) {
         if (value != null) {
-          ref.read(gambarOptionalRowsPerPageProvider.notifier).state = value;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() {
+              _rowsPerPage = value;
+            });
+          });
         }
       },
       sortColumnIndex: _sortColumnIndex,

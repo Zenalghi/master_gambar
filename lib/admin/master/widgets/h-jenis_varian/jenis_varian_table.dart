@@ -18,11 +18,11 @@ class JenisVarianTable extends ConsumerStatefulWidget {
 class _JenisVarianTableState extends ConsumerState<JenisVarianTable> {
   int? _sortColumnIndex = 0; // Default sort by ID
   bool _sortAscending = true;
+  int _rowsPerPage = 50;
 
   @override
   Widget build(BuildContext context) {
     final asyncData = ref.watch(jenisVarianListProvider);
-    final rowsPerPage = ref.watch(jenisVarianRowsPerPageProvider);
     final searchQuery = ref.watch(jenisVarianSearchQueryProvider);
 
     return asyncData.when(
@@ -70,10 +70,18 @@ class _JenisVarianTableState extends ConsumerState<JenisVarianTable> {
           minWidth: 900,
           headingRowHeight: 35,
           dataRowHeight: 30,
-          rowsPerPage: rowsPerPage,
+          rowsPerPage: _rowsPerPage,
           availableRowsPerPage: const [50, 100],
-          onRowsPerPageChanged: (value) =>
-              ref.read(jenisVarianRowsPerPageProvider.notifier).state = value!,
+          onRowsPerPageChanged: (value) {
+            if (value != null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                setState(() {
+                  _rowsPerPage = value;
+                });
+              });
+            }
+          },
           sortColumnIndex: _sortColumnIndex,
           sortAscending: _sortAscending,
           columns: _createColumns(),

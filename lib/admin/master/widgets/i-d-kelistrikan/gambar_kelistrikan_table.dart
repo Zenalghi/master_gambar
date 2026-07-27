@@ -19,6 +19,7 @@ class _GambarKelistrikanTableState
   // Default sort: Updated At (Index 5), Descending
   int _sortColumnIndex = 5;
   bool _sortAscending = false;
+  int _rowsPerPage = 50;
 
   late final GambarKelistrikanDataSource _dataSource;
 
@@ -31,8 +32,6 @@ class _GambarKelistrikanTableState
 
   @override
   Widget build(BuildContext context) {
-    final rowsPerPage = ref.watch(gambarKelistrikanRowsPerPageProvider);
-
     // 2. PASANG LISTENER DI SINI (Di dalam build)
     ref.listen(gambarKelistrikanFilterProvider, (_, __) {
       _dataSource.refreshDatasource();
@@ -45,11 +44,16 @@ class _GambarKelistrikanTableState
       headingRowHeight: 35,
       dataRowHeight: 30,
       // Pagination Config
-      rowsPerPage: rowsPerPage,
+      rowsPerPage: _rowsPerPage,
       availableRowsPerPage: const [50, 100],
       onRowsPerPageChanged: (value) {
         if (value != null) {
-          ref.read(gambarKelistrikanRowsPerPageProvider.notifier).state = value;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() {
+              _rowsPerPage = value;
+            });
+          });
         }
       },
 

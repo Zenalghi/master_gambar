@@ -16,6 +16,7 @@ class MasterDataTable extends ConsumerStatefulWidget {
 class _MasterDataTableState extends ConsumerState<MasterDataTable> {
   int _sortColumnIndex = 6;
   bool _sortAscending = false;
+  int _rowsPerPage = 50;
 
   late final MasterDataDataSource _dataSource;
 
@@ -27,8 +28,6 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
 
   @override
   Widget build(BuildContext context) {
-    final rowsPerPage = ref.watch(masterDataRowsPerPageProvider);
-
     ref.listen(masterDataFilterProvider, (_, __) {
       // PERBAIKAN UTAMA: Gunakan addPostFrameCallback alih-alih Future.microtask
       // Ini menjamin tabel tidak di-refresh saat sedang me-layout panah sorting
@@ -46,10 +45,18 @@ class _MasterDataTableState extends ConsumerState<MasterDataTable> {
       headingRowHeight: 35,
       dataRowHeight: 30,
       loading: const Center(child: CircularProgressIndicator()),
-      rowsPerPage: rowsPerPage,
+      rowsPerPage: _rowsPerPage,
       availableRowsPerPage: const [50, 100],
-      onRowsPerPageChanged: (value) =>
-          ref.read(masterDataRowsPerPageProvider.notifier).state = value!,
+      onRowsPerPageChanged: (value) {
+        if (value != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() {
+              _rowsPerPage = value;
+            });
+          });
+        }
+      },
       sortColumnIndex: _sortColumnIndex,
       sortAscending: _sortAscending,
       columns: _createColumns(),

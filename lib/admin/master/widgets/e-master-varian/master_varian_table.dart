@@ -17,6 +17,7 @@ class MasterVarianTable extends ConsumerStatefulWidget {
 class _MasterVarianTableState extends ConsumerState<MasterVarianTable> {
   int _sortColumnIndex = 1; // <-- UBAH KE 1 (Jenis Kendaraan)
   bool _sortAscending = true; // <-- UBAH KE TRUE (A-Z)
+  int _rowsPerPage = 50;
 
   void _onSort(int columnIndex, bool ascending) {
     setState(() {
@@ -44,7 +45,6 @@ class _MasterVarianTableState extends ConsumerState<MasterVarianTable> {
   @override
   Widget build(BuildContext context) {
     final dataSource = MasterVarianDataSource(ref, context);
-    final rowsPerPage = ref.watch(masterVarianRowsPerPageProvider);
 
     return AsyncPaginatedDataTable2(
       columnSpacing: 12,
@@ -52,11 +52,16 @@ class _MasterVarianTableState extends ConsumerState<MasterVarianTable> {
       minWidth: 800,
       headingRowHeight: 35,
       dataRowHeight: 32,
-      rowsPerPage: rowsPerPage,
+      rowsPerPage: _rowsPerPage,
       availableRowsPerPage: const [50, 100],
       onRowsPerPageChanged: (value) {
         if (value != null) {
-          ref.read(masterVarianRowsPerPageProvider.notifier).state = value;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() {
+              _rowsPerPage = value;
+            });
+          });
         }
       },
       sortColumnIndex: _sortColumnIndex,

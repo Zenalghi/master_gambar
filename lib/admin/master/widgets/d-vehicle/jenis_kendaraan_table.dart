@@ -17,11 +17,11 @@ class _JenisKendaraanTableState extends ConsumerState<JenisKendaraanTable> {
   // --- PERUBAHAN 2: Buat state lokal untuk sorting ---
   int _sortColumnIndex = 1; // Default: jenis_kendaraan
   bool _sortAscending = true; // Default: asc
+  int _rowsPerPage = 50;
 
   @override
   Widget build(BuildContext context) {
     final dataSource = JenisKendaraanDataSource(ref, context);
-    final rowsPerPage = ref.watch(jenisKendaraanRowsPerPageProvider);
 
     return AsyncPaginatedDataTable2(
       columnSpacing: 3,
@@ -29,11 +29,16 @@ class _JenisKendaraanTableState extends ConsumerState<JenisKendaraanTable> {
       minWidth: 900,
       headingRowHeight: 35,
       dataRowHeight: 30,
-      rowsPerPage: rowsPerPage,
+      rowsPerPage: _rowsPerPage,
       availableRowsPerPage: const [50, 100],
       onRowsPerPageChanged: (value) {
         if (value != null) {
-          ref.read(jenisKendaraanRowsPerPageProvider.notifier).state = value;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() {
+              _rowsPerPage = value;
+            });
+          });
         }
       },
       // --- PERUBAHAN 3: Hubungkan state ke AsyncPaginatedDataTable2 ---

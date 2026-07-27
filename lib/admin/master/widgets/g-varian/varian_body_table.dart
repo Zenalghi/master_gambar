@@ -16,13 +16,13 @@ class VarianBodyTable extends ConsumerStatefulWidget {
 class _VarianBodyTableState extends ConsumerState<VarianBodyTable> {
   int _sortColumnIndex = 6; // Default: updated_at
   bool _sortAscending = false; // Default: desc
+  int _rowsPerPage = 50;
 
   @override
   Widget build(BuildContext context) {
     final selectedMasterDataId = ref.watch(selectedMasterDataFilterProvider);
     // Buat DataSource di dalam build agar mendapatkan ref yang benar
     final dataSource = VarianBodyDataSource(ref, context);
-    final rowsPerPage = ref.watch(varianBodyRowsPerPageProvider);
 
     return AsyncPaginatedDataTable2(
       columnSpacing: 3,
@@ -30,11 +30,16 @@ class _VarianBodyTableState extends ConsumerState<VarianBodyTable> {
       minWidth: 900,
       headingRowHeight: 35,
       dataRowHeight: 30,
-      rowsPerPage: rowsPerPage,
+      rowsPerPage: _rowsPerPage,
       availableRowsPerPage: const [50, 100],
       onRowsPerPageChanged: (value) {
         if (value != null) {
-          ref.read(varianBodyRowsPerPageProvider.notifier).state = value;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() {
+              _rowsPerPage = value;
+            });
+          });
         }
       },
       sortColumnIndex: _sortColumnIndex,
