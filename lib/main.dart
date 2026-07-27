@@ -11,6 +11,28 @@ import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app/core/providers.dart';
 
+// Try the provided URLs sequentially and return the first one that is reachable.
+Future<String?> _pickWorkingUrl(
+  List<String> urls, {
+  int timeoutMs = 3000,
+}) async {
+  final client = HttpClient();
+  final timeout = Duration(milliseconds: timeoutMs);
+  for (final u in urls) {
+    try {
+      final uri = Uri.parse(u);
+      final request = await client.getUrl(uri).timeout(timeout);
+      final response = await request.close().timeout(timeout);
+      debugPrint('Tried $u -> ${response.statusCode}');
+      return u;
+    } catch (e) {
+      debugPrint('Failed to reach $u: $e');
+      continue;
+    }
+  }
+  return null;
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -49,7 +71,41 @@ void main() async {
       if (await file.exists()) {
         final content = await file.readAsString();
         final config = json.decode(content) as Map<String, dynamic>;
-        baseUrl = config['baseUrl'] as String;
+
+        List<String> urls = [];
+        if (config.containsKey('baseUrls') && config['baseUrls'] is List) {
+          urls = List<String>.from(config['baseUrls']);
+        } else if (config.containsKey('baseUrl') &&
+            config['baseUrl'] is String) {
+          urls = [config['baseUrl'] as String];
+        }
+
+        if (urls.isNotEmpty) {
+          int timeoutMs = 3000;
+          if (config.containsKey('timeoutMs')) {
+            try {
+              timeoutMs = (config['timeoutMs'] is int)
+                  ? config['timeoutMs'] as int
+                  : int.parse('${config['timeoutMs']}');
+            } catch (_) {
+              debugPrint(
+                'Invalid timeoutMs in config, using default $timeoutMs ms',
+              );
+            }
+          }
+
+          final chosen = await _pickWorkingUrl(urls, timeoutMs: timeoutMs);
+          if (chosen != null) {
+            baseUrl = chosen;
+            debugPrint('Selected working baseUrl: $baseUrl');
+          } else {
+            debugPrint(
+              'No reachable URL from config, using first entry as fallback.',
+            );
+            baseUrl = urls.first;
+          }
+        }
+
         debugPrint("Config loaded from $configPath");
       } else {
         debugPrint("Config file not found at $configPath, using default.");
@@ -105,10 +161,7 @@ class MyApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('id', 'ID'),
-        Locale('en', 'US'),
-      ],
+      supportedLocales: const [Locale('id', 'ID'), Locale('en', 'US')],
       builder: (context, child) {
         final mediaQueryData = MediaQuery.of(context);
         return MediaQuery(
