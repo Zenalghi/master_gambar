@@ -1034,20 +1034,28 @@ class MasterDataRepository {
     String sortBy = 'updated_at',
     String sortDirection = 'desc',
     String search = '',
+    Map<String, String?>? advancedFilters,
   }) async {
+    final Map<String, dynamic> queryParams = {
+      'page': page,
+      'perPage': perPage,
+      'sortBy': sortBy,
+      'sortDirection': sortDirection,
+      'search': search,
+    };
+
+    if (advancedFilters != null) {
+      advancedFilters.forEach((key, value) {
+        if (value != null && value.isNotEmpty) {
+          queryParams[key] = value;
+        }
+      });
+    }
+
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .get(
-          '/admin/image-status',
-          queryParameters: {
-            'page': page,
-            'perPage': perPage,
-            'sortBy': sortBy,
-            'sortDirection': sortDirection,
-            'search': search,
-          },
-        );
+        .get('/admin/image-status', queryParameters: queryParams);
     return PaginatedResponse.fromJson(response.data, ImageStatus.fromJson);
   }
 

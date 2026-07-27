@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/master/providers/master_data_providers.dart';
 import '../widgets/i-a-laporan/image_status_table.dart';
+import '../widgets/i-a-laporan/image_status_advanced_filter_panel.dart';
 
 // 1. Ubah menjadi ConsumerStatefulWidget
 class ImageStatusScreen extends ConsumerStatefulWidget {
@@ -37,6 +38,10 @@ class _ImageStatusScreenState extends ConsumerState<ImageStatusScreen> {
       padding: const EdgeInsets.all(5.0),
       child: Column(
         children: [
+          // 1. Filter Lanjutan (Advanced Filter)
+          const ImageStatusAdvancedFilterPanel(),
+          const SizedBox(height: 4),
+
           Row(
             children: [
               SizedBox(width: 10),
