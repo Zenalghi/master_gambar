@@ -3,44 +3,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/admin/management/widgets/configuration_sidebar.dart';
 import '../management/customer_management_screen.dart';
+import '../management/document_customer_screen.dart';
 import '../management/user_management_screen.dart';
+import '../management/providers/customer_providers.dart';
 
-// 1. Ubah menjadi ConsumerStatefulWidget untuk mengelola state lokal
-class ConfigurationScreen extends ConsumerStatefulWidget {
+class ConfigurationScreen extends ConsumerWidget {
   const ConfigurationScreen({super.key});
 
   @override
-  ConsumerState<ConfigurationScreen> createState() =>
-      _ConfigurationScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedIndex = ref.watch(configurationTabIndexProvider);
 
-class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
-  // 2. Buat state untuk melacak item sidebar yang dipilih
-  int _selectedIndex = 0;
+    final List<Widget> pages = const [
+      CustomerManagementScreen(),
+      DocumentCustomerScreen(),
+      UserManagementScreen(),
+    ];
 
-  // 3. Siapkan daftar halaman yang akan ditampilkan
-  final List<Widget> _pages = [
-    const CustomerManagementScreen(),
-    const UserManagementScreen(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    // 4. Buat layout dengan Row
     return Row(
       children: [
         // Sidebar di sebelah kiri
         ConfigurationSidebar(
-          selectedIndex: _selectedIndex,
+          selectedIndex: selectedIndex,
           onItemSelected: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
+            ref.read(configurationTabIndexProvider.notifier).state = index;
           },
         ),
         const VerticalDivider(thickness: 1, width: 1),
         // Konten di sebelah kanan, akan berubah sesuai pilihan sidebar
-        Expanded(child: _pages[_selectedIndex]),
+        Expanded(child: pages[selectedIndex]),
       ],
     );
   }

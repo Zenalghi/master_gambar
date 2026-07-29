@@ -29,9 +29,9 @@ class ImageStatusDataSource extends AsyncDataTableSource {
           .getImageStatus(
             perPage: count,
             page: (startIndex ~/ count) + 1,
-            search: (filters['search'] ?? '') as String,
-            sortBy: (filters['sortBy'] ?? 'id') as String,
-            sortDirection: (filters['sortDirection'] ?? 'desc') as String,
+            search: (filters['search'] ?? ''),
+            sortBy: (filters['sortBy'] ?? 'id'),
+            sortDirection: (filters['sortDirection'] ?? 'desc'),
             advancedFilters: filters,
           );
 

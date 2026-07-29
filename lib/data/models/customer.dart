@@ -10,6 +10,8 @@ class Customer {
   final String? signatureDrafter;
   final String? namaPemeriksa;
   final String? signaturePemeriksa;
+  final String? statusTdp;
+  final DateTime? tdpMasaBerlaku;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -23,23 +25,41 @@ class Customer {
     this.signatureDrafter,
     this.namaPemeriksa,
     this.signaturePemeriksa,
+    this.statusTdp,
+    this.tdpMasaBerlaku,
     required this.createdAt,
     required this.updatedAt,
   });
 
   factory Customer.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic val) {
+      if (val == null) return 0;
+      if (val is int) return val;
+      if (val is double) return val.toInt();
+      return int.tryParse(val.toString()) ?? 0;
+    }
+
     return Customer(
-      id: json['id'],
-      namaPt: json['nama_pt'],
-      pj: json['pj'],
-      jabatan: json['jabatan'],
-      signaturePj: json['signature_pj'],
-      namaDrafter: json['nama_drafter'],
-      signatureDrafter: json['signature_drafter'],
-      namaPemeriksa: json['nama_pemeriksa'],
-      signaturePemeriksa: json['signature_pemeriksa'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      id: parseInt(json['id']),
+      namaPt: json['nama_pt']?.toString() ?? '-',
+      pj: json['pj']?.toString() ?? '-',
+      jabatan: json['jabatan']?.toString(),
+      signaturePj: json['signature_pj']?.toString(),
+      namaDrafter: json['nama_drafter']?.toString(),
+      signatureDrafter: json['signature_drafter']?.toString(),
+      namaPemeriksa: json['nama_pemeriksa']?.toString(),
+      signaturePemeriksa: json['signature_pemeriksa']?.toString(),
+      statusTdp: json['status_tdp']?.toString(),
+      tdpMasaBerlaku: json['tdp_masa_berlaku'] != null
+          ? DateTime.tryParse(json['tdp_masa_berlaku'].toString())
+          : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'].toString())
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'].toString())
+          : DateTime.now(),
     );
   }
 }
+

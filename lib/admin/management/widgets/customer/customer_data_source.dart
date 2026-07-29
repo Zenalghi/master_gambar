@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:master_gambar/admin/management/providers/customer_providers.dart';
 import 'package:master_gambar/admin/management/widgets/customer/edit_customer_dialog.dart';
 import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/customer.dart';
@@ -158,6 +159,9 @@ class CustomerDataSource extends DataTableSource {
           SelectableText(dateFormat.format(customer.updatedAt.toLocal())),
         ),
         DataCell(
+          _buildStatusTdpWidget(customer.statusTdp, customer.tdpMasaBerlaku, colorScheme),
+        ),
+        DataCell(
           Row(
             children: [
               IconButton(
@@ -168,6 +172,20 @@ class CustomerDataSource extends DataTableSource {
                     context: context,
                     builder: (_) => EditCustomerDialog(customer: customer),
                   );
+                },
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.description,
+                  color: Colors.blue,
+                  size: 15,
+                ),
+                tooltip: 'Document Customer: ${customer.namaPt}',
+                onPressed: () {
+                  ref
+                      .read(selectedDocumentCustomerProvider.notifier)
+                      .state = customer;
+                  ref.read(configurationTabIndexProvider.notifier).state = 1;
                 },
               ),
             ],
@@ -185,4 +203,68 @@ class CustomerDataSource extends DataTableSource {
 
   @override
   int get selectedRowCount => 0;
+
+  Widget _buildStatusTdpWidget(String? status, DateTime? masaBerlaku, ColorScheme colorScheme) {
+    if (status == null) {
+      return const Tooltip(
+        message: 'Belum ada data dokumen atau masa berlaku TDP.',
+        child: Text('-', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+      );
+    }
+
+    String tglStr = '';
+    if (masaBerlaku != null) {
+      const bulan = [
+        '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+      ];
+      tglStr = '\nMasa Berlaku: ${masaBerlaku.day} ${bulan[masaBerlaku.month]} ${masaBerlaku.year}';
+    }
+
+    Color color;
+    String tooltip;
+    IconData icon;
+
+    switch (status) {
+      case 'Aktif':
+        color = Colors.green.shade600;
+        tooltip = 'Aktif: Masa berlaku TDP masih aman (lebih dari 5 pekan).$tglStr';
+        icon = Icons.check_circle;
+        break;
+      case 'WARNING':
+        color = Colors.orange.shade800;
+        tooltip =
+            'WARNING: Masa berlaku TDP akan habis dalam 5 pekan atau kurang!$tglStr';
+        icon = Icons.warning_amber;
+        break;
+      case 'Expired':
+        color = Colors.red.shade700;
+        tooltip = 'Expired: Masa berlaku TDP sudah lewat / kadaluarsa!$tglStr';
+        icon = Icons.cancel;
+        break;
+      default:
+        color = colorScheme.onSurface;
+        tooltip = 'Status: $status$tglStr';
+        icon = Icons.help_outline;
+    }
+
+    return Tooltip(
+      message: tooltip,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            status,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

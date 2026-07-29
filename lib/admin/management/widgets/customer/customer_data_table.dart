@@ -168,6 +168,9 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
         return 8;
       case 'updated_at':
         return 9;
+      case 'status_tdp':
+      case 'tdp_masa_berlaku':
+        return 10;
       default:
         return 0;
     }
@@ -225,11 +228,12 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
         fixedWidth: 115,
         onSort: _onSort,
       ),
-      const DataColumn2(
-        label: Text('Option'),
-        size: ColumnSize.S,
-        onSort: null,
+      DataColumn2(
+        label: const Text('Status TDP'),
+        fixedWidth: 90,
+        onSort: _onSort,
       ),
+      const DataColumn2(label: Text('Option'), fixedWidth: 87, onSort: null),
     ];
   }
 
@@ -256,6 +260,9 @@ class _CustomerDataTableState extends ConsumerState<CustomerDataTable> {
         break;
       case 9:
         newSortBy = 'updated_at';
+        break;
+      case 10:
+        newSortBy = 'status_tdp';
         break;
       default:
         return;

@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/customer.dart';
+import '../../../data/models/document_customer.dart';
 import '../repository/customer_repository.dart';
+import '../repository/document_customer_repository.dart';
 
 // 1. Definisikan State untuk tabel customer
 class CustomerDataTableState {
@@ -106,3 +108,22 @@ final customerSearchQueryProvider = StateProvider<String>((ref) => '');
 // kita panggil ref.invalidate(customerInvalidator)
 // Ini akan membuat provider di-rebuild dan memicu ref.listen di UI.
 final customerInvalidator = StateProvider<int>((ref) => 0);
+
+// 6. Provider untuk melacak tab aktif di ConfigurationScreen
+final configurationTabIndexProvider = StateProvider<int>((ref) => 0);
+
+// 7. Provider untuk menyimpan Customer yang sedang terpilih di tab Document Customer
+final selectedDocumentCustomerProvider = StateProvider<Customer?>((ref) => null);
+
+// 8. Provider untuk memuat data DocumentCustomer dari API
+final documentCustomerProvider =
+    FutureProvider.family<DocumentCustomer?, int>((ref, customerId) async {
+  // Watch invalidator agar bisa di-refresh
+  ref.watch(documentCustomerInvalidator);
+  final repo = ref.read(documentCustomerRepositoryProvider);
+  return repo.getDocument(customerId);
+});
+
+// 9. Provider untuk memicu refresh document customer
+final documentCustomerInvalidator = StateProvider<int>((ref) => 0);
+

@@ -1,0 +1,183 @@
+// lib/admin/management/widgets/document/components/pdf_preview_box.dart
+import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
+import 'package:pdfx/pdfx.dart';
+
+/// Kotak preview PDF berukuran A4 portrait.
+/// Menampilkan placeholder jika [previewContent] null.
+class DocPreviewBox extends StatelessWidget {
+  final Widget? previewContent;
+  final ColorScheme colorScheme;
+
+  const DocPreviewBox({
+    super.key,
+    required this.previewContent,
+    required this.colorScheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 450,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        border: Border.all(color: colorScheme.outlineVariant, width: 1.5),
+        borderRadius: BorderRadius.circular(6),
+        boxShadow: [
+          if (previewContent != null)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+        ],
+      ),
+      child: AspectRatio(
+        aspectRatio: 210 / 297, // A4 Portrait
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(5),
+          child:
+              previewContent ??
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.picture_as_pdf_outlined,
+                      size: 40,
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.4,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Preview',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.6,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Widget stateful yang menangani rendering PDF dari bytes atau URL loader.
+class A4PdfPreviewer extends StatefulWidget {
+  final Future<Uint8List> Function()? futureLoader;
+  final Uint8List? bytes;
+  final String cacheKey;
+
+  const A4PdfPreviewer({
+    super.key,
+    this.futureLoader,
+    this.bytes,
+    required this.cacheKey,
+  });
+
+  @override
+  State<A4PdfPreviewer> createState() => _A4PdfPreviewerState();
+}
+
+class _A4PdfPreviewerState extends State<A4PdfPreviewer> {
+  PdfController? _pdfController;
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _initController();
+  }
+
+  @override
+  void didUpdateWidget(covariant A4PdfPreviewer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.cacheKey != oldWidget.cacheKey) {
+      _disposeController();
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+      _initController();
+    }
+  }
+
+  Future<void> _initController() async {
+    try {
+      Uint8List data;
+      if (widget.bytes != null) {
+        data = Uint8List.fromList(widget.bytes!);
+      } else if (widget.futureLoader != null) {
+        final res = await widget.futureLoader!();
+        data = Uint8List.fromList(res);
+      } else {
+        throw Exception('Tidak ada data file');
+      }
+
+      if (mounted) {
+        setState(() {
+          _pdfController = PdfController(document: PdfDocument.openData(data));
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _disposeController() {
+    _pdfController?.dispose();
+    _pdfController = null;
+  }
+
+  @override
+  void dispose() {
+    _disposeController();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+    }
+    if (_errorMessage != null || _pdfController == null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.broken_image_outlined,
+              size: 40,
+              color: Colors.red.shade300,
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Gagal memuat PDF',
+              style: TextStyle(fontSize: 10, color: Colors.grey),
+            ),
+          ],
+        ),
+      );
+    }
+    return PdfView(
+      key: ValueKey(widget.cacheKey),
+      controller: _pdfController!,
+      scrollDirection: Axis.vertical,
+      backgroundDecoration: const BoxDecoration(color: Colors.white),
+    );
+  }
+}

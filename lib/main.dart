@@ -151,7 +151,7 @@ class MyApp extends ConsumerWidget {
     final isDarkMode = ref.watch(darkModeProvider);
 
     return MaterialApp(
-      title: 'Master Gambar App',
+      title: 'Rekayasa Desk',
       theme: createAppTheme(darkMode: false),
       darkTheme: createAppTheme(darkMode: true),
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,

@@ -2,6 +2,7 @@
 
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/app/core/providers.dart';
 import '../../../data/models/option_item.dart';
@@ -269,22 +270,51 @@ class MasterDataRepository {
     return data.map((item) => TypeChassis.fromJson(item)).toList();
   }
 
-  Future<TypeChassis> addTypeChassis({required String typeChassis}) async {
+  Future<TypeChassis> addTypeChassis({
+    required String typeChassis,
+    PlatformFile? sutPdfFile,
+  }) async {
+    final Map<String, dynamic> dataMap = {
+      'type_chassis': typeChassis,
+    };
+    if (sutPdfFile != null && sutPdfFile.bytes != null) {
+      dataMap['sut_pdf'] = MultipartFile.fromBytes(
+        sutPdfFile.bytes!,
+        filename: sutPdfFile.name,
+      );
+    }
+    final formData = FormData.fromMap(dataMap);
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .post('/type-chassis', data: {'type_chassis': typeChassis});
+        .post('/type-chassis', data: formData);
     return TypeChassis.fromJson(response.data);
   }
 
   Future<TypeChassis> updateTypeChassis({
     required int id,
     required String typeChassis,
+    PlatformFile? sutPdfFile,
+    bool removeSutPdf = false,
   }) async {
+    final Map<String, dynamic> dataMap = {
+      'type_chassis': typeChassis,
+      '_method': 'PUT',
+    };
+    if (sutPdfFile != null && sutPdfFile.bytes != null) {
+      dataMap['sut_pdf'] = MultipartFile.fromBytes(
+        sutPdfFile.bytes!,
+        filename: sutPdfFile.name,
+      );
+    }
+    if (removeSutPdf) {
+      dataMap['remove_sut_pdf'] = '1';
+    }
+    final formData = FormData.fromMap(dataMap);
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .put('/type-chassis/$id', data: {'type_chassis': typeChassis});
+        .post('/type-chassis/$id', data: formData);
     return TypeChassis.fromJson(response.data);
   }
 

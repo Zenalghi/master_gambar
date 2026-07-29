@@ -86,7 +86,7 @@ class _TypeChassisTableState extends ConsumerState<TypeChassisTable> {
         size: ColumnSize.M,
         onSort: _onSort,
       ),
-      const DataColumn2(label: Text('Options'), fixedWidth: 120),
+      const DataColumn2(label: Text('Options'), fixedWidth: 280),
     ];
   }
 }

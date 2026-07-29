@@ -22,6 +22,10 @@ class ConfigurationSidebar extends StatelessWidget {
           label: Text('Customer'),
         ),
         NavigationRailDestination(
+          icon: Icon(Icons.description),
+          label: Text('Document'),
+        ),
+        NavigationRailDestination(
           icon: Icon(Icons.people),
           label: Text('User'),
         ),
