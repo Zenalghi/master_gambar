@@ -68,19 +68,19 @@ dev_dependencies:
 
 flutter_launcher_icons:
   # Path ke file gambar utama Anda
-  image_path: "assets/icons/ico3.png"
+  image_path: "assets/icons/ico1.png"
 
   # Aktifkan untuk platform desktop
   windows:
     generate: true
-    image_path: "assets/icons/ico3.png"
+    image_path: "assets/icons/ico1.png"
     icon_size: 256 # Ukuran ikon untuk Windows (.ico)
   macos:
     generate: true
-    image_path: "assets/icons/ico3.png"
+    image_path: "assets/icons/ico1.png"
   linux:
     generate: true
-    image_path: "assets/icons/ico3.png"
+    image_path: "assets/icons/ico1.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
