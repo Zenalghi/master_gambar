@@ -128,14 +128,22 @@ class _DocumentCustomerFormState extends ConsumerState<DocumentCustomerForm> {
   String? get _localStatusTdp {
     if (_selectedMasaBerlaku == null) return null;
     try {
+      // Wajib menggunakan waktu WIB (UTC+7 / Asia/Jakarta) dan normalisasi ke startOfDay (00:00:00) agar identik dengan backend
+      final nowUtc = DateTime.now().toUtc().add(const Duration(hours: 7));
+      final nowWib = DateTime(nowUtc.year, nowUtc.month, nowUtc.day);
+
       final date = _selectedMasaBerlaku!;
-      final now = DateTime.now();
-      if (now.isAfter(date)) return 'Expired';
-      final warningThreshold = date.subtract(const Duration(days: 35));
-      if (now.isAfter(warningThreshold) ||
-          now.isAtSameMomentAs(warningThreshold)) {
+      final expiryWib = DateTime(date.year, date.month, date.day);
+
+      if (nowWib.isAfter(expiryWib)) {
+        return 'Expired';
+      }
+
+      final warningThreshold = expiryWib.subtract(const Duration(days: 35));
+      if (!nowWib.isBefore(warningThreshold)) {
         return 'WARNING';
       }
+
       return 'Aktif';
     } catch (_) {
       return null;
@@ -294,8 +302,9 @@ class _DocumentCustomerFormState extends ConsumerState<DocumentCustomerForm> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
       initialEntryMode: DatePickerEntryMode.input,
-      fieldHintText: 'dd.MM.yy',
-      fieldLabelText: 'Masa Berlaku',
+      locale: const Locale('id', 'ID'),
+      fieldHintText: 'dd/MM/yyyy',
+      fieldLabelText: 'Masa Berlaku (Tanggal/Bulan/Tahun)',
     );
     if (picked != null) {
       _selectedMasaBerlaku = picked;

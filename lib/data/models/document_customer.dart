@@ -72,8 +72,8 @@ class DocumentCustomer {
     return DocumentCustomer(
       id: parseInt(json['id']),
       customerId: parseInt(json['customer_id']),
-      kopSurat: json['kop_surat']?.toString(),
-      dataUmum: json['data_umum']?.toString(),
+      kopSurat: (json['kop_surat_file'] ?? json['kop_surat'])?.toString(),
+      dataUmum: (json['data_umum_file'] ?? json['data_umum'])?.toString(),
       tdpFiles: json['tdp_files'] != null && json['tdp_files'] is List
           ? (json['tdp_files'] as List)
               .whereType<Map<String, dynamic>>()
@@ -81,7 +81,7 @@ class DocumentCustomer {
               .toList()
           : [],
       tdpMasaBerlaku: json['tdp_masa_berlaku'] != null
-          ? DateTime.tryParse(json['tdp_masa_berlaku'].toString())
+          ? DateTime.tryParse(json['tdp_masa_berlaku'].toString())?.toLocal()
           : null,
       statusTdp: json['status_tdp']?.toString(),
       permohonanSkrb: json['permohonan_skrb']?.toString(),

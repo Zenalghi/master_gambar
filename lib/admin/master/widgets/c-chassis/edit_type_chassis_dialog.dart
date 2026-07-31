@@ -28,6 +28,7 @@ class EditTypeChassisDialog extends ConsumerStatefulWidget {
 
 class _EditTypeChassisDialogState extends ConsumerState<EditTypeChassisDialog> {
   late TextEditingController _controller;
+  late TextEditingController _jenisTipeController;
   PlatformFile? _newPdfFile;
   bool _removePdf = false;
   bool _isLoading = false;
@@ -36,11 +37,15 @@ class _EditTypeChassisDialogState extends ConsumerState<EditTypeChassisDialog> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.item.name);
+    _jenisTipeController = TextEditingController(
+      text: widget.item.jenisTipe ?? '',
+    );
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _jenisTipeController.dispose();
     super.dispose();
   }
 
@@ -236,6 +241,14 @@ class _EditTypeChassisDialogState extends ConsumerState<EditTypeChassisDialog> {
                   labelText: 'Nama Type Chassis',
                 ),
               ),
+              const SizedBox(height: 15),
+              TextFormField(
+                controller: _jenisTipeController,
+                textCapitalization: TextCapitalization.characters,
+                decoration: const InputDecoration(
+                  labelText: 'Jenis Tipe (Opsional)',
+                ),
+              ),
               const SizedBox(height: 20),
               const Text(
                 'File PDF SUT (Maksimal 2 MB):',
@@ -377,6 +390,7 @@ class _EditTypeChassisDialogState extends ConsumerState<EditTypeChassisDialog> {
                         .updateTypeChassis(
                           id: widget.item.id,
                           typeChassis: _controller.text,
+                          jenisTipe: _jenisTipeController.text,
                           sutPdfFile: _newPdfFile,
                           removeSutPdf: _removePdf,
                         );

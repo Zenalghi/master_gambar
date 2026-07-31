@@ -51,7 +51,7 @@ class Customer {
       signaturePemeriksa: json['signature_pemeriksa']?.toString(),
       statusTdp: json['status_tdp']?.toString(),
       tdpMasaBerlaku: json['tdp_masa_berlaku'] != null
-          ? DateTime.tryParse(json['tdp_masa_berlaku'].toString())
+          ? DateTime.tryParse(json['tdp_masa_berlaku'].toString())?.toLocal()
           : null,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'].toString())

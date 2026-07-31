@@ -162,6 +162,7 @@ class MyApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [Locale('id', 'ID'), Locale('en', 'US')],
+      locale: const Locale('id', 'ID'),
       builder: (context, child) {
         final mediaQueryData = MediaQuery.of(context);
         return MediaQuery(

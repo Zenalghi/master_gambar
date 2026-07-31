@@ -13,7 +13,7 @@ ThemeData createAppTheme({required bool darkMode}) {
   final colorScheme = ColorScheme.fromSeed(
     seedColor: AppColors.primary,
     brightness: darkMode ? Brightness.dark : Brightness.light,
-    background: darkMode ? AppColors.backgroundDark : AppColors.background,
+    surface: darkMode ? AppColors.backgroundDark : AppColors.background,
   );
 
   return ThemeData(
@@ -21,7 +21,7 @@ ThemeData createAppTheme({required bool darkMode}) {
     colorScheme: colorScheme,
     fontFamily: 'Poppins',
     brightness: darkMode ? Brightness.dark : Brightness.light,
-    scaffoldBackgroundColor: colorScheme.background,
+    scaffoldBackgroundColor: colorScheme.surface,
     appBarTheme: AppBarTheme(
       backgroundColor: colorScheme.surface,
       foregroundColor: colorScheme.onSurface,
@@ -41,7 +41,7 @@ ThemeData createAppTheme({required bool darkMode}) {
       elevation: darkMode ? 2 : 4,
       shadowColor: darkMode
           ? Colors.transparent
-          : AppColors.shadow.withOpacity(0.5),
+          : AppColors.shadow.withAlpha(128),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
     ),
@@ -105,4 +105,55 @@ class AppTextStyles {
 
     return TextStyle(fontSize: fontSize, fontFamily: 'Poppins');
   }
+}
+
+class SkrbActionColors {
+  final bool isDark;
+  SkrbActionColors(Brightness brightness)
+      : isDark = brightness == Brightness.dark;
+
+  // 1. Hide / Unhide Icon
+  Color get hideIcon =>
+      isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626);
+  Color get unhideIcon =>
+      isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706);
+
+  // 2. Pilih File Button (Upload Baru)
+  Color get pilihFileBg =>
+      isDark ? const Color(0xFF10B981) : const Color(0xFF059669);
+  Color get pilihFileFg =>
+      isDark ? const Color(0xFF064E3B) : Colors.white;
+
+  // 3. Ganti File Button (Replace File)
+  Color get gantiFileBg =>
+      isDark ? const Color(0xFF14B8A6) : const Color(0xFF0D9488);
+  Color get gantiFileFg =>
+      isDark ? const Color(0xFF042F2E) : Colors.white;
+
+  // Disabled Upload Button State
+  Color get uploadDisabledBg =>
+      isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB);
+  Color get uploadDisabledFg =>
+      isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF);
+
+  // 4. Preview Dokumen (Live / Fase 1 & 3 Mode Edit)
+  Color get previewLiveBg =>
+      isDark ? const Color(0xFF042F2E) : const Color(0xFFE6FFFA);
+  Color get previewLiveFg =>
+      isDark ? const Color(0xFF5EEAD4) : const Color(0xFF006C67);
+  Color get previewLiveBorder =>
+      isDark ? const Color(0xFF134E4A) : const Color(0xFF4FD1C5);
+
+  // 5. Preview Dokumen (History / Fase 2 Terkunci)
+  Color get previewHistoryBg =>
+      isDark ? const Color(0xFF172554) : const Color(0xFFEFF6FF);
+  Color get previewHistoryFg =>
+      isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8);
+  Color get previewHistoryBorder =>
+      isDark ? const Color(0xFF1E40AF) : const Color(0xFF93C5FD);
+}
+
+extension SkrbActionThemeExtension on BuildContext {
+  SkrbActionColors get skrbActions =>
+      SkrbActionColors(Theme.of(this).brightness);
 }

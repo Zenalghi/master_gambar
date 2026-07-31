@@ -18,6 +18,7 @@ class MasterJenisKendaraanScreen extends ConsumerStatefulWidget {
 class _MasterJenisKendaraanScreenState
     extends ConsumerState<MasterJenisKendaraanScreen> {
   final _jenisKendaraanController = TextEditingController();
+  final _aliasController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   @override
   void initState() {
@@ -29,6 +30,7 @@ class _MasterJenisKendaraanScreenState
   @override
   void dispose() {
     _jenisKendaraanController.dispose();
+    _aliasController.dispose();
     super.dispose();
   }
 
@@ -43,8 +45,10 @@ class _MasterJenisKendaraanScreenState
           .addJenisKendaraan(
             // Tidak perlu typeChassisId lagi
             jenisKendaraan: _jenisKendaraanController.text,
+            aliasKendaraan: _aliasController.text,
           );
       _jenisKendaraanController.clear();
+      _aliasController.clear();
       // Refresh tabel via provider filter
       ref
           .read(jenisKendaraanFilterProvider.notifier)
@@ -159,6 +163,19 @@ class _MasterJenisKendaraanScreenState
                           }
                           return null;
                         },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        style: const TextStyle(fontSize: 14),
+                        controller: _aliasController,
+                        textCapitalization: TextCapitalization.characters,
+                        decoration: const InputDecoration(
+                          labelStyle: TextStyle(fontSize: 14),
+                          labelText: 'Nama Alias (Opsional)',
+                          hintText: 'Contoh: Mobil Bak Muatan Tertutup (Box Logam)',
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),

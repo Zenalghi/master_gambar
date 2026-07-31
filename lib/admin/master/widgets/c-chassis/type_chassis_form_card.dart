@@ -18,6 +18,7 @@ class TypeChassisFormCard extends ConsumerStatefulWidget {
 
 class _TypeChassisFormCardState extends ConsumerState<TypeChassisFormCard> {
   final _chassisController = TextEditingController();
+  final _jenisTipeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   PlatformFile? _sutPdfFile;
   bool _isLoading = false;
@@ -25,6 +26,7 @@ class _TypeChassisFormCardState extends ConsumerState<TypeChassisFormCard> {
   @override
   void dispose() {
     _chassisController.dispose();
+    _jenisTipeController.dispose();
     super.dispose();
   }
 
@@ -157,9 +159,11 @@ class _TypeChassisFormCardState extends ConsumerState<TypeChassisFormCard> {
           .read(masterDataRepositoryProvider)
           .addTypeChassis(
             typeChassis: _chassisController.text,
+            jenisTipe: _jenisTipeController.text,
             sutPdfFile: _sutPdfFile,
           );
       _chassisController.clear();
+      _jenisTipeController.clear();
       setState(() {
         _sutPdfFile = null;
       });
@@ -220,6 +224,19 @@ class _TypeChassisFormCardState extends ConsumerState<TypeChassisFormCard> {
                     }
                     return null;
                   },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextFormField(
+                  style: const TextStyle(fontSize: 14),
+                  controller: _jenisTipeController,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: const InputDecoration(
+                    labelStyle: TextStyle(fontSize: 14),
+                    labelText: 'Jenis Tipe (Opsional)',
+                    hintText: 'Contoh: Mobil Angkutan Barang',
+                  ),
                 ),
               ),
               const SizedBox(width: 16),

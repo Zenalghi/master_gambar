@@ -25,7 +25,7 @@ class DocumentCustomerScreen extends ConsumerWidget {
         : AppColors.primary;
 
     return Padding(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -71,7 +71,7 @@ class DocumentCustomerScreen extends ConsumerWidget {
                       constraints: const BoxConstraints(maxHeight: 42),
                       contentPadding: const EdgeInsets.symmetric(
                         vertical: 0,
-                        horizontal: 12,
+                        horizontal: 3,
                       ),
                       hintText: 'Cari & pilih Customer...',
                       hintStyle: const TextStyle(
@@ -105,7 +105,7 @@ class DocumentCustomerScreen extends ConsumerWidget {
                       return Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
-                          vertical: 10,
+                          vertical: 1,
                         ),
                         decoration: BoxDecoration(
                           color: isSelected
@@ -146,16 +146,16 @@ class DocumentCustomerScreen extends ConsumerWidget {
                 onPressed: () => showDialog(
                   context: context,
                   barrierDismissible: false,
-                  builder: (context) => const _RecipientAddressDialog(),
+                  builder: (context) => const _SkrbSettingsDialog(),
                 ),
-                icon: const Icon(Icons.markunread_mailbox_outlined, size: 18),
+                icon: const Icon(Icons.settings_outlined, size: 18),
                 label: const Text(
-                  'Input Identifikasi dan Alamat Penerima',
+                  'Setting SKRB',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
+                    horizontal: 16,
                     vertical: 14,
                   ),
                 ),
@@ -170,10 +170,26 @@ class DocumentCustomerScreen extends ConsumerWidget {
           Expanded(
             child: selectedCustomer != null
                 ? _DocumentContent(customerId: selectedCustomer.id)
-                : const Center(
-                    child: Text(
-                      'Silahkan cari & pilih Customer pada dropdown di atas atau klik ikon Document pada tabel Customer.',
-                      style: TextStyle(fontSize: 15, color: Colors.grey),
+                : Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.manage_search_outlined,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Silahkan cari & pilih Customer pada dropdown di atas\natau klik ikon Document pada tabel Customer.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
           ),
@@ -225,19 +241,19 @@ class _DocumentContent extends ConsumerWidget {
   }
 }
 
-/// Dialog untuk mengatur Identifikasi dan Alamat Penerima global (SKRB).
-class _RecipientAddressDialog extends ConsumerStatefulWidget {
-  const _RecipientAddressDialog();
+/// Dialog untuk mengatur Pengaturan SKRB (Alamat Tujuan Global & Ignore Names).
+class _SkrbSettingsDialog extends ConsumerStatefulWidget {
+  const _SkrbSettingsDialog();
 
   @override
-  ConsumerState<_RecipientAddressDialog> createState() =>
-      _RecipientAddressDialogState();
+  ConsumerState<_SkrbSettingsDialog> createState() =>
+      _SkrbSettingsDialogState();
 }
 
-class _RecipientAddressDialogState
-    extends ConsumerState<_RecipientAddressDialog> {
+class _SkrbSettingsDialogState extends ConsumerState<_SkrbSettingsDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _controller = TextEditingController();
+  final _addressController = TextEditingController();
+  final _ignoreController = TextEditingController();
   bool _isLoading = true;
   bool _isSaving = false;
   String? _errorMessage;
@@ -250,7 +266,8 @@ class _RecipientAddressDialogState
 
   @override
   void dispose() {
-    _controller.dispose();
+    _addressController.dispose();
+    _ignoreController.dispose();
     super.dispose();
   }
 
@@ -260,10 +277,16 @@ class _RecipientAddressDialogState
       final response = await dio.get('/skrb-setting');
       if (response.statusCode == 200 && response.data != null) {
         final address = response.data['recipient_address']?.toString() ?? '';
-        _controller.text = address;
+        _addressController.text = address;
+        final ignoreNames = response.data['ignore_names'];
+        if (ignoreNames != null && ignoreNames is List) {
+          _ignoreController.text = ignoreNames.join('\n');
+        } else {
+          _ignoreController.text = '';
+        }
       }
     } catch (e) {
-      _errorMessage = 'Gagal memuat data alamat penerima: $e';
+      _errorMessage = 'Gagal memuat data pengaturan SKRB: $e';
     } finally {
       if (mounted) {
         setState(() {
@@ -283,16 +306,25 @@ class _RecipientAddressDialogState
 
     try {
       final dio = ref.read(apiClientProvider).dio;
+      final ignoreList = _ignoreController.text
+          .split('\n')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+
       await dio.post(
         '/skrb-setting',
-        data: {'recipient_address': _controller.text.trim()},
+        data: {
+          'recipient_address': _addressController.text.trim(),
+          'ignore_names': ignoreList,
+        },
       );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Identifikasi dan alamat penerima berhasil disimpan!',
+            'Pengaturan SKRB berhasil disimpan!',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
@@ -324,77 +356,106 @@ class _RecipientAddressDialogState
     return AlertDialog(
       title: const Row(
         children: [
-          Icon(Icons.markunread_mailbox, color: Colors.blue),
+          Icon(Icons.settings_outlined, color: Colors.blue),
           SizedBox(width: 8),
           Text(
-            'Input Identifikasi & Alamat Penerima',
+            'Pengaturan SKRB (Global)',
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
           ),
         ],
       ),
       content: SizedBox(
-        width: 520,
+        width: 550,
         child: _isLoading
             ? const SizedBox(
-                height: 150,
+                height: 200,
                 child: Center(child: CircularProgressIndicator()),
               )
-            : Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Alamat ini berlaku umum (global) pada dokumen pengajuan SKRB ke Kementerian Perhubungan dan terpisah dari data customer.',
-                      style: TextStyle(fontSize: 13, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 16),
-                    if (_errorMessage != null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade50,
-                          border: Border.all(color: Colors.red.shade300),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          _errorMessage!,
-                          style: TextStyle(
-                            color: Colors.red.shade700,
-                            fontSize: 12,
+            : SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_errorMessage != null) ...[
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            border: Border.all(color: Colors.red.shade300),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            _errorMessage!,
+                            style: TextStyle(
+                              color: Colors.red.shade700,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
+                        const SizedBox(height: 12),
+                      ],
+                      const Text(
+                        '1. Identifikasi & Alamat Tujuan (Surat Permohonan SKRB)',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Alamat ini berlaku umum pada dokumen pengajuan SKRB ke Kementerian Perhubungan dan terpisah dari data customer.',
+                        style: TextStyle(fontSize: 11, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _addressController,
+                        maxLines: 5,
+                        style: const TextStyle(fontSize: 13),
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText:
+                              'Contoh:\nBapak Direktur Jendral Perhubungan Darat\nCq. Direktur Sarana dan Keselamatan...',
+                          contentPadding: EdgeInsets.all(12),
+                          isDense: true,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Identifikasi dan alamat penerima tidak boleh kosong / dihapus!';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      const Divider(),
                       const SizedBox(height: 12),
+                      const Text(
+                        '2. Daftar Teks Dihindari / Dihapus pada Nama File Merge (Ignore Names)',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Tuliskan satu kata/frasa per baris (tekan Enter). Saat user menyatukan/mengunduh PDF SKRB, kata-kata ini akan otomatis dihilangkan dari nama file PDF.',
+                        style: TextStyle(fontSize: 11, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _ignoreController,
+                        maxLines: 6,
+                        style: const TextStyle(fontSize: 13),
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: '(4x2)\n(6x2)\n(4x4)\nM/T\nA/T',
+                          contentPadding: EdgeInsets.all(12),
+                          isDense: true,
+                        ),
+                      ),
                     ],
-                    const Text(
-                      'Identifikasi & Alamat Tujuan (Tekan Enter / Shift+Enter untuk baris baru) :',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _controller,
-                      maxLines: 7,
-                      style: const TextStyle(fontSize: 13),
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText:
-                            'Contoh:\nBapak Direktur Jendral Perhubungan Darat\nCq. Direktur Sarana dan Keselamatan\nTransportasi Jalan\nJl. Merdeka Barat No.8\nDi Jakarta',
-                        contentPadding: EdgeInsets.all(12),
-                        isDense: true,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Identifikasi dan alamat penerima tidak boleh kosong / dihapus!';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
+                  ),
                 ),
               ),
       ),

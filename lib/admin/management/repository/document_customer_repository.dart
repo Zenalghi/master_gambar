@@ -53,21 +53,21 @@ class DocumentCustomerRepository {
 
     // Kop Surat
     if (kopSuratFile != null && kopSuratFile.bytes != null) {
-      formDataMap['kop_surat'] = MultipartFile.fromBytes(
+      formDataMap['kop_surat_file'] = MultipartFile.fromBytes(
         kopSuratFile.bytes!,
         filename: kopSuratFile.name,
       );
     }
-    if (removeKopSurat) formDataMap['remove_kop_surat'] = '1';
+    if (removeKopSurat) formDataMap['remove_kop_surat_file'] = '1';
 
     // Data Umum
     if (dataUmumFile != null && dataUmumFile.bytes != null) {
-      formDataMap['data_umum'] = MultipartFile.fromBytes(
+      formDataMap['data_umum_file'] = MultipartFile.fromBytes(
         dataUmumFile.bytes!,
         filename: dataUmumFile.name,
       );
     }
-    if (removeDataUmum) formDataMap['remove_data_umum'] = '1';
+    if (removeDataUmum) formDataMap['remove_data_umum_file'] = '1';
 
     // TDP Files (new files only)
     if (newTdpFiles != null && newTdpFiles.isNotEmpty) {

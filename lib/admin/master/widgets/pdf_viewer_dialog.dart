@@ -17,6 +17,8 @@ class PdfViewerDialog extends StatefulWidget {
 
 class _PdfViewerDialogState extends State<PdfViewerDialog> {
   late final PdfController _pdfController;
+  int _currentPage = 1;
+  int _totalPages = 0;
 
   @override
   void initState() {
@@ -45,12 +47,62 @@ class _PdfViewerDialogState extends State<PdfViewerDialog> {
       content: SizedBox(
         width: MediaQuery.of(context).size.width * 0.8,
         height: MediaQuery.of(context).size.height * 0.8,
-        child: PdfView(controller: _pdfController),
+        child: PdfView(
+          controller: _pdfController,
+          scrollDirection: Axis.vertical,
+          onDocumentLoaded: (document) {
+            setState(() {
+              _totalPages = document.pagesCount;
+            });
+          },
+          onPageChanged: (page) {
+            setState(() {
+              _currentPage = page;
+            });
+          },
+        ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Tutup'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+              tooltip: 'Halaman Sebelumnya',
+              onPressed: _currentPage > 1
+                  ? () => _pdfController.previousPage(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOut,
+                      )
+                  : null,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              _totalPages > 0
+                  ? 'Page $_currentPage of $_totalPages'
+                  : 'Memuat...',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 4),
+            IconButton(
+              icon: const Icon(Icons.arrow_forward_ios, size: 18),
+              tooltip: 'Halaman Berikutnya',
+              onPressed: _currentPage < _totalPages
+                  ? () => _pdfController.nextPage(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOut,
+                      )
+                  : null,
+            ),
+            const SizedBox(width: 20),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Tutup'),
+            ),
+          ],
         ),
       ],
     );

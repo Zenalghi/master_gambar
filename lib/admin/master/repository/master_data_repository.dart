@@ -272,13 +272,16 @@ class MasterDataRepository {
 
   Future<TypeChassis> addTypeChassis({
     required String typeChassis,
+    String? jenisTipe,
     PlatformFile? sutPdfFile,
   }) async {
     final Map<String, dynamic> dataMap = {
       'type_chassis': typeChassis,
+      if (jenisTipe != null && jenisTipe.trim().isNotEmpty)
+        'jenis_tipe': jenisTipe.trim(),
     };
     if (sutPdfFile != null && sutPdfFile.bytes != null) {
-      dataMap['sut_pdf'] = MultipartFile.fromBytes(
+      dataMap['sut_file'] = MultipartFile.fromBytes(
         sutPdfFile.bytes!,
         filename: sutPdfFile.name,
       );
@@ -294,21 +297,23 @@ class MasterDataRepository {
   Future<TypeChassis> updateTypeChassis({
     required int id,
     required String typeChassis,
+    String? jenisTipe,
     PlatformFile? sutPdfFile,
     bool removeSutPdf = false,
   }) async {
     final Map<String, dynamic> dataMap = {
       'type_chassis': typeChassis,
+      'jenis_tipe': jenisTipe ?? '',
       '_method': 'PUT',
     };
     if (sutPdfFile != null && sutPdfFile.bytes != null) {
-      dataMap['sut_pdf'] = MultipartFile.fromBytes(
+      dataMap['sut_file'] = MultipartFile.fromBytes(
         sutPdfFile.bytes!,
         filename: sutPdfFile.name,
       );
     }
     if (removeSutPdf) {
-      dataMap['remove_sut_pdf'] = '1';
+      dataMap['remove_sut_file'] = '1';
     }
     final formData = FormData.fromMap(dataMap);
     final response = await _ref
@@ -388,22 +393,31 @@ class MasterDataRepository {
 
   Future<JenisKendaraan> addJenisKendaraan({
     required String jenisKendaraan,
+    String? aliasKendaraan,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .post('/jenis-kendaraan', data: {'jenis_kendaraan': jenisKendaraan});
+        .post('/jenis-kendaraan', data: {
+          'jenis_kendaraan': jenisKendaraan,
+          if (aliasKendaraan != null && aliasKendaraan.trim().isNotEmpty)
+            'alias_kendaraan': aliasKendaraan.trim(),
+        });
     return JenisKendaraan.fromJson(response.data);
   }
 
   Future<JenisKendaraan> updateJenisKendaraan({
     required int id,
     required String jenisKendaraan,
+    String? aliasKendaraan,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .dio
-        .put('/jenis-kendaraan/$id', data: {'jenis_kendaraan': jenisKendaraan});
+        .put('/jenis-kendaraan/$id', data: {
+          'jenis_kendaraan': jenisKendaraan,
+          'alias_kendaraan': aliasKendaraan ?? '',
+        });
     return JenisKendaraan.fromJson(response.data);
   }
 

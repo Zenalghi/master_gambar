@@ -8,6 +8,7 @@ class TypeChassis {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? sutPdfPath;
+  final String? jenisTipe;
 
   // Properti Tambahan (Nested Relation)
   final Merk? merk;
@@ -18,6 +19,7 @@ class TypeChassis {
     required this.createdAt,
     required this.updatedAt,
     this.sutPdfPath,
+    this.jenisTipe,
     this.merk,
   });
 
@@ -27,7 +29,8 @@ class TypeChassis {
       name: json['type_chassis'] ?? '',
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
-      sutPdfPath: json['sut_pdf_path'],
+      sutPdfPath: json['sut_file'] ?? json['sut_pdf_path'],
+      jenisTipe: json['jenis_tipe'],
       // Cek apakah ada key 'merk' di dalam JSON chassis
       merk: json['merk'] != null ? Merk.fromJson(json['merk']) : null,
     );

@@ -63,9 +63,9 @@ class _JenisKendaraanTableState extends ConsumerState<JenisKendaraanTable> {
       final Map<int, String> columnMapping = {
         0: 'id',
         1: 'jenis_kendaraan',
-        // Index 2 & 3 dihapus
-        2: 'created_at', // Geser index
-        3: 'updated_at', // Geser index
+        2: 'alias_kendaraan',
+        3: 'created_at',
+        4: 'updated_at',
       };
       return {
         ...state,
@@ -83,7 +83,11 @@ class _JenisKendaraanTableState extends ConsumerState<JenisKendaraanTable> {
         size: ColumnSize.L,
         onSort: _onSort,
       ),
-      // Hapus Merk dan Type Chassis
+      DataColumn2(
+        label: const Text('Nama Alias'),
+        size: ColumnSize.M,
+        onSort: _onSort,
+      ),
       DataColumn2(
         label: const Text('Created At'),
         size: ColumnSize.M,

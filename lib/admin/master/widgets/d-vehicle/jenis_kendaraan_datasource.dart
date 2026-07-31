@@ -40,6 +40,7 @@ class JenisKendaraanDataSource extends AsyncDataTableSource {
             cells: [
               DataCell(SelectableText(item.id.toString())),
               DataCell(SelectableText(item.name)),
+              DataCell(SelectableText(item.aliasKendaraan ?? '-')),
               DataCell(
                 SelectableText(dateFormat.format(item.createdAt.toLocal())),
               ),
@@ -80,14 +81,35 @@ class JenisKendaraanDataSource extends AsyncDataTableSource {
 
   void _showEditDialog(JenisKendaraan item) {
     final controller = TextEditingController(text: item.name);
+    final aliasController = TextEditingController(
+      text: item.aliasKendaraan ?? '',
+    );
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Edit Jenis Kendaraan: ${item.id}'),
-        content: TextFormField(
-          controller: controller,
-          textCapitalization: TextCapitalization.characters,
-          decoration: const InputDecoration(labelText: 'Nama Jenis Kendaraan'),
+        content: SizedBox(
+          width: 500,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: controller,
+                textCapitalization: TextCapitalization.characters,
+                decoration: const InputDecoration(
+                  labelText: 'Nama Jenis Kendaraan',
+                ),
+              ),
+              const SizedBox(height: 15),
+              TextFormField(
+                controller: aliasController,
+                textCapitalization: TextCapitalization.characters,
+                decoration: const InputDecoration(
+                  labelText: 'Nama Alias (Opsional)',
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -102,6 +124,7 @@ class JenisKendaraanDataSource extends AsyncDataTableSource {
                     .updateJenisKendaraan(
                       id: item.id,
                       jenisKendaraan: controller.text,
+                      aliasKendaraan: aliasController.text,
                     );
                 refreshDatasource();
                 if (context.mounted) Navigator.of(context).pop();
