@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/option_item.dart';
+import 'package:master_gambar/data/models/transaksi.dart';
 import 'package:master_gambar/data/providers/api_endpoints.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
 import '../repository/options_repository.dart';
@@ -440,3 +441,20 @@ final varianBodyStatusOptionsProvider =
     });
 // Default true (mode edit aktif/bisa ngetik)
 final isEditModeProvider = StateProvider.autoDispose<bool>((ref) => true);
+
+// Provider untuk pencarian Transaksi pada Dropdown No. ID di GambarHeaderInfo
+final inputGambarTransaksiSearchProvider =
+    FutureProvider.family<List<Transaksi>, String>((ref, search) async {
+  final repo = ref.read(transaksiRepositoryProvider);
+  final authService = ref.read(authServiceProvider);
+  final currentUserId = ref.read(currentUserIdProvider);
+
+  final response = await repo.getTransaksiHistory(perPage: 50, search: search);
+
+  // Selain Admin, isi konten dropdown search hanya milik user itu sendiri
+  if (!authService.canViewAdminTabs() && currentUserId != null) {
+    return response.data.where((trx) => trx.user.id == currentUserId).toList();
+  }
+
+  return response.data;
+});

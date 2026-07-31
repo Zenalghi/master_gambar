@@ -1,16 +1,18 @@
 // File: lib/elements/home/widgets/gambar/gambar_header_info.dart
 
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/data/models/transaksi.dart';
 import 'package:master_gambar/elements/home/providers/input_gambar_providers.dart';
+import 'package:master_gambar/elements/home/providers/page_state_provider.dart';
 import '../../../../app/core/notifiers/refresh_notifier.dart';
 import '../../../../data/models/option_item.dart';
 
 class GambarHeaderInfo extends ConsumerWidget {
-  final Transaksi transaksi;
+  final Transaksi? transaksi;
 
-  const GambarHeaderInfo({super.key, required this.transaksi});
+  const GambarHeaderInfo({super.key, this.transaksi});
 
   void _resetAndRefresh(BuildContext context, WidgetRef ref) {
     ref.read(isProcessingProvider.notifier).state = false;
@@ -46,26 +48,26 @@ class GambarHeaderInfo extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoField(context, 'No. ID', transaksi.id),
+                _buildTransaksiDropdownSearch(context, ref),
                 const SizedBox(width: 16),
                 _buildInfoField(
                   context,
                   'Type Engine',
-                  transaksi.aTypeEngine.typeEngine,
+                  transaksi?.aTypeEngine.typeEngine ?? '-',
                 ),
                 const SizedBox(width: 16),
-                _buildInfoField(context, 'Merk', transaksi.bMerk.merk),
+                _buildInfoField(context, 'Merk', transaksi?.bMerk.merk ?? '-'),
                 const SizedBox(width: 16),
                 _buildInfoField(
                   context,
                   'Type Chassis',
-                  transaksi.cTypeChassis.typeChassis,
+                  transaksi?.cTypeChassis.typeChassis ?? '-',
                 ),
                 const SizedBox(width: 16),
                 _buildInfoField(
                   context,
                   'Jenis Kendaraan',
-                  transaksi.dJenisKendaraan.jenisKendaraan,
+                  transaksi?.dJenisKendaraan.jenisKendaraan ?? '-',
                 ),
               ],
             ),
@@ -73,20 +75,26 @@ class GambarHeaderInfo extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _buildInfoField(context, 'Customer', transaksi.customer.namaPt),
+                _buildInfoField(
+                  context,
+                  'Customer',
+                  transaksi?.customer.namaPt ?? '-',
+                ),
                 const SizedBox(width: 16),
                 _buildInfoField(
                   context,
                   'Jenis Pengajuan',
-                  transaksi.fPengajuan.jenisPengajuan,
+                  transaksi?.fPengajuan.jenisPengajuan ?? '-',
                 ),
                 const SizedBox(width: 16),
 
                 Expanded(
                   child: IgnorePointer(
-                    ignoring: !isEditMode, // Kunci jika bukan edit mode
+                    ignoring:
+                        !isEditMode ||
+                        transaksi == null, // Kunci jika bukan edit mode / null
                     child: Opacity(
-                      opacity: isEditMode ? 1.0 : 0.6,
+                      opacity: (isEditMode && transaksi != null) ? 1.0 : 0.4,
                       child: _buildPihakPenyetujuanDropdown(context, ref),
                     ),
                   ),
@@ -97,10 +105,16 @@ class GambarHeaderInfo extends ConsumerWidget {
                 Expanded(
                   child: IgnorePointer(
                     // Kunci jika bukan edit mode ATAU jika pihak penyetujuan = customer
-                    ignoring: !isEditMode || isCustomerPenyetuju,
+                    ignoring:
+                        !isEditMode || isCustomerPenyetuju || transaksi == null,
                     child: Opacity(
                       // Redupkan jika dikunci
-                      opacity: (isEditMode && !isCustomerPenyetuju) ? 1.0 : 0.4,
+                      opacity:
+                          (isEditMode &&
+                              !isCustomerPenyetuju &&
+                              transaksi != null)
+                          ? 1.0
+                          : 0.4,
                       child: _buildPemeriksaDropdown(
                         context,
                         ref,
@@ -121,16 +135,18 @@ class GambarHeaderInfo extends ConsumerWidget {
                       // Disable/Enable Jumlah Gambar
                       Expanded(
                         child: IgnorePointer(
-                          ignoring: !isEditMode,
+                          ignoring: !isEditMode || transaksi == null,
                           child: Opacity(
-                            opacity: isEditMode ? 1.0 : 0.6,
+                            opacity: (isEditMode && transaksi != null)
+                                ? 1.0
+                                : 0.4,
                             child: _buildJumlahGambarDropdown(context, ref),
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       // Disable Reload button jika locked
-                      if (isEditMode)
+                      if (isEditMode && transaksi != null)
                         IconButton(
                           icon: const Icon(Icons.refresh),
                           tooltip: 'Muat Ulang Pilihan',
@@ -143,6 +159,226 @@ class GambarHeaderInfo extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTransaksiDropdownSearch(BuildContext context, WidgetRef ref) {
+    return Expanded(
+      flex: 1,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'No. ID',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 4),
+          SizedBox(
+            height: 32,
+            child: DropdownSearch<Transaksi>(
+              selectedItem: transaksi,
+              items: (String filter, _) async {
+                return await ref.read(
+                  inputGambarTransaksiSearchProvider(filter).future,
+                );
+              },
+              compareFn: (i1, i2) => i1.id == i2.id,
+              itemAsString: (item) => item.id,
+              filterFn: (item, filter) {
+                if (filter.isEmpty) return true;
+                final q = filter.toLowerCase();
+                return item.id.toLowerCase().contains(q) ||
+                    item.customer.namaPt.toLowerCase().contains(q) ||
+                    item.aTypeEngine.typeEngine.toLowerCase().contains(q) ||
+                    item.bMerk.merk.toLowerCase().contains(q) ||
+                    item.cTypeChassis.typeChassis.toLowerCase().contains(q) ||
+                    item.dJenisKendaraan.jenisKendaraan.toLowerCase().contains(
+                      q,
+                    ) ||
+                    item.fPengajuan.jenisPengajuan.toLowerCase().contains(q);
+              },
+              onChanged: (selected) {
+                if (selected != null) {
+                  ref.read(pageStateProvider.notifier).state = PageState(
+                    pageIndex: 1,
+                    data: selected,
+                  );
+                }
+              },
+              decoratorProps: DropDownDecoratorProps(
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: 'Pilih ID...',
+                  hintStyle: const TextStyle(fontSize: 12),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              popupProps: PopupProps.menu(
+                showSearchBox: true,
+                fit: FlexFit.loose,
+                // --- KONTROL LEBAR & TINGGI MENU POPUP (LEBIH LEBAR KE KANAN DARI FIELD DROPDOWN) ---
+                constraints: const BoxConstraints(
+                  maxHeight: 380,
+                  minWidth: 1200,
+                  maxWidth: 1500,
+                ),
+                searchFieldProps: const TextFieldProps(
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText:
+                        'Cari No. ID, Customer, Engine, Merk, Chassis, Jenis, atau Pengajuan...',
+                    hintStyle: TextStyle(fontSize: 12),
+                    prefixIcon: Icon(Icons.search, size: 18),
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                  ),
+                ),
+                itemBuilder: (context, item, isSelected, isDisabled) {
+                  final colorScheme = Theme.of(context).colorScheme;
+                  return Container(
+                    // =========================================================================
+                    // --- KONTROL JARAK ANTAR KONTEN / PADDING DI DALAM DROPDOWN (SANGAT KECIL) ---
+                    // Anda bisa mengubah angka padding di bawah ini untuk mengatur kerapatan/space
+                    // =========================================================================
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: colorScheme.outline.withAlpha(50),
+                          width: 0.5,
+                        ),
+                      ),
+                      color: isSelected
+                          ? colorScheme.primary.withAlpha(35)
+                          : null,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // No. ID
+                        SizedBox(
+                          width: 85,
+                          child: Text(
+                            item.id,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                        // --- KONTROL JARAK HORIZONTAL ANTAR KOLOM ---
+                        const SizedBox(width: 4),
+                        // Customer
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            item.customer.namaPt,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 11,
+                              color: colorScheme.onSurface,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        // Type Engine
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            item.aTypeEngine.typeEngine,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: colorScheme.onSurface.withAlpha(190),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        // Merk
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            item.bMerk.merk,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: colorScheme.onSurface.withAlpha(190),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        // Type Chassis
+                        Expanded(
+                          flex: 5,
+                          child: Text(
+                            item.cTypeChassis.typeChassis,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: colorScheme.onSurface.withAlpha(190),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        // Jenis Kendaraan
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            item.dJenisKendaraan.jenisKendaraan,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: colorScheme.onSurface.withAlpha(190),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        // Jenis Pengajuan
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            item.fPengajuan.jenisPengajuan,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                              color: colorScheme.onSurface.withAlpha(190),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -239,7 +475,8 @@ class GambarHeaderInfo extends ConsumerWidget {
 
   Widget _buildJumlahGambarDropdown(BuildContext context, WidgetRef ref) {
     final selectedJumlah = ref.watch(jumlahGambarProvider);
-    final jenisPengajuan = transaksi.fPengajuan.jenisPengajuan.toUpperCase();
+    final jenisPengajuan = (transaksi?.fPengajuan.jenisPengajuan ?? '')
+        .toUpperCase();
     final textStyle = _dropdownTextStyle(context);
     List<int> options = [1, 2, 3, 4];
     if (jenisPengajuan == 'VARIAN') {

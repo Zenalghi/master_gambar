@@ -5,9 +5,10 @@ import 'package:master_gambar/data/models/transaksi.dart';
 // Class untuk menampung state halaman aktif
 class PageState {
   final int pageIndex;
-  final Transaksi? data; // Data opsional, hanya untuk halaman yg butuh data
+  final Transaksi? data; // Data opsional, untuk Input Gambar
+  final int? skrbId; // ID rekor SKRB untuk layar Detail SKRB
 
-  PageState({required this.pageIndex, this.data});
+  PageState({required this.pageIndex, this.data, this.skrbId});
 }
 
 // Provider global untuk menyimpan PageState saat ini

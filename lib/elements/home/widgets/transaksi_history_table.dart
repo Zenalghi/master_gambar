@@ -161,7 +161,7 @@ class _TransaksiHistoryTableState extends ConsumerState<TransaksiHistoryTable> {
       ),
 
       // Options
-      const DataColumn2(label: Text('Options'), fixedWidth: 85),
+      const DataColumn2(label: Text('Options'), fixedWidth: 125),
     ];
   }
 }

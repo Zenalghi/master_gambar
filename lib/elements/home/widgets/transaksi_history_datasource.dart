@@ -1,10 +1,13 @@
+import 'dart:ui';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/elements/home/providers/page_state_provider.dart';
+import 'package:master_gambar/elements/home/providers/skrb_providers.dart';
 import 'package:master_gambar/elements/home/providers/transaksi_providers.dart';
+import 'package:master_gambar/elements/home/repository/skrb_repository.dart';
 import '../../../data/models/transaksi.dart';
 import '../repository/options_repository.dart';
 import 'edit_transaksi_dialog.dart';
@@ -111,11 +114,123 @@ class TransaksiDataSource extends AsyncDataTableSource {
                           ? 'Detail Transaksi'
                           : 'Proses Transaksi Baru',
                       onPressed: () {
-                        // Buka Tab Input Gambar (Index 1) dengan membawa data transaksi
                         _ref.read(pageStateProvider.notifier).state = PageState(
                           pageIndex: 1,
                           data: trx,
                         );
+                      },
+                    ),
+
+                    // Tombol Buat / Lihat SKRB
+                    IconButton(
+                      icon: const Icon(
+                        Icons.assignment_turned_in_outlined,
+                        size: 16,
+                        color: Colors.teal,
+                      ),
+                      tooltip: 'Buat / Lihat Permohonan SKRB',
+                      onPressed: () async {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (ctx) => BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                            child: Dialog(
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 28,
+                                  vertical: 24,
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CircularProgressIndicator(),
+                                    SizedBox(height: 16),
+                                    Text(
+                                      'Harap tunggu sebentar...\nMemproses Permohonan SKRB',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+
+                        try {
+                          final skrbRepo = _ref.read(skrbRepositoryProvider);
+                          final skrb = await skrbRepo.createSkrb(trx.id);
+
+                          // Wajib reload table permohonan dan transaksi yang tersedia
+                          _ref.invalidate(skrbListProvider);
+                          _ref.invalidate(availableTransactionsProvider);
+
+                          if (context.mounted) {
+                            Navigator.of(context).pop(); // Tutup loading dialog
+
+                            if (skrb.alreadyExists) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Mengalihkan ke Detail SKRB yang sudah dibuat sebelumnya (${skrb.idSkrb}).',
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  backgroundColor: Colors.blue.shade700,
+                                  duration: const Duration(seconds: 4),
+                                ),
+                              );
+                            } else if (skrb.idSkrb.contains('-SKRB') &&
+                                skrb.idSkrb.contains('/x')) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Permohonan SKRB berhasil dibuat dengan ID sementara: ${skrb.idSkrb}\nPERHATIAN: "permohonan skrb" Customer belum ditambahkan admin! Segera minta admin untuk update.',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  backgroundColor: Colors.orange.shade800,
+                                  duration: const Duration(seconds: 10),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Permohonan SKRB berhasil dibuat: ${skrb.idSkrb}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  backgroundColor: Colors.green,
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          }
+
+                          _ref.read(pageStateProvider.notifier).state =
+                              PageState(pageIndex: 3, skrbId: skrb.id);
+                        } catch (e) {
+                          if (context.mounted) {
+                            Navigator.of(
+                              context,
+                            ).pop(); // Tutup loading dialog jika error
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error membuka SKRB: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
                       },
                     ),
                   ],

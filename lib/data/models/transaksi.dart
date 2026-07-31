@@ -142,27 +142,31 @@ class BMerk {
 class CTypeChassis {
   final String id;
   final String typeChassis;
+  final String? jenisTipe;
 
-  CTypeChassis({required this.id, required this.typeChassis});
+  CTypeChassis({required this.id, required this.typeChassis, this.jenisTipe});
 
   factory CTypeChassis.fromJson(Map<String, dynamic> json) => CTypeChassis(
     // FIX: Gunakan .toString()
     id: json['id'].toString(),
     typeChassis: (json['type_chassis'] ?? '').toString(),
+    jenisTipe: json['jenis_tipe']?.toString(),
   );
 }
 
 class DJenisKendaraan {
   final String id;
   final String jenisKendaraan;
+  final String? aliasKendaraan;
 
-  DJenisKendaraan({required this.id, required this.jenisKendaraan});
+  DJenisKendaraan({required this.id, required this.jenisKendaraan, this.aliasKendaraan});
 
   factory DJenisKendaraan.fromJson(Map<String, dynamic> json) =>
       DJenisKendaraan(
         // FIX: Gunakan .toString()
         id: json['id'].toString(),
         jenisKendaraan: (json['jenis_kendaraan'] ?? '').toString(),
+        aliasKendaraan: json['alias_kendaraan']?.toString(),
       );
 }
 

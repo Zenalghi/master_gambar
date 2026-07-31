@@ -12,8 +12,8 @@ import 'package:master_gambar/admin/master/widgets/pdf_viewer_dialog.dart';
 import '../../../app/core/notifiers/refresh_notifier.dart';
 
 class InputGambarScreen extends ConsumerStatefulWidget {
-  final Transaksi transaksi;
-  const InputGambarScreen({super.key, required this.transaksi});
+  final Transaksi? transaksi;
+  const InputGambarScreen({super.key, this.transaksi});
 
   @override
   ConsumerState<InputGambarScreen> createState() => _InputGambarScreenState();
@@ -39,15 +39,33 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(InputGambarScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.transaksi?.id != widget.transaksi?.id ||
+        oldWidget.transaksi?.detail != widget.transaksi?.detail) {
+      Future.microtask(() {
+        _initOrReloadData();
+      });
+    }
+  }
+
   void _initOrReloadData() {
     _resetInputGambarState();
 
+    if (widget.transaksi == null) {
+      _hasSavedData = false;
+      ref.read(isEditModeProvider.notifier).state = false;
+      return;
+    }
+    final trx = widget.transaksi!;
+
     // Cek apakah ada data detail yang tersimpan
-    if (widget.transaksi.detail != null) {
+    if (trx.detail != null) {
       _hasSavedData = true;
       // Jika ada data tersimpan, defaultnya adalah READ ONLY (Edit Mode = False)
       ref.read(isEditModeProvider.notifier).state = false;
-      _loadSavedState(widget.transaksi.detail!);
+      _loadSavedState(trx.detail!);
     } else {
       _hasSavedData = false;
       // Jika data baru, defaultnya adalah EDITABLE (Edit Mode = True)
@@ -55,8 +73,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     }
 
     // ---  BATASI JUMLAH GAMBAR UNTUK VARIAN ---
-    final jenisPengajuan = widget.transaksi.fPengajuan.jenisPengajuan
-        .toUpperCase();
+    final jenisPengajuan = trx.fPengajuan.jenisPengajuan.toUpperCase();
     if (jenisPengajuan == 'VARIAN') {
       final currentJumlah = ref.read(jumlahGambarProvider);
       if (currentJumlah > 3) {
@@ -66,7 +83,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     Future.microtask(() {
       ref
           .read(independentListNotifierProvider.notifier)
-          .fetchByMasterData(widget.transaksi.masterDataId);
+          .fetchByMasterData(trx.masterDataId);
     });
 
     _fetchKelistrikanInfo();
@@ -98,7 +115,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
     // Pastikan minimal ada 1 gambar yang dimuat
     if (fallbackJumlah == 0) fallbackJumlah = 1;
 
-    final jenisPengajuan = widget.transaksi.fPengajuan.jenisPengajuan
+    final jenisPengajuan = widget.transaksi!.fPengajuan.jenisPengajuan
         .toUpperCase();
     int jumlahLoad = fallbackJumlah;
 
@@ -151,10 +168,11 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
 
   Future<void> _fetchKelistrikanInfo() async {
     ref.read(isLoadingKelistrikanProvider.notifier).state = true;
+    if (widget.transaksi == null) return;
     try {
       final info = await ref
           .read(prosesTransaksiRepositoryProvider)
-          .getKelistrikanByMasterData(widget.transaksi.masterDataId);
+          .getKelistrikanByMasterData(widget.transaksi!.masterDataId);
 
       if (mounted) {
         ref.read(kelistrikanInfoProvider.notifier).state = info;
@@ -251,7 +269,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
           .getPreviewPdf(
             pihakPenyetujuan: pihakPenyetujuan, // <-- KIRIM PIHAK PENYETUJUAN
             orderedIndependentIds: orderedIndependentIds,
-            transaksiId: widget.transaksi.id,
+            transaksiId: widget.transaksi!.id,
             pemeriksaId: pemeriksaId, // Sekarang boleh null
             varianBodyIds: varianBodyIds,
             judulGambarIds: judulGambarIds,
@@ -283,7 +301,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
   Future<void> _handleProses(BuildContext context) async {
     ref.read(isProcessingProvider.notifier).state = true;
     try {
-      final jenisPengajuan = widget.transaksi.fPengajuan.jenisPengajuan
+      final jenisPengajuan = widget.transaksi!.fPengajuan.jenisPengajuan
           .toUpperCase();
       final bool isGambarTU = jenisPengajuan == 'GAMBAR TU';
       final String extension = isGambarTU ? 'pdf' : 'zip';
@@ -315,9 +333,9 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
             .toList();
       });
       final rawFileName =
-          '${widget.transaksi.user.name} (${widget.transaksi.fPengajuan.jenisPengajuan}) '
-          '${widget.transaksi.customer.namaPt}_${widget.transaksi.bMerk.merk} '
-          '${widget.transaksi.cTypeChassis.typeChassis} (${widget.transaksi.dJenisKendaraan.jenisKendaraan}).$extension';
+          '${widget.transaksi!.user.name} (${widget.transaksi!.fPengajuan.jenisPengajuan}) '
+          '${widget.transaksi!.customer.namaPt}_${widget.transaksi!.bMerk.merk} '
+          '${widget.transaksi!.cTypeChassis.typeChassis} (${widget.transaksi!.dJenisKendaraan.jenisKendaraan}).$extension';
 
       final suggestedFileName = rawFileName
           .replaceAll(RegExp(r'[\r\n]+'), ' ')
@@ -329,7 +347,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
           .read(prosesTransaksiRepositoryProvider)
           .downloadProcessedPdfs(
             pihakPenyetujuan: pihakPenyetujuan, // <-- KIRIM PIHAK PENYETUJUAN
-            transaksiId: widget.transaksi.id,
+            transaksiId: widget.transaksi!.id,
             suggestedFileName: suggestedFileName,
             extension: extension,
             pemeriksaId: pemeriksaId, // HAPUS TANDA SERU (!), karna boleh null
@@ -399,7 +417,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
           .read(prosesTransaksiRepositoryProvider)
           .saveDraft(
             pihakPenyetujuan: pihakPenyetujuan, // <-- KIRIM PIHAK PENYETUJUAN
-            transaksiId: widget.transaksi.id,
+            transaksiId: widget.transaksi!.id,
             pemeriksaId: pemeriksaId, // Sekarang boleh null
             jumlahGambar: ref.read(jumlahGambarProvider),
             dataGambarUtama: dataGambarUtama,
@@ -447,7 +465,7 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
       try {
         await ref
             .read(prosesTransaksiRepositoryProvider)
-            .deleteTransaksi(widget.transaksi.id);
+            .deleteTransaksi(widget.transaksi!.id);
 
         if (mounted) {
           _showSnackBar('Data berhasil dihapus.', Colors.green);
@@ -462,8 +480,8 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
   void _toggleEditMode() {
     final isEditMode = ref.read(isEditModeProvider);
     if (isEditMode) {
-      if (widget.transaksi.detail != null) {
-        _loadSavedState(widget.transaksi.detail!);
+      if (widget.transaksi != null && widget.transaksi!.detail != null) {
+        _loadSavedState(widget.transaksi!.detail!);
       }
       ref.read(isEditModeProvider.notifier).state = false;
       _showSnackBar('Edit dibatalkan.', Colors.blue);
@@ -621,19 +639,58 @@ class _InputGambarScreenState extends ConsumerState<InputGambarScreen> {
         children: [
           GambarHeaderInfo(transaksi: widget.transaksi),
           const SizedBox(height: 5),
-          Expanded(
-            child: SingleChildScrollView(
-              child: GambarMainForm(
-                transaksi: widget.transaksi,
-                onPreviewPressed: (pageNumber) =>
-                    _handlePreview(context, pageNumber),
-                jumlahGambarUtama: jumlahGambarUtama,
-                deskripsiController: _deskripsiOptionalController,
+          if (widget.transaksi == null)
+            Expanded(
+              child: Center(
+                child: Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 40,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.manage_search_outlined,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Silahkan cari dan pilih id transaksi pada dropdown diatas\natau klik icon detail transaksi pada tabel transaksi',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 5),
-          _buildAksiButton(context),
+          if (widget.transaksi != null) ...[
+            Expanded(
+              child: SingleChildScrollView(
+                child: GambarMainForm(
+                  transaksi: widget.transaksi!,
+                  onPreviewPressed: (pageNumber) =>
+                      _handlePreview(context, pageNumber),
+                  jumlahGambarUtama: jumlahGambarUtama,
+                  deskripsiController: _deskripsiOptionalController,
+                ),
+              ),
+            ),
+            const SizedBox(height: 5),
+            _buildAksiButton(context),
+          ],
         ],
       ),
     );
