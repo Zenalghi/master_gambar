@@ -1,13 +1,16 @@
-// File: lib/elements/home/widgets/detail_skrb/detail_skrb_doc_row.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:master_gambar/app/core/app_helpers.dart';
+import 'package:master_gambar/elements/home/providers/skrb_providers.dart';
 import 'package:master_gambar/data/models/skrb.dart';
 import 'package:master_gambar/app/theme/app_theme.dart';
+import 'package:master_gambar/elements/home/repository/skrb_repository.dart';
 import 'doc_item.dart';
 import 'detail_skrb_tdp_status.dart';
 import 'detail_skrb_gambar_section.dart';
 import 'detail_skrb_foto_copy_card.dart';
 
-class DetailSkrbDocRow extends StatelessWidget {
+class DetailSkrbDocRow extends ConsumerWidget {
   final Skrb skrb;
   final DocItem item;
   final bool isLocked;
@@ -43,13 +46,66 @@ class DetailSkrbDocRow extends StatelessWidget {
     }
   }
 
+  Future<void> _pickTanggalPermohonan(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final currentStr =
+        skrb.tanggalPermohonan ??
+        skrb.snapshotDocuments['tanggal_permohonan']?.toString();
+    DateTime initialDate = DateTime.now();
+    if (currentStr != null && currentStr.isNotEmpty) {
+      initialDate = DateTime.tryParse(currentStr) ?? DateTime.now();
+    }
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+      helpText: 'PILIH TANGGAL SURAT PERMOHONAN',
+      cancelText: 'BATAL',
+      confirmText: 'SIMPAN',
+    );
+
+    if (picked != null) {
+      final formatted =
+          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      try {
+        final repo = ref.read(skrbRepositoryProvider);
+        await repo.updateTanggalPermohonan(skrb.id, formatted);
+        ref.invalidate(skrbDetailProvider(skrb.id));
+        onLiveUpdate?.call();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Tanggal surat permohonan diperbarui: ${formatTanggalIndonesia(picked)}',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal mengubah tanggal: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isHidden = skrb.hiddenFlags[item.key] == true;
     final isUploaded = item.hasFile;
     final isLoadingThis = isProcessing && processingKey == item.key;
     final isHidingThis = isProcessing && processingKey == 'hide_${item.key}';
-    final canUpload = !isLocked && item.isOptionalUpload && !isProcessing;
+    final canUpload = !isLocked && item.isOptionalUpload && !isLoadingThis;
     final isLivePreview = skrb.isFileUpdatedInCurrentPhase(item.key);
     final actionColors = context.skrbActions;
 
@@ -222,7 +278,8 @@ class DetailSkrbDocRow extends StatelessWidget {
                                         : 'Sembunyikan (Hide dari Merger)',
                                     onPressed: isProcessing
                                         ? null
-                                        : () => onToggleHide(item.key, isHidden),
+                                        : () =>
+                                              onToggleHide(item.key, isHidden),
                                     constraints: const BoxConstraints(),
                                     padding: const EdgeInsets.all(6),
                                   ),
@@ -291,6 +348,50 @@ class DetailSkrbDocRow extends StatelessWidget {
                                     : () => onPreviewPdf(item),
                               ),
                             ),
+                          if (item.key == '1' && !isLocked) ...[
+                            const SizedBox(width: 4),
+                            Tooltip(
+                              message:
+                                  'Ganti Tanggal Surat Permohonan\nSaat ini: ${skrb.tanggalPermohonan != null ? formatTanggalIndonesia(skrb.tanggalPermohonan) : "Default (Hari Ini)"}',
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 6,
+                                  ),
+                                  textStyle: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  foregroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.primary,
+                                  side: BorderSide(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                    width: 1.2,
+                                  ),
+                                ),
+                                icon: const Icon(
+                                  Icons.calendar_month,
+                                  size: 14,
+                                ),
+                                label: Text(
+                                  skrb.tanggalPermohonan != null &&
+                                          skrb.tanggalPermohonan!.isNotEmpty
+                                      ? formatTanggalIndonesia(
+                                          skrb.tanggalPermohonan,
+                                        )
+                                      : 'Today',
+                                ),
+                                onPressed: isProcessing
+                                    ? null
+                                    : () =>
+                                          _pickTanggalPermohonan(context, ref),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
               ),

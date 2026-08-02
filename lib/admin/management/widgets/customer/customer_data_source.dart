@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:master_gambar/admin/management/providers/customer_providers.dart';
 import 'package:master_gambar/admin/management/widgets/customer/edit_customer_dialog.dart';
+import 'package:master_gambar/app/core/app_helpers.dart';
 import 'package:master_gambar/app/core/providers.dart';
 import 'package:master_gambar/data/models/customer.dart';
 
@@ -214,11 +215,7 @@ class CustomerDataSource extends DataTableSource {
 
     String tglStr = '';
     if (masaBerlaku != null) {
-      const bulan = [
-        '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-      ];
-      tglStr = '\nMasa Berlaku: ${masaBerlaku.day} ${bulan[masaBerlaku.month]} ${masaBerlaku.year}';
+      tglStr = '\nMasa Berlaku: ${formatTanggalIndonesia(masaBerlaku)}';
     }
 
     Color color;

@@ -108,7 +108,7 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
               return TextButton.icon(
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
                 icon: const Icon(Icons.delete_sweep),
-                label: const Text('Hapus Semua File'),
+                label: const Text('Hapus Semua dokumen History SKRB'),
                 onPressed: _isProcessing ? null : () => _confirmDeleteAll(skrb),
               );
             }
@@ -386,14 +386,14 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
                   Expanded(
                     child: ListView(
                       children: [
-                        _buildStorageSection(
-                          title: 'Folder: gambar_utama',
-                          subtitle: 'File Gambar Utama',
-                          icon: Icons.image_outlined,
-                          iconColor: Colors.amber.shade800,
-                          files: guFiles,
-                        ),
-                        const SizedBox(height: 10),
+                        // _buildStorageSection(
+                        //   title: 'Folder: gambar_utama',
+                        //   subtitle: 'File Gambar Utama',
+                        //   icon: Icons.image_outlined,
+                        //   iconColor: Colors.amber.shade800,
+                        //   files: guFiles,
+                        // ),
+                        // const SizedBox(height: 10),
                         _buildStorageSection(
                           title: 'Folder: saved (History SKRB)',
                           subtitle: 'Arsip merger PDF yang telah disimpan',
@@ -557,6 +557,7 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
                             fontWeight: FontWeight.w500,
                             color: colorScheme.onSurface,
                           ),
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

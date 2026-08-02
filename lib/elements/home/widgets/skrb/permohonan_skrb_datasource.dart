@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:intl/intl.dart';
+import 'package:master_gambar/app/core/app_helpers.dart';
 import 'package:master_gambar/data/models/skrb.dart';
 import '../../providers/page_state_provider.dart';
 import '../../providers/skrb_providers.dart';
@@ -123,7 +124,7 @@ class PermohonanSkrbDataSource extends DataTableSource {
     try {
       dialogShown = true;
       _showLoadingDialog(
-        'Harap tunggu sebentar...\nMemproses pembuatan dan penarikan ulang gambar & dokumen...',
+        'Harap tunggu sebentar...\nMenyiapkan dokumen terbaru untuk Mode Edit...',
       );
       await ref.read(skrbRepositoryProvider).updatePhase(skrb.id, 3);
       ref.invalidate(skrbListProvider);
@@ -210,26 +211,7 @@ class PermohonanSkrbDataSource extends DataTableSource {
     if (masaBerlakuStr != null &&
         masaBerlakuStr.isNotEmpty &&
         masaBerlakuStr != '-') {
-      try {
-        final date = DateTime.parse(masaBerlakuStr);
-        const bulan = [
-          '',
-          'Januari',
-          'Februari',
-          'Maret',
-          'April',
-          'Mei',
-          'Juni',
-          'Juli',
-          'Agustus',
-          'September',
-          'Oktober',
-          'November',
-          'Desember',
-        ];
-        tglStr =
-            '\nMasa Berlaku: ${date.day} ${bulan[date.month]} ${date.year}';
-      } catch (_) {}
+      tglStr = '\nMasa Berlaku: ${formatTanggalIndonesia(masaBerlakuStr)}';
     }
 
     Color color;

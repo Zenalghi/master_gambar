@@ -51,6 +51,10 @@ class DocItem {
       ),
     );
 
+    // [KOMENTAR FITUR LAMA]: Sebelumnya sistem menambahkan baris terpisah untuk file Gambar Tampak Utama 1/2/3/4 (a, b, c, d).
+    // Sesuai arahan baru, gambar utama tidak dimasukkan sebagai dokumen terpisah/proses background PDF di sini,
+    // melainkan ditampilkan di dalam field dinamis (Smart Row) di bawah Surat Permohonan SKRB (No. 1).
+    /*
     final gambarList = snap['gambar_utama_list'] ?? [];
     if (gambarList is List) {
       final numMap = {'a': '1', 'b': '2', 'c': '3', 'd': '4'};
@@ -84,6 +88,7 @@ class DocItem {
         }
       }
     }
+    */
 
     final hasDataUmum =
         (snap['data_umum_file'] ?? snap['data_umum']) != null &&

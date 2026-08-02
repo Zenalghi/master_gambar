@@ -29,6 +29,7 @@ class _DetailSkrbFotoCopyCardState
   late final TextEditingController _controller;
   Timer? _debounce;
   bool _isUpdating = false;
+  DateTime? _lastActionTime;
 
   @override
   void initState() {
@@ -54,6 +55,10 @@ class _DetailSkrbFotoCopyCardState
           '';
       _controller.text = val == '-' ? '' : val;
     } else if (_debounce?.isActive != true && !_isUpdating) {
+      if (_lastActionTime != null &&
+          DateTime.now().difference(_lastActionTime!).inSeconds < 6) {
+        return;
+      }
       final val =
           widget.skrb.fotoCopySkrb ??
           widget.skrb.snapshotDocuments['foto_copy_skrb']?.toString() ??
@@ -66,6 +71,7 @@ class _DetailSkrbFotoCopyCardState
   }
 
   void _onTextChanged(String text) {
+    _lastActionTime = DateTime.now();
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 600), () {
       _sendUpdateToServer();
@@ -73,6 +79,7 @@ class _DetailSkrbFotoCopyCardState
   }
 
   Future<void> _sendUpdateToServer() async {
+    _lastActionTime = DateTime.now();
     if (_isUpdating) return;
     setState(() => _isUpdating = true);
 
@@ -93,6 +100,7 @@ class _DetailSkrbFotoCopyCardState
     } finally {
       if (mounted) {
         setState(() => _isUpdating = false);
+        _lastActionTime = DateTime.now();
       }
     }
   }
@@ -123,7 +131,7 @@ class _DetailSkrbFotoCopyCardState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Foto Copy SKRB No: (Kelengkapan Permohonan d.)',
+                'Foto Copy SKRB No: (Kelengkapan Permohonan Bagian d)',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -156,11 +164,14 @@ class _DetailSkrbFotoCopyCardState
           TextFormField(
             controller: _controller,
             enabled: !widget.isLocked,
-            maxLines: 7,
+            minLines: 1,
+            maxLines: null,
+            keyboardType: TextInputType.multiline,
             onChanged: _onTextChanged,
             style: const TextStyle(fontSize: 13),
             decoration: InputDecoration(
-              hintText: 'Ketik Nomor / Keterangan Foto Copy SKRB (opsional)...',
+              hintText:
+                  'Ketik Nomor / Keterangan Foto Copy SKRB...\nTekan Enter untuk baris baru',
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
                 vertical: 10,

@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../../app/core/app_helpers.dart';
 import '../../../../app/core/providers.dart';
 import '../../../../data/models/document_customer.dart';
 import '../../providers/customer_providers.dart';
@@ -177,24 +178,7 @@ class _DocumentCustomerFormState extends ConsumerState<DocumentCustomerForm> {
 
   void _markChanged() => setState(() => _hasChanges = true);
 
-  String _formatTanggalIndonesia(DateTime date) {
-    const bulan = [
-      '',
-      'Januari',
-      'Februari',
-      'Maret',
-      'April',
-      'Mei',
-      'Juni',
-      'Juli',
-      'Agustus',
-      'September',
-      'Oktober',
-      'November',
-      'Desember',
-    ];
-    return '${date.day} ${bulan[date.month]} ${date.year}';
-  }
+  String _formatTanggalIndonesia(DateTime date) => formatTanggalIndonesia(date);
 
   // ──────────────────────────────────────────────────────────────────────────
   // PDF preview helpers

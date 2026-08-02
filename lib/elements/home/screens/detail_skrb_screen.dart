@@ -153,12 +153,17 @@ class _DetailSkrbScreenState extends ConsumerState<DetailSkrbScreen> {
   }
 
   Future<void> _silentRefreshPreviewNo1() async {
-    if (widget.skrbId == null || !_showPdfCard || _currentPreviewKey != '1') return;
+    if (widget.skrbId == null || !_showPdfCard || _currentPreviewKey != '1') {
+      return;
+    }
     try {
       final repo = ref.read(skrbRepositoryProvider);
       final url = repo.getPdfViewUrl(widget.skrbId!, '1');
       final bytes = await repo.getPdfBytes(url);
-      if (mounted && _showPdfCard && _currentPreviewKey == '1' && _pdfControllers.isNotEmpty) {
+      if (mounted &&
+          _showPdfCard &&
+          _currentPreviewKey == '1' &&
+          _pdfControllers.isNotEmpty) {
         await _pdfControllers.first.loadDocument(PdfDocument.openData(bytes));
       }
     } catch (e) {
@@ -617,9 +622,7 @@ class _DetailSkrbScreenState extends ConsumerState<DetailSkrbScreen> {
   Future<void> _handleSwitchPhase(Skrb skrb, int targetPhase) async {
     setState(() => _isProcessing = true);
     if (targetPhase == 3) {
-      _showLoadingDialog(
-        'Harap tunggu sebentar...\nMemproses pembuatan dan penarikan ulang gambar & dokumen...',
-      );
+      _showLoadingDialog('Harap tunggu sebentar...\nMenyiapkan dokumen...');
     } else {
       _showLoadingDialog(
         'Harap tunggu sebentar...\nMemvalidasi status...', // dan kembali ke Fase 2

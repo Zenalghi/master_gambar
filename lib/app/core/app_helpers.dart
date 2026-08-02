@@ -55,3 +55,40 @@ String formatDateTime(dynamic dateVal) {
   final second = dt.second.toString().padLeft(2, '0');
   return '$day-$month-$year $hour:$minute:$second';
 }
+
+/// Daftar nama bulan dalam bahasa Indonesia (index 1 = Januari).
+const List<String> kBulanIndonesia = [
+  '',
+  'Januari',
+  'Februari',
+  'Maret',
+  'April',
+  'Mei',
+  'Juni',
+  'Juli',
+  'Agustus',
+  'September',
+  'Oktober',
+  'November',
+  'Desember',
+];
+
+/// Format tanggal ke format Indonesia: "d MMMM yyyy" (contoh: 15 Agustus 2026).
+String formatTanggalIndonesia(dynamic dateVal) {
+  if (dateVal == null || dateVal == '-' || dateVal.toString().isEmpty) {
+    return '-';
+  }
+  DateTime? dt;
+  if (dateVal is DateTime) {
+    dt = dateVal;
+  } else if (dateVal is String) {
+    dt = DateTime.tryParse(dateVal);
+  }
+  if (dt == null) return dateVal.toString();
+  final day = dt.day;
+  final month = (dt.month >= 1 && dt.month <= 12)
+      ? kBulanIndonesia[dt.month]
+      : '';
+  final year = dt.year;
+  return '$day $month $year'.trim();
+}

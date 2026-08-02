@@ -81,6 +81,10 @@ class SkrbRepository {
     await _dio.put('/skrbs/$skrbId', data: {'foto_copy_skrb': fotoCopySkrb ?? ''});
   }
 
+  Future<void> updateTanggalPermohonan(int skrbId, String? tanggalPermohonan) async {
+    await _dio.put('/skrbs/$skrbId', data: {'tanggal_permohonan': tanggalPermohonan ?? ''});
+  }
+
   Future<void> uploadFile(int skrbId, String key, PlatformFile file) async {
     if (file.bytes == null) throw Exception('Data file PDF tidak valid.');
 

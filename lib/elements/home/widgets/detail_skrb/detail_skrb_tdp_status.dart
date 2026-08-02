@@ -1,5 +1,6 @@
 // File: lib/elements/home/widgets/detail_skrb/detail_skrb_tdp_status.dart
 import 'package:flutter/material.dart';
+import 'package:master_gambar/app/core/app_helpers.dart';
 import 'package:master_gambar/data/models/skrb.dart';
 import 'doc_item.dart';
 
@@ -45,26 +46,7 @@ class DetailSkrbTdpStatus extends StatelessWidget {
     if (masaBerlakuStr != null &&
         masaBerlakuStr.isNotEmpty &&
         masaBerlakuStr != '-') {
-      try {
-        final date = DateTime.parse(masaBerlakuStr);
-        const bulan = [
-          '',
-          'Januari',
-          'Februari',
-          'Maret',
-          'April',
-          'Mei',
-          'Juni',
-          'Juli',
-          'Agustus',
-          'September',
-          'Oktober',
-          'November',
-          'Desember',
-        ];
-        tglStr =
-            '\nMasa Berlaku: ${date.day} ${bulan[date.month]} ${date.year}';
-      } catch (_) {}
+      tglStr = '\nMasa Berlaku: ${formatTanggalIndonesia(masaBerlakuStr)}';
     }
 
     Color color;
