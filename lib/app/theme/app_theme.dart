@@ -1,5 +1,6 @@
 //lib\app\theme\app_theme.dart
 import 'package:flutter/material.dart';
+import 'snackbar_theme.dart';
 
 class AppColors {
   static const Color primary = Color(0xFF0D47A1);
@@ -87,6 +88,7 @@ ThemeData createAppTheme({required bool darkMode}) {
       ),
       dataTextStyle: TextStyle(color: colorScheme.onSurface, fontSize: 11),
     ),
+    snackBarTheme: AppSnackBarTheme.buildSnackBarTheme(darkMode: darkMode),
     dividerColor: darkMode
         ? const Color.fromRGBO(255, 255, 255, 0.15)
         : const Color.fromRGBO(0, 0, 0, 0.12),

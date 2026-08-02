@@ -134,11 +134,21 @@ class _MasterGambarOptionalScreenState
     }
   }
 
-  TextStyle? _snackBarTextStyle(Color color) {
+  TextStyle _snackBarTextStyle(Color color) {
     if (color == Colors.red) {
-      return const TextStyle(fontWeight: FontWeight.bold, fontSize: 16);
+      return const TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+        fontSize: 15,
+        fontFamily: 'Poppins',
+      );
     }
-    return null;
+    return const TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.w600,
+      fontSize: 13,
+      fontFamily: 'Poppins',
+    );
   }
 
   void _exitEditMode() {
