@@ -1,6 +1,7 @@
 // File: lib/elements/home/widgets/detail_skrb/detail_skrb_footer.dart
 import 'package:flutter/material.dart';
 import 'package:master_gambar/data/models/skrb.dart';
+import 'replace_history_dialog.dart';
 
 class DetailSkrbFooter extends StatelessWidget {
   final Skrb skrb;
@@ -152,7 +153,7 @@ class DetailSkrbFooter extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                   icon: const Icon(Icons.save),
-                  label: const Text('Simpan'),
+                  label: const Text('Simpan SKRB Baru'),
                   onPressed: (isProcessing || isMaxHistory || isExpired)
                       ? null
                       : () => onMerge(download: false),
@@ -179,7 +180,9 @@ class DetailSkrbFooter extends StatelessWidget {
                   ),
                   icon: const Icon(Icons.file_download),
                   label: Text(
-                    isMaxHistory ? 'Download Saja' : 'Simpan dan Unduh',
+                    isMaxHistory
+                        ? 'Download Saja'
+                        : 'Simpan dan Unduh SKRB Baru',
                     overflow: TextOverflow.ellipsis,
                   ),
                   onPressed: (isProcessing || isExpired)
@@ -190,15 +193,38 @@ class DetailSkrbFooter extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade700,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Tooltip(
+                message: isExpired
+                    ? expiredTooltip
+                    : 'Cara instan simpan SKRB baru ke server sekaligus menimpa file riwayat sebelumnya. Solusi efisien tanpa repot bolak-balik ke menu History saat Mode Edit!',
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isExpired
+                        ? Colors.grey.shade600
+                        : Colors.purple.shade700,
+                    foregroundColor: isExpired
+                        ? Colors.grey.shade300
+                        : Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  icon: const Icon(Icons.published_with_changes),
+                  label: const Text(
+                    'Replace History SKRB',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onPressed: (isProcessing || isExpired)
+                      ? null
+                      : () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => ReplaceHistoryDialog(
+                              skrb: skrb,
+                              onMergeAfterDelete: () =>
+                                  onMerge(download: false),
+                            ),
+                          );
+                        },
                 ),
-                icon: const Icon(Icons.delete_forever),
-                label: const Text('Hapus & Reset'),
-                onPressed: isProcessing ? null : onResetFiles,
               ),
             ),
             const SizedBox(width: 8),
@@ -210,7 +236,7 @@ class DetailSkrbFooter extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 10),
                 ),
                 icon: const Icon(Icons.history_edu),
-                label: const Text('History'),
+                label: const Text('History SKRB'),
                 onPressed: onShowHistory,
               ),
             ),
