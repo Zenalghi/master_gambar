@@ -144,7 +144,7 @@ class CardTdp extends StatelessWidget {
                         if (totalTdpCount == 0) ...[
                           const SizedBox(height: 4),
                           Text(
-                            'File (Harus diisi)',
+                            'Dapat pilih multiple File (Harus diisi)',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.red.shade700,
