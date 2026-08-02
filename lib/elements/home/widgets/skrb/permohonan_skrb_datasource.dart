@@ -24,8 +24,7 @@ class PermohonanSkrbDataSource extends DataTableSource {
   DataRow? getRow(int index) {
     if (index >= skrbList.length) return null;
     final skrb = skrbList[index];
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final bool isUnsavedDraft = skrb.fase == 1 || skrb.histories.isEmpty;
 
     return DataRow2.byIndex(
@@ -54,100 +53,102 @@ class PermohonanSkrbDataSource extends DataTableSource {
             colorScheme,
           ),
         ),
-        DataCell(
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Tombol Edit hanya muncul jika sudah pernah disimpan / bukan draft awal
-              if (!isUnsavedDraft) ...[
-                IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.orange, size: 18),
-                  tooltip: skrb.fase == 2
-                      ? 'Buka ke Mode Edit'
-                      : 'Lanjutkan Mode Edit', // (Fase 3)
-                  onPressed: () async {
-                    bool dialogShown = false;
-                    try {
-                      // Set ke fase 3 (Mode Edit) jika berada pada fase 2
-                      if (skrb.fase == 2) {
-                        dialogShown = true;
-                        _showLoadingDialog(
-                          'Harap tunggu sebentar...\nMemproses pembuatan dan penarikan ulang gambar & dokumen...',
-                        );
-                        await ref
-                            .read(skrbRepositoryProvider)
-                            .updatePhase(skrb.id, 3);
-                        ref.invalidate(skrbListProvider);
-                      }
-                      ref.invalidate(skrbDetailProvider(skrb.id));
-                      if (dialogShown && context.mounted) {
-                        Navigator.of(context, rootNavigator: true).pop();
-                      }
-                      ref.read(pageStateProvider.notifier).state = PageState(
-                        pageIndex: 3,
-                        skrbId: skrb.id,
-                      );
-                    } catch (e) {
-                      if (dialogShown && context.mounted) {
-                        Navigator.of(context, rootNavigator: true).pop();
-                      }
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: ${e.toString()}')),
-                        );
-                      }
-                    }
-                  },
-                ),
-                const SizedBox(width: 4),
-              ],
-              // Tombol Navigasi -> Masuk ke Screen DETAIL SKRB
-              IconButton(
-                icon: isUnsavedDraft
-                    ? const Icon(Icons.edit_note, color: Colors.teal, size: 18)
-                    : (skrb.fase == 2
-                          ? const Icon(
-                              Icons.description_outlined,
-                              color: Colors.blue,
-                              size: 18,
-                            )
-                          : const Icon(
-                              Icons.edit,
-                              color: Colors.orange,
-                              size: 18,
-                            )),
-                // Icon(
-                //   Icons.arrow_forward_ios_rounded,
-                //   color: isUnsavedDraft ? Colors.teal : Colors.blue,
-                //   size: 16,
-                // ),
-                tooltip: isUnsavedDraft
-                    ? 'Masuk & Lanjutkan Proses (Belum Disimpan)'
-                    : (skrb.fase == 2
-                          ? 'Lihat Detail SKRB'
-                          : 'Masuk ke Detail (Mode Edit)'),
-                onPressed: () {
-                  ref.invalidate(skrbDetailProvider(skrb.id));
-                  ref.read(pageStateProvider.notifier).state = PageState(
-                    pageIndex: 3,
-                    skrbId: skrb.id,
-                  );
-                },
-              ),
-              const SizedBox(width: 4),
-              // Tombol Hapus Total SKRB
-              IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red, size: 18),
-                tooltip: 'Hapus Permohonan SKRB',
-                onPressed: () => _confirmDelete(skrb),
-              ),
-            ],
+        DataCell(_buildActionButtons(skrb, isUnsavedDraft)),
+      ],
+    );
+  }
+
+  /// Komponen tombol tindakan (Action Buttons) untuk tabel permohonan SKRB
+  Widget _buildActionButtons(Skrb skrb, bool isUnsavedDraft) {
+    // Tentukan Ikon & Tooltip Navigasi Detail berdasarkan kondisi/fase
+    IconData detailIcon;
+    Color detailColor;
+    String detailTooltip;
+
+    if (isUnsavedDraft) {
+      detailIcon = Icons.edit_note;
+      detailColor = Colors.teal;
+      detailTooltip = 'Masuk & Lanjutkan Proses (Belum Disimpan)';
+    } else if (skrb.fase == 2) {
+      detailIcon = Icons.description_outlined;
+      detailColor = Colors.blue;
+      detailTooltip = 'Lihat Detail SKRB';
+    } else {
+      // Fase 3 (Mode Edit)
+      detailIcon = Icons.description_outlined;
+      detailColor = Colors.orange;
+      detailTooltip = 'Masuk ke Detail (Mode Edit)';
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Tombol Edit HANYA muncul jika berada pada Fase 2 (sudah pernah disimpan dan saat ini tidak dalam mode edit)
+        if (!isUnsavedDraft && skrb.fase == 2) ...[
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.orange, size: 18),
+            tooltip: 'Buka ke Mode Edit',
+            onPressed: () => _handleSwitchToEditPhase(skrb),
           ),
+          const SizedBox(width: 4),
+        ],
+
+        // Tombol Navigasi -> Masuk ke Screen DETAIL SKRB
+        IconButton(
+          icon: Icon(detailIcon, color: detailColor, size: 18),
+          tooltip: detailTooltip,
+          onPressed: () {
+            ref.invalidate(skrbDetailProvider(skrb.id));
+            ref.read(pageStateProvider.notifier).state = PageState(
+              pageIndex: 3,
+              skrbId: skrb.id,
+            );
+          },
+        ),
+        const SizedBox(width: 4),
+
+        // Tombol Hapus Total SKRB
+        IconButton(
+          icon: const Icon(Icons.delete, color: Colors.red, size: 18),
+          tooltip: 'Hapus Permohonan SKRB',
+          onPressed: () => _confirmDelete(skrb),
         ),
       ],
     );
   }
 
+  /// Menangani proses peralihan dari Fase 2 menuju Fase 3 (Mode Edit)
+  Future<void> _handleSwitchToEditPhase(Skrb skrb) async {
+    bool dialogShown = false;
+    try {
+      dialogShown = true;
+      _showLoadingDialog(
+        'Harap tunggu sebentar...\nMemproses pembuatan dan penarikan ulang gambar & dokumen...',
+      );
+      await ref.read(skrbRepositoryProvider).updatePhase(skrb.id, 3);
+      ref.invalidate(skrbListProvider);
+      ref.invalidate(skrbDetailProvider(skrb.id));
+
+      if (dialogShown && context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      ref.read(pageStateProvider.notifier).state = PageState(
+        pageIndex: 3,
+        skrbId: skrb.id,
+      );
+    } catch (e) {
+      if (dialogShown && context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+      }
+    }
+  }
+
+  /// Dialog konfirmasi untuk hapus total SKRB
   void _confirmDelete(Skrb skrb) {
     showDialog(
       context: context,
@@ -198,6 +199,7 @@ class PermohonanSkrbDataSource extends DataTableSource {
     );
   }
 
+  /// Widget indikator status masa berlaku dan sinkronisasi TDP
   Widget _buildStatusTdpWidget(
     String status,
     String? masaBerlakuStr,
@@ -295,6 +297,7 @@ class PermohonanSkrbDataSource extends DataTableSource {
     );
   }
 
+  /// Helper untuk memodifikasi format waktu ISO menjadi yyyy.MM.dd HH:mm
   String _formatDate(String iso) {
     try {
       if (iso.isEmpty || iso == '-') return '-';
@@ -305,14 +308,16 @@ class PermohonanSkrbDataSource extends DataTableSource {
     }
   }
 
+  /// Memunculkan dialog loading blur bersertakan teks status
   void _showLoadingDialog(String title) {
+    final colorScheme = Theme.of(context).colorScheme;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: Dialog(
-          backgroundColor: Colors.white,
+          backgroundColor: colorScheme.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -326,10 +331,10 @@ class PermohonanSkrbDataSource extends DataTableSource {
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: colorScheme.onSurface,
                   ),
                 ),
               ],
