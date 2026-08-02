@@ -226,7 +226,7 @@ class _DetailSkrbScreenState extends ConsumerState<DetailSkrbScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'Silahkan cari dan Pilih SKRB pada dropdown di atas atau klik ikon edit pada tabel Permohonan SKRB',
+                                'Silahkan cari dan Pilih SKRB pada dropdown di atas atau klik ikon Detail SKRB pada tabel Permohonan SKRB',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 15,
