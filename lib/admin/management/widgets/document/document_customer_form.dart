@@ -243,11 +243,11 @@ class _DocumentCustomerFormState extends ConsumerState<DocumentCustomerForm> {
     );
     if (result != null && result.files.isNotEmpty) {
       final file = result.files.first;
-      if (file.size > 1024 * 1024) {
+      if (file.size > 500 * 1024) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Ukuran file melebihi batas 1 MB!'),
+              content: Text('Ukuran file melebihi batas 500 KB!'),
               backgroundColor: Colors.red,
             ),
           );
@@ -269,12 +269,12 @@ class _DocumentCustomerFormState extends ConsumerState<DocumentCustomerForm> {
     if (result != null && result.files.isNotEmpty) {
       final valid = <PlatformFile>[];
       for (final file in result.files) {
-        if (file.size > 1024 * 1024) {
+        if (file.size > 500 * 1024) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'File "${file.name}" melebihi batas 1 MB, dilewati.',
+                  'File "${file.name}" melebihi batas 500 KB, dilewati.',
                 ),
                 backgroundColor: Colors.orange,
               ),
@@ -563,6 +563,7 @@ class _DocumentCustomerFormState extends ConsumerState<DocumentCustomerForm> {
       return TdpRowData(
         index: i,
         fileName: replaced?.name ?? existingTdp[i].path.split('/').last,
+        fileSize: replaced?.size ?? existingTdp[i].size,
         isExisting: true,
         onReplace: () => _replaceTdpFile(i),
         onDelete: i > 0 ? () => _deleteTdpFile(i) : null,
@@ -579,6 +580,7 @@ class _DocumentCustomerFormState extends ConsumerState<DocumentCustomerForm> {
       return TdpRowData(
         index: globalIndex,
         fileName: _newTdpFiles[i].name,
+        fileSize: _newTdpFiles[i].size,
         isExisting: false,
         onReplace: () async {
           final file = await _pickSinglePdf();
@@ -643,6 +645,9 @@ class _DocumentCustomerFormState extends ConsumerState<DocumentCustomerForm> {
                       : (hasKopExisting
                             ? _currentDoc!.kopSurat!.split('/').last
                             : null),
+                  fileSize: hasKopNew
+                      ? _newKopSurat!.size
+                      : (hasKopExisting ? _currentDoc!.kopSuratSize : null),
                   previewWidget: kopPreview,
                   onPick: () async {
                     final file = await _pickSinglePdf();
@@ -663,6 +668,9 @@ class _DocumentCustomerFormState extends ConsumerState<DocumentCustomerForm> {
                       : (hasDataExisting
                             ? _currentDoc!.dataUmum!.split('/').last
                             : null),
+                  fileSize: hasDataNew
+                      ? _newDataUmum!.size
+                      : (hasDataExisting ? _currentDoc!.dataUmumSize : null),
                   previewWidget: dataPreview,
                   onPick: () async {
                     final file = await _pickSinglePdf();

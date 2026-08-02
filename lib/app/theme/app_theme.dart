@@ -110,25 +110,23 @@ class AppTextStyles {
 class SkrbActionColors {
   final bool isDark;
   SkrbActionColors(Brightness brightness)
-      : isDark = brightness == Brightness.dark;
+    : isDark = brightness == Brightness.dark;
 
   // 1. Hide / Unhide Icon
   Color get hideIcon =>
-      isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626);
+      isDark ? const Color.fromARGB(255, 255, 94, 0) : const Color(0xFFFBBF24);
   Color get unhideIcon =>
-      isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706);
+      isDark ? const Color(0xFFFBBF24) : const Color.fromARGB(255, 255, 94, 0);
 
   // 2. Pilih File Button (Upload Baru)
   Color get pilihFileBg =>
       isDark ? const Color(0xFF10B981) : const Color(0xFF059669);
-  Color get pilihFileFg =>
-      isDark ? const Color(0xFF064E3B) : Colors.white;
+  Color get pilihFileFg => isDark ? const Color(0xFF064E3B) : Colors.white;
 
   // 3. Ganti File Button (Replace File)
   Color get gantiFileBg =>
       isDark ? const Color(0xFF14B8A6) : const Color(0xFF0D9488);
-  Color get gantiFileFg =>
-      isDark ? const Color(0xFF042F2E) : Colors.white;
+  Color get gantiFileFg => isDark ? const Color(0xFF042F2E) : Colors.white;
 
   // Disabled Upload Button State
   Color get uploadDisabledBg =>

@@ -74,12 +74,14 @@ class A4PdfPreviewer extends StatefulWidget {
   final Future<Uint8List> Function()? futureLoader;
   final Uint8List? bytes;
   final String cacheKey;
+  final Color backgroundColor;
 
   const A4PdfPreviewer({
     super.key,
     this.futureLoader,
     this.bytes,
     required this.cacheKey,
+    this.backgroundColor = const Color.fromARGB(255, 229, 229, 229),
   });
 
   @override
@@ -177,7 +179,7 @@ class _A4PdfPreviewerState extends State<A4PdfPreviewer> {
       key: ValueKey(widget.cacheKey),
       controller: _pdfController!,
       scrollDirection: Axis.vertical,
-      backgroundDecoration: const BoxDecoration(color: Colors.white),
+      backgroundDecoration: BoxDecoration(color: widget.backgroundColor),
     );
   }
 }

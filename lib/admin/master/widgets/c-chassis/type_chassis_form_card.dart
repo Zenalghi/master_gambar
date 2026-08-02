@@ -39,11 +39,11 @@ class _TypeChassisFormCardState extends ConsumerState<TypeChassisFormCard> {
 
     if (result != null && result.files.isNotEmpty) {
       final file = result.files.first;
-      if (file.size > 2 * 1024 * 1024) {
+      if (file.size > 500 * 1024) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Ukuran file PDF tidak boleh melebihi 2 MB!'),
+              content: Text('Ukuran file PDF tidak boleh melebihi 500 KB!'),
               backgroundColor: Colors.red,
             ),
           );

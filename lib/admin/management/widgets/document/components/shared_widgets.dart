@@ -1,5 +1,6 @@
 // lib/admin/management/widgets/document/components/shared_widgets.dart
 import 'package:flutter/material.dart';
+import 'package:master_gambar/app/core/app_helpers.dart';
 
 /// Badge merah kecil bertuliskan "Wajib".
 class RequiredBadge extends StatelessWidget {
@@ -30,6 +31,7 @@ class RequiredBadge extends StatelessWidget {
 class DocFilePicker extends StatelessWidget {
   final bool hasFile;
   final String? fileName;
+  final int? fileSize;
   final bool isMultiple;
   final VoidCallback onPick;
 
@@ -37,12 +39,14 @@ class DocFilePicker extends StatelessWidget {
     super.key,
     required this.hasFile,
     required this.fileName,
+    this.fileSize,
     required this.onPick,
     this.isMultiple = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final showSize = hasFile && fileSize != null && fileSize! > 0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -71,6 +75,17 @@ class DocFilePicker extends StatelessWidget {
             fontStyle: hasFile ? FontStyle.normal : FontStyle.italic,
           ),
           overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 2),
+        Text(
+          showSize
+              ? 'Ukuran: ${formatFileSize(fileSize)}'
+              : 'Max. 500KB',
+          style: TextStyle(
+            fontSize: 11,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontWeight: showSize ? FontWeight.w500 : FontWeight.normal,
+          ),
         ),
       ],
     );

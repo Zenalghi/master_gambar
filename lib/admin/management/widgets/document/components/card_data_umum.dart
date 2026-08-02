@@ -11,6 +11,7 @@ class CardDataUmum extends StatelessWidget {
   final bool hasExisting;
   final bool hasNew;
   final String? fileName;
+  final int? fileSize;
   final Widget? previewWidget;
   final VoidCallback onPick;
 
@@ -21,6 +22,7 @@ class CardDataUmum extends StatelessWidget {
     required this.hasExisting,
     required this.hasNew,
     required this.fileName,
+    this.fileSize,
     required this.previewWidget,
     required this.onPick,
   });
@@ -74,6 +76,7 @@ class CardDataUmum extends StatelessWidget {
                     DocFilePicker(
                       hasFile: hasExisting || hasNew,
                       fileName: fileName,
+                      fileSize: fileSize,
                       onPick: onPick,
                     ),
                 ],

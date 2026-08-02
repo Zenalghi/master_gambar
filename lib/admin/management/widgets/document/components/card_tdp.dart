@@ -1,5 +1,6 @@
 // lib/admin/management/widgets/document/components/card_tdp.dart
 import 'package:flutter/material.dart';
+import 'package:master_gambar/app/core/app_helpers.dart';
 
 import 'pdf_preview_box.dart';
 import 'shared_widgets.dart';
@@ -8,6 +9,7 @@ import 'shared_widgets.dart';
 class TdpRowData {
   final int index;
   final String fileName;
+  final int? fileSize;
   final bool isExisting;
   final Widget? previewWidget;
   final VoidCallback? onReplace;
@@ -16,6 +18,7 @@ class TdpRowData {
   const TdpRowData({
     required this.index,
     required this.fileName,
+    this.fileSize,
     required this.isExisting,
     required this.previewWidget,
     required this.onReplace,
@@ -271,6 +274,17 @@ class _TdpFileRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 maxLines: 2,
               ),
+              if (data.fileSize != null && data.fileSize! > 0) ...[
+                const SizedBox(height: 2),
+                Text(
+                  'Ukuran: ${formatFileSize(data.fileSize)}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
               const SizedBox(height: 8),
               if (isAdmin && (data.onReplace != null || data.onDelete != null))
                 Wrap(
