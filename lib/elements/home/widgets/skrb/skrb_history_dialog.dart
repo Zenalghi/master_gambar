@@ -300,7 +300,7 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
             data: (info) {
               final folder = info['folder'] ?? '-';
               final rootFiles = (info['root_files'] as List?) ?? [];
-              final guFiles = (info['gambar_utama_files'] as List?) ?? [];
+              // final guFiles = (info['gambar_utama_files'] as List?) ?? [];
               final savedFiles = (info['saved_files'] as List?) ?? [];
               final totalBytes = (info['total_bytes'] ?? 0);
 
