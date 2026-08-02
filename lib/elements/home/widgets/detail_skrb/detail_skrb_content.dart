@@ -104,13 +104,13 @@ class DetailSkrbContent extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Daftar Dokumen Penyatu:',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              // const Text(
+                              //   'Daftar Dokumen SKRB:',
+                              //   style: TextStyle(
+                              //     fontSize: 14,
+                              //     fontWeight: FontWeight.bold,
+                              //   ),
+                              // ),
                               const SizedBox(height: 6),
                               Expanded(
                                 child: SingleChildScrollView(

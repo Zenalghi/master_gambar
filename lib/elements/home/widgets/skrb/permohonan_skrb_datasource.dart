@@ -103,15 +103,28 @@ class PermohonanSkrbDataSource extends DataTableSource {
               ],
               // Tombol Navigasi -> Masuk ke Screen DETAIL SKRB
               IconButton(
-                icon: Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: isUnsavedDraft ? Colors.teal : Colors.blue,
-                  size: 16,
-                ),
+                icon: isUnsavedDraft
+                    ? const Icon(Icons.edit_note, color: Colors.teal, size: 18)
+                    : (skrb.fase == 2
+                          ? const Icon(
+                              Icons.description_outlined,
+                              color: Colors.blue,
+                              size: 18,
+                            )
+                          : const Icon(
+                              Icons.edit,
+                              color: Colors.orange,
+                              size: 18,
+                            )),
+                // Icon(
+                //   Icons.arrow_forward_ios_rounded,
+                //   color: isUnsavedDraft ? Colors.teal : Colors.blue,
+                //   size: 16,
+                // ),
                 tooltip: isUnsavedDraft
                     ? 'Masuk & Lanjutkan Proses (Belum Disimpan)'
                     : (skrb.fase == 2
-                          ? 'Lihat Detail (Tersimpan & Terkunci)'
+                          ? 'Lihat Detail SKRB'
                           : 'Masuk ke Detail (Mode Edit)'),
                 onPressed: () {
                   ref.invalidate(skrbDetailProvider(skrb.id));

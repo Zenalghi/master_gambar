@@ -44,7 +44,8 @@ class DetailSkrbDocRow extends StatelessWidget {
     final isHidden = skrb.hiddenFlags[item.key] == true;
     final isUploaded = item.hasFile;
     final isLoadingThis = isProcessing && processingKey == item.key;
-    final canUpload = !isLocked && item.isOptionalUpload;
+    final isHidingThis = isProcessing && processingKey == 'hide_${item.key}';
+    final canUpload = !isLocked && item.isOptionalUpload && !isProcessing;
     final isLivePreview = skrb.isFileUpdatedInCurrentPhase(item.key);
     final actionColors = context.skrbActions;
 
@@ -188,23 +189,39 @@ class DetailSkrbDocRow extends StatelessWidget {
                           // KLIEN: Dalam Fase 2 (isLocked == true), icon hide dan tombol upload (Ganti/Pilih File) disembunyikan.
                           // Hanya di Fase 1 dan Fase 3 (isLocked == false) aksi-aksi pengubahan dokumen dimunculkan.
                           if (!isLocked && item.canBeHidden && isUploaded)
-                            IconButton(
-                              icon: Icon(
-                                isHidden
-                                    ? Icons.visibility_off
-                                    : Icons.remove_red_eye_outlined,
-                                color: isHidden
-                                    ? actionColors.hideIcon
-                                    : actionColors.unhideIcon,
-                                size: 18,
-                              ),
-                              tooltip: isHidden
-                                  ? 'Aktifkan (Unhide)'
-                                  : 'Sembunyikan (Hide dari Merger)',
-                              onPressed: () => onToggleHide(item.key, isHidden),
-                              constraints: const BoxConstraints(),
-                              padding: const EdgeInsets.all(6),
-                            ),
+                            isHidingThis
+                                ? Padding(
+                                    padding: const EdgeInsets.all(6),
+                                    child: SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: isHidden
+                                            ? actionColors.hideIcon
+                                            : actionColors.unhideIcon,
+                                      ),
+                                    ),
+                                  )
+                                : IconButton(
+                                    icon: Icon(
+                                      isHidden
+                                          ? Icons.visibility_off
+                                          : Icons.remove_red_eye_outlined,
+                                      color: isHidden
+                                          ? actionColors.hideIcon
+                                          : actionColors.unhideIcon,
+                                      size: 18,
+                                    ),
+                                    tooltip: isHidden
+                                        ? 'Aktifkan (Unhide)'
+                                        : 'Sembunyikan (Hide dari Merger)',
+                                    onPressed: isProcessing
+                                        ? null
+                                        : () => onToggleHide(item.key, isHidden),
+                                    constraints: const BoxConstraints(),
+                                    padding: const EdgeInsets.all(6),
+                                  ),
                           if (!isLocked && item.isOptionalUpload)
                             ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
@@ -265,7 +282,9 @@ class DetailSkrbDocRow extends StatelessWidget {
                                 ),
                                 icon: const Icon(Icons.visibility, size: 14),
                                 label: const Text('Preview Dokumen'),
-                                onPressed: () => onPreviewPdf(item),
+                                onPressed: isProcessing
+                                    ? null
+                                    : () => onPreviewPdf(item),
                               ),
                             ),
                         ],

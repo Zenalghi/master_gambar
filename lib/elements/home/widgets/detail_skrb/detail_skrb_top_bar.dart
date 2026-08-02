@@ -26,8 +26,9 @@ class DetailSkrbTopBar extends ConsumerWidget {
     final skrbListAsync = ref.watch(skrbListProvider);
 
     Skrb? activeSkrb;
-    final skrbDetailAsync =
-        skrbId != null ? ref.watch(skrbDetailProvider(skrbId!)) : null;
+    final skrbDetailAsync = skrbId != null
+        ? ref.watch(skrbDetailProvider(skrbId!))
+        : null;
 
     skrbDetailAsync?.maybeWhen(
       data: (item) => activeSkrb = item,
@@ -134,16 +135,21 @@ class DetailSkrbTopBar extends ConsumerWidget {
                   style: const TextStyle(color: Colors.red, fontSize: 11),
                 ),
                 data: (list) => DropdownSearch<Skrb>(
-                  items: (String filter, _) => list.where((item) {
-                    final query = filter.toLowerCase();
-                    return item.idSkrb.toLowerCase().contains(query) ||
-                        item.transaksiId.toLowerCase().contains(query) ||
-                        item.customerName.toLowerCase().contains(query) ||
-                        item.merk.toLowerCase().contains(query) ||
-                        item.typeChassis.toLowerCase().contains(query);
-                  }).toList(),
+                  items: (String filter, _) {
+                    final query = filter.trim().toLowerCase();
+                    if (query.isEmpty) {
+                      return list.take(30).toList();
+                    }
+                    return list.where((item) {
+                      return item.idSkrb.toLowerCase().contains(query) ||
+                          item.transaksiId.toLowerCase().contains(query) ||
+                          item.customerName.toLowerCase().contains(query) ||
+                          item.merk.toLowerCase().contains(query) ||
+                          item.typeChassis.toLowerCase().contains(query);
+                    }).toList();
+                  },
                   itemAsString: (item) =>
-                      'ID SKRB : ${item.idSkrb} | ID DWG : ${item.transaksiId} || Customer : ${item.customerName} || Merk : ${item.merk} | Type : ${item.typeChassis}',
+                      'ID SKRB : ${item.idSkrb} | ID DWG : ${item.transaksiId} || Customer : ${item.customerName} || Merk : ${item.merk} | Type : ${item.typeChassis} | Jenis : ${item.jenisKendaraan} | Pengajuan : ${item.jenisPengajuan}',
                   compareFn: (i1, i2) => i1.id == i2.id,
                   selectedItem: activeSkrb,
                   dropdownBuilder: (ctx, selectedItem) {
@@ -151,7 +157,7 @@ class DetailSkrbTopBar extends ConsumerWidget {
                       return const Text('', style: TextStyle(fontSize: 12));
                     }
                     final text =
-                        'ID SKRB : ${selectedItem.idSkrb} | ID DWG : ${selectedItem.transaksiId} || Customer : ${selectedItem.customerName} || Merk : ${selectedItem.merk} | Type : ${selectedItem.typeChassis}';
+                        'ID SKRB : ${selectedItem.idSkrb} | ID DWG : ${selectedItem.transaksiId} || Customer : ${selectedItem.customerName} || Merk : ${selectedItem.merk} | Type : ${selectedItem.typeChassis} | Jenis : ${selectedItem.jenisKendaraan} | Pengajuan : ${selectedItem.jenisPengajuan}';
                     return SelectableText(
                       text,
                       style: const TextStyle(
@@ -199,8 +205,9 @@ class DetailSkrbTopBar extends ConsumerWidget {
                     searchFieldProps: const TextFieldProps(
                       autofocus: true,
                       decoration: InputDecoration(
-                        hintText: 'Cari ID SKRB / ID DWG / nama Customer...',
-                        hintStyle: TextStyle(fontSize: 12),
+                        hintText:
+                            'Ketik untuk mencari seluruh ID SKRB / DWG / Customer...', //30 list
+                        hintStyle: TextStyle(fontSize: 11),
                         prefixIcon: Icon(Icons.search, size: 18),
                         isDense: true,
                         contentPadding: EdgeInsets.symmetric(

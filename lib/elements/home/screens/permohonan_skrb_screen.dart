@@ -66,13 +66,18 @@ class _PermohonanSkrbScreenState extends ConsumerState<PermohonanSkrbScreen> {
                       style: const TextStyle(color: Colors.red, fontSize: 11),
                     ),
                     data: (list) => DropdownSearch<SkrbAvailableTransaction>(
-                      items: (String filter, _) => list.where((item) {
-                        final query = filter.toLowerCase();
-                        return item.id.toLowerCase().contains(query) ||
-                            item.customerName.toLowerCase().contains(query) ||
-                            item.merk.toLowerCase().contains(query) ||
-                            item.typeChassis.toLowerCase().contains(query);
-                      }).toList(),
+                      items: (String filter, _) {
+                        final query = filter.trim().toLowerCase();
+                        if (query.isEmpty) {
+                          return list.take(30).toList();
+                        }
+                        return list.where((item) {
+                          return item.id.toLowerCase().contains(query) ||
+                              item.customerName.toLowerCase().contains(query) ||
+                              item.merk.toLowerCase().contains(query) ||
+                              item.typeChassis.toLowerCase().contains(query);
+                        }).toList();
+                      },
                       itemAsString: (item) =>
                           '${item.id} - ${item.customerName} (${item.merk} ${item.typeChassis})',
                       compareFn: (i1, i2) => i1.id == i2.id,
@@ -99,7 +104,8 @@ class _PermohonanSkrbScreenState extends ConsumerState<PermohonanSkrbScreen> {
                         searchFieldProps: const TextFieldProps(
                           autofocus: true,
                           decoration: InputDecoration(
-                            hintText: 'Cari ID DWG / nama PT Customer...',
+                            hintText:
+                                'Ketik untuk mencari seluruh ID DWG / Customer...',// 30 list
                             hintStyle: TextStyle(fontSize: 11),
                             prefixIcon: Icon(Icons.search, size: 18),
                             isDense: true,

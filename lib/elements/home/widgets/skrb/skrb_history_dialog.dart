@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/data/models/skrb.dart';
 import 'package:master_gambar/admin/master/widgets/pdf_viewer_dialog.dart';
 import 'package:master_gambar/app/core/providers.dart';
+import 'package:master_gambar/app/core/app_helpers.dart';
 import '../../providers/skrb_providers.dart';
 import '../../repository/skrb_repository.dart';
 
@@ -18,12 +19,16 @@ class SkrbHistoryDialog extends ConsumerStatefulWidget {
 class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
   bool _isProcessing = false;
   int? _activeHistoryId;
+  bool _isRefreshingStorage = false;
 
   @override
   Widget build(BuildContext context) {
     // Pantau skrbDetailProvider agar daftar riwayat selalu up to date saat dihapus
     final skrbAsync = ref.watch(skrbDetailProvider(widget.skrb.id));
-    final isAdmin = (ref.watch(userRoleProvider) ?? '').toLowerCase() == 'admin';
+    final isAdmin =
+        (ref.watch(userRoleProvider) ?? '').toLowerCase() == 'admin';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return AlertDialog(
       title: Row(
@@ -40,21 +45,35 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.purple.shade50,
-                border: Border.all(color: Colors.purple.shade300),
+                color: isDark
+                    ? Colors.purple.shade900.withAlpha(100)
+                    : Colors.purple.shade50,
+                border: Border.all(
+                  color: isDark
+                      ? Colors.purple.shade400
+                      : Colors.purple.shade300,
+                ),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.admin_panel_settings, size: 16, color: Colors.purple.shade700),
+                  Icon(
+                    Icons.admin_panel_settings,
+                    size: 16,
+                    color: isDark
+                        ? Colors.purple.shade300
+                        : Colors.purple.shade700,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     'Mode Admin: Storage Inspector',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Colors.purple.shade800,
+                      color: isDark
+                          ? Colors.purple.shade200
+                          : Colors.purple.shade800,
                     ),
                   ),
                 ],
@@ -64,22 +83,20 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
       ),
       content: SizedBox(
         width: isAdmin ? 1150 : 700,
-        height: 520,
+        height: isAdmin ? 750 : 300,
         child: isAdmin
             ? Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Kiri: Daftar Riwayat SKRB normal
-                  Expanded(
-                    flex: 11,
-                    child: _buildHistoryContent(skrbAsync),
+                  Expanded(flex: 11, child: _buildHistoryContent(skrbAsync)),
+                  VerticalDivider(
+                    width: 32,
+                    thickness: 1,
+                    color: colorScheme.outlineVariant,
                   ),
-                  const VerticalDivider(width: 32, thickness: 1, color: Colors.black12),
                   // Kanan: Panel Khusus Admin (Storage Inspector)
-                  Expanded(
-                    flex: 10,
-                    child: _buildAdminStorageInspector(),
-                  ),
+                  Expanded(flex: 10, child: _buildAdminStorageInspector()),
                 ],
               )
             : _buildHistoryContent(skrbAsync),
@@ -134,7 +151,6 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
           separatorBuilder: (_, __) => const Divider(height: 1),
           itemBuilder: (ctx, index) {
             final h = skrb.histories[index];
-            final sizeStr = (h.fileSize / 1024).toStringAsFixed(1);
             final isLoadingThis = _isProcessing && _activeHistoryId == h.id;
 
             return ListTile(
@@ -149,14 +165,18 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
               ),
               title: Text(
                 h.fileName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               subtitle: Text(
-                'Ukuran: $sizeStr KB   |   Waktu: ${h.createdAt}',
-                style: const TextStyle(fontSize: 12),
+                'Ukuran: ${formatFileSize(h.fileSize)}   |   Waktu: ${formatDateTime(h.createdAt)}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -170,10 +190,7 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
                   else ...[
                     // Preview
                     IconButton(
-                      icon: const Icon(
-                        Icons.visibility,
-                        color: Colors.blue,
-                      ),
+                      icon: const Icon(Icons.visibility, color: Colors.blue),
                       tooltip: 'Preview PDF',
                       onPressed: () => _handlePreview(h),
                     ),
@@ -188,10 +205,7 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
                     ),
                     // Hapus Single
                     IconButton(
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        color: Colors.red,
-                      ),
+                      icon: const Icon(Icons.delete_outline, color: Colors.red),
                       tooltip: 'Hapus dari Server',
                       onPressed: () => _handleDeleteSingle(h),
                     ),
@@ -207,6 +221,12 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
 
   Widget _buildAdminStorageInspector() {
     final storageInfoAsync = ref.watch(skrbStorageInfoProvider(widget.skrb.id));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isRefreshing =
+        _isRefreshingStorage ||
+        storageInfoAsync.isLoading ||
+        storageInfoAsync.isRefreshing;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,25 +236,55 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
           children: [
             Row(
               children: [
-                Icon(Icons.folder_shared_rounded, color: Colors.indigo.shade700, size: 22),
+                Icon(
+                  Icons.folder_shared_rounded,
+                  color: isDark
+                      ? Colors.indigo.shade300
+                      : Colors.indigo.shade700,
+                  size: 22,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Inspeksi Direktori Server',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
-                    color: Colors.indigo.shade900,
+                    color: isDark
+                        ? Colors.indigo.shade200
+                        : Colors.indigo.shade900,
                   ),
                 ),
               ],
             ),
-            IconButton(
-              icon: const Icon(Icons.refresh, size: 20, color: Colors.grey),
-              tooltip: 'Refresh Info Storage',
-              onPressed: () => ref.refresh(skrbStorageInfoProvider(widget.skrb.id)),
-              constraints: const BoxConstraints(),
-              padding: const EdgeInsets.all(4),
-            ),
+            isRefreshing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : IconButton(
+                    icon: Icon(
+                      Icons.refresh,
+                      size: 20,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    tooltip: 'Refresh Info Storage',
+                    onPressed: () async {
+                      setState(() => _isRefreshingStorage = true);
+                      try {
+                        final _ = await ref.refresh(
+                          skrbStorageInfoProvider(widget.skrb.id).future,
+                        );
+                      } catch (_) {
+                      } finally {
+                        if (mounted) {
+                          setState(() => _isRefreshingStorage = false);
+                        }
+                      }
+                    },
+                    constraints: const BoxConstraints(),
+                    padding: const EdgeInsets.all(4),
+                  ),
           ],
         ),
         const SizedBox(height: 10),
@@ -248,23 +298,31 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
               ),
             ),
             data: (info) {
-              final totalMb = info['total_mb'] ?? 0;
-              final totalKb = info['total_kb'] ?? 0;
               final folder = info['folder'] ?? '-';
               final rootFiles = (info['root_files'] as List?) ?? [];
               final guFiles = (info['gambar_utama_files'] as List?) ?? [];
               final savedFiles = (info['saved_files'] as List?) ?? [];
+              final totalBytes = (info['total_bytes'] ?? 0);
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.indigo.shade50,
+                      color: isDark
+                          ? Colors.indigo.shade900.withAlpha(120)
+                          : Colors.indigo.shade50,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.indigo.shade200),
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.indigo.shade700
+                            : Colors.indigo.shade200,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,7 +335,9 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.indigo.shade800,
+                                color: isDark
+                                    ? Colors.indigo.shade200
+                                    : Colors.indigo.shade800,
                               ),
                             ),
                             Text(
@@ -285,7 +345,9 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontStyle: FontStyle.italic,
-                                color: Colors.indigo.shade700,
+                                color: isDark
+                                    ? Colors.indigo.shade300
+                                    : Colors.indigo.shade700,
                               ),
                             ),
                           ],
@@ -296,19 +358,23 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
                           textBaseline: TextBaseline.alphabetic,
                           children: [
                             Text(
-                              '$totalMb MB',
+                              formatFileSize(totalBytes),
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.indigo.shade900,
+                                color: isDark
+                                    ? Colors.white
+                                    : Colors.indigo.shade900,
                               ),
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              '($totalKb KB / ${info['total_bytes'] ?? 0} Bytes)',
+                              '($totalBytes Bytes)',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.indigo.shade600,
+                                color: isDark
+                                    ? Colors.indigo.shade300
+                                    : Colors.indigo.shade600,
                               ),
                             ),
                           ],
@@ -322,7 +388,7 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
                       children: [
                         _buildStorageSection(
                           title: 'Folder: gambar_utama',
-                          subtitle: 'File Gambar Chassis / Body (a, b, c, d)',
+                          subtitle: 'File Gambar Utama',
                           icon: Icons.image_outlined,
                           iconColor: Colors.amber.shade800,
                           files: guFiles,
@@ -338,7 +404,7 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
                         const SizedBox(height: 10),
                         _buildStorageSection(
                           title: 'Dokumen Root (Sistem & Opsional)',
-                          subtitle: 'Surat Permohonan & Dokumen Optional (5 - 9)',
+                          subtitle: 'Surat Permohonan & Dokumen Lainnya',
                           icon: Icons.description_outlined,
                           iconColor: Colors.teal.shade700,
                           files: rootFiles,
@@ -362,18 +428,22 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
     required Color iconColor,
     required List files,
   }) {
-    double totalSectionKb = 0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+    num totalSectionBytes = 0;
     for (var f in files) {
       if (f is Map) {
-        totalSectionKb += (f['size_kb'] ?? 0) is num
-            ? (f['size_kb'] as num).toDouble()
-            : 0.0;
+        if (f['size_bytes'] != null && f['size_bytes'] is num) {
+          totalSectionBytes += (f['size_bytes'] as num);
+        } else if (f['size_kb'] != null && f['size_kb'] is num) {
+          totalSectionBytes += (f['size_kb'] as num) * 1024;
+        }
       }
     }
 
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: colorScheme.outlineVariant),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -382,8 +452,12 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(7)),
+              color: isDark
+                  ? colorScheme.surfaceContainerHighest
+                  : Colors.grey.shade100,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(7),
+              ),
             ),
             child: Row(
               children: [
@@ -395,25 +469,39 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: colorScheme.onSurface,
+                        ),
                       ),
                       Text(
                         subtitle,
-                        style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? colorScheme.surface : Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300),
+                    border: Border.all(color: colorScheme.outlineVariant),
                   ),
                   child: Text(
-                    '${files.length} File | ${totalSectionKb.toStringAsFixed(1)} KB',
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                    '${files.length} File | ${formatFileSize(totalSectionBytes)}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
                 ),
               ],
@@ -428,7 +516,7 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
                   style: TextStyle(
                     fontSize: 12,
                     fontStyle: FontStyle.italic,
-                    color: Colors.grey.shade500,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -438,30 +526,46 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: files.length,
-              separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade200),
+              separatorBuilder: (_, __) =>
+                  Divider(height: 1, color: colorScheme.outlineVariant),
               itemBuilder: (context, idx) {
                 final file = files[idx] as Map;
                 final name = file['name'] ?? '-';
-                final kb = file['size_kb'] ?? 0;
+                final bytes =
+                    file['size_bytes'] ??
+                    ((file['size_kb'] ?? 0) is num
+                        ? (file['size_kb'] as num) * 1024
+                        : 0);
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   child: Row(
                     children: [
-                      const Icon(Icons.picture_as_pdf, size: 16, color: Colors.red),
+                      const Icon(
+                        Icons.picture_as_pdf,
+                        size: 16,
+                        color: Colors.red,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           name,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: colorScheme.onSurface,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Text(
-                        '$kb KB',
+                        formatFileSize(bytes),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade700,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
