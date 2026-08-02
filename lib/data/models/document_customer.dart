@@ -2,19 +2,29 @@
 class TdpFile {
   final String path;
   final String uploadedAt;
+  final int size;
 
-  TdpFile({required this.path, required this.uploadedAt});
+  TdpFile({required this.path, required this.uploadedAt, this.size = 0});
 
   factory TdpFile.fromJson(Map<String, dynamic> json) {
+    int parseVal(dynamic v) {
+      if (v == null) return 0;
+      if (v is int) return v;
+      if (v is double) return v.toInt();
+      return int.tryParse(v.toString()) ?? 0;
+    }
+
     return TdpFile(
       path: json['path'] ?? '',
       uploadedAt: json['uploaded_at'] ?? '',
+      size: parseVal(json['size']),
     );
   }
 
   Map<String, dynamic> toJson() => {
     'path': path,
     'uploaded_at': uploadedAt,
+    'size': size,
   };
 }
 
@@ -23,7 +33,9 @@ class DocumentCustomer {
   final int id;
   final int customerId;
   final String? kopSurat;
+  final int kopSuratSize;
   final String? dataUmum;
+  final int dataUmumSize;
   final List<TdpFile> tdpFiles;
   final DateTime? tdpMasaBerlaku;
   final String? statusTdp;
@@ -39,7 +51,9 @@ class DocumentCustomer {
     required this.id,
     required this.customerId,
     this.kopSurat,
+    this.kopSuratSize = 0,
     this.dataUmum,
+    this.dataUmumSize = 0,
     this.tdpFiles = const [],
     this.tdpMasaBerlaku,
     this.statusTdp,
@@ -73,7 +87,9 @@ class DocumentCustomer {
       id: parseInt(json['id']),
       customerId: parseInt(json['customer_id']),
       kopSurat: (json['kop_surat_file'] ?? json['kop_surat'])?.toString(),
+      kopSuratSize: parseInt(json['kop_surat_size']),
       dataUmum: (json['data_umum_file'] ?? json['data_umum'])?.toString(),
+      dataUmumSize: parseInt(json['data_umum_size']),
       tdpFiles: json['tdp_files'] != null && json['tdp_files'] is List
           ? (json['tdp_files'] as List)
               .whereType<Map<String, dynamic>>()

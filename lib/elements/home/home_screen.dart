@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/app/core/providers.dart';
-import 'package:master_gambar/data/models/transaksi.dart';
+// import 'package:master_gambar/data/models/transaksi.dart';
 import 'package:master_gambar/elements/home/providers/page_state_provider.dart';
 
 import '../../admin/screens/configuration_screen.dart';
@@ -30,9 +30,7 @@ class HomeScreen extends ConsumerWidget {
         currentPage = const InputTransaksiScreen();
         break;
       case 1:
-        currentPage = InputGambarScreen(
-          transaksi: pageState.data as Transaksi?,
-        );
+        currentPage = InputGambarScreen(transaksi: pageState.data);
         break;
       case 2:
         currentPage = const PermohonanSkrbScreen();
@@ -61,7 +59,10 @@ class HomeScreen extends ConsumerWidget {
 
               if (index == 0 || index == 1 || index == 2 || index == 3) {
                 if (pageState.pageIndex == 3 && index != 3) {
-                  DetailSkrbScreen.checkAndConfirmUnsavedChanges(context, ref).then((canProceed) {
+                  DetailSkrbScreen.checkAndConfirmUnsavedChanges(
+                    context,
+                    ref,
+                  ).then((canProceed) {
                     if (canProceed) {
                       ref.read(pageStateProvider.notifier).state = PageState(
                         pageIndex: index,

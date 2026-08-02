@@ -320,12 +320,13 @@ class _DetailSkrbScreenState extends ConsumerState<DetailSkrbScreen> {
     }
     final file = result.files.first;
     final isOptionalGroup = ['5', '6', '7', '8', '9'].contains(key);
-    final maxMb = isOptionalGroup ? 2 : 5;
-    if (file.size > maxMb * 1024 * 1024) {
+    final maxBytes = isOptionalGroup ? 500 * 1024 : 5 * 1024 * 1024;
+    final maxLabel = isOptionalGroup ? '500 KB' : '5 MB';
+    if (file.size > maxBytes) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ukuran file melebihi batas maksimal ($maxMb MB)!'),
+            content: Text('Ukuran file melebihi batas maksimal ($maxLabel)!'),
             backgroundColor: Colors.red,
           ),
         );
@@ -417,6 +418,11 @@ class _DetailSkrbScreenState extends ConsumerState<DetailSkrbScreen> {
     String key,
     bool currentlyHidden,
   ) async {
+    setState(() {
+      _isProcessing = true;
+      _processingKey = 'hide_$key';
+    });
+
     try {
       final newFlags = Map<String, dynamic>.from(skrb.hiddenFlags);
       if (currentlyHidden) {
@@ -436,6 +442,13 @@ class _DetailSkrbScreenState extends ConsumerState<DetailSkrbScreen> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Gagal merubah status: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+          _processingKey = null;
+        });
       }
     }
   }

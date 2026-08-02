@@ -159,7 +159,7 @@ class DocItem {
         DocItem(
           key: key,
           label: label,
-          sublabel: 'Diunggah manual (Maks 2 MB)',
+          sublabel: 'Diunggah manual (Maks 500 KB)',
           hasFile: hasCust,
           statusText: hasCust
               ? 'File Terunggah (${_getFilenameOnly(skrb.customFiles[key])})'
