@@ -411,7 +411,7 @@ class _SkrbSettingsDialogState extends ConsumerState<_SkrbSettingsDialog> {
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _addressController,
-                        maxLines: 5,
+                        maxLines: 7,
                         style: const TextStyle(fontSize: 13),
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
