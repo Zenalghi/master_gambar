@@ -70,6 +70,17 @@ class SkrbRepository {
     await _dio.put('/skrbs/$skrbId', data: {'hidden_flags': hiddenFlags});
   }
 
+  Future<void> updateGambarUtamaList(
+    int skrbId,
+    List<Map<String, dynamic>> gambarUtamaList,
+  ) async {
+    await _dio.put('/skrbs/$skrbId', data: {'gambar_utama_list': gambarUtamaList});
+  }
+
+  Future<void> updateFotoCopySkrb(int skrbId, String? fotoCopySkrb) async {
+    await _dio.put('/skrbs/$skrbId', data: {'foto_copy_skrb': fotoCopySkrb ?? ''});
+  }
+
   Future<void> uploadFile(int skrbId, String key, PlatformFile file) async {
     if (file.bytes == null) throw Exception('Data file PDF tidak valid.');
 

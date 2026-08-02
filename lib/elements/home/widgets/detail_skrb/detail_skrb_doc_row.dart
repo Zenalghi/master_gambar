@@ -4,6 +4,8 @@ import 'package:master_gambar/data/models/skrb.dart';
 import 'package:master_gambar/app/theme/app_theme.dart';
 import 'doc_item.dart';
 import 'detail_skrb_tdp_status.dart';
+import 'detail_skrb_gambar_section.dart';
+import 'detail_skrb_foto_copy_card.dart';
 
 class DetailSkrbDocRow extends StatelessWidget {
   final Skrb skrb;
@@ -14,6 +16,7 @@ class DetailSkrbDocRow extends StatelessWidget {
   final Future<void> Function(String key, bool isHidden) onToggleHide;
   final Future<void> Function(String key) onUploadFile;
   final Future<void> Function(DocItem item) onPreviewPdf;
+  final VoidCallback? onLiveUpdate;
 
   const DetailSkrbDocRow({
     super.key,
@@ -25,6 +28,7 @@ class DetailSkrbDocRow extends StatelessWidget {
     required this.onToggleHide,
     required this.onUploadFile,
     required this.onPreviewPdf,
+    this.onLiveUpdate,
   });
 
   String _displayKey(String k) {
@@ -49,7 +53,7 @@ class DetailSkrbDocRow extends StatelessWidget {
     final isLivePreview = skrb.isFileUpdatedInCurrentPhase(item.key);
     final actionColors = context.skrbActions;
 
-    return Container(
+    final rowContent = Container(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       decoration: BoxDecoration(
         color: isHidden ? Colors.grey.withAlpha(15) : Colors.transparent,
@@ -295,5 +299,26 @@ class DetailSkrbDocRow extends StatelessWidget {
         ),
       ),
     );
+
+    if (item.key == '1') {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          rowContent,
+          DetailSkrbGambarSection(
+            skrb: skrb,
+            isLocked: isLocked,
+            onLiveUpdate: onLiveUpdate ?? () {},
+          ),
+          DetailSkrbFotoCopyCard(
+            skrb: skrb,
+            isLocked: isLocked,
+            onLiveUpdate: onLiveUpdate ?? () {},
+          ),
+        ],
+      );
+    }
+
+    return rowContent;
   }
 }

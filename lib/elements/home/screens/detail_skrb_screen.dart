@@ -92,6 +92,7 @@ class _DetailSkrbScreenState extends ConsumerState<DetailSkrbScreen> {
   bool _isLoadingPdf = false;
   String? _pdfCardTitle;
   final List<PdfController> _pdfControllers = [];
+  String? _currentPreviewKey;
   bool _hasTriggeredBackgroundGambar = false;
 
   void _checkAndTriggerBackgroundGambar(Skrb skrb) {
@@ -147,7 +148,22 @@ class _DetailSkrbScreenState extends ConsumerState<DetailSkrbScreen> {
     setState(() {
       _isLoadingPdf = false;
       _showPdfCard = false;
+      _currentPreviewKey = null;
     });
+  }
+
+  Future<void> _silentRefreshPreviewNo1() async {
+    if (widget.skrbId == null || !_showPdfCard || _currentPreviewKey != '1') return;
+    try {
+      final repo = ref.read(skrbRepositoryProvider);
+      final url = repo.getPdfViewUrl(widget.skrbId!, '1');
+      final bytes = await repo.getPdfBytes(url);
+      if (mounted && _showPdfCard && _currentPreviewKey == '1' && _pdfControllers.isNotEmpty) {
+        await _pdfControllers.first.loadDocument(PdfDocument.openData(bytes));
+      }
+    } catch (e) {
+      // Abaikan error pada silent refresh
+    }
   }
 
   @override
@@ -301,6 +317,7 @@ class _DetailSkrbScreenState extends ConsumerState<DetailSkrbScreen> {
                         );
                       },
                       onShowHistory: (skrb) => _showHistoryDialog(skrb),
+                      onLiveUpdate: _silentRefreshPreviewNo1,
                     ),
             ),
           ],
@@ -361,6 +378,7 @@ class _DetailSkrbScreenState extends ConsumerState<DetailSkrbScreen> {
   }
 
   Future<void> _handlePreviewPdf(Skrb skrb, DocItem item) async {
+    _currentPreviewKey = item.key;
     for (var c in _pdfControllers) {
       c.dispose();
     }
@@ -548,7 +566,7 @@ class _DetailSkrbScreenState extends ConsumerState<DetailSkrbScreen> {
 
     setState(() => _isProcessing = true);
     _showLoadingDialog(
-      'Harap tunggu sebentar...\nMemproses dan Menyerap Seluruh File Dokumen SKRB',
+      'Harap tunggu sebentar...\nMemproses dan Sync Seluruh File Dokumen SKRB',
     );
 
     try {

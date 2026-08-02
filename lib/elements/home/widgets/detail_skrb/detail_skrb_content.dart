@@ -26,6 +26,7 @@ class DetailSkrbContent extends ConsumerWidget {
   final Future<void> Function(int targetPhase) onSwitchPhase;
   final VoidCallback onResetFiles;
   final void Function(Skrb skrb) onShowHistory;
+  final VoidCallback? onLiveUpdate;
 
   const DetailSkrbContent({
     super.key,
@@ -44,6 +45,7 @@ class DetailSkrbContent extends ConsumerWidget {
     required this.onSwitchPhase,
     required this.onResetFiles,
     required this.onShowHistory,
+    this.onLiveUpdate,
   });
 
   @override
@@ -186,6 +188,7 @@ class DetailSkrbContent extends ConsumerWidget {
                                           onToggleHide: onToggleHide,
                                           onUploadFile: onUploadFile,
                                           onPreviewPdf: onPreviewPdf,
+                                          onLiveUpdate: onLiveUpdate,
                                         ),
                                       ),
                                     ],

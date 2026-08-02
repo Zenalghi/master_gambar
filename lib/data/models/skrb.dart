@@ -78,6 +78,7 @@ class Skrb {
   final bool hasKopSurat;
   final String kopSource;
   final int fase;
+  final String? fotoCopySkrb;
   final String? suggestedFileName;
   final Map<String, dynamic> customFiles;
   final Map<String, dynamic> hiddenFlags;
@@ -104,6 +105,7 @@ class Skrb {
     this.hasKopSurat = true,
     this.kopSource = 'customer',
     required this.fase,
+    this.fotoCopySkrb,
     this.suggestedFileName,
     required this.customFiles,
     required this.hiddenFlags,
@@ -145,6 +147,7 @@ class Skrb {
       hasKopSurat: json['has_kop_surat'] == false ? false : true,
       kopSource: json['kop_source'] ?? 'customer',
       fase: int.tryParse('${json['fase']}') ?? 1,
+      fotoCopySkrb: json['foto_copy_skrb']?.toString(),
       suggestedFileName: json['suggested_file_name']?.toString(),
       customFiles: json['custom_files'] != null && json['custom_files'] is Map
           ? Map<String, dynamic>.from(json['custom_files'])
