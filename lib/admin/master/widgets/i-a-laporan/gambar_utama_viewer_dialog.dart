@@ -111,11 +111,8 @@ class _GambarUtamaViewerDialogState
 
     return AlertDialog(
       title: const Text('Pratinjau Gambar'),
-      contentPadding: const EdgeInsets.fromLTRB(8.0, 20.0, 8.0, 8.0),
-      insetPadding: const EdgeInsets.symmetric(
-        horizontal: 40.0,
-        vertical: 24.0,
-      ),
+      contentPadding: const EdgeInsets.fromLTRB(8.0, 1.0, 8.0, 8.0),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 1.0, vertical: 1.0),
       content: SizedBox(
         width: MediaQuery.of(context).size.width * 0.8,
         height: MediaQuery.of(context).size.height * 0.8,
