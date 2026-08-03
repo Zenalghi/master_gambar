@@ -81,6 +81,11 @@ flutter_launcher_icons:
   linux:
     generate: true
     image_path: "assets/icons/ico1.png"
+  web:
+    generate: true
+    image_path: "assets/icons/ico1.png"
+    background_color: "#ffffff"
+    theme_color: "#ffffff"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
