@@ -49,8 +49,10 @@ void main() async {
     // Kita tentukan URL berdasarkan mode build (Debug vs Release/Production)
 
     if (kReleaseMode) {
-      // Jika di-build untuk Production (kantor), pakai IP Server Kantor
-      baseUrl = "http://192.168.100.111/master-gambar/public/api";
+      // Di Production (menggunakan Docker Nginx Proxy Manager / Infra):
+      // Menggunakan Uri.base.origin secara dinamis agar otomatis mengikuti IP / Domain browser
+      // (Bekerja lancar di LAN 192.168.x.x, Tailscale 100.x.x.x, maupun domain, melalui rute NPM /api -> master-gambar-nginx:80)
+      baseUrl = "${Uri.base.origin}/api";
     } else {
       // Jika sedang Development (Debug), pakai Localhost/Test
       // Catatan: Untuk Android Emulator gunakan 10.0.2.2, untuk Chrome bisa localhost/domain local
