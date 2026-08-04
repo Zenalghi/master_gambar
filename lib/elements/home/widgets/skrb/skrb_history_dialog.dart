@@ -82,8 +82,8 @@ class _SkrbHistoryDialogState extends ConsumerState<SkrbHistoryDialog> {
         ],
       ),
       content: SizedBox(
-        width: isAdmin ? 1150 : 700,
-        height: isAdmin ? 750 : 300,
+        width: isAdmin ? 1400 : 700,
+        height: isAdmin ? 950 : 300,
         child: isAdmin
             ? Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
