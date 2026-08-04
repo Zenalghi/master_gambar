@@ -28,6 +28,7 @@ class EditTypeChassisDialog extends ConsumerStatefulWidget {
 
 class _EditTypeChassisDialogState extends ConsumerState<EditTypeChassisDialog> {
   late TextEditingController _controller;
+  late TextEditingController _merekDagangController;
   late TextEditingController _jenisTipeController;
   PlatformFile? _newPdfFile;
   bool _removePdf = false;
@@ -37,6 +38,9 @@ class _EditTypeChassisDialogState extends ConsumerState<EditTypeChassisDialog> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.item.name);
+    _merekDagangController = TextEditingController(
+      text: widget.item.merekDagang ?? '',
+    );
     _jenisTipeController = TextEditingController(
       text: widget.item.jenisTipe ?? '',
     );
@@ -45,6 +49,7 @@ class _EditTypeChassisDialogState extends ConsumerState<EditTypeChassisDialog> {
   @override
   void dispose() {
     _controller.dispose();
+    _merekDagangController.dispose();
     _jenisTipeController.dispose();
     super.dispose();
   }
@@ -243,6 +248,14 @@ class _EditTypeChassisDialogState extends ConsumerState<EditTypeChassisDialog> {
               ),
               const SizedBox(height: 15),
               TextFormField(
+                controller: _merekDagangController,
+                textCapitalization: TextCapitalization.characters,
+                decoration: const InputDecoration(
+                  labelText: 'Merek Dagang (Opsional)',
+                ),
+              ),
+              const SizedBox(height: 15),
+              TextFormField(
                 controller: _jenisTipeController,
                 textCapitalization: TextCapitalization.characters,
                 decoration: const InputDecoration(
@@ -390,6 +403,7 @@ class _EditTypeChassisDialogState extends ConsumerState<EditTypeChassisDialog> {
                         .updateTypeChassis(
                           id: widget.item.id,
                           typeChassis: _controller.text,
+                          merekDagang: _merekDagangController.text,
                           jenisTipe: _jenisTipeController.text,
                           sutPdfFile: _newPdfFile,
                           removeSutPdf: _removePdf,

@@ -142,14 +142,20 @@ class BMerk {
 class CTypeChassis {
   final String id;
   final String typeChassis;
+  final String? merekDagang;
   final String? jenisTipe;
 
-  CTypeChassis({required this.id, required this.typeChassis, this.jenisTipe});
+  CTypeChassis({
+    required this.id,
+    required this.typeChassis,
+    this.merekDagang,
+    this.jenisTipe,
+  });
 
   factory CTypeChassis.fromJson(Map<String, dynamic> json) => CTypeChassis(
-    // FIX: Gunakan .toString()
     id: json['id'].toString(),
     typeChassis: (json['type_chassis'] ?? '').toString(),
+    merekDagang: json['merek_dagang']?.toString(),
     jenisTipe: json['jenis_tipe']?.toString(),
   );
 }

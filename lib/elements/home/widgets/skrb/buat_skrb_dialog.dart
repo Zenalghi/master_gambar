@@ -111,7 +111,7 @@ class _BuatSkrbDialogState extends ConsumerState<BuatSkrbDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasManual = _nomorController.text.trim().isNotEmpty;
+    // final hasManual = _nomorController.text.trim().isNotEmpty;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

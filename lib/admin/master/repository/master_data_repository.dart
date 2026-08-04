@@ -272,11 +272,14 @@ class MasterDataRepository {
 
   Future<TypeChassis> addTypeChassis({
     required String typeChassis,
+    String? merekDagang,
     String? jenisTipe,
     PlatformFile? sutPdfFile,
   }) async {
     final Map<String, dynamic> dataMap = {
       'type_chassis': typeChassis,
+      if (merekDagang != null && merekDagang.trim().isNotEmpty)
+        'merek_dagang': merekDagang.trim(),
       if (jenisTipe != null && jenisTipe.trim().isNotEmpty)
         'jenis_tipe': jenisTipe.trim(),
     };
@@ -297,12 +300,14 @@ class MasterDataRepository {
   Future<TypeChassis> updateTypeChassis({
     required int id,
     required String typeChassis,
+    String? merekDagang,
     String? jenisTipe,
     PlatformFile? sutPdfFile,
     bool removeSutPdf = false,
   }) async {
     final Map<String, dynamic> dataMap = {
       'type_chassis': typeChassis,
+      'merek_dagang': merekDagang ?? '',
       'jenis_tipe': jenisTipe ?? '',
       '_method': 'PUT',
     };

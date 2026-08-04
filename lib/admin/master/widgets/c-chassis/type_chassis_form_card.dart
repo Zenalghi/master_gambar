@@ -18,6 +18,7 @@ class TypeChassisFormCard extends ConsumerStatefulWidget {
 
 class _TypeChassisFormCardState extends ConsumerState<TypeChassisFormCard> {
   final _chassisController = TextEditingController();
+  final _merekDagangController = TextEditingController();
   final _jenisTipeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   PlatformFile? _sutPdfFile;
@@ -26,6 +27,7 @@ class _TypeChassisFormCardState extends ConsumerState<TypeChassisFormCard> {
   @override
   void dispose() {
     _chassisController.dispose();
+    _merekDagangController.dispose();
     _jenisTipeController.dispose();
     super.dispose();
   }
@@ -159,10 +161,12 @@ class _TypeChassisFormCardState extends ConsumerState<TypeChassisFormCard> {
           .read(masterDataRepositoryProvider)
           .addTypeChassis(
             typeChassis: _chassisController.text,
+            merekDagang: _merekDagangController.text,
             jenisTipe: _jenisTipeController.text,
             sutPdfFile: _sutPdfFile,
           );
       _chassisController.clear();
+      _merekDagangController.clear();
       _jenisTipeController.clear();
       setState(() {
         _sutPdfFile = null;
@@ -224,6 +228,19 @@ class _TypeChassisFormCardState extends ConsumerState<TypeChassisFormCard> {
                     }
                     return null;
                   },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextFormField(
+                  style: const TextStyle(fontSize: 14),
+                  controller: _merekDagangController,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: const InputDecoration(
+                    labelStyle: TextStyle(fontSize: 14),
+                    labelText: 'Merek Dagang (Opsional)',
+                    hintText: 'Contoh: HINO / MITSUBISHI',
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
