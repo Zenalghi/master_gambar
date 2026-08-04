@@ -103,7 +103,7 @@ class JenisKendaraanDataSource extends AsyncDataTableSource {
               const SizedBox(height: 15),
               TextFormField(
                 controller: aliasController,
-                textCapitalization: TextCapitalization.characters,
+                textCapitalization: TextCapitalization.words,
                 decoration: const InputDecoration(
                   labelText: 'Nama Alias (Opsional)',
                 ),

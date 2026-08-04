@@ -170,7 +170,7 @@ class _MasterJenisKendaraanScreenState
                       child: TextFormField(
                         style: const TextStyle(fontSize: 14),
                         controller: _aliasController,
-                        textCapitalization: TextCapitalization.characters,
+                        textCapitalization: TextCapitalization.words,
                         decoration: const InputDecoration(
                           labelStyle: TextStyle(fontSize: 14),
                           labelText: 'Nama Alias (Opsional)',

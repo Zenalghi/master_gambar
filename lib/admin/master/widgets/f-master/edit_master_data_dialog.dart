@@ -43,7 +43,7 @@ class _EditMasterDataDialogState extends ConsumerState<EditMasterDataDialog> {
     );
     _selectedTypeChassis = OptionItem(
       id: widget.masterData.typeChassis.id,
-      name: widget.masterData.typeChassis.name,
+      name: widget.masterData.typeChassis.displayName,
     );
     _selectedJenisKendaraan = OptionItem(
       id: widget.masterData.jenisKendaraan.id,

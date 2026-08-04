@@ -79,7 +79,7 @@ class _MasterGambarOptionalScreenState
     if (md != null) {
       // Buat nama gabungan untuk tampilan dropdown
       final masterDataName =
-          '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.name} / ${md.jenisKendaraan.name}';
+          '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.displayName} / ${md.jenisKendaraan.name}';
 
       // Update provider agar PilihMasterDataCard bereaksi
       ref.read(initialGambarUtamaDataProvider.notifier).state = {

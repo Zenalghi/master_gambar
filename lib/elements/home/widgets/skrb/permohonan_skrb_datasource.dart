@@ -45,7 +45,7 @@ class PermohonanSkrbDataSource extends DataTableSource {
         DataCell(SelectableText(skrb.customerName)),
         DataCell(SelectableText(skrb.typeEngine)),
         DataCell(SelectableText(skrb.merk)),
-        DataCell(SelectableText(skrb.typeChassis)),
+        DataCell(SelectableText(skrb.chassisDisplayName)),
         DataCell(SelectableText(skrb.jenisKendaraan)),
         DataCell(SelectableText(skrb.jenisPengajuan)),
         DataCell(SelectableText(_formatDate(skrb.createdAt))),

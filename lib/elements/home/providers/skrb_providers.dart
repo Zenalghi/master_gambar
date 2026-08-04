@@ -38,7 +38,7 @@ final filteredSkrbListProvider = Provider<AsyncValue<List<Skrb>>>((ref) {
         return false;
       }
       if (filters['type_chassis']?.isNotEmpty == true &&
-          !skrb.typeChassis.toLowerCase().contains(filters['type_chassis']!.toLowerCase())) {
+          !skrb.chassisDisplayName.toLowerCase().contains(filters['type_chassis']!.toLowerCase())) {
         return false;
       }
       if (filters['jenis_kendaraan']?.isNotEmpty == true &&

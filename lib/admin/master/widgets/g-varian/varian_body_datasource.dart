@@ -53,7 +53,7 @@ class VarianBodyDataSource extends AsyncDataTableSource {
               // ---------------------------------
               DataCell(SelectableText(md.typeEngine.name)),
               DataCell(SelectableText(md.merk.name)),
-              DataCell(SelectableText(md.typeChassis.name)),
+              DataCell(SelectableText(md.typeChassis.displayName)),
               DataCell(SelectableText(md.jenisKendaraan.name)),
               DataCell(SelectableText(item.name)),
               DataCell(

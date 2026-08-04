@@ -36,7 +36,7 @@ class _EditVarianBodyDialogState extends ConsumerState<EditVarianBodyDialog> {
     // Kita format namanya agar terlihat jelas di dropdown (seperti format pencarian)
     final md = widget.varianBody.masterData;
     final name =
-        '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.name} / ${md.jenisKendaraan.name}';
+        '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.displayName} / ${md.jenisKendaraan.name}';
     _initialMasterData = OptionItem(id: md.id, name: name);
   }
 

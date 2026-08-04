@@ -153,11 +153,11 @@ class _TambahPermohonanSkrbDialogState
                       return item.id.toLowerCase().contains(query) ||
                           item.customerName.toLowerCase().contains(query) ||
                           item.merk.toLowerCase().contains(query) ||
-                          item.typeChassis.toLowerCase().contains(query);
+                          item.chassisDisplayName.toLowerCase().contains(query);
                     }).toList();
                   },
                   itemAsString: (item) =>
-                      '${item.id} - ${item.customerName} (${item.merk} ${item.typeChassis})',
+                      '${item.id} - ${item.customerName} (${item.merk} ${item.chassisDisplayName})',
                   compareFn: (i1, i2) => i1.id == i2.id,
                   selectedItem: _selectedTransaction,
                   onChanged: (item) {
@@ -178,7 +178,7 @@ class _TambahPermohonanSkrbDialogState
                           _selectedMasterData = OptionItem(
                             id: item.masterDataId!,
                             name:
-                                '${item.typeEngine} / ${item.merk} / ${item.typeChassis} / ${item.jenisKendaraan}',
+                                '${item.typeEngine} / ${item.merk} / ${item.chassisDisplayName} / ${item.jenisKendaraan}',
                           );
                         } else {
                           _selectedMasterData = null;
@@ -235,7 +235,7 @@ class _TambahPermohonanSkrbDialogState
                         ),
                       ),
                       subtitle: Text(
-                        '${item.merk} ${item.typeChassis} (${item.jenisKendaraan}) | ${item.jenisPengajuan}',
+                        '${item.merk} ${item.chassisDisplayName} (${item.jenisKendaraan}) | ${item.jenisPengajuan}',
                         style: const TextStyle(fontSize: 11),
                       ),
                     ),

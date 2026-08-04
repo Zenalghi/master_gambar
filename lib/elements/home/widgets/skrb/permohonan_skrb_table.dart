@@ -91,7 +91,7 @@ class _PermohonanSkrbTableState extends ConsumerState<PermohonanSkrbTable> {
                 cmp = a.merk.compareTo(b.merk);
                 break;
               case 5:
-                cmp = a.typeChassis.compareTo(b.typeChassis);
+                cmp = a.chassisDisplayName.compareTo(b.chassisDisplayName);
                 break;
               case 6:
                 cmp = a.jenisKendaraan.compareTo(b.jenisKendaraan);

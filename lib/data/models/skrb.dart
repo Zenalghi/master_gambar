@@ -38,8 +38,13 @@ class SkrbAvailableTransaction {
   final String typeEngine;
   final String merk;
   final String typeChassis;
+  final String? merekDagang;
   final String jenisKendaraan;
   final String jenisPengajuan;
+
+  String get chassisDisplayName => (merekDagang != null && merekDagang!.trim().isNotEmpty)
+      ? '$typeChassis (${merekDagang!.trim()})'
+      : typeChassis;
 
   SkrbAvailableTransaction({
     required this.id,
@@ -50,6 +55,7 @@ class SkrbAvailableTransaction {
     required this.typeEngine,
     required this.merk,
     required this.typeChassis,
+    this.merekDagang,
     required this.jenisKendaraan,
     required this.jenisPengajuan,
   });
@@ -64,13 +70,14 @@ class SkrbAvailableTransaction {
       typeEngine: json['type_engine'] ?? '-',
       merk: json['merk'] ?? '-',
       typeChassis: json['type_chassis'] ?? '-',
+      merekDagang: json['merek_dagang']?.toString(),
       jenisKendaraan: json['jenis_kendaraan'] ?? '-',
       jenisPengajuan: json['jenis_pengajuan'] ?? 'Varian',
     );
   }
 
   @override
-  String toString() => '$id - $customerName ($merk / $typeChassis)';
+  String toString() => '$id - $customerName ($merk / $chassisDisplayName)';
 }
 
 class Skrb {
@@ -84,9 +91,14 @@ class Skrb {
   final String typeEngine;
   final String merk;
   final String typeChassis;
+  final String? merekDagang;
   final String jenisKendaraan;
   final String jenisPengajuan;
   final String statusTdp;
+
+  String get chassisDisplayName => (merekDagang != null && merekDagang!.trim().isNotEmpty)
+      ? '$typeChassis (${merekDagang!.trim()})'
+      : typeChassis;
   final String? tdpMasaBerlaku;
   final bool isTdpOutdated;
   final bool hasKopSurat;
@@ -114,6 +126,7 @@ class Skrb {
     required this.typeEngine,
     required this.merk,
     required this.typeChassis,
+    this.merekDagang,
     required this.jenisKendaraan,
     required this.jenisPengajuan,
     required this.statusTdp,
@@ -153,6 +166,7 @@ class Skrb {
       typeEngine: json['type_engine'] ?? '-',
       merk: json['merk'] ?? '-',
       typeChassis: json['type_chassis'] ?? '-',
+      merekDagang: json['merek_dagang']?.toString(),
       jenisKendaraan: json['jenis_kendaraan'] ?? '-',
       jenisPengajuan: json['jenis_pengajuan'] ?? 'Varian',
       statusTdp:

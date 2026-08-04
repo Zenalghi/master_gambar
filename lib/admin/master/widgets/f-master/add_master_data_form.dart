@@ -35,7 +35,7 @@ class _AddMasterDataFormState extends ConsumerState<AddMasterDataForm> {
           _selectedMerk = OptionItem(id: next.merk.id, name: next.merk.name);
           _selectedTypeChassis = OptionItem(
             id: next.typeChassis.id,
-            name: next.typeChassis.name,
+            name: next.typeChassis.displayName,
           );
           _selectedJenisKendaraan = OptionItem(
             id: next.jenisKendaraan.id,

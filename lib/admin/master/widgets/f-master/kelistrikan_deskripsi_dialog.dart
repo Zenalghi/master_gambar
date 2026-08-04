@@ -216,7 +216,7 @@ class _KelistrikanDeskripsiDialogState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Kelistrikan: ${widget.masterData.typeChassis.name}',
+            'Kelistrikan: ${widget.masterData.typeChassis.displayName}',
             style: const TextStyle(fontSize: 18),
           ),
           Text(

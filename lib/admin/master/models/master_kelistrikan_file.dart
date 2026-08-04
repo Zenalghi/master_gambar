@@ -36,7 +36,14 @@ class MasterKelistrikanFile {
       merkId: json['b_merk_id'],
       typeChassisId: json['c_type_chassis_id'],
 
-      chassisName: json['type_chassis'] ?? 'Unknown',
+      chassisName: () {
+        final chassis = json['type_chassis']?.toString() ?? 'Unknown';
+        final dagang = json['merek_dagang']?.toString().trim();
+        if (dagang != null && dagang.isNotEmpty && dagang != 'null') {
+          return '$chassis ($dagang)';
+        }
+        return chassis;
+      }(),
       merkName: json['merk'] ?? '-',
       engineName: json['type_engine'] ?? '-',
       createdAt: DateTime.parse(json['created_at']),

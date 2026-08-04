@@ -49,7 +49,7 @@ class _EditTransaksiDialogState extends ConsumerState<EditTransaksiDialog> {
     final displayName =
         "${widget.transaksi.aTypeEngine.typeEngine} / "
         "${widget.transaksi.bMerk.merk} / "
-        "${widget.transaksi.cTypeChassis.typeChassis} / "
+        "${widget.transaksi.cTypeChassis.displayName} / "
         "${widget.transaksi.dJenisKendaraan.jenisKendaraan}";
 
     _initialMasterDataOption = OptionItem(

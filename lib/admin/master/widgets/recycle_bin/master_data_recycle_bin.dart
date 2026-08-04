@@ -224,7 +224,7 @@ class _MasterDataRecycleBinState extends ConsumerState<MasterDataRecycleBin> {
 
                   // Menggabungkan string kombinasi agar jelas dibaca
                   final kombinasiName =
-                      '${item.typeEngine.name} / ${item.merk.name} / ${item.typeChassis.name} / ${item.jenisKendaraan.name}';
+                      '${item.typeEngine.name} / ${item.merk.name} / ${item.typeChassis.displayName} / ${item.jenisKendaraan.name}';
 
                   return ListTile(
                     title: Text(

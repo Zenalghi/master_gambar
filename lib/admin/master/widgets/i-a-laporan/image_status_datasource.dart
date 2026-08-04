@@ -56,7 +56,7 @@ class ImageStatusDataSource extends AsyncDataTableSource {
               DataCell(SelectableText(masterData.merk.name)),
 
               // 4. Type Chassis
-              DataCell(SelectableText(masterData.typeChassis.name)),
+              DataCell(SelectableText(masterData.typeChassis.displayName)),
 
               // 5. Jenis Kendaraan
               DataCell(SelectableText(masterData.jenisKendaraan.name)),
@@ -166,7 +166,7 @@ class ImageStatusDataSource extends AsyncDataTableSource {
 
     // 1. Konstruksi Nama Master Data (Gabungan) agar sesuai tampilan Dropdown
     final masterDataName =
-        '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.name} / ${md.jenisKendaraan.name}';
+        '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.displayName} / ${md.jenisKendaraan.name}';
 
     // 2. Siapkan Data Paket
     final initialData = {
@@ -196,7 +196,7 @@ class ImageStatusDataSource extends AsyncDataTableSource {
 
     // 1. Konstruksi Nama Master Data (Gabungan) agar Dropdown otomatis terisi
     final masterDataName =
-        '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.name} / ${md.jenisKendaraan.name}';
+        '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.displayName} / ${md.jenisKendaraan.name}';
 
     // 2. Siapkan Data untuk Dropdown (SAMA SEPERTI ADD)
     final initialData = {

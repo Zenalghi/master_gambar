@@ -11,6 +11,10 @@ class TypeChassis {
   final String? merekDagang;
   final String? jenisTipe;
 
+  String get displayName => (merekDagang != null && merekDagang!.trim().isNotEmpty)
+      ? '$name (${merekDagang!.trim()})'
+      : name;
+
   // Properti Tambahan (Nested Relation)
   final Merk? merk;
 

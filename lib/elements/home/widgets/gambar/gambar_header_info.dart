@@ -61,7 +61,7 @@ class GambarHeaderInfo extends ConsumerWidget {
                 _buildInfoField(
                   context,
                   'Type Chassis',
-                  transaksi?.cTypeChassis.typeChassis ?? '-',
+                  transaksi?.cTypeChassis.displayName ?? '-',
                 ),
                 const SizedBox(width: 16),
                 _buildInfoField(
@@ -196,7 +196,7 @@ class GambarHeaderInfo extends ConsumerWidget {
                     item.customer.namaPt.toLowerCase().contains(q) ||
                     item.aTypeEngine.typeEngine.toLowerCase().contains(q) ||
                     item.bMerk.merk.toLowerCase().contains(q) ||
-                    item.cTypeChassis.typeChassis.toLowerCase().contains(q) ||
+                    item.cTypeChassis.displayName.toLowerCase().contains(q) ||
                     item.dJenisKendaraan.jenisKendaraan.toLowerCase().contains(
                       q,
                     ) ||
@@ -230,8 +230,8 @@ class GambarHeaderInfo extends ConsumerWidget {
                 // --- KONTROL LEBAR & TINGGI MENU POPUP (LEBIH LEBAR KE KANAN DARI FIELD DROPDOWN) ---
                 constraints: const BoxConstraints(
                   maxHeight: 380,
-                  minWidth: 1200,
-                  maxWidth: 1500,
+                  minWidth: 1300,
+                  maxWidth: 1360,
                 ),
                 searchFieldProps: const TextFieldProps(
                   autofocus: true,
@@ -333,7 +333,7 @@ class GambarHeaderInfo extends ConsumerWidget {
                         Expanded(
                           flex: 5,
                           child: Text(
-                            item.cTypeChassis.typeChassis,
+                            item.cTypeChassis.displayName,
                             style: TextStyle(
                               fontSize: 10,
                               color: colorScheme.onSurface.withAlpha(190),

@@ -51,8 +51,8 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
               DataCell(SelectableText(md?.merk.name ?? '-')),
               DataCell(
                 SelectableText(
-                  md?.typeChassis.name ?? '-',
-                  style: AppTextStyles.dynamicSize(md?.typeChassis.name ?? ''),
+                  md?.typeChassis.displayName ?? '-',
+                  style: AppTextStyles.dynamicSize(md?.typeChassis.displayName ?? ''),
                 ),
               ),
               DataCell(SelectableText(md?.jenisKendaraan.name ?? '-')),
@@ -203,7 +203,7 @@ class GambarOptionalDataSource extends AsyncDataTableSource {
 
     if (md != null) {
       final masterDataName =
-          '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.name} / ${md.jenisKendaraan.name}';
+          '${md.typeEngine.name} / ${md.merk.name} / ${md.typeChassis.displayName} / ${md.jenisKendaraan.name}';
 
       // Isi Provider Initial Data (Hanya Master Data, Varian Body Kosong/Null)
       _ref.read(initialGambarUtamaDataProvider.notifier).state = {

@@ -41,7 +41,7 @@ class MasterDataDataSource extends AsyncDataTableSource {
               DataCell(SelectableText(item.id.toString())),
               DataCell(SelectableText(item.typeEngine.name)),
               DataCell(SelectableText(item.merk.name)),
-              DataCell(SelectableText(item.typeChassis.name)),
+              DataCell(SelectableText(item.typeChassis.displayName)),
               DataCell(SelectableText(item.jenisKendaraan.name)),
               DataCell(
                 SelectableText(
@@ -226,7 +226,7 @@ class MasterDataDataSource extends AsyncDataTableSource {
       'merk': OptionItem(id: item.merk.id, name: item.merk.name),
       'typeChassis': OptionItem(
         id: item.typeChassis.id,
-        name: item.typeChassis.name,
+        name: item.typeChassis.displayName,
       ),
     };
 

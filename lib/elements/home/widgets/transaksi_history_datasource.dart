@@ -58,7 +58,7 @@ class TransaksiDataSource extends AsyncDataTableSource {
               // 3. Merk
               DataCell(SelectableText(trx.bMerk.merk)),
               // 4. Chassis
-              DataCell(SelectableText(trx.cTypeChassis.typeChassis)),
+              DataCell(SelectableText(trx.cTypeChassis.displayName)),
               // 5. Jenis Kendaraan
               DataCell(SelectableText(trx.dJenisKendaraan.jenisKendaraan)),
               // 6. Jenis Pengajuan

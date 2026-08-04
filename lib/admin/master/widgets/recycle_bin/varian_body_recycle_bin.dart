@@ -230,7 +230,7 @@ class _VarianBodyRecycleBinState extends ConsumerState<VarianBodyRecycleBin> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${md.typeEngine.name} - ${md.merk.name} - ${md.typeChassis.name} - ${md.jenisKendaraan.name}',
+                          '${md.typeEngine.name} - ${md.merk.name} - ${md.typeChassis.displayName} - ${md.jenisKendaraan.name}',
                         ),
                         Text(
                           'Dihapus: $dateStr',

@@ -145,6 +145,10 @@ class CTypeChassis {
   final String? merekDagang;
   final String? jenisTipe;
 
+  String get displayName => (merekDagang != null && merekDagang!.trim().isNotEmpty)
+      ? '$typeChassis (${merekDagang!.trim()})'
+      : typeChassis;
+
   CTypeChassis({
     required this.id,
     required this.typeChassis,

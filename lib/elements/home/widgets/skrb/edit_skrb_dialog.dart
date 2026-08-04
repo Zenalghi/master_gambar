@@ -250,7 +250,7 @@ class _EditSkrbDialogState extends ConsumerState<EditSkrbDialog> {
                     ? OptionItem(
                         id: _selectedMasterDataId!,
                         name:
-                            '${widget.skrb.typeEngine} / ${widget.skrb.merk} / ${widget.skrb.typeChassis} / ${widget.skrb.jenisKendaraan}',
+                            '${widget.skrb.typeEngine} / ${widget.skrb.merk} / ${widget.skrb.chassisDisplayName} / ${widget.skrb.jenisKendaraan}',
                       )
                     : null,
                 onChanged: (OptionItem? item) {
