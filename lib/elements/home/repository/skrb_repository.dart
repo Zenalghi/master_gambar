@@ -29,17 +29,74 @@ class SkrbRepository {
         .toList();
   }
 
-  Future<Skrb> createSkrb(String transaksiId) async {
-    final response = await _dio.post(
-      '/skrbs',
-      data: {'transaksi_id': transaksiId},
-    );
+  /// Cara 1: Buat SKRB dari ID Transaksi.
+  /// Jika sudah ada SKRB untuk transaksi ini → response alreadyExists = true.
+  Future<Skrb> createSkrbViaCara1(
+    String transaksiId, {
+    int? nomorUrutManual,
+  }) async {
+    final payload = <String, dynamic>{'transaksi_id': transaksiId};
+    if (nomorUrutManual != null) {
+      payload['nomor_urut_manual'] = nomorUrutManual;
+    }
+    final response = await _dio.post('/skrbs', data: payload);
     if (response.data is! Map) {
       final cleanError = response.data.toString().replaceAll(RegExp(r"<[^>]*>"), "").trim();
       throw Exception('Server Error: $cleanError');
     }
     return Skrb.fromJson((response.data as Map)['data'] as Map<String, dynamic>);
   }
+
+  /// Cara 2: Buat SKRB tanpa transaksi — dari customer + kendaraan + jenis pengajuan.
+  Future<Skrb> createSkrbViaCara2({
+    required int customerId,
+    required int masterDataId,
+    required int jenisPengajuanId,
+    int? nomorUrutManual,
+  }) async {
+    final payload = <String, dynamic>{
+      'customer_id': customerId,
+      'master_data_id': masterDataId,
+      'jenis_pengajuan_id': jenisPengajuanId,
+    };
+    if (nomorUrutManual != null) {
+      payload['nomor_urut_manual'] = nomorUrutManual;
+    }
+    final response = await _dio.post('/skrbs', data: payload);
+    if (response.data is! Map) {
+      final cleanError = response.data.toString().replaceAll(RegExp(r"<[^>]*>"), "").trim();
+      throw Exception('Server Error: $cleanError');
+    }
+    return Skrb.fromJson((response.data as Map)['data'] as Map<String, dynamic>);
+  }
+
+  /// Preview ID SKRB sistem berikutnya untuk customer tertentu (sebelum membuat).
+  Future<Map<String, dynamic>> getPreviewIdSkrb(int customerId) async {
+    final response = await _dio.get(
+      '/skrbs/preview-id',
+      queryParameters: {'customer_id': customerId},
+    );
+    if (response.data is! Map) throw Exception('Respons tidak valid dari server.');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  /// Update data inti SKRB (customer, kendaraan, jenis pengajuan) untuk Edit SKRB dialog.
+  Future<void> updateSkrbData(
+    int skrbId, {
+    int? customerId,
+    int? masterDataId,
+    int? jenisPengajuanId,
+  }) async {
+    final payload = <String, dynamic>{};
+    if (customerId != null) payload['customer_id'] = customerId;
+    if (masterDataId != null) payload['master_data_id'] = masterDataId;
+    if (jenisPengajuanId != null) payload['jenis_pengajuan_id'] = jenisPengajuanId;
+    await _dio.put('/skrbs/$skrbId', data: payload);
+  }
+
+  /// Legacy alias — tetap tersedia untuk backward-compat.
+  @Deprecated('Gunakan createSkrbViaCara1')
+  Future<Skrb> createSkrb(String transaksiId) => createSkrbViaCara1(transaksiId);
 
   Future<Skrb> getSkrbDetail(int skrbId) async {
     final response = await _dio.get('/skrbs/$skrbId');

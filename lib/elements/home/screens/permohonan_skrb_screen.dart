@@ -1,14 +1,13 @@
 // File: lib/elements/home/screens/permohonan_skrb_screen.dart
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:master_gambar/data/models/skrb.dart';
+import 'package:master_gambar/elements/home/providers/transaksi_providers.dart';
 import '../providers/page_state_provider.dart';
 import '../providers/skrb_providers.dart';
-import '../repository/skrb_repository.dart';
 import '../widgets/skrb/permohonan_skrb_table.dart';
 import '../widgets/skrb/skrb_advanced_filter_panel.dart';
+import '../widgets/skrb/tambah_permohonan_skrb_dialog.dart';
 
 class PermohonanSkrbScreen extends ConsumerStatefulWidget {
   const PermohonanSkrbScreen({super.key});
@@ -19,9 +18,6 @@ class PermohonanSkrbScreen extends ConsumerStatefulWidget {
 }
 
 class _PermohonanSkrbScreenState extends ConsumerState<PermohonanSkrbScreen> {
-  SkrbAvailableTransaction? _selectedTransaction;
-  bool _isLoading = false;
-
   @override
   void initState() {
     super.initState();
@@ -30,10 +26,64 @@ class _PermohonanSkrbScreenState extends ConsumerState<PermohonanSkrbScreen> {
     });
   }
 
+  Future<void> _openTambahSkrbDialog() async {
+    final newSkrb = await showDialog<Skrb?>(
+      context: context,
+      builder: (_) => const TambahPermohonanSkrbDialog(),
+    );
+
+    if (newSkrb != null && mounted) {
+      ref.invalidate(skrbListProvider);
+      ref.invalidate(availableTransactionsProvider);
+      _showSkrbCreatedSnackbar(newSkrb);
+
+      ref.invalidate(skrbDetailProvider(newSkrb.id));
+      ref.read(pageStateProvider.notifier).state = PageState(
+        pageIndex: 3,
+        skrbId: newSkrb.id,
+      );
+    }
+  }
+
+  void _showSkrbCreatedSnackbar(Skrb skrb) {
+    if (!mounted) {
+      return;
+    }
+    if (skrb.alreadyExists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'SKRB ini sudah ada (${skrb.idSkrb}). Mengalihkan ke Detail SKRB.',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.blue.shade700,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } else if (skrb.idSkrb.contains('-SKRB') && skrb.idSkrb.contains('/x')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'SKRB dibuat dengan ID sementara: ${skrb.idSkrb}\nPERHATIAN: "Permohonan SKRB" Customer belum diisi admin!',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.orange.shade800,
+          duration: const Duration(seconds: 10),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Permohonan SKRB berhasil dibuat: ${skrb.idSkrb}'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final availableAsync = ref.watch(availableTransactionsProvider);
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Padding(
@@ -42,151 +92,70 @@ class _PermohonanSkrbScreenState extends ConsumerState<PermohonanSkrbScreen> {
           children: [
             // 1. Filter Lanjutan
             const SkrbAdvancedFilterPanel(),
-            const SizedBox(height: 8),
+            const SizedBox(height: 1),
 
-            // 2. Baris Kontrol Ringkas (Judul, Dropdown, Tombol Buat, Refresh)
+            // 2. Baris Kontrol Header (Judul di kiri, Tombol Tambah & Reload di kanan)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
+                // Sebelah kiri: Judul
                 const Text(
                   "Permohonan SKRB",
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
+                // Sebelah kanan: Button Tambah & Reload button
                 const Spacer(),
-
-                // Dropdown Pilihan Transaksi Selesai
-                SizedBox(
-                  width: 710,
-                  height: 32,
-                  child: availableAsync.when(
-                    loading: () => const LinearProgressIndicator(),
-                    error: (err, stack) => Text(
-                      'Error: $err',
-                      style: const TextStyle(color: Colors.red, fontSize: 11),
-                    ),
-                    data: (list) => DropdownSearch<SkrbAvailableTransaction>(
-                      items: (String filter, _) {
-                        final query = filter.trim().toLowerCase();
-                        if (query.isEmpty) {
-                          return list.take(30).toList();
-                        }
-                        return list.where((item) {
-                          return item.id.toLowerCase().contains(query) ||
-                              item.customerName.toLowerCase().contains(query) ||
-                              item.merk.toLowerCase().contains(query) ||
-                              item.typeChassis.toLowerCase().contains(query);
-                        }).toList();
-                      },
-                      itemAsString: (item) =>
-                          '${item.id} - ${item.customerName} (${item.merk} ${item.typeChassis})',
-                      compareFn: (i1, i2) => i1.id == i2.id,
-                      selectedItem: _selectedTransaction,
-                      onChanged: (item) {
-                        setState(() => _selectedTransaction = item);
-                      },
-                      decoratorProps: DropDownDecoratorProps(
-                        decoration: InputDecoration(
-                          isDense: true,
-                          labelText: 'Pilih Transaksi (ID DWG / Customer)...',
-                          labelStyle: const TextStyle(fontSize: 11),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                        ),
-                      ),
-                      popupProps: PopupProps.menu(
-                        showSearchBox: true,
-                        searchFieldProps: const TextFieldProps(
-                          autofocus: true,
-                          decoration: InputDecoration(
-                            hintText:
-                                'Ketik untuk mencari seluruh ID DWG / Customer...',// 30 list
-                            hintStyle: TextStyle(fontSize: 11),
-                            prefixIcon: Icon(Icons.search, size: 18),
-                            isDense: true,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 8,
-                            ),
-                          ),
-                        ),
-                        itemBuilder: (ctx, item, isSel, isDis) => ListTile(
-                          dense: true,
-                          title: Text(
-                            '${item.id} - ${item.customerName}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11,
-                            ),
-                          ),
-                          subtitle: Text(
-                            '${item.merk} ${item.typeChassis} (${item.jenisKendaraan}) | Pengajuan: ${item.jenisPengajuan}',
-                            style: const TextStyle(fontSize: 10),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-
-                // Tombol Buat SKRB
                 ElevatedButton.icon(
-                  icon: _isLoading
-                      ? const SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.add, size: 16),
+                  icon: const Icon(Icons.add_circle_outline, size: 18),
                   label: const Text(
-                    'BUAT PERMOHONAN SKRB',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                    'Tambah Permohonan SKRB Baru',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onPressed: (_selectedTransaction == null || _isLoading)
-                      ? null
-                      : () => _handleCreateSkrb(),
+                  onPressed: () => _openTambahSkrbDialog(),
                 ),
-                const SizedBox(width: 8),
-
-                // Reload Button
-                IconButton(
-                  icon: const Icon(Icons.refresh, size: 20),
-                  tooltip: 'Refresh Data',
-                  onPressed: () {
-                    setState(() {
-                      _selectedTransaction = null;
-                    });
-                    ref.invalidate(skrbListProvider);
-                    ref.invalidate(availableTransactionsProvider);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Memuat ulang tabel SKRB dan daftar transaksi...',
+                const SizedBox(width: 10),
+                Tooltip(
+                  message: 'Refresh Tabel Permohonan SKRB',
+                  child: InkWell(
+                    onTap: () {
+                      ref.invalidate(skrbListProvider);
+                      ref.invalidate(availableTransactionsProvider);
+                      ref.invalidate(jenisPengajuanOptionsProvider);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Memuat ulang tabel dan data SKRB...'),
+                          duration: Duration(milliseconds: 1200),
                         ),
-                        duration: Duration(milliseconds: 1200),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.all(9),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.grey.withValues(alpha: 0.4),
+                        ),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    );
-                  },
+                      child: const Icon(Icons.refresh, size: 19),
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 12),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 2),
 
             // 3. Tabel Permohonan SKRB
             const Expanded(
@@ -201,111 +170,5 @@ class _PermohonanSkrbScreenState extends ConsumerState<PermohonanSkrbScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _handleCreateSkrb() async {
-    if (_selectedTransaction == null) return;
-
-    setState(() => _isLoading = true);
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-        child: Dialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 28,
-              vertical: 24,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text(
-                  'Harap tunggu sebentar...\nMembuat Permohonan SKRB Baru',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-
-    try {
-      final repository = ref.read(skrbRepositoryProvider);
-      final newSkrb = await repository.createSkrb(_selectedTransaction!.id);
-
-      ref.invalidate(skrbListProvider);
-      ref.invalidate(availableTransactionsProvider);
-
-      if (mounted) {
-        Navigator.of(context).pop(); // Tutup loading dialog
-        
-        if (newSkrb.alreadyExists) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'SKRB untuk Transaksi ini sudah pernah dibuat sebelumnya (${newSkrb.idSkrb}).\nMengalihkan Anda ke halaman Detail SKRB tersebut.',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              backgroundColor: Colors.blue.shade700,
-              duration: const Duration(seconds: 4),
-            ),
-          );
-        } else if (newSkrb.idSkrb.contains('-SKRB') && newSkrb.idSkrb.contains('/x')) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Permohonan SKRB dibuat dengan ID sementara: ${newSkrb.idSkrb}\nPERHATIAN: "permohonan skrb" Customer belum ditambahkan admin! Segera minta admin untuk update.',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              backgroundColor: Colors.orange.shade800,
-              duration: const Duration(seconds: 10),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Permohonan SKRB berhasil dibuat: ${newSkrb.idSkrb}'),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        }
-      }
-
-      // Navigasi otomatis masuk langsung ke screen DETAIL SKRB
-      ref.invalidate(skrbDetailProvider(newSkrb.id));
-      ref.read(pageStateProvider.notifier).state = PageState(
-        pageIndex: 3,
-        skrbId: newSkrb.id,
-      );
-    } catch (e) {
-      if (mounted) {
-        Navigator.of(context).pop(); // Tutup loading dialog jika error
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal membuat SKRB: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
   }
 }

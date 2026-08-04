@@ -31,7 +31,11 @@ class SkrbHistoryItem {
 
 class SkrbAvailableTransaction {
   final String id;
+  final int? customerId;
+  final int? masterDataId;
+  final int? jenisPengajuanId;
   final String customerName;
+  final String typeEngine;
   final String merk;
   final String typeChassis;
   final String jenisKendaraan;
@@ -39,7 +43,11 @@ class SkrbAvailableTransaction {
 
   SkrbAvailableTransaction({
     required this.id,
+    this.customerId,
+    this.masterDataId,
+    this.jenisPengajuanId,
     required this.customerName,
+    required this.typeEngine,
     required this.merk,
     required this.typeChassis,
     required this.jenisKendaraan,
@@ -49,7 +57,11 @@ class SkrbAvailableTransaction {
   factory SkrbAvailableTransaction.fromJson(Map<String, dynamic> json) {
     return SkrbAvailableTransaction(
       id: '${json['id'] ?? ''}',
+      customerId: int.tryParse('${json['customer_id']}'),
+      masterDataId: int.tryParse('${json['master_data_id']}'),
+      jenisPengajuanId: int.tryParse('${json['jenis_pengajuan_id']}'),
       customerName: json['customer_name'] ?? '-',
+      typeEngine: json['type_engine'] ?? '-',
       merk: json['merk'] ?? '-',
       typeChassis: json['type_chassis'] ?? '-',
       jenisKendaraan: json['jenis_kendaraan'] ?? '-',
@@ -66,6 +78,8 @@ class Skrb {
   final String idSkrb;
   final String transaksiId;
   final int? customerId;
+  final int? masterDataId;
+  final int? jenisPengajuanId;
   final String customerName;
   final String typeEngine;
   final String merk;
@@ -94,6 +108,8 @@ class Skrb {
     required this.idSkrb,
     required this.transaksiId,
     this.customerId,
+    this.masterDataId,
+    this.jenisPengajuanId,
     required this.customerName,
     required this.typeEngine,
     required this.merk,
@@ -131,6 +147,8 @@ class Skrb {
       idSkrb: json['id_skrb'] ?? '',
       transaksiId: '${json['transaksi_id'] ?? ''}',
       customerId: int.tryParse('${json['customer_id']}'),
+      masterDataId: int.tryParse('${json['master_data_id']}'),
+      jenisPengajuanId: int.tryParse('${json['jenis_pengajuan_id']}'),
       customerName: json['customer_name'] ?? '-',
       typeEngine: json['type_engine'] ?? '-',
       merk: json['merk'] ?? '-',

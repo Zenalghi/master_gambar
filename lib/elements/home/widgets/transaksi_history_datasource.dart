@@ -122,7 +122,8 @@ class TransaksiDataSource extends AsyncDataTableSource {
                     ),
 
                     // Tombol Buat / Lihat SKRB
-                    IconButton(
+                    // Disembunyikan jika jenis pengajuan adalah GAMBAR TU (id=4)
+                    if (trx.fPengajuan.id != 4) IconButton(
                       icon: const Icon(
                         Icons.assignment_turned_in_outlined,
                         size: 16,
@@ -168,7 +169,8 @@ class TransaksiDataSource extends AsyncDataTableSource {
 
                         try {
                           final skrbRepo = _ref.read(skrbRepositoryProvider);
-                          final skrb = await skrbRepo.createSkrb(trx.id);
+                          // ignore: deprecated_member_use
+                          final skrb = await skrbRepo.createSkrbViaCara1(trx.id);
 
                           // Wajib reload table permohonan dan transaksi yang tersedia
                           _ref.invalidate(skrbListProvider);
@@ -193,7 +195,7 @@ class TransaksiDataSource extends AsyncDataTableSource {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Permohonan SKRB berhasil dibuat dengan ID sementara: ${skrb.idSkrb}\nPERHATIAN: "permohonan skrb" Customer belum ditambahkan admin! Segera minta admin untuk update.',
+                                    'Permohonan SKRB berhasil dibuat dengan ID sementara: ${skrb.idSkrb}\nPERHATIAN: "Permohonan SKRB" Customer belum ditambahkan admin! Segera minta admin untuk update.',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),

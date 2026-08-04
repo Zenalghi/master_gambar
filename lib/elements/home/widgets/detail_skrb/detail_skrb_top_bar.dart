@@ -149,7 +149,7 @@ class DetailSkrbTopBar extends ConsumerWidget {
                     }).toList();
                   },
                   itemAsString: (item) =>
-                      'ID SKRB : ${item.idSkrb} | ID DWG : ${item.transaksiId} || Customer : ${item.customerName} || Merk : ${item.merk} | Type : ${item.typeChassis} | Jenis : ${item.jenisKendaraan} | Pengajuan : ${item.jenisPengajuan}',
+                      'ID SKRB : ${item.idSkrb} | ID DWG : ${item.transaksiId.isNotEmpty ? item.transaksiId : '-'} || Customer : ${item.customerName} || Merk : ${item.merk} | Type : ${item.typeChassis} | Jenis : ${item.jenisKendaraan} | Pengajuan : ${item.jenisPengajuan}',
                   compareFn: (i1, i2) => i1.id == i2.id,
                   selectedItem: activeSkrb,
                   dropdownBuilder: (ctx, selectedItem) {
@@ -157,7 +157,7 @@ class DetailSkrbTopBar extends ConsumerWidget {
                       return const Text('', style: TextStyle(fontSize: 12));
                     }
                     final text =
-                        'ID SKRB : ${selectedItem.idSkrb} | ID DWG : ${selectedItem.transaksiId} || Customer : ${selectedItem.customerName} || Merk : ${selectedItem.merk} | Type : ${selectedItem.typeChassis} | Jenis : ${selectedItem.jenisKendaraan} | Pengajuan : ${selectedItem.jenisPengajuan}';
+                        'ID SKRB : ${selectedItem.idSkrb} | ID DWG : ${selectedItem.transaksiId.isNotEmpty ? selectedItem.transaksiId : '-'} || Customer : ${selectedItem.customerName} || Merk : ${selectedItem.merk} | Type : ${selectedItem.typeChassis} | Jenis : ${selectedItem.jenisKendaraan} | Pengajuan : ${selectedItem.jenisPengajuan}';
                     return SelectableText(
                       text,
                       style: const TextStyle(
@@ -219,7 +219,7 @@ class DetailSkrbTopBar extends ConsumerWidget {
                     itemBuilder: (ctx, item, isSel, isDis) => ListTile(
                       dense: true,
                       title: Text(
-                        'ID SKRB : ${item.idSkrb} | ID DWG : ${item.transaksiId}',
+                        'ID SKRB : ${item.idSkrb} | ID DWG : ${item.transaksiId.isNotEmpty ? item.transaksiId : '-'}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 12,

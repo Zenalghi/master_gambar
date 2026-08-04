@@ -1,5 +1,4 @@
 // File: lib/elements/home/widgets/skrb/permohonan_skrb_datasource.dart
-import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:data_table_2/data_table_2.dart';
@@ -9,6 +8,7 @@ import 'package:master_gambar/data/models/skrb.dart';
 import '../../providers/page_state_provider.dart';
 import '../../providers/skrb_providers.dart';
 import '../../repository/skrb_repository.dart';
+import 'edit_skrb_dialog.dart';
 
 class PermohonanSkrbDataSource extends DataTableSource {
   final List<Skrb> skrbList;
@@ -37,7 +37,11 @@ class PermohonanSkrbDataSource extends DataTableSource {
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           ),
         ),
-        DataCell(SelectableText(skrb.transaksiId)),
+        DataCell(
+          SelectableText(
+            skrb.transaksiId.isNotEmpty ? skrb.transaksiId : '-',
+          ),
+        ),
         DataCell(SelectableText(skrb.customerName)),
         DataCell(SelectableText(skrb.typeEngine)),
         DataCell(SelectableText(skrb.merk)),
@@ -88,8 +92,8 @@ class PermohonanSkrbDataSource extends DataTableSource {
         if (!isUnsavedDraft && skrb.fase == 2) ...[
           IconButton(
             icon: const Icon(Icons.edit, color: Colors.orange, size: 18),
-            tooltip: 'Buka ke Mode Edit',
-            onPressed: () => _handleSwitchToEditPhase(skrb),
+            tooltip: 'Edit Data SKRB',
+            onPressed: () => _handleOpenEditDialog(skrb),
           ),
           const SizedBox(width: 4),
         ],
@@ -118,45 +122,29 @@ class PermohonanSkrbDataSource extends DataTableSource {
     );
   }
 
-  /// Menangani proses peralihan dari Fase 2 menuju Fase 3 (Mode Edit)
-  Future<void> _handleSwitchToEditPhase(Skrb skrb) async {
-    bool dialogShown = false;
-    try {
-      dialogShown = true;
-      _showLoadingDialog(
-        'Harap tunggu sebentar...\nMenyiapkan dokumen terbaru untuk Mode Edit...',
-      );
-      await ref.read(skrbRepositoryProvider).updatePhase(skrb.id, 3);
+  /// Buka dialog untuk edit data inti SKRB (customer, kendaraan, jenis pengajuan)
+  Future<void> _handleOpenEditDialog(Skrb skrb) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => EditSkrbDialog(skrb: skrb),
+    );
+    if (result == true) {
       ref.invalidate(skrbListProvider);
-      ref.invalidate(skrbDetailProvider(skrb.id));
-
-      if (dialogShown && context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-      }
-      ref.read(pageStateProvider.notifier).state = PageState(
-        pageIndex: 3,
-        skrbId: skrb.id,
-      );
-    } catch (e) {
-      if (dialogShown && context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-      }
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
-      }
     }
   }
 
+
   /// Dialog konfirmasi untuk hapus total SKRB
   void _confirmDelete(Skrb skrb) {
+    final trxInfo = skrb.transaksiId.isNotEmpty
+        ? 'Transaksi ${skrb.transaksiId}' // Cara 1: dari Transaksi
+        : 'tanpa ID Transaksi'; // Cara 2: mandiri / standalone
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Hapus Permohonan SKRB'),
         content: Text(
-          'Apakah Anda yakin ingin menghapus permohonan SKRB dengan ID ${skrb.idSkrb} untuk Transaksi ${skrb.transaksiId}?\n\nSeluruh arsip file PDF dan folder di storage server akan dihapus secara permanen.',
+          'Apakah Anda yakin ingin menghapus permohonan SKRB dengan ID ${skrb.idSkrb} ($trxInfo)?\n\nSeluruh arsip file PDF dan folder di storage server akan dihapus secara permanen.',
         ),
         actions: [
           TextButton(
@@ -290,42 +278,6 @@ class PermohonanSkrbDataSource extends DataTableSource {
     }
   }
 
-  /// Memunculkan dialog loading blur bersertakan teks status
-  void _showLoadingDialog(String title) {
-    final colorScheme = Theme.of(context).colorScheme;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-        child: Dialog(
-          backgroundColor: colorScheme.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CircularProgressIndicator(),
-                const SizedBox(height: 16),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   bool get isRowCountApproximate => false;
