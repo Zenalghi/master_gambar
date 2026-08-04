@@ -84,158 +84,172 @@ class TransaksiDataSource extends AsyncDataTableSource {
 
               // Options
               DataCell(
-                Row(
-                  // mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.edit,
-                        size: 15,
-                        color: canEdit ? Colors.orange.shade700 : Colors.grey,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.edit,
+                          size: 15,
+                          color: canEdit ? Colors.orange.shade700 : Colors.grey,
+                        ),
+                        tooltip: canEdit
+                            ? 'Edit Data Transaksi'
+                            : 'Anda tidak punya akses',
+                        onPressed: canEdit ? () => _showEditDialog(trx) : null,
                       ),
-                      tooltip: canEdit
-                          ? 'Edit Data Transaksi'
-                          : 'Anda tidak punya akses',
-                      onPressed: canEdit ? () => _showEditDialog(trx) : null,
-                    ),
 
-                    // Tombol input gambar / Lanjut Draft
-                    IconButton(
-                      icon: Icon(
-                        // Ganti Icon jika ada Draft
-                        hasDraft ? Icons.edit_document : Icons.open_in_new,
-                        size: 15,
-                        // Ganti Warna jika ada Draft
-                        color: hasDraft ? Colors.lightBlueAccent : Colors.blue,
-                      ),
-                      tooltip: hasDraft
-                          ? 'Detail Transaksi'
-                          : 'Proses Transaksi Baru',
-                      onPressed: () {
-                        _ref.read(pageStateProvider.notifier).state = PageState(
-                          pageIndex: 1,
-                          data: trx,
-                        );
-                      },
-                    ),
-
-                    // Tombol Buat / Lihat SKRB
-                    // Disembunyikan jika jenis pengajuan adalah GAMBAR TU (id=4)
-                    if (trx.fPengajuan.id != 4) IconButton(
-                      icon: const Icon(
-                        Icons.assignment_turned_in_outlined,
-                        size: 16,
-                        color: Colors.teal,
-                      ),
-                      tooltip: 'Buat / Lihat Permohonan SKRB',
-                      onPressed: () async {
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (ctx) => BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                            child: Dialog(
-                              backgroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 28,
-                                  vertical: 24,
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    CircularProgressIndicator(),
-                                    SizedBox(height: 16),
-                                    Text(
-                                      'Harap tunggu sebentar...\nMemproses Permohonan SKRB',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-
-                        try {
-                          final skrbRepo = _ref.read(skrbRepositoryProvider);
-                          // ignore: deprecated_member_use
-                          final skrb = await skrbRepo.createSkrbViaCara1(trx.id);
-
-                          // Wajib reload table permohonan dan transaksi yang tersedia
-                          _ref.invalidate(skrbListProvider);
-                          _ref.invalidate(availableTransactionsProvider);
-
-                          if (context.mounted) {
-                            Navigator.of(context).pop(); // Tutup loading dialog
-
-                            if (skrb.alreadyExists) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Mengalihkan ke Detail SKRB yang sudah dibuat sebelumnya (${skrb.idSkrb}).',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  backgroundColor: Colors.blue.shade700,
-                                  duration: const Duration(seconds: 4),
-                                ),
-                              );
-                            } else if (skrb.idSkrb.contains('-SKRB') &&
-                                skrb.idSkrb.contains('/x')) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Permohonan SKRB berhasil dibuat dengan ID sementara: ${skrb.idSkrb}\nPERHATIAN: "Permohonan SKRB" Customer belum ditambahkan admin! Segera minta admin untuk update.',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  backgroundColor: Colors.orange.shade800,
-                                  duration: const Duration(seconds: 10),
-                                ),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Permohonan SKRB berhasil dibuat: ${skrb.idSkrb}',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  backgroundColor: Colors.green,
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
-                            }
-                          }
-
+                      // Tombol input gambar / Lanjut Draft
+                      IconButton(
+                        icon: Icon(
+                          // Ganti Icon jika ada Draft
+                          hasDraft ? Icons.edit_document : Icons.open_in_new,
+                          size: 15,
+                          // Ganti Warna jika ada Draft
+                          color: hasDraft
+                              ? Colors.lightBlueAccent
+                              : Colors.blue,
+                        ),
+                        tooltip: hasDraft
+                            ? 'Detail Transaksi'
+                            : 'Proses Transaksi Baru',
+                        onPressed: () {
                           _ref.read(pageStateProvider.notifier).state =
-                              PageState(pageIndex: 3, skrbId: skrb.id);
-                        } catch (e) {
-                          if (context.mounted) {
-                            Navigator.of(
-                              context,
-                            ).pop(); // Tutup loading dialog jika error
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Error membuka SKRB: $e'),
-                                backgroundColor: Colors.red,
+                              PageState(pageIndex: 1, data: trx);
+                        },
+                      ),
+
+                      // Tombol Buat / Lihat SKRB
+                      // Disembunyikan jika jenis pengajuan adalah GAMBAR TU (id=4)
+                      if (trx.fPengajuan.id != 4)
+                        IconButton(
+                          icon: const Icon(
+                            Icons.assignment_turned_in_outlined,
+                            size: 16,
+                            color: Colors.teal,
+                          ),
+                          tooltip: 'Buat / Lihat Permohonan SKRB',
+                          onPressed: () async {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (ctx) => BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                                child: Dialog(
+                                  backgroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 28,
+                                      vertical: 24,
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        CircularProgressIndicator(),
+                                        SizedBox(height: 16),
+                                        Text(
+                                          'Harap tunggu sebentar...\nMemproses Permohonan SKRB',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
                             );
-                          }
-                        }
-                      },
-                    ),
-                  ],
+
+                            try {
+                              final skrbRepo = _ref.read(
+                                skrbRepositoryProvider,
+                              );
+                              // ignore: deprecated_member_use
+                              final skrb = await skrbRepo.createSkrbViaCara1(
+                                trx.id,
+                              );
+
+                              // Wajib reload table permohonan dan transaksi yang tersedia
+                              _ref.invalidate(skrbListProvider);
+                              _ref.invalidate(availableTransactionsProvider);
+
+                              if (context.mounted) {
+                                Navigator.of(
+                                  context,
+                                ).pop(); // Tutup loading dialog
+
+                                if (skrb.alreadyExists) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Mengalihkan ke Detail SKRB yang sudah dibuat sebelumnya (${skrb.idSkrb}).',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      backgroundColor: Colors.blue.shade700,
+                                      duration: const Duration(seconds: 4),
+                                    ),
+                                  );
+                                } else if (skrb.idSkrb.contains('-SKRB') &&
+                                    skrb.idSkrb.contains('/x')) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Permohonan SKRB berhasil dibuat dengan ID sementara: ${skrb.idSkrb}\nPERHATIAN: "Permohonan SKRB" Customer belum ditambahkan admin! Segera minta admin untuk update.',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      backgroundColor: Colors.orange.shade800,
+                                      duration: const Duration(seconds: 10),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Permohonan SKRB berhasil dibuat: ${skrb.idSkrb}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      backgroundColor: Colors.green,
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              }
+
+                              _ref.read(pageStateProvider.notifier).state =
+                                  PageState(pageIndex: 3, skrbId: skrb.id);
+                            } catch (e) {
+                              if (context.mounted) {
+                                Navigator.of(
+                                  context,
+                                ).pop(); // Tutup loading dialog jika error
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error membuka SKRB: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ],

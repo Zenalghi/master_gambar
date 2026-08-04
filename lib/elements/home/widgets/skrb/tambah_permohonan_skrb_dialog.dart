@@ -97,7 +97,10 @@ class _TambahPermohonanSkrbDialogState
             children: [
               // Keterangan petunjuk
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: colorScheme.primaryContainer.withValues(alpha: 0.25),
                   borderRadius: BorderRadius.circular(8),
@@ -310,8 +313,7 @@ class _TambahPermohonanSkrbDialogState
                                 ),
                               ),
                             ),
-                            itemBuilder: (ctx, item, isSel, isDis) =>
-                                Container(
+                            itemBuilder: (ctx, item, isSel, isDis) => Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
                               ),
@@ -391,27 +393,28 @@ class _TambahPermohonanSkrbDialogState
                               popupProps: PopupProps.menu(
                                 showSearchBox: false,
                                 fit: FlexFit.loose,
-                                constraints:
-                                    const BoxConstraints(maxHeight: 220),
+                                constraints: const BoxConstraints(
+                                  maxHeight: 220,
+                                ),
                                 itemBuilder: (ctx, item, isSel, isDis) =>
                                     Container(
-                                  height: 36,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    item.name,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: isSel
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
+                                      height: 36,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        item.name,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: isSel
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
                               ),
                             );
                           },
@@ -431,9 +434,8 @@ class _TambahPermohonanSkrbDialogState
               const SizedBox(height: 6),
               DropdownSearch<OptionItem>(
                 key: _kendaraanDropdownKey,
-                items: (String filter, _) => ref.read(
-                  transaksiMasterDataOptionsProvider(filter).future,
-                ),
+                items: (String filter, _) =>
+                    ref.read(transaksiMasterDataOptionsProvider(filter).future),
                 itemAsString: (item) => item.name,
                 compareFn: (i1, i2) => i1.id == i2.id,
                 selectedItem: _selectedMasterData,
@@ -472,17 +474,14 @@ class _TambahPermohonanSkrbDialogState
                     ),
                   ),
                   itemBuilder: (ctx, item, isSel, isDis) => Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     height: 36,
                     alignment: Alignment.centerLeft,
                     child: Text(
                       item.name,
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight:
-                            isSel ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -533,45 +532,53 @@ class _TambahPermohonanSkrbDialogState
         ),
       ),
       actions: [
-        TextButton.icon(
-          onPressed: _isLoading ? null : () => _resetForm(),
-          icon: const Icon(Icons.refresh, size: 16),
-          label: const Text('Reset'),
-        ),
-        const Spacer(),
-        TextButton(
-          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: const Text('Batal'),
-        ),
-        ElevatedButton.icon(
-          icon: _isLoading
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : const Icon(Icons.check, size: 18),
-          label: Text(
-            _isCara1 ? 'Buat dari ID DWG' : 'Buat SKRB Baru',
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
+        Row(
+          children: [
+            TextButton.icon(
+              onPressed: _isLoading ? null : () => _resetForm(),
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text('Reset'),
             ),
-          ),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            backgroundColor: _isCara1 ? Colors.teal : Colors.deepOrange,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+            const Spacer(),
+            TextButton(
+              onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+              child: const Text('Batal'),
             ),
-          ),
-          onPressed: (!_canCreate || _isLoading)
-              ? null
-              : () => _handleCreateSkrb(),
+            const SizedBox(width: 8),
+            ElevatedButton.icon(
+              icon: _isLoading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.check, size: 18),
+              label: Text(
+                _isCara1 ? 'Buat dari ID DWG' : 'Buat SKRB Baru',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                backgroundColor: _isCara1 ? Colors.teal : Colors.deepOrange,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: (!_canCreate || _isLoading)
+                  ? null
+                  : () => _handleCreateSkrb(),
+            ),
+          ],
         ),
       ],
     );
@@ -654,7 +661,9 @@ class _TambahPermohonanSkrbDialogState
 
       if (mounted) {
         Navigator.of(context).pop(); // Tutup loading dialog
-        Navigator.of(context).pop(newSkrb); // Tutup dialog & kirim hasil ke screen utama
+        Navigator.of(
+          context,
+        ).pop(newSkrb); // Tutup dialog & kirim hasil ke screen utama
       }
     } catch (e) {
       if (mounted) {
@@ -690,7 +699,9 @@ class _TambahPermohonanSkrbDialogState
 
       if (mounted) {
         Navigator.of(context).pop(); // Tutup loading dialog
-        Navigator.of(context).pop(newSkrb); // Tutup dialog & kirim hasil ke screen utama
+        Navigator.of(
+          context,
+        ).pop(newSkrb); // Tutup dialog & kirim hasil ke screen utama
       }
     } catch (e) {
       if (mounted) {
@@ -705,8 +716,9 @@ class _TambahPermohonanSkrbDialogState
             content: Text(
               isDuplicateId ? '⚠️ $msg' : 'Gagal membuat SKRB: $msg',
             ),
-            backgroundColor:
-                isDuplicateId ? Colors.orange.shade800 : Colors.red,
+            backgroundColor: isDuplicateId
+                ? Colors.orange.shade800
+                : Colors.red,
             duration: Duration(seconds: isDuplicateId ? 5 : 3),
           ),
         );
