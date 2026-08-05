@@ -9,6 +9,7 @@ import 'package:master_gambar/data/models/skrb.dart';
 import 'package:master_gambar/elements/home/providers/transaksi_providers.dart';
 import '../../providers/skrb_providers.dart';
 import '../../repository/skrb_repository.dart';
+import 'card_id_skrb_setting.dart';
 
 class TambahPermohonanSkrbDialog extends ConsumerStatefulWidget {
   final String? initialTransaksiId;
@@ -724,280 +725,16 @@ class _TambahPermohonanSkrbDialogState
               // --- Card 2: Konfirmasi ID SKRB & Pengaturan Nomor Urut (Muncul Dinamis) ---
               if (_selectedCustomer != null) ...[
                 const SizedBox(height: 18),
-                Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerLowest,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: colorScheme.primary.withValues(alpha: 0.35),
-                      width: 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colorScheme.primary.withValues(alpha: 0.05),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.assignment_add,
-                            color: colorScheme.primary,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          const Expanded(
-                            child: Text(
-                              'Konfirmasi ID SKRB & Pengaturan Nomor Urut',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          if (_isCara1)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.teal.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.link,
-                                    size: 14,
-                                    color: Colors.teal.shade800,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Terhubung ID DWG',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.teal.shade800,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          else
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.orange.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.link_off,
-                                    size: 14,
-                                    color: Colors.orange,
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'Mode Mandiri (Tanpa ID DWG)',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.orange,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest.withValues(
-                            alpha: 0.5,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.business,
-                              size: 18,
-                              color: colorScheme.secondary,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                _selectedCustomer!.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      Text(
-                        'ID SKRB Sistem (otomatis):',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      if (_loadingPreview)
-                        Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: colorScheme.primary,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Sedang memuat preview ID SKRB dari server...',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: colorScheme.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      else if (_previewError != null)
-                        Text(
-                          'Gagal memuat preview: $_previewError',
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontSize: 12,
-                          ),
-                        )
-                      else
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary.withValues(alpha: 0.06),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: colorScheme.primary.withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.tag,
-                                size: 16,
-                                color: colorScheme.primary,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  _previewIdSkrb ?? '-',
-                                  style: TextStyle(
-                                    fontFamily: 'monospace',
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      const SizedBox(height: 14),
-                      const Divider(height: 1),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.edit_note,
-                            size: 18,
-                            color: colorScheme.secondary,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Atau masukkan nomor urut manual (Opsional):',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _nomorController,
-                        focusNode: _focusNode,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        onChanged: (_) => setState(() {}),
-                        decoration: InputDecoration(
-                          hintText: 'Contoh: 03',
-                          hintStyle: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 12,
-                          ),
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 12,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(
-                              color: colorScheme.primary,
-                              width: 1.5,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                CardIdSkrbSetting(
+                  isEditMode: false,
+                  customerName: _selectedCustomer!.name,
+                  isCara1: _isCara1,
+                  loadingPreview: _loadingPreview,
+                  previewError: _previewError,
+                  previewIdSkrb: _previewIdSkrb,
+                  nomorController: _nomorController,
+                  focusNode: _focusNode,
+                  onChanged: (_) => setState(() {}),
                 ),
               ],
             ],
@@ -1041,7 +778,7 @@ class _TambahPermohonanSkrbDialogState
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'menggunakan nomor urut manual (${_nomorController.text.trim().padLeft(2, '0')})',
+                          'ubah nomor urut (${_nomorController.text.trim().padLeft(2, '0')})',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -1153,7 +890,9 @@ class _TambahPermohonanSkrbDialogState
         final isDuplicateId =
             msg.toLowerCase().contains('sudah digunakan') ||
             msg.toLowerCase().contains('duplicate') ||
-            msg.toLowerCase().contains('unique');
+            msg.toLowerCase().contains('unique') ||
+            msg.toLowerCase().contains('sudah terdaftar') ||
+            msg.toLowerCase().contains('unik');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -1201,7 +940,9 @@ class _TambahPermohonanSkrbDialogState
         final isDuplicateId =
             msg.toLowerCase().contains('sudah digunakan') ||
             msg.toLowerCase().contains('duplicate') ||
-            msg.toLowerCase().contains('unique');
+            msg.toLowerCase().contains('unique') ||
+            msg.toLowerCase().contains('sudah terdaftar') ||
+            msg.toLowerCase().contains('unik');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

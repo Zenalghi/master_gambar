@@ -38,9 +38,7 @@ class PermohonanSkrbDataSource extends DataTableSource {
           ),
         ),
         DataCell(
-          SelectableText(
-            skrb.transaksiId.isNotEmpty ? skrb.transaksiId : '-',
-          ),
+          SelectableText(skrb.transaksiId.isNotEmpty ? skrb.transaksiId : '-'),
         ),
         DataCell(SelectableText(skrb.customerName)),
         DataCell(SelectableText(skrb.typeEngine)),
@@ -88,8 +86,8 @@ class PermohonanSkrbDataSource extends DataTableSource {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Tombol Edit HANYA muncul jika berada pada Fase 2 (sudah pernah disimpan dan saat ini tidak dalam mode edit)
-        if (!isUnsavedDraft && skrb.fase == 2) ...[
+        // Tombol Edit muncul pada Fase 1 dan Fase 2
+        if (skrb.fase == 1 || skrb.fase == 2) ...[
           IconButton(
             icon: const Icon(Icons.edit, color: Colors.orange, size: 18),
             tooltip: 'Edit Data SKRB',
@@ -132,7 +130,6 @@ class PermohonanSkrbDataSource extends DataTableSource {
       ref.invalidate(skrbListProvider);
     }
   }
-
 
   /// Dialog konfirmasi untuk hapus total SKRB
   void _confirmDelete(Skrb skrb) {
@@ -277,7 +274,6 @@ class PermohonanSkrbDataSource extends DataTableSource {
       return iso;
     }
   }
-
 
   @override
   bool get isRowCountApproximate => false;

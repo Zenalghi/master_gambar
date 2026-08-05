@@ -111,13 +111,8 @@ class _PermohonanSkrbScreenState extends ConsumerState<PermohonanSkrbScreen> {
                   ),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      horizontal: 14,
+                      vertical: 10,
                     ),
                   ),
                   onPressed: () => _openTambahSkrbDialog(),

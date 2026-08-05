@@ -1,5 +1,5 @@
 // File: lib/elements/home/widgets/skrb/edit_skrb_dialog.dart
-// Dialog untuk mengedit data inti SKRB (Customer, Kendaraan, Jenis Pengajuan).
+// Dialog untuk mengedit data inti SKRB (Customer, Kendaraan, Jenis Pengajuan) dan Nomor Urut / ID SKRB.
 // Digunakan dari tabel Permohonan SKRB ketika icon edit ditekan.
 
 import 'package:dio/dio.dart';
@@ -11,6 +11,7 @@ import 'package:master_gambar/data/models/skrb.dart';
 import 'package:master_gambar/elements/home/providers/skrb_providers.dart';
 import 'package:master_gambar/elements/home/providers/transaksi_providers.dart';
 import 'package:master_gambar/elements/home/repository/skrb_repository.dart';
+import 'card_id_skrb_setting.dart';
 
 class EditSkrbDialog extends ConsumerStatefulWidget {
   final Skrb skrb;
@@ -23,11 +24,17 @@ class EditSkrbDialog extends ConsumerStatefulWidget {
 
 class _EditSkrbDialogState extends ConsumerState<EditSkrbDialog> {
   final _formKey = GlobalKey<FormState>();
+  final _nomorController = TextEditingController();
   bool _loading = false;
 
   int? _selectedCustomerId;
   int? _selectedMasterDataId;
   int? _selectedJenisPengajuanId;
+  String? _customerName;
+
+  bool _loadingPreview = false;
+  String? _previewError;
+  String? _previewIdSkrb;
 
   @override
   void initState() {
@@ -36,6 +43,68 @@ class _EditSkrbDialogState extends ConsumerState<EditSkrbDialog> {
     _selectedCustomerId = widget.skrb.customerId;
     _selectedMasterDataId = widget.skrb.masterDataId;
     _selectedJenisPengajuanId = widget.skrb.jenisPengajuanId;
+    _customerName = widget.skrb.customerName;
+    _previewIdSkrb = widget.skrb.idSkrb;
+  }
+
+  @override
+  void dispose() {
+    _nomorController.dispose();
+    super.dispose();
+  }
+
+  void _onCustomerChanged(OptionItem? item) {
+    setState(() {
+      _selectedCustomerId = item?.id as int?;
+      _customerName = item?.name ?? widget.skrb.customerName;
+    });
+    if (_selectedCustomerId != null) {
+      if (_selectedCustomerId == widget.skrb.customerId) {
+        setState(() {
+          _previewIdSkrb = widget.skrb.idSkrb;
+          _loadingPreview = false;
+          _previewError = null;
+        });
+      } else {
+        _loadPreviewId(_selectedCustomerId!);
+      }
+    } else {
+      setState(() {
+        _previewIdSkrb = null;
+      });
+    }
+  }
+
+  Future<void> _loadPreviewId(int customerId) async {
+    setState(() {
+      _loadingPreview = true;
+      _previewError = null;
+    });
+    try {
+      final repo = ref.read(skrbRepositoryProvider);
+      final result = await repo.getPreviewIdSkrb(customerId);
+      if (mounted && _selectedCustomerId == customerId) {
+        setState(() {
+          _previewIdSkrb = result['preview_id_skrb'] as String?;
+          _loadingPreview = false;
+        });
+      }
+    } catch (e) {
+      if (mounted && _selectedCustomerId == customerId) {
+        setState(() {
+          _previewError = e.toString();
+          _loadingPreview = false;
+        });
+      }
+    }
+  }
+
+  int? _parseNomor() {
+    final raw = _nomorController.text.trim();
+    if (raw.isEmpty) return null;
+    final val = int.tryParse(raw);
+    if (val == null || val < 1) return null;
+    return val;
   }
 
   Future<void> _handleSimpan() async {
@@ -48,6 +117,7 @@ class _EditSkrbDialogState extends ConsumerState<EditSkrbDialog> {
         customerId: _selectedCustomerId,
         masterDataId: _selectedMasterDataId,
         jenisPengajuanId: _selectedJenisPengajuanId,
+        nomorUrutManual: _parseNomor(),
       );
       // Invalidate providers agar list & detail reload
       ref.invalidate(skrbListProvider);
@@ -55,27 +125,67 @@ class _EditSkrbDialogState extends ConsumerState<EditSkrbDialog> {
       if (mounted) {
         Navigator.of(context).pop(true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Data SKRB berhasil diperbarui!'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle_outline, color: Colors.white),
+                SizedBox(width: 10),
+                Text('Data SKRB berhasil diperbarui!', style: TextStyle(fontWeight: FontWeight.w600)),
+              ],
+            ),
+            backgroundColor: Colors.green.shade700,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
       }
     } on DioException catch (e) {
       final msg =
-          e.response?.data?['message'] ?? e.message ?? 'Terjadi kesalahan.';
+          e.response?.data?['message']?.toString() ?? e.message ?? 'Terjadi kesalahan.';
+      final isDuplicate = msg.toLowerCase().contains('sudah terdaftar') ||
+          msg.toLowerCase().contains('duplikat') ||
+          msg.toLowerCase().contains('duplicate') ||
+          msg.toLowerCase().contains('sudah digunakan') ||
+          msg.toLowerCase().contains('unik');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal menyimpan: $msg'),
-            backgroundColor: Colors.red,
+            content: Row(
+              children: [
+                Icon(isDuplicate ? Icons.warning_amber_rounded : Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 10),
+                Expanded(child: Text(isDuplicate ? '⚠️ Peringatan: $msg' : 'Gagal menyimpan: $msg', style: const TextStyle(fontWeight: FontWeight.w600))),
+              ],
+            ),
+            backgroundColor: isDuplicate ? Colors.orange.shade800 : Colors.red,
+            duration: Duration(seconds: isDuplicate ? 5 : 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
       }
     } catch (e) {
+      final msg = e.toString().replaceAll('Exception: ', '');
+      final isDuplicate = msg.toLowerCase().contains('sudah terdaftar') ||
+          msg.toLowerCase().contains('duplikat') ||
+          msg.toLowerCase().contains('duplicate') ||
+          msg.toLowerCase().contains('sudah digunakan') ||
+          msg.toLowerCase().contains('unik');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(isDuplicate ? Icons.warning_amber_rounded : Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 10),
+                Expanded(child: Text(isDuplicate ? '⚠️ Peringatan: $msg' : 'Error: $msg', style: const TextStyle(fontWeight: FontWeight.w600))),
+              ],
+            ),
+            backgroundColor: isDuplicate ? Colors.orange.shade800 : Colors.red,
+            duration: Duration(seconds: isDuplicate ? 5 : 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
         );
       }
     } finally {
@@ -107,246 +217,305 @@ class _EditSkrbDialogState extends ConsumerState<EditSkrbDialog> {
       ),
       content: SizedBox(
         width: 700,
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Info SKRB
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.primaryContainer.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.tag,
-                      size: 14,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'ID SKRB: ${widget.skrb.idSkrb}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Info SKRB
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.tag,
+                        size: 14,
                         color: Theme.of(context).colorScheme.primary,
                       ),
-                    ),
-                    if (widget.skrb.transaksiId.isNotEmpty) ...[
-                      const SizedBox(width: 12),
-                      Icon(
-                        Icons.receipt_long,
-                        size: 13,
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 6),
                       Text(
-                        'ID DWG: ${widget.skrb.transaksiId}',
+                        'ID SKRB: ${widget.skrb.idSkrb}',
                         style: TextStyle(
                           fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      if (widget.skrb.transaksiId.isNotEmpty) ...[
+                        const SizedBox(width: 12),
+                        Icon(
+                          Icons.receipt_long,
+                          size: 13,
                           color: Theme.of(context).colorScheme.secondary,
                         ),
-                      ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'ID DWG: ${widget.skrb.transaksiId}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // 1. CUSTOMER
-              DropdownSearch<OptionItem>(
-                items: (String filter, _) =>
-                    ref.read(customerOptionsSearchProvider(filter).future),
-                itemAsString: (OptionItem item) => item.name,
-                compareFn: (i1, i2) => i1.id == i2.id,
-                selectedItem: _selectedCustomerId != null
-                    ? OptionItem(
-                        id: _selectedCustomerId!,
-                        name: widget.skrb.customerName,
-                      )
-                    : null,
-                onChanged: (OptionItem? item) {
-                  setState(() => _selectedCustomerId = item?.id as int?);
-                },
-                decoratorProps: const DropDownDecoratorProps(
-                  baseStyle: TextStyle(fontSize: 13, height: 1.0),
-                  decoration: InputDecoration(
-                    constraints: BoxConstraints(maxHeight: 42),
-                    contentPadding: EdgeInsets.symmetric(
-                      vertical: 0,
-                      horizontal: 10,
-                    ),
-                    labelStyle: TextStyle(fontSize: 12),
-                    labelText: 'Customer',
-                    border: OutlineInputBorder(),
-                    isDense: true,
                   ),
                 ),
-                popupProps: PopupProps.menu(
-                  showSearchBox: true,
-                  searchFieldProps: const TextFieldProps(
-                    autofocus: true,
-                    style: TextStyle(fontSize: 13, height: 1.0),
+                const SizedBox(height: 16),
+
+                // 1. CUSTOMER
+                DropdownSearch<OptionItem>(
+                  items: (String filter, _) =>
+                      ref.read(customerOptionsSearchProvider(filter).future),
+                  itemAsString: (OptionItem item) => item.name,
+                  compareFn: (i1, i2) => i1.id == i2.id,
+                  selectedItem: _selectedCustomerId != null
+                      ? OptionItem(
+                          id: _selectedCustomerId!,
+                          name: _customerName ?? widget.skrb.customerName,
+                        )
+                      : null,
+                  onChanged: _onCustomerChanged,
+                  decoratorProps: const DropDownDecoratorProps(
+                    baseStyle: TextStyle(fontSize: 13, height: 1.0),
                     decoration: InputDecoration(
                       constraints: BoxConstraints(maxHeight: 42),
                       contentPadding: EdgeInsets.symmetric(
                         vertical: 0,
                         horizontal: 10,
                       ),
-                      hintStyle: TextStyle(fontSize: 13, height: 1.0),
-                      hintText: 'Cari Customer...',
-                      prefixIcon: Icon(Icons.search),
+                      labelStyle: TextStyle(fontSize: 12),
+                      labelText: 'Customer',
+                      border: OutlineInputBorder(),
+                      isDense: true,
                     ),
                   ),
-                  menuProps: const MenuProps(
-                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                  ),
-                  itemBuilder: (context, item, isSelected, isDisabled) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      height: 30,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        item.name,
-                        style: TextStyle(
-                          fontSize: 12,
-                          height: 1.0,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: isSelected
-                              ? Theme.of(context).primaryColor
-                              : Theme.of(context).colorScheme.onSurface,
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                    searchFieldProps: const TextFieldProps(
+                      autofocus: true,
+                      style: TextStyle(fontSize: 13, height: 1.0),
+                      decoration: InputDecoration(
+                        constraints: BoxConstraints(maxHeight: 42),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 0,
+                          horizontal: 10,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        hintStyle: TextStyle(fontSize: 13, height: 1.0),
+                        hintText: 'Cari Customer...',
+                        prefixIcon: Icon(Icons.search),
                       ),
-                    );
-                  },
-                ),
-                validator: (item) => item == null && _selectedCustomerId == null
-                    ? 'Wajib dipilih'
-                    : null,
-              ),
-
-              const SizedBox(height: 14),
-
-              // 2. MASTER DATA KENDARAAN
-              DropdownSearch<OptionItem>(
-                items: (String filter, _) =>
-                    ref.read(transaksiMasterDataOptionsProvider(filter).future),
-                itemAsString: (OptionItem item) => item.name,
-                compareFn: (i1, i2) => i1.id == i2.id,
-                selectedItem: _selectedMasterDataId != null
-                    ? OptionItem(
-                        id: _selectedMasterDataId!,
-                        name:
-                            '${widget.skrb.typeEngine} / ${widget.skrb.merk} / ${widget.skrb.chassisDisplayName} / ${widget.skrb.jenisKendaraan}',
-                      )
-                    : null,
-                onChanged: (OptionItem? item) {
-                  setState(() => _selectedMasterDataId = item?.id as int?);
-                },
-                decoratorProps: const DropDownDecoratorProps(
-                  baseStyle: TextStyle(fontSize: 13, height: 1.0),
-                  decoration: InputDecoration(
-                    constraints: BoxConstraints(maxHeight: 42),
-                    contentPadding: EdgeInsets.symmetric(
-                      vertical: 0,
-                      horizontal: 10,
                     ),
-                    labelStyle: TextStyle(fontSize: 12),
-                    labelText:
-                        'Pilih Kendaraan (Engine / Merk / Chassis / Jenis)',
-                    border: OutlineInputBorder(),
-                    isDense: true,
+                    menuProps: const MenuProps(
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    ),
+                    itemBuilder: (context, item, isSelected, isDisabled) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        height: 30,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          item.name,
+                          style: TextStyle(
+                            fontSize: 12,
+                            height: 1.0,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: isSelected
+                                ? Theme.of(context).primaryColor
+                                : Theme.of(context).colorScheme.onSurface,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    },
                   ),
+                  validator: (item) => item == null && _selectedCustomerId == null
+                      ? 'Wajib dipilih'
+                      : null,
                 ),
-                popupProps: PopupProps.menu(
-                  showSearchBox: true,
-                  searchFieldProps: const TextFieldProps(
-                    autofocus: true,
-                    style: TextStyle(fontSize: 13, height: 1.0),
+
+                const SizedBox(height: 14),
+
+                // 2. MASTER DATA KENDARAAN
+                DropdownSearch<OptionItem>(
+                  items: (String filter, _) =>
+                      ref.read(transaksiMasterDataOptionsProvider(filter).future),
+                  itemAsString: (OptionItem item) => item.name,
+                  compareFn: (i1, i2) => i1.id == i2.id,
+                  selectedItem: _selectedMasterDataId != null
+                      ? OptionItem(
+                          id: _selectedMasterDataId!,
+                          name:
+                              '${widget.skrb.typeEngine} / ${widget.skrb.merk} / ${widget.skrb.chassisDisplayName} / ${widget.skrb.jenisKendaraan}',
+                        )
+                      : null,
+                  onChanged: (OptionItem? item) {
+                    setState(() => _selectedMasterDataId = item?.id as int?);
+                  },
+                  decoratorProps: const DropDownDecoratorProps(
+                    baseStyle: TextStyle(fontSize: 13, height: 1.0),
                     decoration: InputDecoration(
                       constraints: BoxConstraints(maxHeight: 42),
                       contentPadding: EdgeInsets.symmetric(
                         vertical: 0,
                         horizontal: 10,
                       ),
-                      hintStyle: TextStyle(fontSize: 13, height: 1.0),
-                      hintText: 'Cari kendaraan...',
-                      prefixIcon: Icon(Icons.search),
+                      labelStyle: TextStyle(fontSize: 12),
+                      labelText:
+                          'Pilih Kendaraan (Engine / Merk / Chassis / Jenis)',
+                      border: OutlineInputBorder(),
+                      isDense: true,
                     ),
                   ),
-                  menuProps: const MenuProps(
-                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                  ),
-                  itemBuilder: (context, item, isSelected, isDisabled) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      height: 30,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        item.name,
-                        style: TextStyle(
-                          fontSize: 12,
-                          height: 1.0,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: isSelected
-                              ? Theme.of(context).primaryColor
-                              : Theme.of(context).colorScheme.onSurface,
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                    searchFieldProps: const TextFieldProps(
+                      autofocus: true,
+                      style: TextStyle(fontSize: 13, height: 1.0),
+                      decoration: InputDecoration(
+                        constraints: BoxConstraints(maxHeight: 42),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 0,
+                          horizontal: 10,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        hintStyle: TextStyle(fontSize: 13, height: 1.0),
+                        hintText: 'Cari kendaraan...',
+                        prefixIcon: Icon(Icons.search),
                       ),
-                    );
-                  },
+                    ),
+                    menuProps: const MenuProps(
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    ),
+                    itemBuilder: (context, item, isSelected, isDisabled) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        height: 30,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          item.name,
+                          style: TextStyle(
+                            fontSize: 12,
+                            height: 1.0,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: isSelected
+                                ? Theme.of(context).primaryColor
+                                : Theme.of(context).colorScheme.onSurface,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    },
+                  ),
+                  validator: (item) =>
+                      item == null && _selectedMasterDataId == null
+                      ? 'Wajib dipilih'
+                      : null,
                 ),
-                validator: (item) =>
-                    item == null && _selectedMasterDataId == null
-                    ? 'Wajib dipilih'
-                    : null,
-              ),
 
-              const SizedBox(height: 14),
+                const SizedBox(height: 14),
 
-              // 3. JENIS PENGAJUAN
-              _buildPengajuanDropdown(),
+                // 3. JENIS PENGAJUAN
+                _buildPengajuanDropdown(),
 
-              const SizedBox(height: 4),
-            ],
+                if (_selectedCustomerId != null) ...[
+                  const SizedBox(height: 18),
+                  CardIdSkrbSetting(
+                    isEditMode: true,
+                    customerName: _customerName ?? widget.skrb.customerName,
+                    loadingPreview: _loadingPreview,
+                    previewError: _previewError,
+                    previewIdSkrb: _previewIdSkrb,
+                    nomorController: _nomorController,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ],
+
+                const SizedBox(height: 4),
+              ],
+            ),
           ),
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: _loading ? null : () => Navigator.of(context).pop(false),
-          child: const Text('Batal'),
-        ),
-        FilledButton.icon(
-          onPressed: _loading ? null : _handleSimpan,
-          icon: _loading
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
+        Builder(
+          builder: (ctx) {
+            final isNomorSet =
+                _nomorController.text.trim().isNotEmpty && _parseNomor() != null;
+            return Row(
+              children: [
+                if (isNomorSet) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.amber.shade700.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 14,
+                          color: Colors.amber.shade900,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'ubah nomor urut (${_nomorController.text.trim().padLeft(2, '0')})',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.amber.shade900,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                )
-              : const Icon(Icons.save_outlined, size: 18),
-          label: const Text('Simpan Perubahan'),
+                ],
+                const Spacer(),
+                TextButton(
+                  onPressed: _loading ? null : () => Navigator.of(context).pop(false),
+                  child: const Text('Batal'),
+                ),
+                const SizedBox(width: 8),
+                FilledButton.icon(
+                  onPressed: _loading ? null : _handleSimpan,
+                  icon: _loading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.save_outlined, size: 18),
+                  label: const Text('Simpan Perubahan'),
+                ),
+              ],
+            );
+          },
         ),
       ],
     );

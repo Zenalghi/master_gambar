@@ -89,17 +89,19 @@ class SkrbRepository {
     return Map<String, dynamic>.from(response.data as Map);
   }
 
-  /// Update data inti SKRB (customer, kendaraan, jenis pengajuan) untuk Edit SKRB dialog.
+  /// Update data inti SKRB (customer, kendaraan, jenis pengajuan, nomor urut) untuk Edit SKRB dialog.
   Future<void> updateSkrbData(
     int skrbId, {
     int? customerId,
     int? masterDataId,
     int? jenisPengajuanId,
+    int? nomorUrutManual,
   }) async {
     final payload = <String, dynamic>{};
     if (customerId != null) payload['customer_id'] = customerId;
     if (masterDataId != null) payload['master_data_id'] = masterDataId;
     if (jenisPengajuanId != null) payload['jenis_pengajuan_id'] = jenisPengajuanId;
+    if (nomorUrutManual != null) payload['nomor_urut_manual'] = nomorUrutManual;
     await _dio.put('/skrbs/$skrbId', data: payload);
   }
 
