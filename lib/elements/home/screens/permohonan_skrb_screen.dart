@@ -38,10 +38,7 @@ class _PermohonanSkrbScreenState extends ConsumerState<PermohonanSkrbScreen> {
       _showSkrbCreatedSnackbar(newSkrb);
 
       ref.invalidate(skrbDetailProvider(newSkrb.id));
-      ref.read(pageStateProvider.notifier).state = PageState(
-        pageIndex: 3,
-        skrbId: newSkrb.id,
-      );
+      ref.read(pageStateProvider.notifier).state = PageState(pageIndex: 2);
     }
   }
 
@@ -53,7 +50,7 @@ class _PermohonanSkrbScreenState extends ConsumerState<PermohonanSkrbScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'SKRB ini sudah ada (${skrb.idSkrb}). Mengalihkan ke Detail SKRB.',
+            'SKRB ini sudah ada (${skrb.idSkrb}).',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           backgroundColor: Colors.blue.shade700,

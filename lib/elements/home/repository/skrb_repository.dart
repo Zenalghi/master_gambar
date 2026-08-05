@@ -29,6 +29,15 @@ class SkrbRepository {
         .toList();
   }
 
+  Future<Skrb?> getSkrbByTransaksi(String transaksiId) async {
+    final response = await _dio.get('/skrbs/by-transaksi/$transaksiId');
+    if (response.data is Map && (response.data as Map)['exists'] == true) {
+      final data = (response.data as Map)['data'] as Map<String, dynamic>;
+      return Skrb.fromJson(data);
+    }
+    return null;
+  }
+
   /// Cara 1: Buat SKRB dari ID Transaksi.
   /// Jika sudah ada SKRB untuk transaksi ini → response alreadyExists = true.
   Future<Skrb> createSkrbViaCara1(

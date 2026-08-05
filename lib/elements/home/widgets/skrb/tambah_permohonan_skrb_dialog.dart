@@ -2,16 +2,17 @@
 import 'dart:ui' show ImageFilter;
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:master_gambar/data/models/option_item.dart';
 import 'package:master_gambar/data/models/skrb.dart';
 import 'package:master_gambar/elements/home/providers/transaksi_providers.dart';
 import '../../providers/skrb_providers.dart';
 import '../../repository/skrb_repository.dart';
-import 'buat_skrb_dialog.dart';
 
 class TambahPermohonanSkrbDialog extends ConsumerStatefulWidget {
-  const TambahPermohonanSkrbDialog({super.key});
+  final String? initialTransaksiId;
+  const TambahPermohonanSkrbDialog({super.key, this.initialTransaksiId});
 
   @override
   ConsumerState<TambahPermohonanSkrbDialog> createState() =>
@@ -30,12 +31,28 @@ class _TambahPermohonanSkrbDialogState
 
   // Loading state global
   bool _isLoading = false;
+  bool _initialTransactionSet = false;
 
   // Controller untuk reset DropdownSearch secara manual
   final Key _customerDropdownKey = const ValueKey('customer_dialog_dd');
   final Key _kendaraanDropdownKey = const ValueKey('kendaraan_dialog_dd');
   final Key _pengajuanDropdownKey = const ValueKey('pengajuan_dialog_dd');
   final Key _transaksiDropdownKey = const ValueKey('transaksi_dialog_dd');
+
+  // --- Card 2: State Preview ID & Nomor Urut Manual ---
+  final TextEditingController _nomorController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  String? _previewIdSkrb;
+  bool _loadingPreview = false;
+  String? _previewError;
+  int? _currentPreviewCustomerId;
+
+  @override
+  void dispose() {
+    _nomorController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   /// Tombol aktif jika:
   /// - Cara 1: ada transaksi terpilih, ATAU
@@ -57,9 +74,85 @@ class _TambahPermohonanSkrbDialogState
   void _resetForm() {
     setState(() {
       _selectedTransaction = null;
-      _selectedCustomer = null;
       _selectedMasterData = null;
       _selectedJenisPengajuanId = null;
+      _nomorController.clear();
+      _updateCustomerAndLoadPreview(null);
+    });
+  }
+
+  void _updateCustomerAndLoadPreview(OptionItem? customer) {
+    if (customer == null) {
+      _selectedCustomer = null;
+      _previewIdSkrb = null;
+      _previewError = null;
+      _currentPreviewCustomerId = null;
+    } else {
+      _selectedCustomer = customer;
+      final newId = customer.id as int;
+      if (newId != _currentPreviewCustomerId) {
+        _currentPreviewCustomerId = newId;
+        _loadPreviewId(newId);
+      }
+    }
+  }
+
+  Future<void> _loadPreviewId(int customerId) async {
+    setState(() {
+      _loadingPreview = true;
+      _previewError = null;
+    });
+    try {
+      final repo = ref.read(skrbRepositoryProvider);
+      final result = await repo.getPreviewIdSkrb(customerId);
+      if (mounted && _currentPreviewCustomerId == customerId) {
+        setState(() {
+          _previewIdSkrb = result['preview_id_skrb'] as String?;
+          _loadingPreview = false;
+        });
+      }
+    } catch (e) {
+      if (mounted && _currentPreviewCustomerId == customerId) {
+        setState(() {
+          _previewError = e.toString();
+          _loadingPreview = false;
+        });
+      }
+    }
+  }
+
+  int? _parseNomor() {
+    final raw = _nomorController.text.trim();
+    if (raw.isEmpty) return null;
+    final val = int.tryParse(raw);
+    if (val == null || val < 1) return null;
+    return val;
+  }
+
+  void _onTransaksiChanged(SkrbAvailableTransaction? item) {
+    setState(() {
+      _selectedTransaction = item;
+      if (item != null) {
+        if (item.customerId != null && item.customerName.isNotEmpty) {
+          _updateCustomerAndLoadPreview(
+            OptionItem(id: item.customerId!, name: item.customerName),
+          );
+        } else {
+          _updateCustomerAndLoadPreview(null);
+        }
+
+        if (item.masterDataId != null) {
+          _selectedMasterData = OptionItem(
+            id: item.masterDataId!,
+            name:
+                '${item.typeEngine} / ${item.merk} / ${item.chassisDisplayName} / ${item.jenisKendaraan}',
+          );
+        } else {
+          _selectedMasterData = null;
+        }
+
+        _selectedJenisPengajuanId = item.jenisPengajuanId;
+      }
     });
   }
 
@@ -95,206 +188,134 @@ class _TambahPermohonanSkrbDialogState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Keterangan petunjuk
+              // --- Card 1: Data Inti SKRB ---
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer.withValues(alpha: 0.25),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: colorScheme.primary.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 20,
-                      color: colorScheme.primary,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Anda dapat memilih referensi ID DWG / Transaksi untuk mengisi data secara otomatis, atau melengkapi 3 kolom data inti secara mandiri.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 18),
-
-              // ── Opsi 1: Dropdown Helper TRANSAKSI (ID DWG / Customer) ──
-              const Text(
-                '1. Pilih dari Transaksi / ID DWG (Opsional - Auto Isi Data)',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 6),
-              availableAsync.when(
-                loading: () => const LinearProgressIndicator(),
-                error: (err, stack) => Text(
-                  'Error memuat transaksi: $err',
-                  style: const TextStyle(color: Colors.red, fontSize: 12),
-                ),
-                data: (list) => DropdownSearch<SkrbAvailableTransaction>(
-                  key: _transaksiDropdownKey,
-                  items: (String filter, _) {
-                    final query = filter.trim().toLowerCase();
-                    if (query.isEmpty) {
-                      return list.take(30).toList();
-                    }
-                    return list.where((item) {
-                      return item.id.toLowerCase().contains(query) ||
-                          item.customerName.toLowerCase().contains(query) ||
-                          item.merk.toLowerCase().contains(query) ||
-                          item.chassisDisplayName.toLowerCase().contains(query);
-                    }).toList();
-                  },
-                  itemAsString: (item) =>
-                      '${item.id} - ${item.customerName} (${item.merk} ${item.chassisDisplayName})',
-                  compareFn: (i1, i2) => i1.id == i2.id,
-                  selectedItem: _selectedTransaction,
-                  onChanged: (item) {
-                    setState(() {
-                      _selectedTransaction = item;
-                      if (item != null) {
-                        if (item.customerId != null &&
-                            item.customerName.isNotEmpty) {
-                          _selectedCustomer = OptionItem(
-                            id: item.customerId!,
-                            name: item.customerName,
-                          );
-                        } else {
-                          _selectedCustomer = null;
-                        }
-
-                        if (item.masterDataId != null) {
-                          _selectedMasterData = OptionItem(
-                            id: item.masterDataId!,
-                            name:
-                                '${item.typeEngine} / ${item.merk} / ${item.chassisDisplayName} / ${item.jenisKendaraan}',
-                          );
-                        } else {
-                          _selectedMasterData = null;
-                        }
-
-                        _selectedJenisPengajuanId = item.jenisPengajuanId;
-                      }
-                    });
-                  },
-                  decoratorProps: DropDownDecoratorProps(
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: 'Cari & pilih ID DWG / Customer...',
-                      hintStyle: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade500,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Keterangan petunjuk
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
                         vertical: 12,
                       ),
-                      prefixIcon: Icon(
-                        Icons.assignment_turned_in_outlined,
-                        size: 20,
-                        color: _isCara1 ? colorScheme.primary : Colors.grey,
-                      ),
-                    ),
-                  ),
-                  popupProps: PopupProps.menu(
-                    showSearchBox: true,
-                    searchFieldProps: const TextFieldProps(
-                      autofocus: true,
-                      decoration: InputDecoration(
-                        hintText: 'Ketik untuk mencari ID DWG / Customer...',
-                        hintStyle: TextStyle(fontSize: 13),
-                        prefixIcon: Icon(Icons.search, size: 20),
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer.withValues(
+                          alpha: 0.25,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: colorScheme.primary.withValues(alpha: 0.3),
                         ),
                       ),
-                    ),
-                    itemBuilder: (ctx, item, isSel, isDis) => ListTile(
-                      dense: true,
-                      title: Text(
-                        '${item.id} - ${item.customerName}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                      subtitle: Text(
-                        '${item.merk} ${item.chassisDisplayName} (${item.jenisKendaraan}) | ${item.jenisPengajuan}',
-                        style: const TextStyle(fontSize: 11),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // ── Divider & Opsi 2 ──
-              const Divider(),
-              const SizedBox(height: 10),
-              const Text(
-                '2. Data Inti SKRB (Wajib)',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-
-              // Baris untuk Customer & Jenis Pengajuan
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Customer (60% proporsi)
-                  Expanded(
-                    flex: 6,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Customer *',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 20,
+                            color: colorScheme.primary,
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        DropdownSearch<OptionItem>(
-                          key: _customerDropdownKey,
-                          items: (String filter, _) => ref.read(
-                            customerOptionsSearchProvider(filter).future,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Anda dapat memilih referensi ID DWG / Transaksi untuk mengisi data secara otomatis, atau melengkapi 3 kolom data inti secara mandiri.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
                           ),
-                          itemAsString: (item) => item.name,
-                          compareFn: (i1, i2) => i1.id == i2.id,
-                          selectedItem: _selectedCustomer,
-                          onChanged: (item) {
-                            setState(() {
-                              _selectedCustomer = item;
-                              _selectedTransaction = null;
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // ── Opsi 1: Dropdown Helper TRANSAKSI (ID DWG / Customer) ──
+                    const Text(
+                      '1. Pilih dari Transaksi / ID DWG (Opsional - Auto Isi Data)',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    availableAsync.when(
+                      loading: () => const LinearProgressIndicator(),
+                      error: (err, stack) => Text(
+                        'Error memuat transaksi: $err',
+                        style: const TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                      data: (list) {
+                        if (widget.initialTransaksiId != null &&
+                            !_initialTransactionSet &&
+                            _selectedTransaction == null) {
+                          _initialTransactionSet = true;
+                          final found = list
+                              .where((x) => x.id == widget.initialTransaksiId)
+                              .firstOrNull;
+                          if (found != null) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted && _selectedTransaction == null) {
+                                _onTransaksiChanged(found);
+                              }
                             });
+                          }
+                        }
+                        return DropdownSearch<SkrbAvailableTransaction>(
+                          key: _transaksiDropdownKey,
+                          items: (String filter, _) {
+                            final query = filter.trim().toLowerCase();
+                            if (query.isEmpty) {
+                              return list.take(30).toList();
+                            }
+                            return list.where((item) {
+                              return item.id.toLowerCase().contains(query) ||
+                                  item.customerName.toLowerCase().contains(
+                                    query,
+                                  ) ||
+                                  item.merk.toLowerCase().contains(query) ||
+                                  item.chassisDisplayName
+                                      .toLowerCase()
+                                      .contains(query);
+                            }).toList();
                           },
+                          itemAsString: (item) =>
+                              '${item.id} - ${item.customerName} (${item.merk} ${item.chassisDisplayName})',
+                          compareFn: (i1, i2) => i1.id == i2.id,
+                          selectedItem: _selectedTransaction,
+                          onChanged: _onTransaksiChanged,
                           decoratorProps: DropDownDecoratorProps(
                             decoration: InputDecoration(
                               isDense: true,
-                              hintText: 'Pilih Customer...',
+                              hintText: 'Cari & pilih ID DWG / Customer...',
+                              hintStyle: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey.shade500,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 12,
                                 vertical: 12,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.assignment_turned_in_outlined,
+                                size: 18,
+                                color: Colors.grey.shade600,
                               ),
                             ),
                           ),
@@ -303,7 +324,7 @@ class _TambahPermohonanSkrbDialogState
                             searchFieldProps: const TextFieldProps(
                               autofocus: true,
                               decoration: InputDecoration(
-                                hintText: 'Cari Customer...',
+                                hintText: 'Ketik untuk mencari ID DWG...',
                                 hintStyle: TextStyle(fontSize: 12),
                                 prefixIcon: Icon(Icons.search, size: 18),
                                 isDense: true,
@@ -316,337 +337,796 @@ class _TambahPermohonanSkrbDialogState
                             itemBuilder: (ctx, item, isSel, isDis) => Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
+                                vertical: 8,
                               ),
-                              height: 36,
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                item.name,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: isSel
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-
-                  // Jenis Pengajuan (40% proporsi)
-                  Expanded(
-                    flex: 4,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Jenis Pengajuan *',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        jenisPengajuanAsync.when(
-                          loading: () => const LinearProgressIndicator(),
-                          error: (e, _) => Text(
-                            'Error: $e',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Colors.red,
-                            ),
-                          ),
-                          data: (items) {
-                            final selectedItem = items
-                                .where((e) => e.id == _selectedJenisPengajuanId)
-                                .firstOrNull;
-                            return DropdownSearch<OptionItem>(
-                              key: _pengajuanDropdownKey,
-                              items: (filter, _) => items,
-                              itemAsString: (item) => item.name,
-                              compareFn: (i1, i2) => i1.id == i2.id,
-                              selectedItem: selectedItem,
-                              onChanged: (item) {
-                                setState(() {
-                                  _selectedJenisPengajuanId = item?.id as int?;
-                                  _selectedTransaction = null;
-                                });
-                              },
-                              decoratorProps: DropDownDecoratorProps(
-                                decoration: InputDecoration(
-                                  isDense: true,
-                                  hintText: 'Pilih Jenis...',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 12,
+                              decoration: BoxDecoration(
+                                color: isSel
+                                    ? colorScheme.primaryContainer.withValues(
+                                        alpha: 0.3,
+                                      )
+                                    : null,
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Colors.grey.shade100,
                                   ),
                                 ),
                               ),
-                              popupProps: PopupProps.menu(
-                                showSearchBox: false,
-                                fit: FlexFit.loose,
-                                constraints: const BoxConstraints(
-                                  maxHeight: 220,
-                                ),
-                                itemBuilder: (ctx, item, isSel, isDis) =>
-                                    Container(
-                                      height: 36,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                      ),
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        item.name,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        item.id,
                                         style: TextStyle(
+                                          fontWeight: FontWeight.bold,
                                           fontSize: 13,
-                                          fontWeight: isSel
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
+                                          color: colorScheme.primary,
                                         ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
                                       ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          item.customerName,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${item.typeEngine} | ${item.merk} | ${item.chassisDisplayName} | ${item.jenisKendaraan}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey.shade600,
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
                               ),
-                            );
-                          },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Divider Opsi 2
+                    Row(
+                      children: [
+                        Expanded(child: Divider(color: Colors.grey.shade300)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            'ATAU ISI KETIGA DROPDOWN DI BAWAH INI (MODE MANDIRI / TANPA ID DWG)',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                         ),
+                        Expanded(child: Divider(color: Colors.grey.shade300)),
                       ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-              // Pilih Kendaraan (Full width 900)
-              const Text(
-                'Pilih Kendaraan (Engine / Merk / Chassis) *',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 6),
-              DropdownSearch<OptionItem>(
-                key: _kendaraanDropdownKey,
-                items: (String filter, _) =>
-                    ref.read(transaksiMasterDataOptionsProvider(filter).future),
-                itemAsString: (item) => item.name,
-                compareFn: (i1, i2) => i1.id == i2.id,
-                selectedItem: _selectedMasterData,
-                onChanged: (item) {
-                  setState(() {
-                    _selectedMasterData = item;
-                    _selectedTransaction = null;
-                  });
-                },
-                decoratorProps: DropDownDecoratorProps(
-                  decoration: InputDecoration(
-                    isDense: true,
-                    hintText: 'Cari & pilih spesifikasi kendaraan...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-                popupProps: PopupProps.menu(
-                  showSearchBox: true,
-                  searchFieldProps: const TextFieldProps(
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      hintText: 'Cari Engine / Merk / Chassis...',
-                      hintStyle: TextStyle(fontSize: 12),
-                      prefixIcon: Icon(Icons.search, size: 18),
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
-                      ),
-                    ),
-                  ),
-                  itemBuilder: (ctx, item, isSel, isDis) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    height: 36,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      item.name,
+                    // ── Opsi 2: Data Inti SKRB (Wajib) ──
+                    const Text(
+                      '2. Data Inti SKRB (Wajib)',
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: FontWeight.bold,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
+                    const SizedBox(height: 10),
+
+                    // Baris: Customer + Jenis Pengajuan
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Customer (60% proporsi)
+                        Expanded(
+                          flex: 6,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Customer *',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              DropdownSearch<OptionItem>(
+                                key: _customerDropdownKey,
+                                items: (String filter, _) => ref.read(
+                                  customerOptionsSearchProvider(filter).future,
+                                ),
+                                itemAsString: (item) => item.name,
+                                compareFn: (i1, i2) => i1.id == i2.id,
+                                selectedItem: _selectedCustomer,
+                                onChanged: (item) {
+                                  setState(() {
+                                    _updateCustomerAndLoadPreview(item);
+                                    _selectedTransaction = null;
+                                  });
+                                },
+                                decoratorProps: DropDownDecoratorProps(
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    hintText: 'Pilih Customer...',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                ),
+                                popupProps: PopupProps.menu(
+                                  showSearchBox: true,
+                                  searchFieldProps: const TextFieldProps(
+                                    autofocus: true,
+                                    decoration: InputDecoration(
+                                      hintText: 'Cari Customer...',
+                                      hintStyle: TextStyle(fontSize: 12),
+                                      prefixIcon: Icon(Icons.search, size: 18),
+                                      isDense: true,
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 8,
+                                      ),
+                                    ),
+                                  ),
+                                  itemBuilder: (ctx, item, isSel, isDis) =>
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                        ),
+                                        height: 36,
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          item.name,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: isSel
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+
+                        // Jenis Pengajuan (40% proporsi)
+                        Expanded(
+                          flex: 4,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Jenis Pengajuan *',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              jenisPengajuanAsync.when(
+                                loading: () => const LinearProgressIndicator(),
+                                error: (e, _) => Text(
+                                  'Error: $e',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                                data: (items) {
+                                  final selectedItem = items
+                                      .where(
+                                        (e) =>
+                                            e.id == _selectedJenisPengajuanId,
+                                      )
+                                      .firstOrNull;
+                                  return DropdownSearch<OptionItem>(
+                                    key: _pengajuanDropdownKey,
+                                    items: (filter, _) => items,
+                                    itemAsString: (item) => item.name,
+                                    compareFn: (i1, i2) => i1.id == i2.id,
+                                    selectedItem: selectedItem,
+                                    onChanged: (item) {
+                                      setState(() {
+                                        _selectedJenisPengajuanId =
+                                            item?.id as int?;
+                                        _selectedTransaction = null;
+                                      });
+                                    },
+                                    decoratorProps: DropDownDecoratorProps(
+                                      decoration: InputDecoration(
+                                        isDense: true,
+                                        hintText: 'Pilih Jenis...',
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 12,
+                                            ),
+                                      ),
+                                    ),
+                                    popupProps: PopupProps.menu(
+                                      showSearchBox: false,
+                                      fit: FlexFit.loose,
+                                      constraints: const BoxConstraints(
+                                        maxHeight: 220,
+                                      ),
+                                      itemBuilder: (ctx, item, isSel, isDis) =>
+                                          Container(
+                                            height: 36,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                            ),
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(
+                                              item.name,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: isSel
+                                                    ? FontWeight.bold
+                                                    : FontWeight.normal,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Pilih Kendaraan (Full width 900)
+                    const Text(
+                      'Pilih Kendaraan (Engine / Merk / Chassis) *',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    DropdownSearch<OptionItem>(
+                      key: _kendaraanDropdownKey,
+                      items: (String filter, _) => ref.read(
+                        transaksiMasterDataOptionsProvider(filter).future,
+                      ),
+                      itemAsString: (item) => item.name,
+                      compareFn: (i1, i2) => i1.id == i2.id,
+                      selectedItem: _selectedMasterData,
+                      onChanged: (item) {
+                        setState(() {
+                          _selectedMasterData = item;
+                          _selectedTransaction = null;
+                        });
+                      },
+                      decoratorProps: DropDownDecoratorProps(
+                        decoration: InputDecoration(
+                          isDense: true,
+                          hintText: 'Cari & pilih spesifikasi kendaraan...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                      popupProps: PopupProps.menu(
+                        showSearchBox: true,
+                        searchFieldProps: const TextFieldProps(
+                          autofocus: true,
+                          decoration: InputDecoration(
+                            hintText: 'Cari Engine / Merk / Chassis...',
+                            hintStyle: TextStyle(fontSize: 12),
+                            prefixIcon: Icon(Icons.search, size: 18),
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 8,
+                            ),
+                          ),
+                        ),
+                        itemBuilder: (ctx, item, isSel, isDis) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          height: 36,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            item.name,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: isSel
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Info badge Mode Mandiri
+                    if (!_isCara1 && _canCreate)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.orange.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.info_outline,
+                              size: 16,
+                              color: Colors.orange,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Mode Mandiri aktif — Permohonan SKRB akan dibuat langsung tanpa tautan ID Transaksi (ID DWG = "-")',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.orange.shade800,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
 
-              // Info badge Mode Mandiri
-              if (!_isCara1 && _canCreate)
+              // --- Card 2: Konfirmasi ID SKRB & Pengaturan Nomor Urut (Muncul Dinamis) ---
+              if (_selectedCustomer != null) ...[
+                const SizedBox(height: 18),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
+                  padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    color: colorScheme.surfaceContainerLowest,
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Colors.orange.withValues(alpha: 0.4),
+                      color: colorScheme.primary.withValues(alpha: 0.35),
+                      width: 1.5,
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.info_outline,
-                        size: 16,
-                        color: Colors.orange,
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withValues(alpha: 0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Mode Mandiri aktif — Permohonan SKRB akan dibuat langsung tanpa tautan ID Transaksi (ID DWG = "-")',
-                          style: TextStyle(
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.assignment_add,
+                            color: colorScheme.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              'Konfirmasi ID SKRB & Pengaturan Nomor Urut',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          if (_isCara1)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.teal.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.link,
+                                    size: 14,
+                                    color: Colors.teal.shade800,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Terhubung ID DWG',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.teal.shade800,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.link_off,
+                                    size: 14,
+                                    color: Colors.orange,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Mode Mandiri (Tanpa ID DWG)',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.orange,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest.withValues(
+                            alpha: 0.5,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.business,
+                              size: 18,
+                              color: colorScheme.secondary,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _selectedCustomer!.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        'ID SKRB Sistem (otomatis):',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      if (_loadingPreview)
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Sedang memuat preview ID SKRB dari server...',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else if (_previewError != null)
+                        Text(
+                          'Gagal memuat preview: $_previewError',
+                          style: const TextStyle(
+                            color: Colors.red,
                             fontSize: 12,
-                            color: Colors.orange.shade800,
-                            fontWeight: FontWeight.w500,
+                          ),
+                        )
+                      else
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary.withValues(alpha: 0.06),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: colorScheme.primary.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.tag,
+                                size: 16,
+                                color: colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _previewIdSkrb ?? '-',
+                                  style: TextStyle(
+                                    fontFamily: 'monospace',
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      const SizedBox(height: 14),
+                      const Divider(height: 1),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.edit_note,
+                            size: 18,
+                            color: colorScheme.secondary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Atau masukkan nomor urut manual (Opsional):',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _nomorController,
+                        focusNode: _focusNode,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          hintText: 'Contoh: 03',
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 12,
+                          ),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: colorScheme.primary,
+                              width: 1.5,
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
+              ],
             ],
           ),
         ),
       ),
       actions: [
-        Row(
-          children: [
-            TextButton.icon(
-              onPressed: _isLoading ? null : () => _resetForm(),
-              icon: const Icon(Icons.refresh, size: 16),
-              label: const Text('Reset'),
-            ),
-            const Spacer(),
-            TextButton(
-              onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-              child: const Text('Batal'),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton.icon(
-              icon: _isLoading
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+        Builder(
+          builder: (ctx) {
+            final isManualSet =
+                _nomorController.text.trim().isNotEmpty &&
+                _parseNomor() != null;
+            return Row(
+              children: [
+                TextButton.icon(
+                  onPressed: _isLoading ? null : () => _resetForm(),
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('Reset'),
+                ),
+                const Spacer(),
+                if (isManualSet) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.amber.shade700.withValues(alpha: 0.5),
                       ),
-                    )
-                  : const Icon(Icons.check, size: 18),
-              label: Text(
-                _isCara1 ? 'Buat dari ID DWG' : 'Buat SKRB Baru',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 14,
+                          color: Colors.amber.shade900,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'menggunakan nomor urut manual (${_nomorController.text.trim().padLeft(2, '0')})',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.amber.shade900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                TextButton(
+                  onPressed: _isLoading
+                      ? null
+                      : () => Navigator.of(context).pop(),
+                  child: const Text('Batal'),
                 ),
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  icon: _isLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.check, size: 18),
+                  label: Text(
+                    _isCara1 ? 'Buat Permohonan' : 'Buat Permohonan',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    backgroundColor: _isCara1 ? Colors.teal : Colors.deepOrange,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: (!_canCreate || _isLoading)
+                      ? null
+                      : () => _handleCreateSkrb(),
                 ),
-                backgroundColor: _isCara1 ? Colors.teal : Colors.deepOrange,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onPressed: (!_canCreate || _isLoading)
-                  ? null
-                  : () => _handleCreateSkrb(),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ],
     );
   }
 
   Future<void> _handleCreateSkrb() async {
-    final int customerId;
-    final String customerName;
+    int? nomorManual;
+    if (_nomorController.text.trim().isNotEmpty) {
+      nomorManual = _parseNomor();
+      if (nomorManual == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Masukkan nomor urut manual yang valid (angka, minimal 1)',
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+    }
 
     if (_isCara1) {
-      _handleCara1Direct();
-      return;
+      await _executeCreateCara1(nomorUrutManual: nomorManual);
     } else {
-      customerId = _selectedCustomer!.id as int;
-      customerName = _selectedCustomer!.name;
+      await _executeCreateCara2(nomorUrutManual: nomorManual);
     }
-
-    final result = await showDialog<BuatSkrbDialogResult>(
-      context: context,
-      builder: (_) => BuatSkrbDialog(
-        customerId: customerId,
-        customerName: customerName,
-        caraDua_merk: _selectedMasterData?.name,
-        caraDua_jenisPengajuan: ref
-            .read(jenisPengajuanOptionsProvider)
-            .asData
-            ?.value
-            .where((e) => e.id == _selectedJenisPengajuanId)
-            .firstOrNull
-            ?.name,
-      ),
-    );
-    if (result == null || !mounted) {
-      return;
-    }
-
-    await _executeCreateCara2(
-      nomorUrutManual: result.useManual ? result.nomorUrutManual : null,
-    );
   }
 
-  Future<void> _handleCara1Direct() async {
+  Future<void> _executeCreateCara1({int? nomorUrutManual}) async {
     if (_selectedTransaction == null) {
-      return;
-    }
-
-    final shouldProceed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        title: const Text('Konfirmasi', style: TextStyle(fontSize: 16)),
-        content: Text(
-          'Buat Permohonan SKRB untuk:\nID DWG: ${_selectedTransaction!.id}\nCustomer: ${_selectedTransaction!.customerName}\n\nID SKRB akan diatur otomatis oleh sistem.',
-          style: const TextStyle(fontSize: 13),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Batal'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Lanjutkan'),
-          ),
-        ],
-      ),
-    );
-    if (shouldProceed != true || !mounted) {
       return;
     }
 
@@ -657,6 +1137,7 @@ class _TambahPermohonanSkrbDialogState
       final repository = ref.read(skrbRepositoryProvider);
       final newSkrb = await repository.createSkrbViaCara1(
         _selectedTransaction!.id,
+        nomorUrutManual: nomorUrutManual,
       );
 
       if (mounted) {
@@ -668,10 +1149,20 @@ class _TambahPermohonanSkrbDialogState
     } catch (e) {
       if (mounted) {
         Navigator.of(context).pop(); // Tutup loading dialog
+        final msg = e.toString();
+        final isDuplicateId =
+            msg.toLowerCase().contains('sudah digunakan') ||
+            msg.toLowerCase().contains('duplicate') ||
+            msg.toLowerCase().contains('unique');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal membuat SKRB: $e'),
-            backgroundColor: Colors.red,
+            content: Text(
+              isDuplicateId ? '⚠️ $msg' : 'Gagal membuat SKRB: $msg',
+            ),
+            backgroundColor: isDuplicateId
+                ? Colors.orange.shade800
+                : Colors.red,
+            duration: Duration(seconds: isDuplicateId ? 5 : 3),
           ),
         );
       }
