@@ -128,7 +128,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   versionAsync.when(
                     data: (packageInfo) {
                       return Text(
-                        'Versi ${packageInfo.version} (${packageInfo.buildNumber})',
+                        'Versi ${packageInfo.version}', //(${packageInfo.buildNumber})
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       );

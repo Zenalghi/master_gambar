@@ -30,7 +30,6 @@ class DetailSkrbGambarSection extends ConsumerStatefulWidget {
 class _DetailSkrbGambarSectionState
     extends ConsumerState<DetailSkrbGambarSection> {
   final List<Map<String, dynamic>> _localList = [];
-  final List<TextEditingController> _controllers = [];
   List<Map<String, dynamic>>? _undoBackup;
   Timer? _debounce;
   bool _isUpdating = false;
@@ -93,18 +92,11 @@ class _DetailSkrbGambarSectionState
 
   void _initFromSkrb() {
     _undoBackup = null;
-    for (var c in _controllers) {
-      c.dispose();
-    }
-    _controllers.clear();
     _localList.clear();
 
     final items = _extractFromSkrb(widget.skrb);
     for (var item in items) {
       _localList.add(Map<String, dynamic>.from(item));
-      _controllers.add(
-        TextEditingController(text: item['varian'] as String? ?? ''),
-      );
     }
   }
 
@@ -158,7 +150,6 @@ class _DetailSkrbGambarSectionState
       'judul_id': null,
       'varian_id': null,
     });
-    _controllers.add(TextEditingController());
     setState(() {});
     _sendUpdateToServer();
   }
@@ -168,8 +159,6 @@ class _DetailSkrbGambarSectionState
     _undoBackup ??= _localList
         .map((e) => Map<String, dynamic>.from(e))
         .toList();
-    _controllers[index].dispose();
-    _controllers.removeAt(index);
     _localList.removeAt(index);
     _reindexKeys();
     setState(() {});
@@ -178,14 +167,9 @@ class _DetailSkrbGambarSectionState
 
   void _undoDelete() {
     if (_undoBackup == null || widget.isLocked) return;
-    for (var c in _controllers) {
-      c.dispose();
-    }
-    _controllers.clear();
     _localList.clear();
     for (var item in _undoBackup!) {
       _localList.add(Map<String, dynamic>.from(item));
-      _controllers.add(TextEditingController(text: '${item['varian'] ?? ''}'));
     }
     _undoBackup = null;
     setState(() {});
@@ -195,9 +179,6 @@ class _DetailSkrbGambarSectionState
   @override
   void dispose() {
     _debounce?.cancel();
-    for (var c in _controllers) {
-      c.dispose();
-    }
     super.dispose();
   }
 
@@ -205,6 +186,13 @@ class _DetailSkrbGambarSectionState
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final judulOptions = ref.watch(judulGambarOptionsProvider);
+    final defaultParams = VarianFilterParams(
+      search: '',
+      masterDataId: widget.skrb.masterDataId,
+    );
+    final varianBodyOptionsAsync = ref.watch(
+      varianBodyStatusOptionsProvider(defaultParams),
+    );
 
     return Container(
       margin: const EdgeInsets.only(left: 0, right: 0, top: 2, bottom: 8),
@@ -415,35 +403,143 @@ class _DetailSkrbGambarSectionState
                       ignoring: widget.isLocked,
                       child: Opacity(
                         opacity: widget.isLocked ? 0.6 : 1.0,
-                        child: TextField(
-                          controller: _controllers[i],
-                          minLines: 1,
-                          maxLines: 2,
-                          style: const TextStyle(fontSize: 13),
-                          decoration: const InputDecoration(
-                            isDense: true,
-                            hintText: 'Ketik Nama Varian Body...',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 9,
-                            ),
-                          ),
-                          onChanged: (val) {
-                            if (_undoBackup == null) {
-                              _undoBackup = _localList
-                                  .map((e) => Map<String, dynamic>.from(e))
-                                  .toList();
-                              setState(() {});
+                        child: varianBodyOptionsAsync.when(
+                          skipLoadingOnRefresh: false,
+                          data: (defaultItems) {
+                            OptionItem? selectedOption = defaultItems
+                                .where((e) => e.id == _localList[i]['varian_id'])
+                                .firstOrNull;
+                            if (selectedOption == null && _localList[i]['varian'] != null && (_localList[i]['varian'] as String).isNotEmpty) {
+                              selectedOption = defaultItems
+                                  .where((e) => e.name == _localList[i]['varian'])
+                                  .firstOrNull;
                             }
-                            _lastActionTime = DateTime.now();
-                            _localList[i]['varian'] = val;
-                            _debounce?.cancel();
-                            _debounce = Timer(
-                              const Duration(milliseconds: 600),
-                              _sendUpdateToServer,
+
+                            return DropdownSearch<OptionItem>(
+                              items: (String filter, _) {
+                                final params = VarianFilterParams(
+                                  search: filter,
+                                  masterDataId: widget.skrb.masterDataId,
+                                );
+                                return ref.read(
+                                  varianBodyStatusOptionsProvider(params).future,
+                                );
+                              },
+                              itemAsString: (OptionItem item) => item.name,
+                              compareFn: (i1, i2) => i1.id == i2.id,
+                              selectedItem: selectedOption,
+                              onChanged: (OptionItem? item) {
+                                if (_undoBackup == null) {
+                                  _undoBackup = _localList
+                                      .map((e) => Map<String, dynamic>.from(e))
+                                      .toList();
+                                }
+                                _lastActionTime = DateTime.now();
+                                setState(() {
+                                  _localList[i]['varian_id'] = item?.id;
+                                  _localList[i]['varian'] = item?.name ?? '';
+                                });
+                                _debounce?.cancel();
+                                _debounce = Timer(
+                                  const Duration(milliseconds: 600),
+                                  _sendUpdateToServer,
+                                );
+                              },
+                              decoratorProps: const DropDownDecoratorProps(
+                                baseStyle: TextStyle(fontSize: 13, height: 1.0),
+                                decoration: InputDecoration(
+                                  constraints: BoxConstraints(maxHeight: 42),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    vertical: 0,
+                                    horizontal: 10,
+                                  ),
+                                  labelStyle: TextStyle(fontSize: 12),
+                                  border: OutlineInputBorder(),
+                                  hintText: 'Pilih Varian Body...',
+                                ),
+                              ),
+                              popupProps: PopupProps.menu(
+                                showSearchBox: true,
+                                searchFieldProps: const TextFieldProps(
+                                  autofocus: true,
+                                  style: TextStyle(fontSize: 13, height: 1.0),
+                                  decoration: InputDecoration(
+                                    constraints: BoxConstraints(maxHeight: 42),
+                                    contentPadding: EdgeInsets.symmetric(
+                                      vertical: 0,
+                                      horizontal: 10,
+                                    ),
+                                    hintStyle: TextStyle(fontSize: 13, height: 1.0),
+                                    hintText: "Cari Varian Body...",
+                                    prefixIcon: Icon(Icons.search),
+                                  ),
+                                ),
+                                itemBuilder: (context, item, isSelected, isDisabled) {
+                                  final hasGambar = item.hasGambar;
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 0,
+                                    ),
+                                    height: 30,
+                                    alignment: Alignment.centerLeft,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            item.name,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              height: 1.0,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.bold
+                                                  : (hasGambar
+                                                        ? FontWeight.normal
+                                                        : FontWeight.bold),
+                                              color: hasGambar
+                                                  ? (isSelected
+                                                        ? scheme.primary
+                                                        : scheme.onSurface)
+                                                  : scheme.error,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        hasGambar
+                                            ? Icon(
+                                                Icons.check_circle,
+                                                color: scheme.tertiary,
+                                                size: 14,
+                                              )
+                                            : Text(
+                                                "Belum Upload",
+                                                style: TextStyle(
+                                                  color: scheme.error,
+                                                  fontSize: 10,
+                                                ),
+                                              ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
                             );
                           },
+                          loading: () => const SizedBox(
+                            height: 42,
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                          error: (err, stack) => SizedBox(
+                            height: 42,
+                            child: Center(
+                              child: Text(
+                                'Error Varian',
+                                style: TextStyle(color: scheme.error),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),

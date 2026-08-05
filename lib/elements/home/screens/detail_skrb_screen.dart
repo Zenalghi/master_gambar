@@ -94,6 +94,18 @@ class _DetailSkrbScreenState extends ConsumerState<DetailSkrbScreen> {
   final List<PdfController> _pdfControllers = [];
   String? _currentPreviewKey;
   bool _hasTriggeredBackgroundGambar = false;
+  bool _hasAutoLoadedPreview = false;
+  int? _lastLoadedSkrbId;
+
+  @override
+  void didUpdateWidget(covariant DetailSkrbScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.skrbId != widget.skrbId) {
+      _hasTriggeredBackgroundGambar = false;
+      _hasAutoLoadedPreview = false;
+      _lastLoadedSkrbId = null;
+    }
+  }
 
   void _checkAndTriggerBackgroundGambar(Skrb skrb) {
     if (_hasTriggeredBackgroundGambar) return;
@@ -197,6 +209,19 @@ class _DetailSkrbScreenState extends ConsumerState<DetailSkrbScreen> {
     if (widget.skrbId != null) {
       ref.watch(skrbDetailProvider(widget.skrbId!)).whenData((skrb) {
         _checkAndTriggerBackgroundGambar(skrb);
+        if (!_hasAutoLoadedPreview && skrb.id > 0 && _lastLoadedSkrbId != skrb.id) {
+          _hasAutoLoadedPreview = true;
+          _lastLoadedSkrbId = skrb.id;
+          Future.microtask(() {
+            if (mounted) {
+              final docItems = DocItem.buildList(skrb);
+              final itemNo1 = docItems.where((d) => d.key == '1').firstOrNull;
+              if (itemNo1 != null) {
+                _handlePreviewPdf(skrb, itemNo1);
+              }
+            }
+          });
+        }
       });
     }
 
@@ -520,21 +545,6 @@ class _DetailSkrbScreenState extends ConsumerState<DetailSkrbScreen> {
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           backgroundColor: Colors.orange,
-          duration: Duration(seconds: 4),
-        ),
-      );
-      return;
-    }
-
-    final isExpired = skrb.statusTdp.toLowerCase().contains('exp');
-    if (isExpired) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Dokumen TDP sudah Expired. Hubungi Admin',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          backgroundColor: Colors.red,
           duration: Duration(seconds: 4),
         ),
       );

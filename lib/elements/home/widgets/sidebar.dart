@@ -1,7 +1,9 @@
 // File: lib/elements/home/widgets/sidebar.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:master_gambar/elements/auth/presentation/auth_provider.dart';
 
-class Sidebar extends StatelessWidget {
+class Sidebar extends ConsumerWidget {
   final int selectedIndex;
   final Function(int) onItemSelected;
 
@@ -12,10 +14,11 @@ class Sidebar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final selectedColor = theme.colorScheme.primary;
     final unselectedColor = theme.colorScheme.onSurface.withValues(alpha: 0.64);
+    final versionAsync = ref.watch(packageInfoProvider);
 
     return Container(
       width: 86,
@@ -60,6 +63,22 @@ class Sidebar extends StatelessWidget {
             selectedColor: selectedColor,
             unselectedColor: unselectedColor,
             enabled: true,
+          ),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: versionAsync.when(
+              data: (packageInfo) => Text(
+                'v${packageInfo.version}', //+${packageInfo.buildNumber}
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w500,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.25),
+                ),
+              ),
+              loading: () => const SizedBox.shrink(),
+              error: (err, stack) => const SizedBox.shrink(),
+            ),
           ),
         ],
       ),
