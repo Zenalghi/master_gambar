@@ -1,5 +1,6 @@
 // lib/admin/master/repository/master_data_repository.dart
 
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
@@ -553,6 +554,82 @@ class MasterDataRepository {
     return data.map((e) => OptionItem.fromJson(e, nameKey: 'name')).toList();
   }
 
+  // --- EXPORT MASTER VARIAN KE EXCEL ---
+  Future<String?> exportMasterVarianExcel() async {
+    final now = DateTime.now();
+    final timeStr =
+        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
+    final String? outputPath = await FilePicker.platform.saveFile(
+      dialogTitle: 'Simpan Export Excel Master Varian Body...',
+      fileName: 'Master_Varian_Body_$timeStr.xlsx',
+      allowedExtensions: ['xlsx'],
+      type: FileType.custom,
+    );
+
+    if (outputPath == null) {
+      return null;
+    }
+
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          '/admin/master-varian/export-excel',
+          options: Options(
+            responseType: ResponseType.bytes,
+            receiveTimeout: const Duration(minutes: 5),
+          ),
+        );
+
+    await File(outputPath).writeAsBytes(response.data);
+    return outputPath;
+  }
+
+  // --- IMPORT MASTER VARIAN DARI EXCEL ---
+  Future<Map<String, dynamic>?> importMasterVarianExcel() async {
+    final result = await FilePicker.platform.pickFiles(
+      dialogTitle: 'Pilih File Excel / CSV untuk Diimport...',
+      type: FileType.custom,
+      allowedExtensions: ['xlsx', 'xls', 'csv'],
+      withData: true,
+    );
+
+    if (result == null || result.files.isEmpty) {
+      return null;
+    }
+
+    final file = result.files.single;
+    final Uint8List? bytes =
+        file.bytes ?? (file.path != null ? await File(file.path!).readAsBytes() : null);
+
+    if (bytes == null) {
+      throw Exception('Gagal membaca data file Excel.');
+    }
+
+    final formData = FormData.fromMap({
+      'file': MultipartFile.fromBytes(
+        bytes,
+        filename: file.name,
+        contentType: file.name.endsWith('.csv')
+            ? MediaType('text', 'csv')
+            : MediaType('application', 'vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+      ),
+    });
+
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .post(
+          '/admin/master-varian/import-excel',
+          data: formData,
+          options: Options(
+            receiveTimeout: const Duration(minutes: 5),
+          ),
+        );
+
+    return response.data as Map<String, dynamic>;
+  }
+
   // --- RECYCLE BIN MASTER VARIAN ---
   Future<List<MasterVarian>> getDeletedMasterVarians({
     String search = '',
@@ -653,6 +730,82 @@ class MasterDataRepository {
 
   Future<void> deleteVarianBody({required int id}) async {
     await _ref.read(apiClientProvider).dio.delete('/varian-body/$id');
+  }
+
+  // --- EXPORT VARIAN BODY KE EXCEL ---
+  Future<String?> exportVarianBodyExcel() async {
+    final now = DateTime.now();
+    final timeStr =
+        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
+    final String? outputPath = await FilePicker.platform.saveFile(
+      dialogTitle: 'Simpan Export Excel Varian Body...',
+      fileName: 'Varian_Body_Utama_$timeStr.xlsx',
+      allowedExtensions: ['xlsx'],
+      type: FileType.custom,
+    );
+
+    if (outputPath == null) {
+      return null;
+    }
+
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .get(
+          '/admin/varian-body/export-excel',
+          options: Options(
+            responseType: ResponseType.bytes,
+            receiveTimeout: const Duration(minutes: 5),
+          ),
+        );
+
+    await File(outputPath).writeAsBytes(response.data);
+    return outputPath;
+  }
+
+  // --- IMPORT VARIAN BODY DARI EXCEL ---
+  Future<Map<String, dynamic>?> importVarianBodyExcel() async {
+    final result = await FilePicker.platform.pickFiles(
+      dialogTitle: 'Pilih File Excel / CSV Varian Body untuk Diimport...',
+      type: FileType.custom,
+      allowedExtensions: ['xlsx', 'xls', 'csv'],
+      withData: true,
+    );
+
+    if (result == null || result.files.isEmpty) {
+      return null;
+    }
+
+    final file = result.files.single;
+    final Uint8List? bytes =
+        file.bytes ?? (file.path != null ? await File(file.path!).readAsBytes() : null);
+
+    if (bytes == null) {
+      throw Exception('Gagal membaca data file Excel.');
+    }
+
+    final formData = FormData.fromMap({
+      'file': MultipartFile.fromBytes(
+        bytes,
+        filename: file.name,
+        contentType: file.name.endsWith('.csv')
+            ? MediaType('text', 'csv')
+            : MediaType('application', 'vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+      ),
+    });
+
+    final response = await _ref
+        .read(apiClientProvider)
+        .dio
+        .post(
+          '/admin/varian-body/import-excel',
+          data: formData,
+          options: Options(
+            receiveTimeout: const Duration(minutes: 5),
+          ),
+        );
+
+    return response.data as Map<String, dynamic>;
   }
 
   Future<List<VarianBody>> getDeletedVarianBodies({String search = ''}) async {
