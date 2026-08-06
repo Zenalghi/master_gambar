@@ -167,7 +167,7 @@ class _AddMasterVarianFormState extends ConsumerState<AddMasterVarianForm> {
                 flex: 3,
                 child: TextFormField(
                   controller: _namaVarianController,
-                  textCapitalization: TextCapitalization.characters,
+                  // textCapitalization: TextCapitalization.characters,
                   style: const TextStyle(fontSize: 14),
                   decoration: const InputDecoration(
                     labelStyle: TextStyle(fontSize: 14),

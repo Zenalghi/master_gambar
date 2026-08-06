@@ -257,7 +257,7 @@ class _EditTypeChassisDialogState extends ConsumerState<EditTypeChassisDialog> {
               const SizedBox(height: 15),
               TextFormField(
                 controller: _jenisTipeController,
-                textCapitalization: TextCapitalization.words,
+                // textCapitalization: TextCapitalization.words,
                 decoration: const InputDecoration(
                   labelText: 'Jenis Tipe (Opsional)',
                 ),

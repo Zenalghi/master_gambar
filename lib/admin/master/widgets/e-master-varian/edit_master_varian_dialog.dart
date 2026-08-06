@@ -124,7 +124,7 @@ class _EditMasterVarianDialogState
               const SizedBox(height: 16),
               TextFormField(
                 controller: _namaVarianController,
-                textCapitalization: TextCapitalization.characters,
+                // textCapitalization: TextCapitalization.characters,
                 decoration: const InputDecoration(
                   labelText: 'Nama Varian',
                   border: OutlineInputBorder(),

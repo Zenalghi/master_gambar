@@ -191,7 +191,7 @@ class _EditVarianBodyDialogState extends ConsumerState<EditVarianBodyDialog> {
                 // 2. Input Nama Varian
                 TextFormField(
                   controller: _varianController,
-                  textCapitalization: TextCapitalization.characters,
+                  // textCapitalization: TextCapitalization.characters,
                   decoration: const InputDecoration(
                     labelText: 'Nama Varian Body',
                     border: OutlineInputBorder(),
