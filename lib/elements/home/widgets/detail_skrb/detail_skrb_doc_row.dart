@@ -9,6 +9,7 @@ import 'doc_item.dart';
 import 'detail_skrb_tdp_status.dart';
 import 'detail_skrb_gambar_section.dart';
 import 'detail_skrb_foto_copy_card.dart';
+import 'detail_skrb_manual_section.dart';
 
 class DetailSkrbDocRow extends ConsumerWidget {
   final Skrb skrb;
@@ -95,6 +96,42 @@ class DetailSkrbDocRow extends ConsumerWidget {
             ),
           );
         }
+      }
+    }
+  }
+
+  Future<void> _togglePermohonanManual(
+    BuildContext context,
+    WidgetRef ref,
+    bool targetValue,
+  ) async {
+    try {
+      final repo = ref.read(skrbRepositoryProvider);
+      await repo.updatePermohonanManualMode(skrb.id, targetValue);
+      ref.invalidate(skrbDetailProvider(skrb.id));
+      onLiveUpdate?.call();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              targetValue
+                  ? 'Mode Permohonan Manual AKTIF'
+                  : 'Mode Permohonan Manual NON-AKTIF (Kembali ke Auto)',
+            ),
+            backgroundColor: targetValue
+                ? Colors.orange.shade700
+                : Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal mengubah mode permohonan manual: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -350,6 +387,113 @@ class DetailSkrbDocRow extends ConsumerWidget {
                             ),
                           if (item.key == '1' && !isLocked) ...[
                             const SizedBox(width: 4),
+                            Builder(
+                              builder: (context) {
+                                final isDark =
+                                    Theme.of(context).brightness ==
+                                    Brightness.dark;
+                                final scheme = Theme.of(context).colorScheme;
+                                final isManual =
+                                    skrb.snapshotDocuments['is_permohonan_manual'] ==
+                                        true ||
+                                    skrb.snapshotDocuments['is_permohonan_manual'] ==
+                                        'true' ||
+                                    skrb.snapshotDocuments['is_permohonan_manual'] ==
+                                        1 ||
+                                    skrb.snapshotDocuments['is_permohonan_manual'] ==
+                                        '1';
+                                return Tooltip(
+                                  message: isManual
+                                      ? 'Mode Permohonan Manual AKTIF.\nKlik untuk mematikan (kembali ke Auto).'
+                                      : 'Mode Permohonan Manual NON-AKTIF (Auto).\nKlik untuk mengaktifkan kustomisasi teks.',
+                                  child: OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
+                                      textStyle: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      foregroundColor: isManual
+                                          ? (isDark
+                                                ? Colors.teal.shade200
+                                                : Colors.teal.shade900)
+                                          : scheme.primary,
+                                      backgroundColor: isManual
+                                          ? (isDark
+                                                ? Colors.teal.shade900
+                                                      .withAlpha(80)
+                                                : Colors.teal.shade100
+                                                      .withAlpha(160))
+                                          : null,
+                                      side: BorderSide(
+                                        color: isManual
+                                            ? (isDark
+                                                  ? Colors.teal.shade400
+                                                  : Colors.teal.shade700)
+                                            : scheme.primary,
+                                        width: isManual ? 1.4 : 1.2,
+                                      ),
+                                    ),
+                                    icon: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 7,
+                                          height: 7,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: isManual
+                                                ? (isDark
+                                                      ? const Color(0xFF00E676)
+                                                      : const Color(0xFF00C853))
+                                                : (isDark
+                                                      ? Colors.grey.shade600
+                                                      : Colors.grey.shade400),
+                                            boxShadow: isManual
+                                                ? [
+                                                    BoxShadow(
+                                                      color:
+                                                          (isDark
+                                                                  ? const Color(
+                                                                      0xFF00E676,
+                                                                    )
+                                                                  : const Color(
+                                                                      0xFF00C853,
+                                                                    ))
+                                                              .withAlpha(180),
+                                                      blurRadius: 5,
+                                                      spreadRadius: 1,
+                                                    ),
+                                                  ]
+                                                : [],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 5),
+                                        Icon(
+                                          isManual
+                                              ? Icons.power_settings_new
+                                              : Icons
+                                                    .power_settings_new_outlined,
+                                          size: 13,
+                                        ),
+                                      ],
+                                    ),
+                                    label: const Text('Permohonan Manual'),
+                                    onPressed: isProcessing
+                                        ? null
+                                        : () => _togglePermohonanManual(
+                                            context,
+                                            ref,
+                                            !isManual,
+                                          ),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 4),
                             Tooltip(
                               message:
                                   'Ganti Tanggal Surat Permohonan\nSaat ini: ${skrb.tanggalPermohonan != null ? formatTanggalIndonesia(skrb.tanggalPermohonan) : "Default (Hari Ini)"}',
@@ -402,15 +546,28 @@ class DetailSkrbDocRow extends ConsumerWidget {
     );
 
     if (item.key == '1') {
+      final isManual =
+          skrb.snapshotDocuments['is_permohonan_manual'] == true ||
+          skrb.snapshotDocuments['is_permohonan_manual'] == 'true' ||
+          skrb.snapshotDocuments['is_permohonan_manual'] == 1 ||
+          skrb.snapshotDocuments['is_permohonan_manual'] == '1';
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           rowContent,
-          DetailSkrbGambarSection(
-            skrb: skrb,
-            isLocked: isLocked,
-            onLiveUpdate: onLiveUpdate ?? () {},
-          ),
+          if (isManual)
+            DetailSkrbManualSection(
+              skrb: skrb,
+              isLocked: isLocked,
+              onLiveUpdate: onLiveUpdate ?? () {},
+            )
+          else
+            DetailSkrbGambarSection(
+              skrb: skrb,
+              isLocked: isLocked,
+              onLiveUpdate: onLiveUpdate ?? () {},
+            ),
           DetailSkrbFotoCopyCard(
             skrb: skrb,
             isLocked: isLocked,

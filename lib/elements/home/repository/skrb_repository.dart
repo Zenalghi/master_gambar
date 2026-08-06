@@ -145,6 +145,28 @@ class SkrbRepository {
     await _dio.put('/skrbs/$skrbId', data: {'gambar_utama_list': gambarUtamaList});
   }
 
+  Future<void> updatePermohonanManualMode(
+    int skrbId,
+    bool isManual,
+  ) async {
+    await _dio.put('/skrbs/$skrbId', data: {'is_permohonan_manual': isManual});
+  }
+
+  Future<void> updatePermohonanManualSpecs(
+    int skrbId, {
+    required String manualMerkTipe,
+    required String manualJenis,
+    required String manualPeruntukan,
+    required List<Map<String, dynamic>> gambarUtamaList,
+  }) async {
+    await _dio.put('/skrbs/$skrbId', data: {
+      'manual_merk_tipe': manualMerkTipe,
+      'manual_jenis': manualJenis,
+      'manual_peruntukan': manualPeruntukan,
+      'manual_gambar_list': gambarUtamaList,
+    });
+  }
+
   Future<void> updateFotoCopySkrb(int skrbId, String? fotoCopySkrb) async {
     await _dio.put('/skrbs/$skrbId', data: {'foto_copy_skrb': fotoCopySkrb ?? ''});
   }
